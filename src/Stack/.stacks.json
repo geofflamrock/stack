@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "Git runbooks extensibility API",
+    "RemoteUri": "https://github.com/geofflamrock/stack.git",
+    "SourceBranch": "main",
+    "Branches": [
+      {
+        "Name": "geoffl/testtesttest",
+        "Branches": []
+      },
+      {
+        "Name": "geoffl/test3",
+        "Branches": []
+      }
+    ]
+  }
+]
