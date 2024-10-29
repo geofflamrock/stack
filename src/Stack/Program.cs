@@ -226,14 +226,13 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
         {
-            GitOperations.ExecuteGitCommand($"fetch origin {stack.SourceBranch}");
-
             void MergeFromSourceBranch(StackBranch branch, string sourceBranchName)
             {
                 AnsiConsole.WriteLine($"Merging {sourceBranchName} into {branch.Name}");
 
-                GitOperations.ExecuteGitCommand($"checkout {branch.Name}");
-                GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
+                GitOperations.ExecuteGitCommand($"fetch origin {sourceBranchName}");
+                GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName} {branch.Name}");
+                GitOperations.ExecuteGitCommand($"push origin {branch.Name}");
 
                 foreach (var childBranch in branch.Branches)
                 {
@@ -314,6 +313,8 @@ static class GitOperations
     {
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
+
+        AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
         var result = ShellExecutor.ExecuteCommand(
             "git",
