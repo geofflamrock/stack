@@ -221,7 +221,8 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 sourceBranch = branch;
             }
 
-            if (stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+            if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
+                stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
                 GitOperations.ChangeBranch(currentBranch);
             }
