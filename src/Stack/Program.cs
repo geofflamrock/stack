@@ -233,7 +233,7 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 GitOperations.ExecuteGitCommand($"fetch origin {sourceBranchName}");
                 GitOperations.ExecuteGitCommand($"checkout {branch.Name}");
                 GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
-                GitOperations.ExecuteGitCommand($"push origin {branch.Name}");
+                GitOperations.ExecuteGitCommand($"push origin {branch.Name}"); //test
 
                 foreach (var childBranch in branch.Branches)
                 {
