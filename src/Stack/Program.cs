@@ -231,7 +231,8 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 AnsiConsole.WriteLine($"Merging {sourceBranchName} into {branch.Name}");
 
                 GitOperations.ExecuteGitCommand($"fetch origin {sourceBranchName}");
-                GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName} {branch.Name}");
+                GitOperations.ExecuteGitCommand($"checkout {branch.Name}");
+                GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
                 GitOperations.ExecuteGitCommand($"push origin {branch.Name}");
 
                 foreach (var childBranch in branch.Branches)
