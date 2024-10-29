@@ -13,36 +13,14 @@ var app = new CommandApp();
 app.Configure(configure =>
 {
     configure.AddCommand<NewStackCommand>("new").WithDescription("Creates a new stack.");
+    configure.AddCommand<DeleteStackCommand>("delete").WithDescription("Deletes a stack.");
     configure.AddCommand<ListStacksCommand>("list").WithDescription("Lists all stacks.");
     configure.AddCommand<BranchCommand>("branch").WithDescription("Creates a new branch in a stack.");
+    configure.AddCommand<UpdateStackCommand>("update").WithDescription("Updates the branches in a stack.");
 });
 
 await app.RunAsync(args);
 
-// var remoteUri = RunProcess("git", "remote get-url origin").Trim();
-
-// var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json");
-// var stacks = JsonSerializer.Deserialize<Stack[]>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
-// var currentStack = stacks.FirstOrDefault(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase));
-
-// if (currentStack is null)
-// {
-//     Console.WriteLine("No stack found for current repository.");
-//     return;
-// }
-
-// var newBranchName = "geoffl/testing";
-// RunProcess("git", $"checkout -b {newBranchName} {currentStack.SourceBranch}");
-// RunProcess("git", $"push -u origin {newBranchName}");
-
-// currentStack.Branches.Add(newBranchName);
-// File.WriteAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json", JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
-
-// foreach (var stack in stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)))
-// {
-//     Console.WriteLine($"Name: {stack.Name}, RemoteUri: {stack.RemoteUri}, SourceBranch: {stack.SourceBranch}");
-//     Console.WriteLine("Branches: " + string.Join(", ", stack.Branches));
-// }
 class NewStackCommandSettings : CommandSettings
 {
     [Description("The name of the stack. Must be unique.")]
@@ -52,6 +30,10 @@ class NewStackCommandSettings : CommandSettings
     [Description("The source branch to use for the new branch. Defaults to the default branch for the repository.")]
     [CommandOption("-s|--source-branch")]
     public string? SourceBranch { get; init; }
+
+    [Description("The name of the branch to create within the stack.")]
+    [CommandOption("-b|--branch")]
+    public string? BranchName { get; init; }
 }
 
 class NewStackCommand : AsyncCommand<NewStackCommandSettings>
@@ -60,22 +42,81 @@ class NewStackCommand : AsyncCommand<NewStackCommandSettings>
     {
         await Task.CompletedTask;
 
-        var defaultBranch = ProcessHelpers.RunProcess("git", "symbolic-ref refs/remotes/origin/HEAD").Trim().Replace("refs/remotes/origin/", "");
+        var defaultBranch = GitOperations.GetDefaultBranch();
+        var currentBranch = GitOperations.GetCurrentBranch();
+        var branches = GitOperations.GetBranches();
 
         var name = settings.Name ?? AnsiConsole.Prompt(new TextPrompt<string>("Stack name:"));
-        var sourceBranch = settings.SourceBranch ?? AnsiConsole.Prompt(
-            new TextPrompt<string>("Which branch would you like to start your stack from? Leave empty to use the default branch.")
-                .DefaultValue(defaultBranch));
 
-        var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json");
-        var stacks = JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+        var branchesPrompt = new SelectionPrompt<string>().Title("Select a branch to start your stack from:").PageSize(10);
 
-        var remoteUri = ProcessHelpers.RunProcess("git", "remote get-url origin").Trim();
+        if (branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+        {
+            branchesPrompt.AddChoice(currentBranch);
+        }
+        branchesPrompt.AddChoice(defaultBranch);
+        branchesPrompt.AddChoices(branches.Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !b.Equals(defaultBranch, StringComparison.OrdinalIgnoreCase)));
 
-        stacks.Add(new Stack(name, remoteUri, sourceBranch, []));
-        File.WriteAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json", JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
+        var sourceBranch = settings.SourceBranch ?? AnsiConsole.Prompt(branchesPrompt);
+        AnsiConsole.WriteLine($"Source branch: {sourceBranch}");
 
-        AnsiConsole.WriteLine($"Stack created");
+        var branchName = settings.BranchName ?? AnsiConsole.Prompt(new TextPrompt<string>("Branch name:"));
+        GitOperations.CreateNewBranch(branchName, sourceBranch);
+        GitOperations.PushNewBranch(branchName);
+
+        var stacks = StackStorage.LoadStacks();
+
+        var remoteUri = GitOperations.GetRemoteUri();
+
+        stacks.Add(new Stack(name, remoteUri, sourceBranch, [new StackBranch(branchName, [])]));
+        StackStorage.SaveStacks(stacks);
+
+        AnsiConsole.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}' with new branch '{branchName}'");
+
+        if (AnsiConsole.Prompt(new ConfirmationPrompt("Do you want to switch to the new branch?")))
+        {
+            GitOperations.ChangeBranch(branchName);
+        }
+
+        return 0;
+    }
+}
+
+class DeleteStackCommandSettings : CommandSettings
+{
+    [Description("The name of the stack to delete.")]
+    [CommandOption("-n|--name")]
+    public string? Name { get; init; }
+}
+
+class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
+{
+    public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
+    {
+        await Task.CompletedTask;
+
+        var stacks = StackStorage.LoadStacks();
+
+        var remoteUri = GitOperations.GetRemoteUri();
+
+        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (stacksForRemote.Count == 0)
+        {
+            AnsiConsole.WriteLine("No stacks found for current repository.");
+            return 0;
+        }
+
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack to delete:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
+        {
+            stacks.Remove(stack);
+            StackStorage.SaveStacks(stacks);
+            AnsiConsole.WriteLine($"Stack deleted");
+        }
+
         return 0;
     }
 }
@@ -97,12 +138,11 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
     {
         await Task.CompletedTask;
 
-        var defaultBranch = ProcessHelpers.RunProcess("git", "symbolic-ref refs/remotes/origin/HEAD").Trim().Replace("refs/remotes/origin/", "");
+        var defaultBranch = GitOperations.GetDefaultBranch();
+        var remoteUri = GitOperations.GetRemoteUri();
+        var currentBranch = GitOperations.GetCurrentBranch();
 
-        var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json");
-        var stacks = JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
-
-        var remoteUri = ProcessHelpers.RunProcess("git", "remote get-url origin").Trim();
+        var stacks = StackStorage.LoadStacks();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -114,8 +154,6 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
 
         var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
-
-        var currentBranch = ProcessHelpers.RunProcess("git", "branch --show-current").Trim();
 
         var sourceBranchPrompt = new SelectionPrompt<string>().Title("Select a branch to create from:").PageSize(10);
 
@@ -133,26 +171,12 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
 
         var sourceBranch = AnsiConsole.Prompt(sourceBranchPrompt);
 
-        // var sourceBranch = stack.Branches.Count > 0 ? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a branch to create from:")
-        //     .PageSize(10)
-        //     .AddChoices(new List<string>([stack.SourceBranch]).Concat(stack.Branches.Select(b => b.Name).ToArray()))) : stack.SourceBranch;
-
         var branchName = settings.Name ?? AnsiConsole.Prompt(new TextPrompt<string>("Branch name:"));
 
         AnsiConsole.WriteLine($"Creating branch {branchName} from {sourceBranch} in {stack.Name}");
 
         GitOperations.CreateNewBranch(branchName, sourceBranch);
-
-        // ShellExecutor.ExecuteCommand(
-        //     "git",
-        //     $"checkout -b {branchName} {sourceBranch}",
-        //     ".",
-        //     (_) => { },
-        //     AnsiConsole.WriteLine,
-        //     (error) => AnsiConsole.MarkupLine($"[red]{error}[/]"));
-
-        // AnsiConsole.WriteLine(ProcessHelpers.RunProcess("git", $"checkout -b {branchName} {sourceBranch}"));
-        // ProcessHelpers.RunProcess("git", $"push -u origin {branchName}");
+        GitOperations.PushNewBranch(branchName);
 
         var branchToUpdate = stack.GetStackBranch(sourceBranch);
 
@@ -165,11 +189,64 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
             branchToUpdate.Branches.Add(new StackBranch(branchName, []));
         }
 
-        // stack.Branches.Add(new StackBranch(branchName, []));
-
-        File.WriteAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json", JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
+        StackStorage.SaveStacks(stacks);
 
         AnsiConsole.WriteLine($"Branch created");
+        return 0;
+    }
+}
+
+class UpdateStackCommandSettings : CommandSettings
+{
+    [Description("The name of the stack to update.")]
+    [CommandOption("-n|--name")]
+    public string? Name { get; init; }
+}
+
+class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
+{
+    public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
+    {
+        await Task.CompletedTask;
+
+        var stacks = StackStorage.LoadStacks();
+
+        var remoteUri = GitOperations.GetRemoteUri();
+
+        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (stacksForRemote.Count == 0)
+        {
+            AnsiConsole.WriteLine("No stacks found for current repository.");
+            return 0;
+        }
+
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack to update:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
+        {
+            GitOperations.ExecuteGitCommand($"fetch origin {stack.SourceBranch}");
+
+            void MergeFromSourceBranch(StackBranch branch, string sourceBranchName)
+            {
+                AnsiConsole.WriteLine($"Merging {sourceBranchName} into {branch.Name}");
+
+                GitOperations.ExecuteGitCommand($"checkout {branch.Name}");
+                GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
+
+                foreach (var childBranch in branch.Branches)
+                {
+                    MergeFromSourceBranch(childBranch, branch.Name);
+                }
+            }
+
+            foreach (var branch in stack.Branches)
+            {
+                MergeFromSourceBranch(branch, stack.SourceBranch);
+            }
+        }
+
         return 0;
     }
 }
@@ -178,12 +255,47 @@ static class GitOperations
 {
     public static void CreateNewBranch(string branchName, string sourceBranch)
     {
+        ExecuteGitCommand($"branch {branchName} {sourceBranch}");
+    }
+
+    public static void PushNewBranch(string branchName)
+    {
+        ExecuteGitCommand($"push -u origin {branchName}");
+    }
+
+    public static void ChangeBranch(string branchName)
+    {
+        ExecuteGitCommand($"checkout {branchName}");
+    }
+
+    public static string GetCurrentBranch()
+    {
+        return ExecuteGitCommandAndReturnOutput("branch --show-current").Trim();
+    }
+
+    public static string GetDefaultBranch()
+    {
+        return ExecuteGitCommandAndReturnOutput("symbolic-ref refs/remotes/origin/HEAD").Trim().Replace("refs/remotes/origin/", "");
+    }
+
+    public static string GetRemoteUri()
+    {
+        return ExecuteGitCommandAndReturnOutput("remote get-url origin").Trim();
+    }
+
+    public static string[] GetBranches()
+    {
+        return ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public static string ExecuteGitCommandAndReturnOutput(string command)
+    {
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
 
         var result = ShellExecutor.ExecuteCommand(
             "git",
-            $"checkout -b {branchName} {sourceBranch}",
+            command,
             ".",
             (_) => { },
             (info) => infoBuilder.AppendLine(info),
@@ -192,12 +304,55 @@ static class GitOperations
         if (result != 0)
         {
             AnsiConsole.MarkupLine($"[red]{errorBuilder}[/]");
-            throw new Exception("Failed to create branch.");
+            throw new Exception("Failed to execute git command.");
+        }
+
+        return infoBuilder.ToString();
+    }
+
+    public static void ExecuteGitCommand(string command)
+    {
+        var infoBuilder = new StringBuilder();
+        var errorBuilder = new StringBuilder();
+
+        var result = ShellExecutor.ExecuteCommand(
+            "git",
+            command,
+            ".",
+            (_) => { },
+            (info) => infoBuilder.AppendLine(info),
+            (error) => errorBuilder.AppendLine(error));
+
+        if (result != 0)
+        {
+            AnsiConsole.MarkupLine($"[red]{errorBuilder}[/]");
+            throw new Exception("Failed to execute git command.");
         }
         else
         {
-            AnsiConsole.WriteLine(infoBuilder.ToString());
+            if (infoBuilder.Length > 0)
+            {
+                AnsiConsole.WriteLine(infoBuilder.ToString());
+            }
         }
+    }
+}
+
+static class StackStorage
+{
+    public static List<Stack> LoadStacks()
+    {
+        if (!File.Exists(@"D:\src\geofflamrock\stack\.stacks.json"))
+        {
+            return new List<Stack>();
+        }
+        var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\.stacks.json");
+        return JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+    }
+
+    public static void SaveStacks(List<Stack> stacks)
+    {
+        File.WriteAllText(@"D:\src\geofflamrock\stack\.stacks.json", JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
     }
 }
 
@@ -206,18 +361,9 @@ class ListStacksCommand : AsyncCommand
     public override async Task<int> ExecuteAsync(CommandContext context)
     {
         await Task.CompletedTask;
-        var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json");
-        var stacks = JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+        var stacks = StackStorage.LoadStacks();
 
-        // ShellExecutor.ExecuteCommand(
-        //     "git",
-        //     "remote get-url origin",
-        //     ".",
-        //     (_) => { },
-        //     AnsiConsole.WriteLine,
-        //     (error) => AnsiConsole.WriteLine($"[red]{error}[/]"));
-
-        var remoteUri = ProcessHelpers.RunProcess("git", "remote get-url origin").Trim();
+        var remoteUri = GitOperations.GetRemoteUri();
 
         if (remoteUri is null)
         {
@@ -233,7 +379,7 @@ class ListStacksCommand : AsyncCommand
             return 0;
         }
 
-        var currentBranch = ProcessHelpers.RunProcess("git", "branch --show-current").Trim();
+        var currentBranch = GitOperations.GetCurrentBranch();
 
         foreach (var stack in stacksForRemote)
         {
@@ -260,17 +406,6 @@ class ListStacksCommand : AsyncCommand
             {
                 AddChildren(sourceBranchNode, branch);
             }
-
-            // TreeNode? currentNode = null;
-            // foreach (var branch in stack.Branches)
-            // {
-            //     var branchName = branch.Name;
-            //     if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
-            //     {
-            //         branchName = $"[blue]{branchName} *[/]";
-            //     }
-            //     currentNode = currentNode?.AddNode(branchName) ?? stackRoot.AddNode(branchName);
-            // }
 
             AnsiConsole.Write(stackRoot);
         }
