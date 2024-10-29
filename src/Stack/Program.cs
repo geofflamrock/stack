@@ -68,7 +68,7 @@ class NewStackCommand : AsyncCommand<NewStackCommandSettings>
 
         var remoteUri = GitOperations.GetRemoteUri();
 
-        stacks.Add(new Stack(name, remoteUri, sourceBranch, [new StackBranch(branchName, [])]));
+        stacks.Add(new Stack(name, remoteUri, sourceBranch, [branchName]));
         StackStorage.SaveStacks(stacks);
 
         AnsiConsole.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}' with new branch '{branchName}'");
@@ -155,39 +155,43 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
         var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        var sourceBranchPrompt = new SelectionPrompt<string>().Title("Select a branch to create from:").PageSize(10);
+        // var sourceBranchPrompt = new SelectionPrompt<string>().Title("Select a branch to create from:").PageSize(10);
 
-        if (stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-        {
-            sourceBranchPrompt.AddChoice(currentBranch);
-        }
+        // if (stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+        // {
+        //     sourceBranchPrompt.AddChoice(currentBranch);
+        // }
 
-        sourceBranchPrompt.AddChoice(stack.SourceBranch);
+        // sourceBranchPrompt.AddChoice(stack.SourceBranch);
 
-        foreach (var branch in stack.AllBranchNames.Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !b.Equals(stack.SourceBranch, StringComparison.OrdinalIgnoreCase)))
-        {
-            sourceBranchPrompt.AddChoice(branch);
-        }
+        // foreach (var branch in stack.Branches.Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !b.Equals(stack.SourceBranch, StringComparison.OrdinalIgnoreCase)))
+        // {
+        //     sourceBranchPrompt.AddChoice(branch);
+        // }
 
-        var sourceBranch = AnsiConsole.Prompt(sourceBranchPrompt);
+        // var sourceBranch = AnsiConsole.Prompt(sourceBranchPrompt);
+
+        var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
         var branchName = settings.Name ?? AnsiConsole.Prompt(new TextPrompt<string>("Branch name:"));
 
-        AnsiConsole.WriteLine($"Creating branch {branchName} from {sourceBranch} in {stack.Name}");
+        AnsiConsole.WriteLine($"Creating branch '{branchName}' from '{sourceBranch}' in stack '{stack.Name}'");
 
         GitOperations.CreateNewBranch(branchName, sourceBranch);
         GitOperations.PushNewBranch(branchName);
 
-        var branchToUpdate = stack.GetStackBranch(sourceBranch);
+        // var branchToUpdate = stack.GetStackBranch(sourceBranch);
 
-        if (branchToUpdate is null)
-        {
-            stack.Branches.Add(new StackBranch(branchName, []));
-        }
-        else
-        {
-            branchToUpdate.Branches.Add(new StackBranch(branchName, []));
-        }
+        // if (branchToUpdate is null)
+        // {
+        //     stack.Branches.Add(new StackBranch(branchName, []));
+        // }
+        // else
+        // {
+        //     branchToUpdate.Branches.Add(new StackBranch(branchName, []));
+        // }
+
+        stack.Branches.Add(branchName);
 
         StackStorage.SaveStacks(stacks);
 
@@ -226,24 +230,27 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
         {
-            void MergeFromSourceBranch(StackBranch branch, string sourceBranchName)
+            void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
-                AnsiConsole.WriteLine($"Merging {sourceBranchName} into {branch.Name}");
+                AnsiConsole.WriteLine($"Merging {sourceBranchName} into {branch}");
 
                 GitOperations.ExecuteGitCommand($"fetch origin {sourceBranchName}");
-                GitOperations.ExecuteGitCommand($"checkout {branch.Name}");
+                GitOperations.ExecuteGitCommand($"checkout {branch}");
                 GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
-                GitOperations.ExecuteGitCommand($"push origin {branch.Name}"); //test
+                GitOperations.ExecuteGitCommand($"push origin {branch}"); //test
 
-                foreach (var childBranch in branch.Branches)
-                {
-                    MergeFromSourceBranch(childBranch, branch.Name);
-                }
+                // foreach (var childBranch in branch.Branches)
+                // {
+                //     MergeFromSourceBranch(childBranch, branch.Name);
+                // }
             }
+
+            var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                MergeFromSourceBranch(branch, stack.SourceBranch);
+                MergeFromSourceBranch(branch, sourceBranch);
+                sourceBranch = branch;
             }
         }
 
@@ -386,27 +393,35 @@ class ListStacksCommand : AsyncCommand
         foreach (var stack in stacksForRemote)
         {
             var stackRoot = new Tree($"[yellow]{stack.Name}[/]");
-            var sourceBranchNode = stackRoot.AddNode($"[grey]{stack.SourceBranch}[/]");
+            var node = stackRoot.AddNode($"[grey]{stack.SourceBranch}[/]");
 
-            TreeNode AddChildren(TreeNode node, StackBranch branch)
+            // TreeNode AddChildren(TreeNode node, string branch)
+            // {
+            //     var branchName = branch.Name;
+            //     if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
+            //     {
+            //         branchName = $"[blue]{branchName} *[/]";
+            //     }
+
+            //     var childNode = node.AddNode(branchName);
+            //     foreach (var childBranch in branch.Branches)
+            //     {
+            //         AddChildren(childNode, childBranch);
+            //     }
+            //     return childNode;
+            // }
+
+            foreach (var branch in stack.Branches)
             {
-                var branchName = branch.Name;
+                var branchName = branch;
                 if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
                 {
                     branchName = $"[blue]{branchName} *[/]";
                 }
 
-                var childNode = node.AddNode(branchName);
-                foreach (var childBranch in branch.Branches)
-                {
-                    AddChildren(childNode, childBranch);
-                }
-                return childNode;
-            }
+                node = node.AddNode(branchName);
 
-            foreach (var branch in stack.Branches)
-            {
-                AddChildren(sourceBranchNode, branch);
+                // AddChildren(sourceBranchNode, branch);
             }
 
             AnsiConsole.Write(stackRoot);
@@ -439,29 +454,4 @@ public static class ProcessHelpers
 
 
 
-record Stack(string Name, string RemoteUri, string SourceBranch, List<StackBranch> Branches)
-{
-    [JsonIgnore]
-    public List<string> AllBranchNames => Branches.SelectMany(b => b.AllBranchNames).ToList();
-
-    public StackBranch? GetStackBranch(string branchName)
-    {
-        return Branches.Select(b => b.GetStackBranch(branchName)).FirstOrDefault(b => b is not null);
-    }
-}
-
-record StackBranch(string Name, List<StackBranch> Branches)
-{
-    [JsonIgnore]
-    public List<string> AllBranchNames => new List<string>([Name]).Concat(Branches.SelectMany(b => b.AllBranchNames)).ToList();
-
-    public StackBranch? GetStackBranch(string branchName)
-    {
-        if (Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
-        {
-            return this;
-        }
-
-        return Branches.Select(b => b.GetStackBranch(branchName)).FirstOrDefault(b => b is not null);
-    }
-}
+record Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches);
