@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using Octopus.Shellfish;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -112,16 +113,35 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
         var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        var sourceBranch = stack.Branches.Count > 0 ? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a branch to create from:")
-            .PageSize(10)
-            .AddChoices(new List<string>([stack.SourceBranch]).Concat(stack.Branches.Select(b => b.Name).ToArray()))) : stack.SourceBranch;
+        var sourceBranchPrompt = new SelectionPrompt<string>().Title("Select a branch to create from:").PageSize(10);
+
+        sourceBranchPrompt.AddChoice($"[grey]{stack.SourceBranch}[/]");
+
+        foreach (var branch in stack.Branches)
+        {
+            sourceBranchPrompt.AddChoice(branch.Name);
+        }
+
+        var sourceBranch = AnsiConsole.Prompt(sourceBranchPrompt);
+
+        // var sourceBranch = stack.Branches.Count > 0 ? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a branch to create from:")
+        //     .PageSize(10)
+        //     .AddChoices(new List<string>([stack.SourceBranch]).Concat(stack.Branches.Select(b => b.Name).ToArray()))) : stack.SourceBranch;
 
         var branchName = settings.Branch ?? AnsiConsole.Prompt(new TextPrompt<string>("Branch name:"));
 
-        // AnsiConsole.WriteLine($"Creating branch {branchName} from {sourceBranch} in {stack.Name}");
+        AnsiConsole.WriteLine($"Creating branch {branchName} from {sourceBranch} in {stack.Name}");
 
-        ProcessHelpers.RunProcess("git", $"checkout -b {branchName} {sourceBranch}");
-        ProcessHelpers.RunProcess("git", $"push -u origin {branchName}");
+        ShellExecutor.ExecuteCommand(
+            "git",
+            $"checkout -b {branchName} {sourceBranch}",
+            ".",
+            (_) => { },
+            AnsiConsole.WriteLine,
+            (error) => AnsiConsole.MarkupLine($"[red]{error}[/]"));
+
+        // AnsiConsole.WriteLine(ProcessHelpers.RunProcess("git", $"checkout -b {branchName} {sourceBranch}"));
+        // ProcessHelpers.RunProcess("git", $"push -u origin {branchName}");
 
         stack.Branches.Add(new StackBranch(branchName, []));
 
@@ -139,6 +159,14 @@ class ListStacksCommand : AsyncCommand
         await Task.CompletedTask;
         var jsonString = File.ReadAllText(@"D:\src\geofflamrock\stack\src\Stack\.stacks.json");
         var stacks = JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+
+        ShellExecutor.ExecuteCommand(
+            "git",
+            "remote get-url origin",
+            ".",
+            (_) => { },
+            AnsiConsole.WriteLine,
+            (error) => AnsiConsole.WriteLine($"[red]{error}[/]"));
 
         var remoteUri = ProcessHelpers.RunProcess("git", "remote get-url origin").Trim();
 
