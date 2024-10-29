@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Octopus.Shellfish;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -155,22 +154,6 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
         var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        // var sourceBranchPrompt = new SelectionPrompt<string>().Title("Select a branch to create from:").PageSize(10);
-
-        // if (stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-        // {
-        //     sourceBranchPrompt.AddChoice(currentBranch);
-        // }
-
-        // sourceBranchPrompt.AddChoice(stack.SourceBranch);
-
-        // foreach (var branch in stack.Branches.Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !b.Equals(stack.SourceBranch, StringComparison.OrdinalIgnoreCase)))
-        // {
-        //     sourceBranchPrompt.AddChoice(branch);
-        // }
-
-        // var sourceBranch = AnsiConsole.Prompt(sourceBranchPrompt);
-
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
         var branchName = settings.Name ?? AnsiConsole.Prompt(new TextPrompt<string>("Branch name:"));
@@ -179,17 +162,6 @@ class BranchCommand : AsyncCommand<BranchCommandSettings>
 
         GitOperations.CreateNewBranch(branchName, sourceBranch);
         GitOperations.PushNewBranch(branchName);
-
-        // var branchToUpdate = stack.GetStackBranch(sourceBranch);
-
-        // if (branchToUpdate is null)
-        // {
-        //     stack.Branches.Add(new StackBranch(branchName, []));
-        // }
-        // else
-        // {
-        //     branchToUpdate.Branches.Add(new StackBranch(branchName, []));
-        // }
 
         stack.Branches.Add(branchName);
 
@@ -227,6 +199,7 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
         var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack to update:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var currentBranch = GitOperations.GetCurrentBranch();
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
         {
@@ -237,12 +210,7 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 GitOperations.ExecuteGitCommand($"fetch origin {sourceBranchName}");
                 GitOperations.ExecuteGitCommand($"checkout {branch}");
                 GitOperations.ExecuteGitCommand($"merge origin/{sourceBranchName}");
-                GitOperations.ExecuteGitCommand($"push origin {branch}"); //test
-
-                // foreach (var childBranch in branch.Branches)
-                // {
-                //     MergeFromSourceBranch(childBranch, branch.Name);
-                // }
+                GitOperations.ExecuteGitCommand($"push origin {branch}");
             }
 
             var sourceBranch = stack.SourceBranch;
@@ -251,6 +219,11 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             {
                 MergeFromSourceBranch(branch, sourceBranch);
                 sourceBranch = branch;
+            }
+
+            if (stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+            {
+                GitOperations.ChangeBranch(currentBranch);
             }
         }
 
