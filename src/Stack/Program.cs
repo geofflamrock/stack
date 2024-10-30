@@ -57,15 +57,7 @@ class NewStackCommand : AsyncCommand<NewStackCommandSettings>
 
         var branchesPrompt = new SelectionPrompt<string>().Title("Select a branch to start your stack from:").PageSize(10);
 
-        if (branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-        {
-            branchesPrompt.AddChoice(currentBranch);
-        }
-        if (currentBranch != defaultBranch)
-        {
-            branchesPrompt.AddChoice(defaultBranch);
-        }
-        branchesPrompt.AddChoices(branches.Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !b.Equals(defaultBranch, StringComparison.OrdinalIgnoreCase)));
+        branchesPrompt.AddChoices(branches);
 
         var sourceBranch = settings.SourceBranch ?? AnsiConsole.Prompt(branchesPrompt);
         AnsiConsole.WriteLine($"Source branch: {sourceBranch}");
@@ -298,7 +290,8 @@ class UpdateStackCommandSettings : CommandSettings
 
     [Description("Show what would happen without making any changes.")]
     [CommandOption("--what-if")]
-    public bool? WhatIf { get; init; }
+    [DefaultValue(false)]
+    public bool WhatIf { get; init; }
 }
 
 class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
@@ -331,10 +324,10 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             {
                 AnsiConsole.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
 
-                GitOperations.FetchBranch(sourceBranchName, settings.WhatIf ?? false);
-                GitOperations.ChangeBranch(branch, settings.WhatIf ?? false);
-                GitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.WhatIf ?? false);
-                GitOperations.PushBranch(branch, settings.WhatIf ?? false);
+                GitOperations.UpdateBranch(sourceBranchName, settings.WhatIf);
+                GitOperations.UpdateBranch(branch, settings.WhatIf);
+                GitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.WhatIf);
+                GitOperations.PushBranch(branch, settings.WhatIf);
             }
 
             var sourceBranch = stack.SourceBranch;
@@ -348,7 +341,7 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
-                GitOperations.ChangeBranch(currentBranch, settings.WhatIf ?? false);
+                GitOperations.ChangeBranch(currentBranch, settings.WhatIf);
             }
         }
 
@@ -381,6 +374,23 @@ static class GitOperations
     public static void FetchBranch(string branchName, bool whatIf = false)
     {
         ExecuteGitCommand($"fetch origin {branchName}:{branchName}", whatIf);
+    }
+
+    public static void PullBranch(string branchName, bool whatIf = false)
+    {
+        ExecuteGitCommand($"pull origin {branchName}", whatIf);
+    }
+
+    public static void UpdateBranch(string branchName, bool whatIf = false)
+    {
+        var currentBranch = GetCurrentBranch();
+
+        if (!currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+        {
+            ChangeBranch(branchName, whatIf);
+        }
+
+        PullBranch(branchName, whatIf);
     }
 
     public static void MergeFromRemoteSourceBranch(string sourceBranchName, bool whatIf = false)
