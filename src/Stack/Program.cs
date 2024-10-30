@@ -334,8 +334,16 @@ class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
             foreach (var branch in stack.Branches)
             {
-                MergeFromSourceBranch(branch, sourceBranch);
-                sourceBranch = branch;
+                if (GitOperations.DoesRemoteBranchExist(branch))
+                {
+                    MergeFromSourceBranch(branch, sourceBranch);
+                    sourceBranch = branch;
+                }
+                else
+                {
+                    // Remote branch no longer exists, skip over
+                    AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                }
             }
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
@@ -411,6 +419,11 @@ static class GitOperations
     public static string GetDefaultBranch()
     {
         return ExecuteGitCommandAndReturnOutput("symbolic-ref refs/remotes/origin/HEAD").Trim().Replace("refs/remotes/origin/", "");
+    }
+
+    public static bool DoesRemoteBranchExist(string branchName)
+    {
+        return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}").Trim().Length > 0;
     }
 
     public static string GetRemoteUri()
@@ -509,9 +522,17 @@ static class StackStorage
     }
 }
 
-class ListStacksCommand : AsyncCommand
+class ListStacksCommandSettings : CommandSettings
 {
-    public override async Task<int> ExecuteAsync(CommandContext context)
+    [Description("Show the status of the branches against the remote in the stack.")]
+    [CommandOption("--status")]
+    [DefaultValue(false)]
+    public bool CheckRemoteStatus { get; init; }
+}
+
+class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
+{
+    public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {
         await Task.CompletedTask;
         var stacks = StackStorage.LoadStacks();
@@ -532,6 +553,24 @@ class ListStacksCommand : AsyncCommand
             return 0;
         }
 
+        var remoteStatusForBranchesInStacks = new Dictionary<string, bool>();
+
+        if (settings.CheckRemoteStatus)
+        {
+            AnsiConsole.Status()
+                .Start("Checking status of remote branches...", ctx =>
+                {
+                    foreach (var stack in stacksForRemote)
+                    {
+                        foreach (var branch in stack.Branches)
+                        {
+                            remoteStatusForBranchesInStacks[branch] = GitOperations.DoesRemoteBranchExist(branch);
+                        }
+                    }
+                });
+        }
+
+
         var currentBranch = GitOperations.GetCurrentBranch();
 
         foreach (var stack in stacksForRemote)
@@ -539,33 +578,19 @@ class ListStacksCommand : AsyncCommand
             var stackRoot = new Tree($"[yellow]{stack.Name}[/]");
             var sourceBranchNode = stackRoot.AddNode($"[grey]{stack.SourceBranch}[/]");
 
-            // TreeNode AddChildren(TreeNode node, string branch)
-            // {
-            //     var branchName = branch.Name;
-            //     if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
-            //     {
-            //         branchName = $"[blue]{branchName} *[/]";
-            //     }
-
-            //     var childNode = node.AddNode(branchName);
-            //     foreach (var childBranch in branch.Branches)
-            //     {
-            //         AddChildren(childNode, childBranch);
-            //     }
-            //     return childNode;
-            // }
-
             foreach (var branch in stack.Branches)
             {
                 var branchName = branch;
-                if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
+                if (remoteStatusForBranchesInStacks.TryGetValue(branch, out bool branchExistsInRemote) && !branchExistsInRemote)
+                {
+                    branchName = $"[red]{branchName} (deleted in remote)[/]";
+                }
+                else if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
                 {
                     branchName = $"[blue]* {branchName}[/]";
                 }
 
                 sourceBranchNode.AddNode(branchName);
-
-                // AddChildren(sourceBranchNode, branch);
             }
 
             AnsiConsole.Write(stackRoot);
