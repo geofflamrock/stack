@@ -19,7 +19,7 @@ app.Configure(configure =>
     configure.AddBranch("branch", branch =>
     {
         branch.SetDescription("Manages branches in a stack.");
-        branch.SetDefaultCommand<AddOrNewBranchCommand>();
+        branch.SetDefaultCommand<BranchCommand>();
         branch.AddCommand<NewBranchCommand>("new").WithDescription("Creates a new branch in a stack.");
         branch.AddCommand<AddBranchCommand>("add").WithDescription("Adds an existing branch in a stack.");
     });
@@ -72,7 +72,7 @@ class NewStackCommand : AsyncCommand<NewStackCommandSettings>
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
         {
-            return await new AddOrNewBranchCommand().ExecuteAsync(context, new AddOrNewBranchCommandSettings { Stack = name });
+            return await new BranchCommand().ExecuteAsync(context, new BranchCommandSettings { Stack = name });
         }
 
         return 0;
@@ -118,7 +118,7 @@ class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
     }
 }
 
-class AddOrNewBranchCommandSettings : CommandSettings
+class BranchCommandSettings : CommandSettings
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -127,11 +127,24 @@ class AddOrNewBranchCommandSettings : CommandSettings
     [Description("The name of the branch to add or create.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("The action to take.")]
+    [CommandOption("-a|--action")]
+    public BranchAction? Action { get; init; }
 }
 
-class AddOrNewBranchCommand : AsyncCommand<AddOrNewBranchCommandSettings>
+enum BranchAction
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, AddOrNewBranchCommandSettings settings)
+    [Description("Add an existing branch")]
+    Add,
+
+    [Description("Create a new branch")]
+    Create
+}
+
+class BranchCommand : AsyncCommand<BranchCommandSettings>
+{
+    public override async Task<int> ExecuteAsync(CommandContext context, BranchCommandSettings settings)
     {
         await Task.CompletedTask;
 
@@ -153,10 +166,27 @@ class AddOrNewBranchCommand : AsyncCommand<AddOrNewBranchCommandSettings>
         var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        var addOrNewPromptOption = new SelectionPrompt<string>().Title("Add or create a branch:").PageSize(10).AddChoices(new[] { "Add", "Create" });
-        var addOrNew = AnsiConsole.Prompt(addOrNewPromptOption);
+        var actionPromptOption = new SelectionPrompt<BranchAction>()
+            .Title("Add or create a branch:")
+            .AddChoices([BranchAction.Add, BranchAction.Create]);
 
-        if (addOrNew == "Add")
+        actionPromptOption.Converter = (action) =>
+        {
+            var field = action.GetType().GetField(action.ToString());
+            if (field == null)
+                return action.ToString();
+
+            var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
+            {
+                return attribute.Description;
+            }
+
+            return action.ToString();
+        };
+        var action = AnsiConsole.Prompt(actionPromptOption);
+
+        if (action == BranchAction.Add)
         {
             return await new AddBranchCommand().ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name });
         }
@@ -381,7 +411,21 @@ static class GitOperations
 
     public static void FetchBranch(string branchName, bool whatIf = false)
     {
-        ExecuteGitCommand($"fetch origin {branchName}:{branchName}", whatIf);
+        var currentBranch = GetCurrentBranch();
+
+        if (currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+        {
+            ExecuteGitCommand($"fetch origin {branchName}", whatIf);
+        }
+        else
+        {
+            ExecuteGitCommand($"fetch origin {branchName}:{branchName}", whatIf);
+        }
+    }
+
+    public static void Fetch()
+    {
+        ExecuteGitCommand("fetch");
     }
 
     public static void PullBranch(string branchName, bool whatIf = false)
@@ -426,6 +470,13 @@ static class GitOperations
         return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}").Trim().Length > 0;
     }
 
+    public static (int Ahead, int Behind) GetStatusOfBranch(string branchName, string sourceBranchName)
+    {
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
+        var parts = status.Split('\t');
+        return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
     public static string GetRemoteUri()
     {
         return ExecuteGitCommandAndReturnOutput("remote get-url origin").Trim();
@@ -438,6 +489,8 @@ static class GitOperations
 
     public static string ExecuteGitCommandAndReturnOutput(string command)
     {
+        // AnsiConsole.MarkupLine($"[grey]git {command}[/]");
+
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
 
@@ -460,7 +513,7 @@ static class GitOperations
 
     public static void ExecuteGitCommand(string command, bool whatIf = false)
     {
-        AnsiConsole.MarkupLine($"[grey]git {command}[/]");
+        // AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
         if (!whatIf)
         {
@@ -553,18 +606,37 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
             return 0;
         }
 
-        var remoteStatusForBranchesInStacks = new Dictionary<string, bool>();
+        var remoteStatusForBranchesInStacks = new Dictionary<string, BranchStatus>();
 
         if (settings.CheckRemoteStatus)
         {
             AnsiConsole.Status()
                 .Start("Checking status of remote branches...", ctx =>
                 {
+                    GitOperations.Fetch();
+
                     foreach (var stack in stacksForRemote)
                     {
+                        void CheckRemoteBranch(string branch, string sourceBranch)
+                        {
+                            var (ahead, behind) = GitOperations.GetStatusOfBranch(branch, sourceBranch);
+                            var branchStatus = new BranchStatus(true, ahead, behind);
+                            remoteStatusForBranchesInStacks[branch] = branchStatus;
+                        }
+
+                        var parentBranch = stack.SourceBranch;
+
                         foreach (var branch in stack.Branches)
                         {
-                            remoteStatusForBranchesInStacks[branch] = GitOperations.DoesRemoteBranchExist(branch);
+                            if (GitOperations.DoesRemoteBranchExist(branch))
+                            {
+                                CheckRemoteBranch(branch, parentBranch);
+                                parentBranch = branch;
+                            }
+                            else
+                            {
+                                remoteStatusForBranchesInStacks[branch] = new BranchStatus(false, 0, 0);
+                            }
                         }
                     }
                 });
@@ -576,21 +648,57 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         foreach (var stack in stacksForRemote)
         {
             var stackRoot = new Tree($"[yellow]{stack.Name}[/]");
-            var sourceBranchNode = stackRoot.AddNode($"[grey]{stack.SourceBranch}[/]");
+            var sourceBranchNode = stackRoot.AddNode(BuildBranchName(stack.SourceBranch, true));
+
+            string BuildBranchName(string branch, bool isSource)
+            {
+                var status = remoteStatusForBranchesInStacks.GetValueOrDefault(branch);
+                var branchNameBuilder = new StringBuilder();
+
+                var color = status?.ExistsInRemote == false ? "grey" : isSource ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
+                Decoration? decoration = status?.ExistsInRemote == false ? Decoration.Strikethrough : null;
+
+                if (color is not null && decoration is not null)
+                {
+                    branchNameBuilder.Append($"[{decoration} {color}]{branch}[/]");
+                }
+                else if (color is not null)
+                {
+                    branchNameBuilder.Append($"[{color}]{branch}[/]");
+                }
+                else if (decoration is not null)
+                {
+                    branchNameBuilder.Append($"[{decoration}]{branch}[/]");
+                }
+                else
+                {
+                    branchNameBuilder.Append(branch);
+                }
+
+                if (status?.ExistsInRemote == false)
+                {
+                    branchNameBuilder.Append($" [{Decoration.Strikethrough} grey](deleted in remote)[/]");
+                }
+
+                if (status?.Ahead > 0 && status?.Behind > 0)
+                {
+                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead, {status.Behind} behind)[/]");
+                }
+                else if (status?.Ahead > 0)
+                {
+                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead)[/]");
+                }
+                else if (status?.Behind > 0)
+                {
+                    branchNameBuilder.Append($" [grey]({status.Behind} behind)[/]");
+                }
+
+                return branchNameBuilder.ToString();
+            }
 
             foreach (var branch in stack.Branches)
             {
-                var branchName = branch;
-                if (remoteStatusForBranchesInStacks.TryGetValue(branch, out bool branchExistsInRemote) && !branchExistsInRemote)
-                {
-                    branchName = $"[red]{branchName} (deleted in remote)[/]";
-                }
-                else if (branchName.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
-                {
-                    branchName = $"[blue]* {branchName}[/]";
-                }
-
-                sourceBranchNode.AddNode(branchName);
+                sourceBranchNode.AddNode(BuildBranchName(branch, false));
             }
 
             AnsiConsole.Write(stackRoot);
@@ -599,6 +707,8 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         return 0;
     }
 }
+
+record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 
 public static class ProcessHelpers
 {
