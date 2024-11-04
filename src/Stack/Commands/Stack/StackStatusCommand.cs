@@ -53,15 +53,8 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
                 GitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
 
-
-                var branchesThatHaveBeenMergedForStack = GitOperations.GetBranchesThatHaveBeenMerged([.. stack.Branches], stack.SourceBranch, settings.GetGitOperationSettings());
-
-                // AnsiConsole.MarkupLine($"[grey]Branches that have been merged into '{stack.SourceBranch}': {string.Join(", ", branchesThatHaveBeenMergedForStack)}[/]");
-
                 void CheckRemoteBranch(string branch, string sourceBranch)
                 {
-                    // GitOperations.FetchBranch(branch);
-                    // GitOperations.FetchBranch(sourceBranch);
                     var (ahead, behind) = GitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
                     var branchStatus = new BranchStatus(true, ahead, behind);
                     remoteStatusForBranchesInStacks[branch] = branchStatus;

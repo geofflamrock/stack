@@ -399,3 +399,5 @@ FodyWeavers.xsd
 
 # Custom
 **/.stacks.json
+
+.vscode

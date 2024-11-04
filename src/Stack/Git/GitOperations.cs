@@ -31,20 +31,6 @@ internal static class GitOperations
         ExecuteGitCommand($"checkout {branchName}", settings);
     }
 
-    public static void FetchBranch(string branchName, GitOperationSettings settings)
-    {
-        var currentBranch = GetCurrentBranch(settings);
-
-        if (currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
-        {
-            ExecuteGitCommand($"fetch origin {branchName}", settings);
-        }
-        else
-        {
-            ExecuteGitCommand($"fetch origin {branchName}:{branchName}", settings);
-        }
-    }
-
     public static void FetchBranches(string[] branches, GitOperationSettings settings)
     {
         ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}", settings);
@@ -65,11 +51,6 @@ internal static class GitOperations
         }
 
         PullBranch(branchName, settings);
-    }
-
-    public static void MergeFromRemoteSourceBranch(string sourceBranchName, GitOperationSettings settings)
-    {
-        ExecuteGitCommand($"merge origin/{sourceBranchName}", settings);
     }
 
     public static void MergeFromLocalSourceBranch(string sourceBranchName, GitOperationSettings settings)
@@ -109,13 +90,6 @@ internal static class GitOperations
     {
         var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
-    }
-
-    public static (int Ahead, int Behind) GetStatusOfBranch(string branchName, string sourceBranchName, GitOperationSettings settings)
-    {
-        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}", settings).Trim();
-        var parts = status.Split('\t');
-        return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
 
     public static (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName, GitOperationSettings settings)
