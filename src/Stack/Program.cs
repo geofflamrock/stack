@@ -428,6 +428,11 @@ static class GitOperations
         ExecuteGitCommand("fetch");
     }
 
+    public static void FetchBranches(string[] branches, bool whatIf = false, bool verbose = false)
+    {
+        ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}", whatIf, verbose);
+    }
+
     public static void PullBranch(string branchName, bool whatIf = false)
     {
         ExecuteGitCommand($"pull origin {branchName}", whatIf);
@@ -455,9 +460,9 @@ static class GitOperations
         ExecuteGitCommand($"merge {sourceBranchName}", whatIf);
     }
 
-    public static string GetCurrentBranch()
+    public static string GetCurrentBranch(bool verbose = false)
     {
-        return ExecuteGitCommandAndReturnOutput("branch --show-current").Trim();
+        return ExecuteGitCommandAndReturnOutput("branch --show-current", verbose).Trim();
     }
 
     public static string GetDefaultBranch()
@@ -470,6 +475,25 @@ static class GitOperations
         return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}").Trim().Length > 0;
     }
 
+    public static string[] GetBranchesThatExistInRemote(string[] branches, bool verbose = false)
+    {
+        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}", verbose).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
+    }
+
+    public static bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
+    {
+        var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        return remoteBranchesThatHaveBeenMerged.Any(b => b.EndsWith(branchName));
+    }
+
+    public static string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName, bool verbose = false)
+    {
+        var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}", verbose).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
+    }
+
     public static (int Ahead, int Behind) GetStatusOfBranch(string branchName, string sourceBranchName)
     {
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
@@ -477,9 +501,16 @@ static class GitOperations
         return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
 
-    public static string GetRemoteUri()
+    public static (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName, bool verbose = false)
     {
-        return ExecuteGitCommandAndReturnOutput("remote get-url origin").Trim();
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}", verbose).Trim();
+        var parts = status.Split('\t');
+        return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public static string GetRemoteUri(bool verbose = false)
+    {
+        return ExecuteGitCommandAndReturnOutput("remote get-url origin", verbose).Trim();
     }
 
     public static string[] GetLocalBranchesOrderedByMostRecentCommitterDate()
@@ -487,9 +518,10 @@ static class GitOperations
         return ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short) --sort=-committerdate").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
     }
 
-    public static string ExecuteGitCommandAndReturnOutput(string command)
+    public static string ExecuteGitCommandAndReturnOutput(string command, bool verbose = false)
     {
-        // AnsiConsole.MarkupLine($"[grey]git {command}[/]");
+        if (verbose)
+            AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -508,12 +540,18 @@ static class GitOperations
             throw new Exception("Failed to execute git command.");
         }
 
+        if (verbose && infoBuilder.Length > 0)
+        {
+            AnsiConsole.WriteLine(infoBuilder.ToString());
+        }
+
         return infoBuilder.ToString();
     }
 
-    public static void ExecuteGitCommand(string command, bool whatIf = false)
+    public static void ExecuteGitCommand(string command, bool whatIf = false, bool verbose = false)
     {
-        // AnsiConsole.MarkupLine($"[grey]git {command}[/]");
+        if (verbose)
+            AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
         if (!whatIf)
         {
@@ -577,10 +615,15 @@ static class StackStorage
 
 class ListStacksCommandSettings : CommandSettings
 {
-    [Description("Show the status of the branches against the remote in the stack.")]
-    [CommandOption("--status")]
+    [Description("Don't check the status of the branches in the stack against the remote.")]
+    [CommandOption("--no-status")]
     [DefaultValue(false)]
-    public bool CheckRemoteStatus { get; init; }
+    public bool NoStatus { get; init; }
+
+    [Description("Show verbose output.")]
+    [CommandOption("--verbose")]
+    [DefaultValue(false)]
+    public bool Verbose { get; init; }
 }
 
 class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
@@ -590,7 +633,7 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         await Task.CompletedTask;
         var stacks = StackStorage.LoadStacks();
 
-        var remoteUri = GitOperations.GetRemoteUri();
+        var remoteUri = GitOperations.GetRemoteUri(settings.Verbose);
 
         if (remoteUri is null)
         {
@@ -608,18 +651,27 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
         var remoteStatusForBranchesInStacks = new Dictionary<string, BranchStatus>();
 
-        if (settings.CheckRemoteStatus)
+        if (!settings.NoStatus)
         {
             AnsiConsole.Status()
                 .Start("Checking status of remote branches...", ctx =>
                 {
-                    GitOperations.Fetch();
+                    var allBranchesInStacks = stacksForRemote.SelectMany(s => new[] { s.SourceBranch }.Concat(s.Branches)).Distinct().ToArray();
+
+                    var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStacks, settings.Verbose);
+                    GitOperations.FetchBranches(branchesThatExistInRemote, false, settings.Verbose);
 
                     foreach (var stack in stacksForRemote)
                     {
+                        var branchesThatHaveBeenMergedForStack = GitOperations.GetBranchesThatHaveBeenMerged([.. stack.Branches], stack.SourceBranch, settings.Verbose);
+
+                        AnsiConsole.MarkupLine($"[grey]Branches that have been merged into '{stack.SourceBranch}': {string.Join(", ", branchesThatHaveBeenMergedForStack)}[/]");
+
                         void CheckRemoteBranch(string branch, string sourceBranch)
                         {
-                            var (ahead, behind) = GitOperations.GetStatusOfBranch(branch, sourceBranch);
+                            // GitOperations.FetchBranch(branch);
+                            // GitOperations.FetchBranch(sourceBranch);
+                            var (ahead, behind) = GitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.Verbose);
                             var branchStatus = new BranchStatus(true, ahead, behind);
                             remoteStatusForBranchesInStacks[branch] = branchStatus;
                         }
@@ -628,7 +680,7 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
                         foreach (var branch in stack.Branches)
                         {
-                            if (GitOperations.DoesRemoteBranchExist(branch))
+                            if (branchesThatExistInRemote.Contains(branch))
                             {
                                 CheckRemoteBranch(branch, parentBranch);
                                 parentBranch = branch;
@@ -643,19 +695,20 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         }
 
 
-        var currentBranch = GitOperations.GetCurrentBranch();
+        var currentBranch = GitOperations.GetCurrentBranch(settings.Verbose);
 
         foreach (var stack in stacksForRemote)
         {
             var stackRoot = new Tree($"[yellow]{stack.Name}[/]");
-            var sourceBranchNode = stackRoot.AddNode(BuildBranchName(stack.SourceBranch, true));
+            var markup = new Markup($"[grey]({stack.RemoteUri})[/]");
+            var sourceBranchNode = stackRoot.AddNode(BuildBranchName(stack.SourceBranch, null, true));
 
-            string BuildBranchName(string branch, bool isSource)
+            string BuildBranchName(string branch, string? parentBranch, bool isSourceBranchForStack)
             {
                 var status = remoteStatusForBranchesInStacks.GetValueOrDefault(branch);
                 var branchNameBuilder = new StringBuilder();
 
-                var color = status?.ExistsInRemote == false ? "grey" : isSource ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
+                var color = status?.ExistsInRemote == false ? "grey" : isSourceBranchForStack ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
                 Decoration? decoration = status?.ExistsInRemote == false ? Decoration.Strikethrough : null;
 
                 if (color is not null && decoration is not null)
@@ -682,23 +735,30 @@ class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
                 if (status?.Ahead > 0 && status?.Behind > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead, {status.Behind} behind)[/]");
+                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead, {status.Behind} behind {parentBranch})[/]");
                 }
                 else if (status?.Ahead > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead)[/]");
+                    branchNameBuilder.Append($" [grey]({status.Ahead} ahead of {parentBranch})[/]");
                 }
                 else if (status?.Behind > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({status.Behind} behind)[/]");
+                    branchNameBuilder.Append($" [grey]({status.Behind} behind {parentBranch})[/]");
                 }
 
                 return branchNameBuilder.ToString();
             }
 
+            string parentBranch = stack.SourceBranch;
+
             foreach (var branch in stack.Branches)
             {
-                sourceBranchNode.AddNode(BuildBranchName(branch, false));
+                sourceBranchNode.AddNode(BuildBranchName(branch, parentBranch, false));
+
+                if (remoteStatusForBranchesInStacks.TryGetValue(branch, out var status) && status.ExistsInRemote)
+                {
+                    parentBranch = branch;
+                }
             }
 
             AnsiConsole.Write(stackRoot);
