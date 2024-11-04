@@ -4,7 +4,8 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class UpdateCommandSettingsBase : CommandSettingsBase
+// A command that supports a dry run
+internal class DryRunCommandSettingsBase : CommandSettingsBase
 {
     [Description("Show what would happen without making any changes.")]
     [CommandOption("--dry-run")]

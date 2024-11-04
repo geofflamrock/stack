@@ -6,7 +6,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class NewBranchCommandSettings : UpdateCommandSettingsBase
+internal class NewBranchCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -37,7 +37,7 @@ internal class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;

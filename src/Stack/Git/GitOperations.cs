@@ -11,29 +11,29 @@ internal record GitOperationSettings(bool DryRun, bool Verbose)
 
 internal static class GitOperations
 {
-    public static void CreateNewBranch(string branchName, string sourceBranch, GitOperationSettings? settings = null)
+    public static void CreateNewBranch(string branchName, string sourceBranch, GitOperationSettings settings)
     {
-        ExecuteGitCommand($"branch {branchName} {sourceBranch}");
+        ExecuteGitCommand($"branch {branchName} {sourceBranch}", settings);
     }
 
-    public static void PushNewBranch(string branchName, GitOperationSettings? settings = null)
+    public static void PushNewBranch(string branchName, GitOperationSettings settings)
     {
-        ExecuteGitCommand($"push -u origin {branchName}");
+        ExecuteGitCommand($"push -u origin {branchName}", settings);
     }
 
-    public static void PushBranch(string branchName, GitOperationSettings? settings = null)
+    public static void PushBranch(string branchName, GitOperationSettings settings)
     {
         ExecuteGitCommand($"push origin {branchName}", settings);
     }
 
-    public static void ChangeBranch(string branchName, GitOperationSettings? settings = null)
+    public static void ChangeBranch(string branchName, GitOperationSettings settings)
     {
         ExecuteGitCommand($"checkout {branchName}", settings);
     }
 
-    public static void FetchBranch(string branchName, GitOperationSettings? settings = null)
+    public static void FetchBranch(string branchName, GitOperationSettings settings)
     {
-        var currentBranch = GetCurrentBranch();
+        var currentBranch = GetCurrentBranch(settings);
 
         if (currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
         {
@@ -45,19 +45,19 @@ internal static class GitOperations
         }
     }
 
-    public static void FetchBranches(string[] branches, GitOperationSettings? settings = null)
+    public static void FetchBranches(string[] branches, GitOperationSettings settings)
     {
         ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}", settings);
     }
 
-    public static void PullBranch(string branchName, GitOperationSettings? settings = null)
+    public static void PullBranch(string branchName, GitOperationSettings settings)
     {
         ExecuteGitCommand($"pull origin {branchName}", settings);
     }
 
-    public static void UpdateBranch(string branchName, GitOperationSettings? settings = null)
+    public static void UpdateBranch(string branchName, GitOperationSettings settings)
     {
-        var currentBranch = GetCurrentBranch();
+        var currentBranch = GetCurrentBranch(settings);
 
         if (!currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
         {
@@ -67,79 +67,77 @@ internal static class GitOperations
         PullBranch(branchName, settings);
     }
 
-    public static void MergeFromRemoteSourceBranch(string sourceBranchName, GitOperationSettings? settings = null)
+    public static void MergeFromRemoteSourceBranch(string sourceBranchName, GitOperationSettings settings)
     {
         ExecuteGitCommand($"merge origin/{sourceBranchName}", settings);
     }
 
-    public static void MergeFromLocalSourceBranch(string sourceBranchName, GitOperationSettings? settings = null)
+    public static void MergeFromLocalSourceBranch(string sourceBranchName, GitOperationSettings settings)
     {
         ExecuteGitCommand($"merge {sourceBranchName}", settings);
     }
 
-    public static string GetCurrentBranch(GitOperationSettings? settings = null)
+    public static string GetCurrentBranch(GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput("branch --show-current", settings).Trim();
     }
 
-    public static string GetDefaultBranch(GitOperationSettings? settings = null)
+    public static string GetDefaultBranch(GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput("symbolic-ref refs/remotes/origin/HEAD", settings).Trim().Replace("refs/remotes/origin/", "");
     }
 
-    public static bool DoesRemoteBranchExist(string branchName, GitOperationSettings? settings = null)
+    public static bool DoesRemoteBranchExist(string branchName, GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}", settings).Trim().Length > 0;
     }
 
-    public static string[] GetBranchesThatExistInRemote(string[] branches, GitOperationSettings? settings = null)
+    public static string[] GetBranchesThatExistInRemote(string[] branches, GitOperationSettings settings)
     {
         var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
         return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
-    public static bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName, GitOperationSettings? settings = null)
+    public static bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName, GitOperationSettings settings)
     {
         var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         return remoteBranchesThatHaveBeenMerged.Any(b => b.EndsWith(branchName));
     }
 
-    public static string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName, GitOperationSettings? settings = null)
+    public static string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName, GitOperationSettings settings)
     {
         var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
         return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
-    public static (int Ahead, int Behind) GetStatusOfBranch(string branchName, string sourceBranchName, GitOperationSettings? settings = null)
+    public static (int Ahead, int Behind) GetStatusOfBranch(string branchName, string sourceBranchName, GitOperationSettings settings)
     {
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}", settings).Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
 
-    public static (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName, GitOperationSettings? settings = null)
+    public static (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName, GitOperationSettings settings)
     {
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}", settings).Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
 
-    public static string GetRemoteUri(GitOperationSettings? settings = null)
+    public static string GetRemoteUri(GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput("remote get-url origin", settings).Trim();
     }
 
-    public static string[] GetLocalBranchesOrderedByMostRecentCommitterDate(GitOperationSettings? settings = null)
+    public static string[] GetLocalBranchesOrderedByMostRecentCommitterDate(GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short) --sort=-committerdate", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static string ExecuteGitCommandAndReturnOutput(string command, GitOperationSettings? settings = null)
+    private static string ExecuteGitCommandAndReturnOutput(string command, GitOperationSettings settings)
     {
-        var settingsOrDefault = settings ?? GitOperationSettings.Default;
-
-        if (settingsOrDefault.Verbose)
+        if (settings.Verbose)
             AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
         var infoBuilder = new StringBuilder();
@@ -159,7 +157,7 @@ internal static class GitOperations
             throw new Exception("Failed to execute git command.");
         }
 
-        if (settingsOrDefault.Verbose && infoBuilder.Length > 0)
+        if (settings.Verbose && infoBuilder.Length > 0)
         {
             AnsiConsole.WriteLine(infoBuilder.ToString());
         }
@@ -167,14 +165,12 @@ internal static class GitOperations
         return infoBuilder.ToString();
     }
 
-    private static void ExecuteGitCommand(string command, GitOperationSettings? settings = null)
+    private static void ExecuteGitCommand(string command, GitOperationSettings settings)
     {
-        var settingsOrDefault = settings ?? GitOperationSettings.Default;
-
-        if (settingsOrDefault.Verbose)
+        if (settings.Verbose)
             AnsiConsole.MarkupLine($"[grey]git {command}[/]");
 
-        if (!settingsOrDefault.DryRun)
+        if (!settings.DryRun)
         {
             ExecuteGitCommandInternal(command);
         }

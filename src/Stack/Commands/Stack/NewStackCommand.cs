@@ -8,7 +8,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class NewStackCommandSettings : UpdateCommandSettingsBase
+internal class NewStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack. Must be unique.")]
     [CommandOption("-n|--name")]
@@ -58,3 +58,5 @@ internal class NewStackCommand : AsyncCommand<NewStackCommandSettings>
         return 0;
     }
 }
+
+

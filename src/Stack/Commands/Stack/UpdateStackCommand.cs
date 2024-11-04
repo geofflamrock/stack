@@ -6,7 +6,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class UpdateStackCommandSettings : UpdateCommandSettingsBase
+internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]
@@ -31,9 +31,9 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack to update:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
-        var currentBranch = GitOperations.GetCurrentBranch();
+        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         AnsiConsole.MarkupLine($"Stack: {stack.Name}");
 
@@ -53,7 +53,7 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
             foreach (var branch in stack.Branches)
             {
-                if (GitOperations.DoesRemoteBranchExist(branch))
+                if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;

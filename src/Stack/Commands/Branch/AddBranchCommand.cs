@@ -6,7 +6,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class AddBranchCommandSettings : UpdateCommandSettingsBase
+internal class AddBranchCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -38,16 +38,12 @@ internal class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
-        var branchesPrompt = new SelectionPrompt<string>().Title("Select a branch to add to the stack:").PageSize(10);
-
-        branchesPrompt.AddChoices(branches);
-
-        var branchName = settings.Name ?? AnsiConsole.Prompt(branchesPrompt);
+        var branchName = settings.Name ?? AnsiConsole.Prompt(Prompts.Branch(branches));
 
         AnsiConsole.WriteLine($"Adding branch '{branchName}' to stack '{stack.Name}'");
 

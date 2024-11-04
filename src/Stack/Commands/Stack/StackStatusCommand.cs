@@ -39,7 +39,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var remoteStatusForBranchesInStacks = new Dictionary<string, BranchStatus>();

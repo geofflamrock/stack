@@ -6,15 +6,15 @@ internal record Stack(string Name, string RemoteUri, string SourceBranch, List<s
 
 internal static class StackConfig
 {
-    public static string GetConfigFileLocation()
+    public static string GetConfigPath()
     {
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(homeDirectory, ".stacks.json");
+        return Path.Combine(homeDirectory, "stack", "config.json");
     }
 
     public static List<Stack> Load()
     {
-        var stacksFile = GetConfigFileLocation();
+        var stacksFile = GetConfigPath();
         if (!File.Exists(stacksFile))
         {
             return new List<Stack>();
@@ -25,7 +25,7 @@ internal static class StackConfig
 
     public static void Save(List<Stack> stacks)
     {
-        var stacksFile = GetConfigFileLocation();
+        var stacksFile = GetConfigPath();
         File.WriteAllText(stacksFile, JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

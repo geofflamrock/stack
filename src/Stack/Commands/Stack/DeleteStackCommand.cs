@@ -7,7 +7,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class DeleteStackCommandSettings : UpdateCommandSettingsBase
+internal class DeleteStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to delete.")]
     [CommandOption("-n|--name")]
@@ -32,7 +32,7 @@ internal class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack to delete:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))

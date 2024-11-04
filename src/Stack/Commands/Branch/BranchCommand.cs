@@ -1,5 +1,6 @@
 
 using System.ComponentModel;
+using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
@@ -7,7 +8,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class BranchCommandSettings : UpdateCommandSettingsBase
+internal class BranchCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -52,27 +53,14 @@ internal class BranchCommand : AsyncCommand<BranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Select a stack:").PageSize(10).AddChoices(stacksForRemote.Select(s => s.Name).ToArray()));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var actionPromptOption = new SelectionPrompt<BranchAction>()
             .Title("Add or create a branch:")
-            .AddChoices([BranchAction.Add, BranchAction.Create]);
+            .AddChoices([BranchAction.Add, BranchAction.Create])
+            .UseConverter(action => action.Humanize());
 
-        actionPromptOption.Converter = (action) =>
-        {
-            var field = action.GetType().GetField(action.ToString());
-            if (field == null)
-                return action.ToString();
-
-            var attributes = field.GetCustomAttributes(typeof(DescriptionAttribute), false);
-            if (Attribute.GetCustomAttribute(field, typeof(DescriptionAttribute)) is DescriptionAttribute attribute)
-            {
-                return attribute.Description;
-            }
-
-            return action.ToString();
-        };
         var action = AnsiConsole.Prompt(actionPromptOption);
 
         if (action == BranchAction.Add)
