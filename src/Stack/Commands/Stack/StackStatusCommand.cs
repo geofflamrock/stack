@@ -39,18 +39,20 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
+        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        var remoteStatusForBranchesInStacks = new Dictionary<string, BranchStatus>();
+        var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
+        var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
 
+        var remoteStatusForBranchesInStacks = new Dictionary<string, BranchStatus>();
+        var prForBranchesInStacks = new Dictionary<string, GitHubPullRequest>();
 
         AnsiConsole.Status()
             .Start("Checking status of remote branches...", ctx =>
             {
-                var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
-
-                var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
                 GitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
 
                 void CheckRemoteBranch(string branch, string sourceBranch)
@@ -76,12 +78,28 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 }
             });
 
+        AnsiConsole.Status()
+            .Start("Checking status of GitHub pull requests...", ctx =>
+            {
+                try
+                {
+                    foreach (var branch in stack.Branches)
+                    {
+                        var pr = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+                        if (pr is not null)
+                        {
+                            prForBranchesInStacks[branch] = pr;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[orange1]Error checking GitHub pull requests: {ex.Message}[/]");
+                }
+            });
 
-        var stackRoot = new Tree($"[yellow]{stack.Name}[/]");
-        var markup = new Markup($"[grey]({stack.RemoteUri})[/]");
-        var sourceBranchNode = stackRoot.AddNode(BuildBranchName(stack.SourceBranch, null, true));
+        var stackRoot = new Tree($"[yellow]{stack.Name}:[/] [grey]{stack.SourceBranch}[/]");
 
         string BuildBranchName(string branch, string? parentBranch, bool isSourceBranchForStack)
         {
@@ -108,11 +126,6 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 branchNameBuilder.Append(branch);
             }
 
-            if (status?.ExistsInRemote == false)
-            {
-                branchNameBuilder.Append($" [{Decoration.Strikethrough} grey](deleted in remote)[/]");
-            }
-
             if (status?.Ahead > 0 && status?.Behind > 0)
             {
                 branchNameBuilder.Append($" [grey]({status.Ahead} ahead, {status.Behind} behind {parentBranch})[/]");
@@ -126,6 +139,20 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 branchNameBuilder.Append($" [grey]({status.Behind} behind {parentBranch})[/]");
             }
 
+            if (prForBranchesInStacks.TryGetValue(branch, out var pr))
+            {
+                var prStatusColor = Color.Green;
+                if (pr.State == GitHubPullRequestStates.Merged)
+                {
+                    prStatusColor = Color.Purple;
+                }
+                else if (pr.State == GitHubPullRequestStates.Closed)
+                {
+                    prStatusColor = Color.Red;
+                }
+                branchNameBuilder.Append($" [{prStatusColor} link={pr.Url}]#{pr.Number}: {pr.Title}[/]");
+            }
+
             return branchNameBuilder.ToString();
         }
 
@@ -133,7 +160,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 
         foreach (var branch in stack.Branches)
         {
-            sourceBranchNode.AddNode(BuildBranchName(branch, parentBranch, false));
+            stackRoot.AddNode(BuildBranchName(branch, parentBranch, false));
 
             if (remoteStatusForBranchesInStacks.TryGetValue(branch, out var status) && status.ExistsInRemote)
             {

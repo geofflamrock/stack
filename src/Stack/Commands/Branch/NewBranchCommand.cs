@@ -37,7 +37,7 @@ internal class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
@@ -54,6 +54,14 @@ internal class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
         StackConfig.Save(stacks);
 
         AnsiConsole.WriteLine($"Branch created");
+
+        var switchToNewBranch = AnsiConsole.Prompt(new ConfirmationPrompt("Do you want to switch to the new branch?"));
+
+        if (switchToNewBranch)
+        {
+            GitOperations.ChangeBranch(branchName, settings.GetGitOperationSettings());
+        }
+
         return 0;
     }
 }

@@ -38,7 +38,7 @@ internal class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;

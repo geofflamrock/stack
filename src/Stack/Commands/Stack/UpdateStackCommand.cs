@@ -31,9 +31,9 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
         var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         AnsiConsole.MarkupLine($"Stack: {stack.Name}");
 

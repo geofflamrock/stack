@@ -53,12 +53,12 @@ internal class BranchCommand : AsyncCommand<BranchCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
+        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var actionPromptOption = new SelectionPrompt<BranchAction>()
             .Title("Add or create a branch:")
-            .AddChoices([BranchAction.Add, BranchAction.Create])
+            .AddChoices([BranchAction.Create, BranchAction.Add])
             .UseConverter(action => action.Humanize());
 
         var action = AnsiConsole.Prompt(actionPromptOption);

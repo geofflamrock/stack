@@ -73,6 +73,13 @@ internal static class GitOperations
         return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}", settings).Trim().Length > 0;
     }
 
+    public static string[] GetBranchesThatExistLocally(string[] branches, GitOperationSettings settings)
+    {
+        var localBranches = ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short)", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+        return branches.Where(b => localBranches.Any(lb => lb.Equals(b, StringComparison.OrdinalIgnoreCase))).ToArray();
+    }
+
     public static string[] GetBranchesThatExistInRemote(string[] branches, GitOperationSettings settings)
     {
         var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}", settings).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);

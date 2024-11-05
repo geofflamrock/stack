@@ -12,4 +12,5 @@ internal class CommandSettingsBase : CommandSettings
     public bool Verbose { get; init; }
 
     public virtual GitOperationSettings GetGitOperationSettings() => new(false, Verbose);
+    public virtual GitHubOperationSettings GetGitHubOperationSettings() => new(false, Verbose);
 }

@@ -23,6 +23,7 @@ internal class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
         var stacks = StackConfig.Load();
 
         var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -32,7 +33,7 @@ internal class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote));
+        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
