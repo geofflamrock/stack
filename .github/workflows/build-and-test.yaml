@@ -25,6 +25,9 @@ jobs:
             artifact-name: osx
 
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: src
 
     steps:
       - uses: actions/checkout@v4
