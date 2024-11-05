@@ -47,7 +47,7 @@ jobs:
         run: dotnet test --no-build --verbosity normal
 
       - name: Publish
-        run: dotnet publish -c Release -r ${{ matrix.runtime-id }} -o ${{ github.workspace }}/publish
+        run: dotnet publish Stack/Stack.csproj --no-build -c Release -r ${{ matrix.runtime-id }} -o ${{ github.workspace }}/publish
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
