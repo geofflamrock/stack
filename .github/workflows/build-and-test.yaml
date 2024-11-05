@@ -47,7 +47,8 @@ jobs:
         run: dotnet publish -c Release -r ${{ matrix.runtime-id }} -o ${{ github.workspace }}/publish
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
+          overwrite: true
           name: ${{ matrix.artifact-name }}
           path: ${{ github.workspace }}/publish
