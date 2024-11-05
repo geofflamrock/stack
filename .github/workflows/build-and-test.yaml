@@ -41,10 +41,10 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build --no-restore -c Release
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test --no-build -c Release --verbosity normal
 
       - name: Publish
         run: dotnet publish Stack/Stack.csproj --no-build -c Release -r ${{ matrix.runtime-id }} -o ${{ github.workspace }}/publish
