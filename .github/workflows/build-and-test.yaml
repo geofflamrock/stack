@@ -108,23 +108,25 @@ jobs:
           name: linux-x64
           path: ${{ github.workspace }}/artifacts/linux-x64
 
-      - name: Zip linux artifact
-        run: zip -r ${{ github.workspace }}/publish/linux-x64.zip ${{ github.workspace }}/artifacts/linux-x64
-
       - name: Download windows artifact
         uses: actions/download-artifact@v4
         with:
           name: windows-x64
           path: ${{ github.workspace }}/artifacts/windows-x64
 
-      - name: Zip windows artifact
-        run: zip -r ${{ github.workspace }}/publish/windows-x64.zip ${{ github.workspace }}/artifacts/windows-x64
-
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
           name: macos-x64
           path: ${{ github.workspace }}/artifacts/macos-x64
+
+      - run: mkdir -p ${{ github.workspace }}/publish
+
+      - name: Zip linux artifact
+        run: zip -r ${{ github.workspace }}/publish/linux-x64.zip ${{ github.workspace }}/artifacts/linux-x64
+
+      - name: Zip windows artifact
+        run: zip -r ${{ github.workspace }}/publish/windows-x64.zip ${{ github.workspace }}/artifacts/windows-x64
 
       - name: Zip macOS artifact
         run: zip -r ${{ github.workspace }}/publish/macos-x64.zip ${{ github.workspace }}/artifacts/macos-x64
