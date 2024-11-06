@@ -1,0 +1,125 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: Build and test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  version:
+    name: Get version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get release version
+        id: get_release_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}"
+
+      - name: Get branch names
+        id: branch_names
+        uses: OctopusDeploy/util-actions/current-branch-name@current-branch-name.0.1.0
+
+      - name: Get pre-release version
+        id: get_pre_release_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}-${{ steps.branch_names.outputs.branch_name }}.${{ github.run_number }}-${{ github.run_attempt }}"
+
+      - name: Get version
+        id: get_version
+        run: echo "version=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+
+  build:
+    needs: version
+    strategy:
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+            runtime-id: linux-x64
+            artifact-name: linux-x64
+          - name: Windows
+            os: windows-latest
+            runtime-id: win-x64
+            artifact-name: windows-x64
+          - name: macOS
+            os: macos-latest
+            runtime-id: osx-x64
+            artifact-name: osx-x64
+
+    name: Build and test on ${{ matrix.name }}
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --verbosity normal
+
+      - name: Publish
+        run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -o ${{ github.workspace }}/publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          overwrite: true
+          name: ${{ matrix.artifact-name }}
+          path: ${{ github.workspace }}/publish
+
+  publish:
+    name: Publish release version
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ${{ github.workspace }}/publish
+
+      - name: Create tag
+        uses: actions/github-script@v6.3.3
+        with:
+          script: |
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'refs/tags/v${{ needs.version.outputs.version }}',
+              sha: context.sha
+            })
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.version.outputs.version }}
+          draft: false
+          prerelease: false
+          files: ${{ github.workspace }}/publish/*
