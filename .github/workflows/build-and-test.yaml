@@ -153,5 +153,5 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
-          files: ${{ github.workspace }}/publish/**/*
+          files: ${{ github.workspace }}/publish/*
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
