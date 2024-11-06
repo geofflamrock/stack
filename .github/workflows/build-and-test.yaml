@@ -98,7 +98,6 @@ jobs:
     name: Publish release version
     needs: [version, build]
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
 
@@ -107,6 +106,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ${{ github.workspace }}/publish
+
+      - name: List artifacts
+        run: ls -R ${{ github.workspace }}/publish
 
       - name: Create tag
         uses: actions/github-script@v6.3.3
@@ -118,6 +120,7 @@ jobs:
               ref: 'refs/tags/v${{ needs.version.outputs.version }}',
               sha: context.sha
             })
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
       - name: Create release
         id: create_release
@@ -126,4 +129,5 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
-          files: ${{ github.workspace }}/publish/*
+          files: ${{ github.workspace }}/publish/**/*
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
