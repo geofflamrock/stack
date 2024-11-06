@@ -16,6 +16,10 @@ jobs:
     outputs:
       version: ${{ steps.get_version.outputs.version }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
       - name: Get release version
         id: get_release_version
         uses: paulhatch/semantic-version@v5.4.0
