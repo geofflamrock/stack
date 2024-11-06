@@ -10,7 +10,35 @@ on:
     branches: ["main"]
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - name: Get release version
+        id: get_release_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}"
+
+      - name: Get branch names
+        id: branch_names
+        uses: OctopusDeploy/util-actions/current-branch-name@current-branch-name.0.1.0
+
+      - name: Get pre-release version
+        id: get_pre_release_version
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          tag_prefix: "v"
+          version_format: "${major}.${minor}.${patch}-${{ steps.branch_names.outputs.branch_name }}.${{ github.run_number }}-${{ github.run_attempt }}"
+
+      - name: Get version
+        id: get_version
+        run: echo "version=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+
   build:
+    needs: version
     strategy:
       matrix:
         include:
@@ -37,28 +65,6 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Get release version
-        id: get_release_version
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}"
-
-      - name: Get branch names
-        id: branch_names
-        uses: OctopusDeploy/util-actions/current-branch-name@current-branch-name.0.1.0
-
-      - name: Get pre-release version
-        id: get_pre_release_version
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}-${{ steps.branch_names.outputs.branch_name }}.${{ github.run_number }}-${{ github.run_attempt }}"
-
-      - name: Get version
-        id: get_version
-        run: echo "version=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
-
       - name: Restore dependencies
         run: dotnet restore
 
@@ -69,7 +75,7 @@ jobs:
         run: dotnet test --no-build -c Release --verbosity normal
 
       - name: Publish
-        run: dotnet publish Stack/Stack.csproj -p:Version=${{ steps.get_version.outputs.version }} -c Release -r ${{ matrix.runtime-id }} -o ${{ github.workspace }}/publish
+        run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -o ${{ github.workspace }}/publish
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -79,7 +85,7 @@ jobs:
           path: ${{ github.workspace }}/publish
 
   publish:
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
@@ -91,13 +97,6 @@ jobs:
         with:
           pattern: ${{ github.workspace }}/publish
 
-      - name: Get release version
-        id: get_release_version
-        uses: paulhatch/semantic-version@v5.4.0
-        with:
-          tag_prefix: "v"
-          version_format: "${major}.${minor}.${patch}"
-
       - name: Create tag
         uses: actions/github-script@v6.3.3
         with:
@@ -105,7 +104,7 @@ jobs:
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/v${{ steps.get_release_version.outputs.version }}',
+              ref: 'refs/tags/v${{ needs.version.outputs.version }}',
               sha: context.sha
             })
 
@@ -113,7 +112,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_release_version.outputs.version }}
+          tag_name: v${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
           files: ${{ github.workspace }}/publish/*
