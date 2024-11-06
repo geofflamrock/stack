@@ -131,6 +131,8 @@ jobs:
       - name: Zip macOS artifact
         run: zip ${{ github.workspace }}/publish/macos-x64.zip ${{ github.workspace }}/artifacts/macos-x64/stack
 
+      - run: unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
+
       - name: List published artifacts
         run: ls -R ${{ github.workspace }}/publish
 
