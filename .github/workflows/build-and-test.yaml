@@ -16,13 +16,13 @@ jobs:
         include:
           - os: ubuntu-latest
             runtime-id: linux-x64
-            artifact-name: linux-x64.zip
+            artifact-name: linux-x64
           - os: windows-latest
             runtime-id: win-x64
-            artifact-name: windows-x64.zip
+            artifact-name: windows-x64
           - os: macos-latest
             runtime-id: osx-x64
-            artifact-name: osx-x64.zip
+            artifact-name: osx-x64
 
     runs-on: ${{ matrix.os }}
     defaults:
