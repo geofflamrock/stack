@@ -112,7 +112,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-amd64
-          path: ${{ github.workspace }}/artifacts/windows-x64
+          path: ${{ github.workspace }}/artifacts/windows-amd64
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
