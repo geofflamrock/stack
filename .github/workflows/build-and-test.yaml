@@ -50,15 +50,15 @@ jobs:
           - name: Linux
             os: ubuntu-latest
             runtime-id: linux-x64
-            artifact-name: linux-x64
+            artifact-name: linux-amd64
           - name: Windows
             os: windows-latest
             runtime-id: win-x64
-            artifact-name: windows-x64
+            artifact-name: windows-amd64
           - name: macOS
             os: macos-latest
             runtime-id: osx-x64
-            artifact-name: macos-x64
+            artifact-name: macos-amd64
 
     name: Build and test on ${{ matrix.name }}
 
@@ -105,42 +105,42 @@ jobs:
       - name: Download linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: linux-x64
-          path: ${{ github.workspace }}/artifacts/linux-x64
+          name: linux-amd64
+          path: ${{ github.workspace }}/artifacts/linux-amd64
 
       - name: Download windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: windows-x64
+          name: windows-amd64
           path: ${{ github.workspace }}/artifacts/windows-x64
 
       - name: Download macOS artifact
         uses: actions/download-artifact@v4
         with:
-          name: macos-x64
-          path: ${{ github.workspace }}/artifacts/macos-x64
+          name: macos-amd64
+          path: ${{ github.workspace }}/artifacts/macos-amd64
 
       - run: mkdir -p ${{ github.workspace }}/publish
 
-      - name: Zip linux artifact
-        run: zip ${{ github.workspace }}/publish/linux-x64.zip stack
-        working-directory: ${{ github.workspace }}/artifacts/linux-x64
+      - name: Create linux tar.gz artifact
+        run: tar -czf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_linux_amd64.tar.gz *
+        working-directory: ${{ github.workspace }}/artifacts/linux-amd64
 
-      - name: Zip windows artifact
-        run: zip ${{ github.workspace }}/publish/windows-x64.zip stack.exe
-        working-directory: ${{ github.workspace }}/artifacts/windows-x64
+      - name: Create windows zip artifact
+        run: zip ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_windows_amd64.zip *
+        working-directory: ${{ github.workspace }}/artifacts/windows-amd64
 
-      - name: Zip macOS artifact
-        run: zip ${{ github.workspace }}/publish/macos-x64.zip stack
-        working-directory: ${{ github.workspace }}/artifacts/macos-x64
+      - name: Create macOS tar.gz artifact
+        run: tar -czf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_macos_amd64.tar.gz *
+        working-directory: ${{ github.workspace }}/artifacts/macos-amd64
 
       - run: mkdir -p ${{ github.workspace }}/unzipped
 
       - name: Unzip artifacts
         run: |
-          unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/unzipped/linux-x64
-          unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/unzipped/windows-x64
-          unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/unzipped/macos-x64
+          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_linux_amd64.tar.gz -d ${{ github.workspace }}/unzipped/linux-amd64
+          unzip ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_windows_amd64.zip -d ${{ github.workspace }}/unzipped/windows-amd64
+          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_macos_amd64.tar.gz -d ${{ github.workspace }}/unzipped/macos-amd64
 
       - name: List unzipped artifacts
         run: ls -R ${{ github.workspace }}/unzipped
