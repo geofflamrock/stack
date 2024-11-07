@@ -138,9 +138,9 @@ jobs:
 
       - name: Unzip artifacts
         run: |
-          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_linux_amd64.tar.gz -d ${{ github.workspace }}/unzipped/linux-amd64
+          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_linux_amd64.tar.gz -C ${{ github.workspace }}/unzipped/linux-amd64
           unzip ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_windows_amd64.zip -d ${{ github.workspace }}/unzipped/windows-amd64
-          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_macos_amd64.tar.gz -d ${{ github.workspace }}/unzipped/macos-amd64
+          tar -xzf ${{ github.workspace }}/publish/stack_${{ needs.version.outputs.version }}_macos_amd64.tar.gz -C ${{ github.workspace }}/unzipped/macos-amd64
 
       - name: List unzipped artifacts
         run: ls -R ${{ github.workspace }}/unzipped
