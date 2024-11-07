@@ -1,7 +1,4 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
-name: Build and test
+name: Build, test and release
 
 on:
   push:
@@ -49,16 +46,10 @@ jobs:
         include:
           - name: Linux
             os: ubuntu-latest
-            runtime-id: linux-x64
-            artifact-name: linux-x64
           - name: Windows
             os: windows-latest
-            runtime-id: win-x64
-            artifact-name: windows-x64
           - name: macOS
             os: macos-latest
-            runtime-id: osx-x64
-            artifact-name: macos-x64
 
     name: Build and test on ${{ matrix.name }}
 
@@ -84,55 +75,88 @@ jobs:
       - name: Test
         run: dotnet test --no-build -c Release --verbosity normal
 
+  publish:
+    needs: [version, build]
+    strategy:
+      matrix:
+        include:
+          - name: Linux amd64
+            runtime-id: linux-x64
+            artifact-name: linux_amd64
+            archive_type: tar
+          - name: Linux arm64
+            runtime-id: linux-arm64
+            artifact-name: linux_arm64
+            archive_type: tar
+          - name: Windows amd64
+            runtime-id: win-x64
+            artifact-name: windows_amd64
+            archive_type: zip
+          - name: Windows arm64
+            runtime-id: win-arm64
+            artifact-name: windows_arm64
+            archive_type: zip
+          - name: macOS amd64
+            runtime-id: osx-x64
+            artifact-name: macos_amd64
+            archive_type: tar
+          - name: macOS arm64
+            runtime-id: osx-arm64
+            artifact-name: macos_arm64
+            archive_type: tar
+
+    name: Publish ${{ matrix.name }}
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
       - name: Publish
         run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
+
+      - run: mkdir -p ${{ github.workspace }}/artifacts
+
+      - name: Create tar.gz arhive
+        run: tar -czf ${{ github.workspace }}/artifacts/stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.tar.gz *
+        working-directory: ${{ github.workspace }}/publish
+        if: matrix.archive_type == 'tar'
+
+      - name: Create zip arhive
+        run: zip -r ${{ github.workspace }}/artifacts/stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.zip *
+        working-directory: ${{ github.workspace }}/publish
+        if: matrix.archive_type == 'zip'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           overwrite: true
           name: ${{ matrix.artifact-name }}
-          path: ${{ github.workspace }}/publish
+          path: ${{ github.workspace }}/artifacts/*
 
-  publish:
-    name: Publish
-    needs: [version, build]
+  release:
+    name: Release
+    needs: [version, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Download linux artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: linux-x64
-          path: ${{ github.workspace }}/artifacts/linux-x64
+          path: ${{ github.workspace }}/artifacts
 
-      - name: Download windows artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-x64
-          path: ${{ github.workspace }}/artifacts/windows-x64
-
-      - name: Download macOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-x64
-          path: ${{ github.workspace }}/artifacts/macos-x64
-
-      - run: mkdir -p ${{ github.workspace }}/publish
-
-      - name: Zip linux artifact
-        run: zip -r ${{ github.workspace }}/publish/linux-x64.zip ${{ github.workspace }}/artifacts/linux-x64
-
-      - name: Zip windows artifact
-        run: zip -r ${{ github.workspace }}/publish/windows-x64.zip ${{ github.workspace }}/artifacts/windows-x64
-
-      - name: Zip macOS artifact
-        run: zip -r ${{ github.workspace }}/publish/macos-x64.zip ${{ github.workspace }}/artifacts/macos-x64
-
-      - name: List published artifacts
-        run: ls -R ${{ github.workspace }}/publish
+      - name: List artifacts
+        run: ls -lR ${{ github.workspace }}/artifacts
 
       - name: Create tag
         uses: actions/github-script@v6.3.3
@@ -153,5 +177,7 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
-          files: ${{ github.workspace }}/publish/*
+          files: |
+            ${{ github.workspace }}/artifacts/**/*.tar.gz
+            ${{ github.workspace }}/artifacts/**/*.zip
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
