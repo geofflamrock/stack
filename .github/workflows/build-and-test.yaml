@@ -177,5 +177,7 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
-          files: ${{ github.workspace }}/artifacts/*
+          files: |
+            ${{ github.workspace }}/artifacts/**/*.tar.gz
+            ${{ github.workspace }}/artifacts/**/*.zip
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
