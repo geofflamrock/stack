@@ -123,13 +123,16 @@ jobs:
       - run: mkdir -p ${{ github.workspace }}/publish
 
       - name: Zip linux artifact
-        run: zip ${{ github.workspace }}/publish/linux-x64.zip ${{ github.workspace }}/artifacts/linux-x64/stack
+        run: zip ${{ github.workspace }}/publish/linux-x64.zip
+        working-directory: ${{ github.workspace }}/artifacts/linux-x64
 
       - name: Zip windows artifact
-        run: zip ${{ github.workspace }}/publish/windows-x64.zip ${{ github.workspace }}/artifacts/windows-x64/stack.exe
+        run: zip ${{ github.workspace }}/publish/windows-x64.zip
+        working-directory: ${{ github.workspace }}/artifacts/windows-x64
 
       - name: Zip macOS artifact
-        run: zip ${{ github.workspace }}/publish/macos-x64.zip ${{ github.workspace }}/artifacts/macos-x64/stack
+        run: zip ${{ github.workspace }}/publish/macos-x64.zip
+        working-directory: ${{ github.workspace }}/artifacts/macos-x64
 
       - run: unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
 
