@@ -136,10 +136,12 @@ jobs:
 
       - name: Unzip artifacts
         run: |
-          unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
-          unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/publish/windows-x64
-          unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/publish/macos-x64
-        if: github.event_name != 'push' || github.ref == 'refs/heads/main'
+          unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/unzipped/linux-x64
+          unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/unzipped/windows-x64
+          unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/unzipped/macos-x64
+
+      - name: List unzipped artifacts
+        run: ls -R ${{ github.workspace }}/unzipped
 
       - name: List published artifacts
         run: ls -R ${{ github.workspace }}/publish
