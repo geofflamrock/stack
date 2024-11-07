@@ -26,7 +26,7 @@ jobs:
 
       - name: Get branch names
         id: branch_names
-        uses: OctopusDeploy/util-actions/current-branch-name@current-branch-name.0.1.0
+        uses: OctopusDeploy/util-actions/current-branch-name@geoffl/node-20
 
       - name: Get pre-release version
         id: get_pre_release_version
