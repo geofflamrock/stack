@@ -135,6 +135,8 @@ jobs:
         working-directory: ${{ github.workspace }}/artifacts/macos-x64
 
       - run: unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
+      - run: unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/publish/windows-x64
+      - run: unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/publish/macos-x64
 
       - name: List published artifacts
         run: ls -R ${{ github.workspace }}/publish
