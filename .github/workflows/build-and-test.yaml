@@ -134,9 +134,12 @@ jobs:
         run: zip ${{ github.workspace }}/publish/macos-x64.zip stack
         working-directory: ${{ github.workspace }}/artifacts/macos-x64
 
-      - run: unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
-      - run: unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/publish/windows-x64
-      - run: unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/publish/macos-x64
+      - name: Unzip artifacts
+        run: |
+          unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/publish/linux-x64
+          unzip ${{ github.workspace }}/publish/windows-x64.zip -d ${{ github.workspace }}/publish/windows-x64
+          unzip ${{ github.workspace }}/publish/macos-x64.zip -d ${{ github.workspace }}/publish/macos-x64
+        if: github.event_name != 'push' || github.ref == 'refs/heads/main'
 
       - name: List published artifacts
         run: ls -R ${{ github.workspace }}/publish
