@@ -134,6 +134,8 @@ jobs:
         run: zip ${{ github.workspace }}/publish/macos-x64.zip stack
         working-directory: ${{ github.workspace }}/artifacts/macos-x64
 
+      - run: mkdir -p ${{ github.workspace }}/unzipped
+
       - name: Unzip artifacts
         run: |
           unzip ${{ github.workspace }}/publish/linux-x64.zip -d ${{ github.workspace }}/unzipped/linux-x64
