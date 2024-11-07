@@ -156,7 +156,7 @@ jobs:
           path: ${{ github.workspace }}/artifacts
 
       - name: List artifacts
-        run: ls -l ${{ github.workspace }}/artifacts
+        run: ls -lR ${{ github.workspace }}/artifacts
 
       - name: Create tag
         uses: actions/github-script@v6.3.3
