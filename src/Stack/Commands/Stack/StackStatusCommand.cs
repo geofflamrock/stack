@@ -20,7 +20,11 @@ internal class StackStatusCommandSettings : CommandSettingsBase
 
 record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 
-internal class StackStatusCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<StackStatusCommandSettings>
+internal class StackStatusCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations)
+    : AsyncCommand<StackStatusCommandSettings>
 {
     record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
@@ -104,7 +108,7 @@ internal class StackStatusCommand(IAnsiConsole console, IGitOperations gitOperat
                     {
                         foreach (var branch in stack.Branches)
                         {
-                            var pr = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                            var pr = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
                             if (pr is not null)
                             {

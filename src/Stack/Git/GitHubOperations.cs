@@ -18,10 +18,14 @@ internal static class GitHubPullRequestStates
 
 internal record GitHubPullRequest(int Number, string Title, string State, Uri Url);
 
-internal static class GitHubOperations
+internal interface IGitHubOperations
 {
+    GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings);
+}
 
-    public static GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
+internal class GitHubOperations(IAnsiConsole console) : IGitHubOperations
+{
+    public GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
     {
         var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,state,url --head {branch} --state all", settings);
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
@@ -30,10 +34,10 @@ internal static class GitHubOperations
         return pullRequests.FirstOrDefault();
     }
 
-    private static string ExecuteGitHubCommandAndReturnOutput(string command, GitHubOperationSettings settings)
+    private string ExecuteGitHubCommandAndReturnOutput(string command, GitHubOperationSettings settings)
     {
         if (settings.Verbose)
-            AnsiConsole.MarkupLine($"[grey]git {command}[/]");
+            console.MarkupLine($"[grey]git {command}[/]");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -48,22 +52,22 @@ internal static class GitHubOperations
 
         if (result != 0)
         {
-            AnsiConsole.MarkupLine($"[red]{errorBuilder}[/]");
+            console.MarkupLine($"[red]{errorBuilder}[/]");
             throw new Exception("Failed to execute gh command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            AnsiConsole.WriteLine(infoBuilder.ToString());
+            console.WriteLine(infoBuilder.ToString());
         }
 
         return infoBuilder.ToString();
     }
 
-    private static void ExecuteGitHubCommand(string command, GitHubOperationSettings settings)
+    private void ExecuteGitHubCommand(string command, GitHubOperationSettings settings)
     {
         if (settings.Verbose)
-            AnsiConsole.MarkupLine($"[grey]gh {command}[/]");
+            console.MarkupLine($"[grey]gh {command}[/]");
 
         if (!settings.DryRun)
         {
@@ -71,7 +75,7 @@ internal static class GitHubOperations
         }
     }
 
-    private static void ExecuteGitHubCommandInternal(string command)
+    private void ExecuteGitHubCommandInternal(string command)
     {
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -86,14 +90,14 @@ internal static class GitHubOperations
 
         if (result != 0)
         {
-            AnsiConsole.MarkupLine($"[red]{errorBuilder}[/]");
+            console.MarkupLine($"[red]{errorBuilder}[/]");
             throw new Exception("Failed to execute gh command.");
         }
         else
         {
             if (infoBuilder.Length > 0)
             {
-                AnsiConsole.WriteLine(infoBuilder.ToString());
+                console.WriteLine(infoBuilder.ToString());
             }
         }
     }
