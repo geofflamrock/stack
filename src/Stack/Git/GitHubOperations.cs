@@ -45,7 +45,7 @@ internal static class GitHubOperations
 
     public static GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, GitHubOperationSettings settings)
     {
-        ExecuteGitHubCommand($"pr create --title {title} --body {body} --base {baseBranch} --head {headBranch}", settings);
+        ExecuteGitHubCommand($"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}", settings);
 
         if (settings.DryRun)
         {
