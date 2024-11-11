@@ -38,15 +38,15 @@ app.Configure(configure =>
             branch.AddCommand<AddBranchCommand>("add").WithDescription("Adds an existing branch in a stack.");
         });
 
-    // Pull request commands
-    configure.AddBranch("pr", pr =>
-        {
-            pr.SetDescription("Manages pull requests for a stack.");
-            pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
-        });
-
     // Config commands
     configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
+
+    // Pull request commands
+    configure.AddBranch("prs", prs =>
+        {
+            prs.SetDescription("[[EXPERIMENTAL]] Manages pull requests for a stack.");
+            prs.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+        });
 });
 
 await app.RunAsync(args);
