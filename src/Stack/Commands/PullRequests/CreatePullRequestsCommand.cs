@@ -47,15 +47,17 @@ internal class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsComman
                 {
                     var existingPullRequest = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
-                    if (existingPullRequest is not null)
+                    if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                     {
-                        AnsiConsole.MarkupLine($"Pull request already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
-                        continue;
+                        AnsiConsole.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                    }
+                    else
+                    {
+                        var prTitle = AnsiConsole.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
+                        AnsiConsole.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                        GitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
                     }
 
-                    var prTitle = AnsiConsole.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
-
-                    AnsiConsole.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
                     sourceBranch = branch;
                 }
                 else

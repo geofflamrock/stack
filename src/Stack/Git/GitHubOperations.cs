@@ -11,16 +11,29 @@ internal record GitHubOperationSettings(bool DryRun, bool Verbose)
 
 internal static class GitHubPullRequestStates
 {
-    public static string Open = "OPEN";
-    public static string Closed = "CLOSED";
-    public static string Merged = "MERGED";
+    public const string Open = "OPEN";
+    public const string Closed = "CLOSED";
+    public const string Merged = "MERGED";
 }
 
 internal record GitHubPullRequest(int Number, string Title, string State, Uri Url);
 
+internal static class GitHubPullRequestExtensionMethods
+{
+    public static Color GetPullRequestColor(this GitHubPullRequest pullRequest)
+    {
+        return pullRequest.State switch
+        {
+            GitHubPullRequestStates.Open => Color.Green,
+            GitHubPullRequestStates.Closed => Color.Red,
+            GitHubPullRequestStates.Merged => Color.Purple,
+            _ => Color.Default
+        };
+    }
+}
+
 internal static class GitHubOperations
 {
-
     public static GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
     {
         var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,state,url --head {branch} --state all", settings);
@@ -28,6 +41,20 @@ internal static class GitHubOperations
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
         return pullRequests.FirstOrDefault();
+    }
+
+    public static GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, GitHubOperationSettings settings)
+    {
+        ExecuteGitHubCommand($"pr create --title {title} --body {body} --base {baseBranch} --head {headBranch}", settings);
+
+        if (settings.DryRun)
+        {
+            return null;
+        }
+        // var pullRequest = System.Text.Json.JsonSerializer.Deserialize<GitHubPullRequest>(output,
+        //     new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+
+        return null;
     }
 
     private static string ExecuteGitHubCommandAndReturnOutput(string command, GitHubOperationSettings settings)
