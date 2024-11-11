@@ -36,7 +36,7 @@ internal class CreatePullRequestsCommand(
         }
 
         var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         console.MarkupLine($"Stack: {stack.Name}");
