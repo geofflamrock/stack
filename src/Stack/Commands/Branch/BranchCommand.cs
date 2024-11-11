@@ -32,16 +32,16 @@ internal enum BranchAction
     Create
 }
 
-internal class BranchCommand(IAnsiConsole console) : AsyncCommand<BranchCommandSettings>
+internal class BranchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<BranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, BranchCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var defaultBranch = GitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var branches = GitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
+        var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
         var stacks = StackConfig.Load();
 
@@ -65,11 +65,11 @@ internal class BranchCommand(IAnsiConsole console) : AsyncCommand<BranchCommandS
 
         if (action == BranchAction.Add)
         {
-            return await new AddBranchCommand(console).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new AddBranchCommand(console, gitOperations).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
         else
         {
-            return await new NewBranchCommand(console).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new NewBranchCommand(console, gitOperations).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
     }
 }

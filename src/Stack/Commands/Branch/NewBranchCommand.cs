@@ -17,15 +17,15 @@ internal class NewBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class NewBranchCommand(IAnsiConsole console) : AsyncCommand<NewBranchCommandSettings>
+internal class NewBranchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<NewBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var defaultBranch = GitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         var stacks = StackConfig.Load();
 
@@ -46,8 +46,8 @@ internal class NewBranchCommand(IAnsiConsole console) : AsyncCommand<NewBranchCo
 
         console.WriteLine($"Creating branch '{branchName}' from '{sourceBranch}' in stack '{stack.Name}'");
 
-        GitOperations.CreateNewBranch(branchName, sourceBranch, settings.GetGitOperationSettings());
-        GitOperations.PushNewBranch(branchName, settings.GetGitOperationSettings());
+        gitOperations.CreateNewBranch(branchName, sourceBranch, settings.GetGitOperationSettings());
+        gitOperations.PushNewBranch(branchName, settings.GetGitOperationSettings());
 
         stack.Branches.Add(branchName);
 
@@ -59,7 +59,7 @@ internal class NewBranchCommand(IAnsiConsole console) : AsyncCommand<NewBranchCo
 
         if (switchToNewBranch)
         {
-            GitOperations.ChangeBranch(branchName, settings.GetGitOperationSettings());
+            gitOperations.ChangeBranch(branchName, settings.GetGitOperationSettings());
         }
 
         return 0;

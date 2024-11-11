@@ -3,11 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands;
+using Stack.Git;
 using Stack.Help;
 using Stack.Infrastructure;
 
 var services = new ServiceCollection();
 services.AddSingleton(AnsiConsole.Console);
+services.AddSingleton<IGitOperations, GitOperations>();
 
 var app = new CommandApp(new ServiceCollectionTypeRegistrar(services));
 app.Configure(configure =>

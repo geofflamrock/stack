@@ -13,7 +13,7 @@ internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateStackCommandSettings>
+internal class UpdateStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
@@ -21,7 +21,7 @@ internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateSta
 
         var stacks = StackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -31,8 +31,8 @@ internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateSta
             return 0;
         }
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         console.MarkupLine($"Stack: {stack.Name}");
@@ -43,17 +43,17 @@ internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateSta
             {
                 console.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
 
-                GitOperations.UpdateBranch(sourceBranchName, settings.GetGitOperationSettings());
-                GitOperations.UpdateBranch(branch, settings.GetGitOperationSettings());
-                GitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.GetGitOperationSettings());
-                GitOperations.PushBranch(branch, settings.GetGitOperationSettings());
+                gitOperations.UpdateBranch(sourceBranchName, settings.GetGitOperationSettings());
+                gitOperations.UpdateBranch(branch, settings.GetGitOperationSettings());
+                gitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.GetGitOperationSettings());
+                gitOperations.PushBranch(branch, settings.GetGitOperationSettings());
             }
 
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
@@ -68,7 +68,7 @@ internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateSta
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
-                GitOperations.ChangeBranch(currentBranch, settings.GetGitOperationSettings());
+                gitOperations.ChangeBranch(currentBranch, settings.GetGitOperationSettings());
             }
         }
 

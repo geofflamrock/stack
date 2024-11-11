@@ -14,7 +14,7 @@ internal class DeleteStackCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class DeleteStackCommand(IAnsiConsole console) : AsyncCommand<DeleteStackCommandSettings>
+internal class DeleteStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
@@ -22,8 +22,8 @@ internal class DeleteStackCommand(IAnsiConsole console) : AsyncCommand<DeleteSta
 
         var stacks = StackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 

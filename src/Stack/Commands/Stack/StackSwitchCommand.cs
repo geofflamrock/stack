@@ -18,14 +18,14 @@ internal class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-internal class StackSwitchCommand(IAnsiConsole console) : AsyncCommand<StackStatusCommandSettings>
+internal class StackSwitchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
         var stacks = StackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         if (remoteUri is null)
         {
@@ -45,18 +45,18 @@ internal class StackSwitchCommand(IAnsiConsole console) : AsyncCommand<StackStat
             .Title("Select branch")
             .PageSize(10);
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         foreach (var stack in stacksForRemote.OrderByCurrentStackThenByName(currentBranch))
         {
             var allBranchesInStack = new List<string>([stack.SourceBranch, .. stack.Branches]).ToArray();
-            var branchesThatExistLocally = GitOperations.GetBranchesThatExistLocally(allBranchesInStack, settings.GetGitOperationSettings());
+            var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStack, settings.GetGitOperationSettings());
             branchSelectionPrompt.AddChoiceGroup(stack.Name, branchesThatExistLocally);
         }
 
         var selectedBranch = console.Prompt(branchSelectionPrompt);
 
-        GitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
+        gitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
 
         return 0;
     }
