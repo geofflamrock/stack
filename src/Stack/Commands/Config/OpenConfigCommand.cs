@@ -9,13 +9,13 @@ internal class OpenConfigCommandSettings : CommandSettingsBase
 {
 }
 
-internal class OpenConfigCommand(IAnsiConsole console) : AsyncCommand<CommandSettingsBase>
+internal class OpenConfigCommand(IAnsiConsole console, IStackConfig stackConfig) : AsyncCommand<CommandSettingsBase>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CommandSettingsBase settings)
     {
         await Task.CompletedTask;
 
-        var configPath = StackConfig.GetConfigPath();
+        var configPath = stackConfig.GetConfigPath();
 
         if (!File.Exists(configPath))
         {

@@ -13,13 +13,16 @@ internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class UpdateStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<UpdateStackCommandSettings>
+internal class UpdateStackCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 

@@ -8,12 +8,15 @@ namespace Stack.Commands;
 
 internal class ListStacksCommandSettings : CommandSettingsBase;
 
-internal class ListStacksCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<ListStacksCommandSettings>
+internal class ListStacksCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<ListStacksCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 

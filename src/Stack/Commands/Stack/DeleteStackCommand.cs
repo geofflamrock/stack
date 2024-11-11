@@ -14,13 +14,16 @@ internal class DeleteStackCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class DeleteStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<DeleteStackCommandSettings>
+internal class DeleteStackCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
         var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
@@ -39,7 +42,7 @@ internal class DeleteStackCommand(IAnsiConsole console, IGitOperations gitOperat
         if (console.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
         {
             stacks.Remove(stack);
-            StackConfig.Save(stacks);
+            stackConfig.Save(stacks);
             console.WriteLine($"Stack deleted");
         }
 

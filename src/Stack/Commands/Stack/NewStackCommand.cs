@@ -23,7 +23,10 @@ internal class NewStackCommandSettings : CommandSettingsBase
     public string? BranchName { get; init; }
 }
 
-internal class NewStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<NewStackCommandSettings>
+internal class NewStackCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
@@ -40,17 +43,17 @@ internal class NewStackCommand(IAnsiConsole console, IGitOperations gitOperation
         var sourceBranch = settings.SourceBranch ?? console.Prompt(branchesPrompt);
         console.WriteLine($"Source branch: {sourceBranch}");
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
         stacks.Add(new Config.Stack(name, remoteUri, sourceBranch, []));
 
-        StackConfig.Save(stacks);
+        stackConfig.Save(stacks);
 
         console.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}'");
 
         if (console.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
         {
-            return await new BranchCommand(console, gitOperations).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
+            return await new BranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
         }
 
         return 0;

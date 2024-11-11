@@ -23,7 +23,8 @@ record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 internal class StackStatusCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
-    IGitHubOperations gitHubOperations)
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig)
     : AsyncCommand<StackStatusCommandSettings>
 {
     record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
@@ -31,7 +32,7 @@ internal class StackStatusCommand(
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
