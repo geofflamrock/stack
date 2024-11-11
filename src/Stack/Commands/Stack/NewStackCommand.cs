@@ -23,15 +23,13 @@ internal class NewStackCommandSettings : CommandSettingsBase
     public string? BranchName { get; init; }
 }
 
-internal class NewStackCommand(IAnsiConsole console) : AsyncCommand<NewStackCommandSettings>
+internal class NewStackCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var defaultBranch = GitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var branches = GitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
         var name = settings.Name ?? console.Prompt(new TextPrompt<string>("Stack name:"));
 
@@ -43,7 +41,7 @@ internal class NewStackCommand(IAnsiConsole console) : AsyncCommand<NewStackComm
         console.WriteLine($"Source branch: {sourceBranch}");
 
         var stacks = StackConfig.Load();
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
         stacks.Add(new Config.Stack(name, remoteUri, sourceBranch, []));
 
         StackConfig.Save(stacks);
@@ -52,7 +50,7 @@ internal class NewStackCommand(IAnsiConsole console) : AsyncCommand<NewStackComm
 
         if (console.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
         {
-            return await new BranchCommand(console).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
+            return await new BranchCommand(console, gitOperations).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
         }
 
         return 0;

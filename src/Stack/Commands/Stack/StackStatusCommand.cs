@@ -20,7 +20,7 @@ internal class StackStatusCommandSettings : CommandSettingsBase
 
 record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 
-internal class StackStatusCommand(IAnsiConsole console) : AsyncCommand<StackStatusCommandSettings>
+internal class StackStatusCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<StackStatusCommandSettings>
 {
     record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
@@ -29,7 +29,7 @@ internal class StackStatusCommand(IAnsiConsole console) : AsyncCommand<StackStat
         await Task.CompletedTask;
         var stacks = StackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         if (remoteUri is null)
         {
@@ -45,7 +45,7 @@ internal class StackStatusCommand(IAnsiConsole console) : AsyncCommand<StackStat
             return 0;
         }
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -67,13 +67,13 @@ internal class StackStatusCommand(IAnsiConsole console) : AsyncCommand<StackStat
                 )
                 {
                     var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
-                    var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
+                    var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
 
-                    GitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
+                    gitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
 
                     void CheckRemoteBranch(string branch, string sourceBranch)
                     {
-                        var (ahead, behind) = GitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
+                        var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
                         var branchStatus = new BranchStatus(true, ahead, behind);
                         status.BranchStatuses[branch] = branchStatus;
                     }

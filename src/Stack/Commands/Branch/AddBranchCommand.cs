@@ -17,16 +17,16 @@ internal class AddBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class AddBranchCommand(IAnsiConsole console) : AsyncCommand<AddBranchCommandSettings>
+internal class AddBranchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<AddBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, AddBranchCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var defaultBranch = GitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var branches = GitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
+        var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
         var stacks = StackConfig.Load();
 
