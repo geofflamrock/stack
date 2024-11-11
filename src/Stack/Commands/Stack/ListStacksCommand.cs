@@ -8,7 +8,7 @@ namespace Stack.Commands;
 
 internal class ListStacksCommandSettings : CommandSettingsBase;
 
-internal class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
+internal class ListStacksCommand(IAnsiConsole console) : AsyncCommand<ListStacksCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {
@@ -19,7 +19,7 @@ internal class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
         if (remoteUri is null)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -27,13 +27,13 @@ internal class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
         foreach (var stack in stacksForRemote)
         {
-            AnsiConsole.MarkupLine($"[yellow]{stack.Name}[/] [grey]({stack.SourceBranch})[/] {"branch".ToQuantity(stack.Branches.Count)}");
+            console.MarkupLine($"[yellow]{stack.Name}[/] [grey]({stack.SourceBranch})[/] {"branch".ToQuantity(stack.Branches.Count)}");
         }
 
         return 0;

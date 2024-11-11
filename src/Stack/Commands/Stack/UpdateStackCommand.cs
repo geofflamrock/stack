@@ -13,7 +13,7 @@ internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
+internal class UpdateStackCommand(IAnsiConsole console) : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
@@ -27,7 +27,7 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -35,13 +35,13 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
         var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        AnsiConsole.MarkupLine($"Stack: {stack.Name}");
+        console.MarkupLine($"Stack: {stack.Name}");
 
-        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
+        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
         {
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
-                AnsiConsole.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
+                console.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
 
                 GitOperations.UpdateBranch(sourceBranchName, settings.GetGitOperationSettings());
                 GitOperations.UpdateBranch(branch, settings.GetGitOperationSettings());
@@ -61,7 +61,7 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 else
                 {
                     // Remote branch no longer exists, skip over
-                    AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                    console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
                 }
             }
 

@@ -14,7 +14,7 @@ internal class DeleteStackCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
+internal class DeleteStackCommand(IAnsiConsole console) : AsyncCommand<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
@@ -29,18 +29,18 @@ internal class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
+        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
         {
             stacks.Remove(stack);
             StackConfig.Save(stacks);
-            AnsiConsole.WriteLine($"Stack deleted");
+            console.WriteLine($"Stack deleted");
         }
 
         return 0;

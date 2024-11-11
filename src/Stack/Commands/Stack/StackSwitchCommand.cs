@@ -18,7 +18,7 @@ internal class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
+internal class StackSwitchCommand(IAnsiConsole console) : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
@@ -29,7 +29,7 @@ internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
 
         if (remoteUri is null)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -37,7 +37,7 @@ internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -54,7 +54,7 @@ internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
             branchSelectionPrompt.AddChoiceGroup(stack.Name, branchesThatExistLocally);
         }
 
-        var selectedBranch = AnsiConsole.Prompt(branchSelectionPrompt);
+        var selectedBranch = console.Prompt(branchSelectionPrompt);
 
         GitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
 

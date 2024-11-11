@@ -32,7 +32,7 @@ internal enum BranchAction
     Create
 }
 
-internal class BranchCommand : AsyncCommand<BranchCommandSettings>
+internal class BranchCommand(IAnsiConsole console) : AsyncCommand<BranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, BranchCommandSettings settings)
     {
@@ -49,11 +49,11 @@ internal class BranchCommand : AsyncCommand<BranchCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
-        var stackSelection = settings.Stack ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var stackSelection = settings.Stack ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         var actionPromptOption = new SelectionPrompt<BranchAction>()
@@ -61,15 +61,15 @@ internal class BranchCommand : AsyncCommand<BranchCommandSettings>
             .AddChoices([BranchAction.Create, BranchAction.Add])
             .UseConverter(action => action.Humanize());
 
-        var action = AnsiConsole.Prompt(actionPromptOption);
+        var action = console.Prompt(actionPromptOption);
 
         if (action == BranchAction.Add)
         {
-            return await new AddBranchCommand().ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new AddBranchCommand(console).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
         else
         {
-            return await new NewBranchCommand().ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new NewBranchCommand(console).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
     }
 }
