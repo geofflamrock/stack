@@ -17,7 +17,10 @@ internal class AddBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class AddBranchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<AddBranchCommandSettings>
+internal class AddBranchCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<AddBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, AddBranchCommandSettings settings)
     {
@@ -28,7 +31,7 @@ internal class AddBranchCommand(IAnsiConsole console, IGitOperations gitOperatio
         var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
         var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -49,7 +52,7 @@ internal class AddBranchCommand(IAnsiConsole console, IGitOperations gitOperatio
 
         stack.Branches.Add(branchName);
 
-        StackConfig.Save(stacks);
+        stackConfig.Save(stacks);
 
         console.WriteLine($"Branch added");
         return 0;

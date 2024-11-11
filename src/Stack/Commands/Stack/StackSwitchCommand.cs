@@ -18,12 +18,15 @@ internal class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-internal class StackSwitchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<StackStatusCommandSettings>
+internal class StackSwitchCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 

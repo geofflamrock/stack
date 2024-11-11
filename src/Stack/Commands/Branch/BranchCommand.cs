@@ -32,7 +32,10 @@ internal enum BranchAction
     Create
 }
 
-internal class BranchCommand(IAnsiConsole console, IGitOperations gitOperations) : AsyncCommand<BranchCommandSettings>
+internal class BranchCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<BranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, BranchCommandSettings settings)
     {
@@ -43,7 +46,7 @@ internal class BranchCommand(IAnsiConsole console, IGitOperations gitOperations)
         var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
         var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -65,11 +68,11 @@ internal class BranchCommand(IAnsiConsole console, IGitOperations gitOperations)
 
         if (action == BranchAction.Add)
         {
-            return await new AddBranchCommand(console, gitOperations).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new AddBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
         else
         {
-            return await new NewBranchCommand(console, gitOperations).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new NewBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
         }
     }
 }
