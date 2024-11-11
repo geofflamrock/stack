@@ -23,7 +23,7 @@ internal class NewStackCommandSettings : CommandSettingsBase
     public string? BranchName { get; init; }
 }
 
-internal class NewStackCommand : AsyncCommand<NewStackCommandSettings>
+internal class NewStackCommand(IAnsiConsole console) : AsyncCommand<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
@@ -33,14 +33,14 @@ internal class NewStackCommand : AsyncCommand<NewStackCommandSettings>
         var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
         var branches = GitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
 
-        var name = settings.Name ?? AnsiConsole.Prompt(new TextPrompt<string>("Stack name:"));
+        var name = settings.Name ?? console.Prompt(new TextPrompt<string>("Stack name:"));
 
         var branchesPrompt = new SelectionPrompt<string>().Title("Select a branch to start your stack from:").PageSize(10);
 
         branchesPrompt.AddChoices(branches);
 
-        var sourceBranch = settings.SourceBranch ?? AnsiConsole.Prompt(branchesPrompt);
-        AnsiConsole.WriteLine($"Source branch: {sourceBranch}");
+        var sourceBranch = settings.SourceBranch ?? console.Prompt(branchesPrompt);
+        console.WriteLine($"Source branch: {sourceBranch}");
 
         var stacks = StackConfig.Load();
         var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
@@ -48,11 +48,11 @@ internal class NewStackCommand : AsyncCommand<NewStackCommandSettings>
 
         StackConfig.Save(stacks);
 
-        AnsiConsole.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}'");
+        console.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}'");
 
-        if (AnsiConsole.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
+        if (console.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
         {
-            return await new BranchCommand().ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
+            return await new BranchCommand(console).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
         }
 
         return 0;

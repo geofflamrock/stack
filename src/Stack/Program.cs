@@ -1,14 +1,15 @@
 ﻿
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands;
 using Stack.Help;
 using Stack.Infrastructure;
 
 var services = new ServiceCollection();
-var registrar = new ServiceCollectionTypeRegistrar(services);
+services.AddSingleton(AnsiConsole.Console);
 
-var app = new CommandApp(registrar);
+var app = new CommandApp(new ServiceCollectionTypeRegistrar(services));
 app.Configure(configure =>
 {
     configure.SetApplicationName("stack");

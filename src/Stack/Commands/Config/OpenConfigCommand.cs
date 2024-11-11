@@ -9,7 +9,7 @@ internal class OpenConfigCommandSettings : CommandSettingsBase
 {
 }
 
-internal class OpenConfigCommand : AsyncCommand<CommandSettingsBase>
+internal class OpenConfigCommand(IAnsiConsole console) : AsyncCommand<CommandSettingsBase>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CommandSettingsBase settings)
     {
@@ -19,7 +19,7 @@ internal class OpenConfigCommand : AsyncCommand<CommandSettingsBase>
 
         if (!File.Exists(configPath))
         {
-            AnsiConsole.WriteLine("No config file found.");
+            console.WriteLine("No config file found.");
             return 0;
         }
 
