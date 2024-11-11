@@ -18,9 +18,6 @@ app.Configure(configure =>
     configure.AddCommand<DeleteStackCommand>("delete").WithDescription("Deletes a stack.");
     configure.AddCommand<UpdateStackCommand>("update").WithDescription("Updates the branches in a stack.");
 
-    // Config commands
-    configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
-
     // Branch commands
     configure.AddBranch("branch", branch =>
         {
@@ -30,6 +27,15 @@ app.Configure(configure =>
             branch.AddCommand<AddBranchCommand>("add").WithDescription("Adds an existing branch in a stack.");
         });
 
+    // Pull request commands
+    configure.AddBranch("pr", pr =>
+        {
+            pr.SetDescription("Manages pull requests for a stack.");
+            pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+        });
+
+    // Config commands
+    configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
 });
 
 await app.RunAsync(args);
