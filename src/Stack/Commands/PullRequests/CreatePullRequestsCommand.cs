@@ -43,27 +43,27 @@ internal class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsComman
 
             foreach (var branch in stack.Branches)
             {
-                if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
-                {
-                    var existingPullRequest = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                var existingPullRequest = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
-                    if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
-                    {
-                        AnsiConsole.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
-                    }
-                    else
+                if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
+                {
+                    AnsiConsole.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                }
+                else
+                {
+                    if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                     {
                         var prTitle = AnsiConsole.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         AnsiConsole.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
                         GitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
-                    }
 
-                    sourceBranch = branch;
-                }
-                else
-                {
-                    // Remote branch no longer exists, skip over
-                    AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                        sourceBranch = branch;
+                    }
+                    else
+                    {
+                        // Remote branch no longer exists, skip over
+                        AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                    }
                 }
             }
         }
