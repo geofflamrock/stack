@@ -10,6 +10,7 @@ using Stack.Infrastructure;
 var services = new ServiceCollection();
 services.AddSingleton(AnsiConsole.Console);
 services.AddSingleton<IGitOperations, GitOperations>();
+services.AddSingleton<IGitHubOperations, GitHubOperations>();
 
 var app = new CommandApp(new ServiceCollectionTypeRegistrar(services));
 app.Configure(configure =>
