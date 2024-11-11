@@ -17,15 +17,22 @@ internal static class StackExtensionMethods
     }
 }
 
-internal static class StackConfig
+internal interface IStackConfig
 {
-    public static string GetConfigPath()
+    string GetConfigPath();
+    List<Stack> Load();
+    void Save(List<Stack> stacks);
+}
+
+internal class StackConfig : IStackConfig
+{
+    public string GetConfigPath()
     {
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(homeDirectory, "stack", "config.json");
     }
 
-    public static List<Stack> Load()
+    public List<Stack> Load()
     {
         var stacksFile = GetConfigPath();
         if (!File.Exists(stacksFile))
@@ -36,7 +43,7 @@ internal static class StackConfig
         return JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
     }
 
-    public static void Save(List<Stack> stacks)
+    public void Save(List<Stack> stacks)
     {
         var stacksFile = GetConfigPath();
         File.WriteAllText(stacksFile, JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));

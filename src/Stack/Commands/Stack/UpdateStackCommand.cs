@@ -13,47 +13,50 @@ internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
+internal class UpdateStackCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        AnsiConsole.MarkupLine($"Stack: {stack.Name}");
+        console.MarkupLine($"Stack: {stack.Name}");
 
-        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
+        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to update the branches in this stack?")))
         {
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
-                AnsiConsole.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
+                console.MarkupLine($"Merging [blue]{sourceBranchName}[/] into [blue]{branch}[/]");
 
-                GitOperations.UpdateBranch(sourceBranchName, settings.GetGitOperationSettings());
-                GitOperations.UpdateBranch(branch, settings.GetGitOperationSettings());
-                GitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.GetGitOperationSettings());
-                GitOperations.PushBranch(branch, settings.GetGitOperationSettings());
+                gitOperations.UpdateBranch(sourceBranchName, settings.GetGitOperationSettings());
+                gitOperations.UpdateBranch(branch, settings.GetGitOperationSettings());
+                gitOperations.MergeFromLocalSourceBranch(sourceBranchName, settings.GetGitOperationSettings());
+                gitOperations.PushBranch(branch, settings.GetGitOperationSettings());
             }
 
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
@@ -61,14 +64,14 @@ internal class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
                 else
                 {
                     // Remote branch no longer exists, skip over
-                    AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                    console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
                 }
             }
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
-                GitOperations.ChangeBranch(currentBranch, settings.GetGitOperationSettings());
+                gitOperations.ChangeBranch(currentBranch, settings.GetGitOperationSettings());
             }
         }
 

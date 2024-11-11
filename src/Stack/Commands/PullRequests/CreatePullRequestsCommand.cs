@@ -13,53 +13,57 @@ internal class CreatePullRequestsCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandSettings>
+internal class CreatePullRequestsCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig) : AsyncCommand<CreatePullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
         var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        AnsiConsole.MarkupLine($"Stack: {stack.Name}");
+        console.MarkupLine($"Stack: {stack.Name}");
 
-        if (AnsiConsole.Prompt(new ConfirmationPrompt("Are you sure you want to create pull requests for branches in this stack?")))
+        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to create pull requests for branches in this stack?")))
         {
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                var existingPullRequest = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
                 if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                 {
-                    AnsiConsole.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                    console.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
                 }
                 else
                 {
-                    if (GitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                    if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                     {
-                        var prTitle = AnsiConsole.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
-                        AnsiConsole.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
-                        var pullRequest = GitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
+                        var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
+                        console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
 
                         if (pullRequest is not null)
                         {
-                            AnsiConsole.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                            console.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
                         }
 
                         sourceBranch = branch;
@@ -67,7 +71,7 @@ internal class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsComman
                     else
                     {
                         // Remote branch no longer exists, skip over
-                        AnsiConsole.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
+                        console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
                     }
                 }
             }

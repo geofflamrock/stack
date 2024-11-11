@@ -3,6 +3,7 @@ name: Build, test and release
 on:
   push:
     branches: ["main"]
+    tags: ["v*"]
   pull_request:
     branches: ["main"]
 
@@ -37,7 +38,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "version=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ github.ref_type == 'tag' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
 
   build:
     needs: version
@@ -145,6 +146,8 @@ jobs:
   release:
     name: Release
     needs: [version, publish]
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -158,18 +161,6 @@ jobs:
       - name: List artifacts
         run: ls -lR ${{ github.workspace }}/artifacts
 
-      - name: Create tag
-        uses: actions/github-script@v6.3.3
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: 'refs/tags/v${{ needs.version.outputs.version }}',
-              sha: context.sha
-            })
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
       - name: Create release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -180,4 +171,3 @@ jobs:
           files: |
             ${{ github.workspace }}/artifacts/**/*.tar.gz
             ${{ github.workspace }}/artifacts/**/*.zip
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'

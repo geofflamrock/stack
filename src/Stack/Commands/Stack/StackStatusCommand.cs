@@ -20,20 +20,25 @@ internal class StackStatusCommandSettings : CommandSettingsBase
 
 record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 
-internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
+internal class StackStatusCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig)
+    : AsyncCommand<StackStatusCommandSettings>
 {
     record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         if (remoteUri is null)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -41,11 +46,11 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -55,25 +60,25 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
         }
         else
         {
-            var stackSelection = settings.Name ?? AnsiConsole.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
+            var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
             var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
             stacksToCheckStatusFor.Add(stack, new StackStatus([], []));
         }
 
-        AnsiConsole.Status()
+        console.Status()
             .Start("Checking status of remote branches...", ctx =>
             {
                 foreach (var (stack, status) in stacksToCheckStatusFor
                 )
                 {
                     var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
-                    var branchesThatExistInRemote = GitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
+                    var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
 
-                    GitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
+                    gitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
 
                     void CheckRemoteBranch(string branch, string sourceBranch)
                     {
-                        var (ahead, behind) = GitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
+                        var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
                         var branchStatus = new BranchStatus(true, ahead, behind);
                         status.BranchStatuses[branch] = branchStatus;
                     }
@@ -95,7 +100,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 }
             });
 
-        AnsiConsole.Status()
+        console.Status()
             .Start("Checking status of GitHub pull requests...", ctx =>
             {
                 foreach (var (stack, status) in stacksToCheckStatusFor)
@@ -104,7 +109,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                     {
                         foreach (var branch in stack.Branches)
                         {
-                            var pr = GitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                            var pr = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
                             if (pr is not null)
                             {
@@ -114,7 +119,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                     }
                     catch (Exception ex)
                     {
-                        AnsiConsole.MarkupLine($"[orange1]Error checking GitHub pull requests: {ex.Message}[/]");
+                        console.MarkupLine($"[orange1]Error checking GitHub pull requests: {ex.Message}[/]");
                     }
                 }
             });
@@ -181,7 +186,7 @@ internal class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 }
             }
 
-            AnsiConsole.Write(stackRoot);
+            console.Write(stackRoot);
         }
 
         return 0;

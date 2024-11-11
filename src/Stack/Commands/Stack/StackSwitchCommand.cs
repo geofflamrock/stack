@@ -18,18 +18,21 @@ internal class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
+internal class StackSwitchCommand(
+    IAnsiConsole console,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig) : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = StackConfig.Load();
+        var stacks = stackConfig.Load();
 
-        var remoteUri = GitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
 
         if (remoteUri is null)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -37,7 +40,7 @@ internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            AnsiConsole.WriteLine("No stacks found for current repository.");
+            console.WriteLine("No stacks found for current repository.");
             return 0;
         }
 
@@ -45,18 +48,18 @@ internal class StackSwitchCommand : AsyncCommand<StackStatusCommandSettings>
             .Title("Select branch")
             .PageSize(10);
 
-        var currentBranch = GitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
         foreach (var stack in stacksForRemote.OrderByCurrentStackThenByName(currentBranch))
         {
             var allBranchesInStack = new List<string>([stack.SourceBranch, .. stack.Branches]).ToArray();
-            var branchesThatExistLocally = GitOperations.GetBranchesThatExistLocally(allBranchesInStack, settings.GetGitOperationSettings());
+            var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStack, settings.GetGitOperationSettings());
             branchSelectionPrompt.AddChoiceGroup(stack.Name, branchesThatExistLocally);
         }
 
-        var selectedBranch = AnsiConsole.Prompt(branchSelectionPrompt);
+        var selectedBranch = console.Prompt(branchSelectionPrompt);
 
-        GitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
+        gitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
 
         return 0;
     }
