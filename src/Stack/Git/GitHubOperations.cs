@@ -34,9 +34,9 @@ internal static class GitHubPullRequestExtensionMethods
 
 internal static class GitHubOperations
 {
-    public static GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
+    public static GitHubPullRequest? GetPullRequest(string headBranch, GitHubOperationSettings settings)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,state,url --head {branch} --state all", settings);
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,state,url --head {headBranch} --state all", settings);
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
@@ -51,10 +51,8 @@ internal static class GitHubOperations
         {
             return null;
         }
-        // var pullRequest = System.Text.Json.JsonSerializer.Deserialize<GitHubPullRequest>(output,
-        //     new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
-        return null;
+        return GetPullRequest(headBranch, settings);
     }
 
     private static string ExecuteGitHubCommandAndReturnOutput(string command, GitHubOperationSettings settings)

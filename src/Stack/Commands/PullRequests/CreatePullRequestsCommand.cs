@@ -55,7 +55,12 @@ internal class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsComman
                     {
                         var prTitle = AnsiConsole.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         AnsiConsole.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
-                        GitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
+                        var pullRequest = GitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
+
+                        if (pullRequest is not null)
+                        {
+                            AnsiConsole.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                        }
 
                         sourceBranch = branch;
                     }
