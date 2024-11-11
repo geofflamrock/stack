@@ -9,7 +9,7 @@ namespace Stack.Commands;
 
 internal class CreatePullRequestsCommandSettings : DryRunCommandSettingsBase
 {
-    [Description("The name of the stack to update.")]
+    [Description("The name of the stack to create pull requests for.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 }
