@@ -30,10 +30,10 @@ app.Configure(configure =>
     configure.AddCommand<UpdateStackCommand>("update").WithDescription("Updates the branches in a stack.");
 
     // Branch commands
-    configure.AddBranch("branch", branch =>
+    configure.AddCommand<BranchCommand>("branch").WithDescription("Create or add a new branch to a stack.");
+    configure.AddBranch("branches", branch =>
         {
             branch.SetDescription("Manages branches in a stack.");
-            branch.SetDefaultCommand<BranchCommand>();
             branch.AddCommand<NewBranchCommand>("new").WithDescription("Creates a new branch in a stack.");
             branch.AddCommand<AddBranchCommand>("add").WithDescription("Adds an existing branch in a stack.");
         });
