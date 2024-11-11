@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
@@ -79,42 +80,57 @@ internal class CreatePullRequestsCommand(
                 }
             }
 
-            // Edit each PR and add to the top of the description
-            // the details of each PR in the stack
-            var stackMarkerStart = "<!-- stack-pr-list -->";
-            var stackMarkerEnd = "<!-- /stack-pr-list -->";
-            var prList = pullRequestsInStack
-                .Select(pr => $"- {pr.Url}")
-                .ToList();
-            var prListMarkdown = string.Join("\n", prList);
-            var prListHeader = $"This PR is part of a stack **{stack.Name}**:";
-            var prBodyMarkdown = $"{stackMarkerStart}\n{prListHeader}\n\n{prListMarkdown}\n{stackMarkerEnd}";
-
-            foreach (var pullRequest in pullRequestsInStack)
+            if (pullRequestsInStack.Count > 1)
             {
-                // Find the existing part of the PR body that has the PR list
-                // and replace it with the updated PR list
-                var prBody = pullRequest.Body;
-                console.WriteLine(prBody);
+                // Edit each PR and add to the top of the description
+                // the details of each PR in the stack
+                var stackMarkerStart = "<!-- stack-pr-list -->";
+                var stackMarkerEnd = "<!-- /stack-pr-list -->";
+                var prList = pullRequestsInStack
+                    .Select(pr => $"- {pr.Url}")
+                    .ToList();
+                var prListMarkdown = string.Join("\n", prList);
+                var prListHeader = $"This PR is part of a stack **{stack.Name}**:";
+                var prBodyMarkdown = $"{stackMarkerStart}\n{prListHeader}\n\n{prListMarkdown}\n{stackMarkerEnd}";
 
-                var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
-                var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
-
-                console.WriteLine($"{prListStart} {prListEnd}");
-
-                if (prListStart >= 0 && prListEnd >= 0)
+                foreach (var pullRequest in pullRequestsInStack)
                 {
-                    prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
-                }
+                    // Find the existing part of the PR body that has the PR list
+                    // and replace it with the updated PR list
+                    var prBody = pullRequest.Body;
 
-                if (prListStart == -1)
+                    var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
+                    var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
+
+                    if (prListStart >= 0 && prListEnd >= 0)
+                    {
+                        prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
+                    }
+
+                    if (prListStart == -1)
+                    {
+                        prListStart = 0;
+                    }
+
+                    prBody = prBody.Insert(prListStart, prBodyMarkdown);
+
+                    gitHubOperations.EditPullRequest(pullRequest.Number, prBody, settings.GetGitHubOperationSettings());
+                }
+            }
+            else
+            {
+                console.MarkupLine("Only one pull request in stack, not adding PR list to description.");
+            }
+
+            if (console.Prompt(new ConfirmationPrompt("Open the pull requests in the browser?")))
+            {
+                foreach (var pullRequest in pullRequestsInStack)
                 {
-                    prListStart = 0;
+                    Process.Start(new ProcessStartInfo(pullRequest.Url.ToString())
+                    {
+                        UseShellExecute = true
+                    });
                 }
-
-                prBody = prBody.Insert(prListStart, prBodyMarkdown);
-
-                gitHubOperations.EditPullRequest(pullRequest.Number, prBody, settings.GetGitHubOperationSettings());
             }
         }
 
