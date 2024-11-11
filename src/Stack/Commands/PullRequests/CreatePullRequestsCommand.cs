@@ -44,6 +44,7 @@ internal class CreatePullRequestsCommand(
         if (console.Prompt(new ConfirmationPrompt("Are you sure you want to create pull requests for branches in this stack?")))
         {
             var sourceBranch = stack.SourceBranch;
+            var pullRequestsInStack = new List<GitHubPullRequest>();
 
             foreach (var branch in stack.Branches)
             {
@@ -52,6 +53,7 @@ internal class CreatePullRequestsCommand(
                 if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                 {
                     console.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                    pullRequestsInStack.Add(existingPullRequest);
                 }
                 else
                 {
@@ -59,11 +61,12 @@ internal class CreatePullRequestsCommand(
                     {
                         var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
-                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "test", settings.GetGitHubOperationSettings());
+                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "", settings.GetGitHubOperationSettings());
 
                         if (pullRequest is not null)
                         {
                             console.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                            pullRequestsInStack.Add(pullRequest);
                         }
 
                         sourceBranch = branch;
@@ -74,6 +77,44 @@ internal class CreatePullRequestsCommand(
                         console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
                     }
                 }
+            }
+
+            // Edit each PR and add to the top of the description
+            // the details of each PR in the stack
+            var stackMarkerStart = "<!-- stack-pr-list -->";
+            var stackMarkerEnd = "<!-- /stack-pr-list -->";
+            var prList = pullRequestsInStack
+                .Select(pr => $"- {pr.Url}")
+                .ToList();
+            var prListMarkdown = string.Join("\n", prList);
+            var prListHeader = $"This PR is part of a stack **{stack.Name}**:";
+            var prBodyMarkdown = $"{stackMarkerStart}\n{prListHeader}\n\n{prListMarkdown}\n{stackMarkerEnd}";
+
+            foreach (var pullRequest in pullRequestsInStack)
+            {
+                // Find the existing part of the PR body that has the PR list
+                // and replace it with the updated PR list
+                var prBody = pullRequest.Body;
+                console.WriteLine(prBody);
+
+                var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
+                var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
+
+                console.WriteLine($"{prListStart} {prListEnd}");
+
+                if (prListStart >= 0 && prListEnd >= 0)
+                {
+                    prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
+                }
+
+                if (prListStart == -1)
+                {
+                    prListStart = 0;
+                }
+
+                prBody = prBody.Insert(prListStart, prBodyMarkdown);
+
+                gitHubOperations.EditPullRequest(pullRequest.Number, prBody, settings.GetGitHubOperationSettings());
             }
         }
 
