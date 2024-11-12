@@ -42,10 +42,10 @@ app.Configure(configure =>
     configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
 
     // Pull request commands
-    configure.AddBranch("prs", prs =>
+    configure.AddBranch("pr", pr =>
         {
-            prs.SetDescription("[yellow][[EXPERIMENTAL]][/] Manages pull requests for a stack.");
-            prs.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+            pr.SetDescription("Manages pull requests for a stack. [[EXPERIMENTAL]]");
+            pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
         });
 });
 
