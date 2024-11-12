@@ -12,5 +12,5 @@ internal class DryRunCommandSettingsBase : CommandSettingsBase
     [DefaultValue(false)]
     public bool DryRun { get; init; }
 
-    public override GitOperationSettings GetGitOperationSettings() => new(DryRun, Verbose);
+    public override GitOperationSettings GetGitOperationSettings() => new(DryRun, Verbose, WorkingDirectory);
 }
