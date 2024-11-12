@@ -30,8 +30,7 @@ app.Configure(configure =>
     configure.AddCommand<UpdateStackCommand>("update").WithDescription("Updates the branches in a stack.");
 
     // Branch commands
-    configure.AddCommand<BranchCommand>("branch").WithDescription("Create or add a new branch to a stack.");
-    configure.AddBranch("branches", branch =>
+    configure.AddBranch("branch", branch =>
         {
             branch.SetDescription("Manages branches in a stack.");
             branch.AddCommand<NewBranchCommand>("new").WithDescription("Creates a new branch in a stack.");
@@ -42,11 +41,11 @@ app.Configure(configure =>
     configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
 
     // Pull request commands
-    configure.AddBranch("prs", prs =>
+    configure.AddBranch("pr", pr =>
         {
-            prs.SetDescription("[yellow][[EXPERIMENTAL]][/] Manages pull requests for a stack.");
-            prs.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
-            prs.AddCommand<OpenPullRequestsCommand>("open").WithDescription("Opens pull requests for a stack in the default browser.");
+            pr.SetDescription("Manages pull requests for a stack. [[EXPERIMENTAL]]");
+            pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+            pr.AddCommand<OpenPullRequestsCommand>("open").WithDescription("Opens pull requests for a stack in the default browser.");
         });
 });
 
