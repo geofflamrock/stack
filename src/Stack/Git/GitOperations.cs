@@ -4,9 +4,9 @@ using Spectre.Console;
 
 namespace Stack.Git;
 
-internal record GitOperationSettings(bool DryRun, bool Verbose)
+internal record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
-    public static GitOperationSettings Default => new GitOperationSettings(false, false);
+    public static GitOperationSettings Default => new(false, false, null);
 }
 
 
@@ -151,7 +151,7 @@ internal class GitOperations(IAnsiConsole console) : IGitOperations
         var result = ShellExecutor.ExecuteCommand(
             "git",
             command,
-            ".",
+            settings.WorkingDirectory ?? ".",
             (_) => { },
             (info) => infoBuilder.AppendLine(info),
             (error) => errorBuilder.AppendLine(error));
@@ -172,38 +172,22 @@ internal class GitOperations(IAnsiConsole console) : IGitOperations
 
     private void ExecuteGitCommand(string command, GitOperationSettings settings)
     {
-        if (settings.Verbose)
-            console.MarkupLine($"[grey]git {command}[/]");
-
-        if (!settings.DryRun)
+        if (settings.DryRun)
         {
-            ExecuteGitCommandInternal(command);
-        }
-    }
-
-    private void ExecuteGitCommandInternal(string command)
-    {
-        var infoBuilder = new StringBuilder();
-        var errorBuilder = new StringBuilder();
-
-        var result = ShellExecutor.ExecuteCommand(
-            "git",
-            command,
-            ".",
-            (_) => { },
-            (info) => infoBuilder.AppendLine(info),
-            (error) => errorBuilder.AppendLine(error));
-
-        if (result != 0)
-        {
-            console.MarkupLine($"[red]{errorBuilder}[/]");
-            throw new Exception("Failed to execute git command.");
+            if (settings.Verbose)
+                console.MarkupLine($"[grey]git {command}[/]");
         }
         else
         {
-            if (infoBuilder.Length > 0)
+            var output = ExecuteGitCommandAndReturnOutput(command, settings);
+
+            if (!settings.Verbose && output.Length > 0)
             {
-                console.WriteLine(infoBuilder.ToString());
+                // We want to write the output of commands that perform
+                // changes to the Git repository as the output might be important.
+                // In verbose mode we would have already written the output
+                // of the command so don't write it again.
+                console.WriteLine(output);
             }
         }
     }

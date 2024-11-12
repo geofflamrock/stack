@@ -4,9 +4,9 @@ using Spectre.Console;
 
 namespace Stack.Git;
 
-internal record GitHubOperationSettings(bool DryRun, bool Verbose)
+internal record GitHubOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
-    public static GitHubOperationSettings Default => new GitHubOperationSettings(false, false);
+    public static GitHubOperationSettings Default => new(false, false, null);
 }
 
 internal static class GitHubPullRequestStates
@@ -78,7 +78,7 @@ internal class GitHubOperations(IAnsiConsole console) : IGitHubOperations
         var result = ShellExecutor.ExecuteCommand(
             "gh",
             command,
-            ".",
+            settings.WorkingDirectory ?? ".",
             (_) => { },
             (info) => infoBuilder.AppendLine(info),
             (error) => errorBuilder.AppendLine(error));

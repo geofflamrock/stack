@@ -68,11 +68,25 @@ internal class BranchCommand(
 
         if (action == BranchAction.Add)
         {
-            return await new AddBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new AddBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new AddBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new AddBranchCommandSettings
+            {
+                Stack = stack.Name,
+                Name = settings.Name,
+                DryRun = settings.DryRun,
+                Verbose = settings.Verbose,
+                WorkingDirectory = settings.WorkingDirectory
+            });
         }
         else
         {
-            return await new NewBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new NewBranchCommandSettings { Stack = stack.Name, Name = settings.Name, DryRun = settings.DryRun, Verbose = settings.Verbose });
+            return await new NewBranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new NewBranchCommandSettings
+            {
+                Stack = stack.Name,
+                Name = settings.Name,
+                DryRun = settings.DryRun,
+                Verbose = settings.Verbose,
+                WorkingDirectory = settings.WorkingDirectory
+            });
         }
     }
 }
