@@ -179,7 +179,16 @@ internal class GitOperations(IAnsiConsole console) : IGitOperations
         }
         else
         {
-            ExecuteGitCommandAndReturnOutput(command, settings);
+            var output = ExecuteGitCommandAndReturnOutput(command, settings);
+
+            if (!settings.Verbose && output.Length > 0)
+            {
+                // We want to write the output of commands that perform
+                // changes to the Git repository as the output might be important.
+                // In verbose mode we would have already written the output
+                // of the command so don't write it again.
+                console.WriteLine(output);
+            }
         }
     }
 }
