@@ -53,7 +53,7 @@ internal class NewStackCommand(
 
         if (console.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
         {
-            return await new BranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose });
+            return await new BranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose, WorkingDirectory = settings.WorkingDirectory });
         }
 
         return 0;
