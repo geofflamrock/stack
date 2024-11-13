@@ -45,6 +45,7 @@ app.Configure(configure =>
         {
             pr.SetDescription("Manages pull requests for a stack. [[EXPERIMENTAL]]");
             pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+            pr.AddCommand<OpenPullRequestsCommand>("open").WithDescription("Opens pull requests for a stack in the default browser.");
         });
 });
 
