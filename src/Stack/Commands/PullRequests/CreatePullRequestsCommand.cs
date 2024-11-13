@@ -49,16 +49,16 @@ internal class CreatePullRequestsCommand(
 
             foreach (var branch in stack.Branches)
             {
-                var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                {
+                    var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
 
-                if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
-                {
-                    console.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
-                    pullRequestsInStack.Add(existingPullRequest);
-                }
-                else
-                {
-                    if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                    if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
+                    {
+                        console.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                        pullRequestsInStack.Add(existingPullRequest);
+                    }
+                    else
                     {
                         var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
@@ -69,14 +69,14 @@ internal class CreatePullRequestsCommand(
                             console.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
                             pullRequestsInStack.Add(pullRequest);
                         }
+                    }
 
-                        sourceBranch = branch;
-                    }
-                    else
-                    {
-                        // Remote branch no longer exists, skip over
-                        console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
-                    }
+                    sourceBranch = branch;
+                }
+                else
+                {
+                    // Remote branch no longer exists, skip over
+                    console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
                 }
             }
 
