@@ -40,7 +40,15 @@ internal class CreatePullRequestsCommand(
         var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        console.MarkupLine($"Stack: {stack.Name}");
+        await new StackStatusCommand(console, gitOperations, gitHubOperations, stackConfig)
+            .ExecuteAsync(context, new StackStatusCommandSettings
+            {
+                Name = stack.Name,
+                WorkingDirectory = settings.WorkingDirectory,
+                Verbose = settings.Verbose
+            });
+
+        console.WriteLine();
 
         if (console.Prompt(new ConfirmationPrompt("Are you sure you want to create pull requests for branches in this stack?")))
         {
