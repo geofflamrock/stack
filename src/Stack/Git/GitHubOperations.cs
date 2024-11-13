@@ -30,6 +30,11 @@ internal static class GitHubPullRequestExtensionMethods
             _ => Color.Default
         };
     }
+
+    public static string GetPullRequestDisplay(this GitHubPullRequest pullRequest)
+    {
+        return $"[{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/]";
+    }
 }
 
 internal interface IGitHubOperations

@@ -55,7 +55,7 @@ internal class CreatePullRequestsCommand(
 
                     if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                     {
-                        console.MarkupLine($"Pull request [{existingPullRequest.GetPullRequestColor()} link={existingPullRequest.Url}]#{existingPullRequest.Number}: {existingPullRequest.Title}[/] already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                        console.MarkupLine($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
                         pullRequestsInStack.Add(existingPullRequest);
                     }
                     else
@@ -66,7 +66,7 @@ internal class CreatePullRequestsCommand(
 
                         if (pullRequest is not null)
                         {
-                            console.MarkupLine($"Pull request [{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/] created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                            console.MarkupLine($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
                             pullRequestsInStack.Add(pullRequest);
                         }
                     }
