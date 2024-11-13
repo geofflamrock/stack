@@ -49,16 +49,17 @@ internal class CreatePullRequestsCommand(
 
             foreach (var branch in stack.Branches)
             {
+                var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+
+                if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
+                {
+                    console.MarkupLine($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                    pullRequestsInStack.Add(existingPullRequest);
+                }
+
                 if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                 {
-                    var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
-
-                    if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
-                    {
-                        console.MarkupLine($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
-                        pullRequestsInStack.Add(existingPullRequest);
-                    }
-                    else
+                    if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
                         var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
@@ -73,15 +74,19 @@ internal class CreatePullRequestsCommand(
 
                     sourceBranch = branch;
                 }
-                else
-                {
-                    // Remote branch no longer exists, skip over
-                    console.MarkupLine($"[red]Branch '{branch}' no longer exists on the remote repository. Skipping...[/]");
-                }
             }
 
             if (pullRequestsInStack.Count > 1)
             {
+                var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
+                var stackDescription = console.Prompt(new TextPrompt<string>("Stack description for PR:").DefaultValue(defaultStackDescription));
+
+                if (stackDescription != stack.PullRequestDescription)
+                {
+                    stack.SetPullRequestDescription(stackDescription);
+                    stackConfig.Save(stacks);
+                }
+
                 // Edit each PR and add to the top of the description
                 // the details of each PR in the stack
                 var stackMarkerStart = "<!-- stack-pr-list -->";
@@ -90,8 +95,7 @@ internal class CreatePullRequestsCommand(
                     .Select(pr => $"- {pr.Url}")
                     .ToList();
                 var prListMarkdown = string.Join("\n", prList);
-                var prListHeader = $"This PR is part of a stack **{stack.Name}**:";
-                var prBodyMarkdown = $"{stackMarkerStart}\n{prListHeader}\n\n{prListMarkdown}\n{stackMarkerEnd}";
+                var prBodyMarkdown = $"{stackMarkerStart}\n{stackDescription}\n\n{prListMarkdown}\n{stackMarkerEnd}";
 
                 foreach (var pullRequest in pullRequestsInStack)
                 {
