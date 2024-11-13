@@ -67,7 +67,7 @@ internal class CreatePullRequestsCommand(
 
                 if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
                 {
-                    if (existingPullRequest is null || existingPullRequest.State != GitHubPullRequestStates.Closed)
+                    if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
                         var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
