@@ -168,16 +168,7 @@ internal class StackStatusCommand(
 
                 if (status.PullRequests.TryGetValue(branch, out var pr))
                 {
-                    var prStatusColor = Color.Green;
-                    if (pr.State == GitHubPullRequestStates.Merged)
-                    {
-                        prStatusColor = Color.Purple;
-                    }
-                    else if (pr.State == GitHubPullRequestStates.Closed)
-                    {
-                        prStatusColor = Color.Red;
-                    }
-                    branchNameBuilder.Append($" [{prStatusColor} link={pr.Url}]#{pr.Number}: {pr.Title}[/]");
+                    branchNameBuilder.Append($" {pr.GetPullRequestDisplay()}");
                 }
 
                 return branchNameBuilder.ToString();

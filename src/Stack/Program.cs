@@ -39,6 +39,13 @@ app.Configure(configure =>
 
     // Config commands
     configure.AddCommand<OpenConfigCommand>("config").WithDescription("Opens the configuration file in the default editor.");
+
+    // Pull request commands
+    configure.AddBranch("pr", pr =>
+        {
+            pr.SetDescription("Manages pull requests for a stack. [[EXPERIMENTAL]]");
+            pr.AddCommand<CreatePullRequestsCommand>("create").WithDescription("Creates pull requests for a stack.");
+        });
 });
 
 await app.RunAsync(args);
