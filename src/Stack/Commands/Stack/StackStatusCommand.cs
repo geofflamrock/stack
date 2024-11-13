@@ -168,7 +168,7 @@ internal class StackStatusCommand(
 
                 if (status.PullRequests.TryGetValue(branch, out var pr))
                 {
-                    branchNameBuilder.Append($" [{pr.GetPullRequestColor()} link={pr.Url}]#{pr.Number}: {pr.Title}[/]");
+                    branchNameBuilder.Append($" {pr.GetPullRequestDisplay()}");
                 }
 
                 return branchNameBuilder.ToString();
