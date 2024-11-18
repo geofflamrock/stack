@@ -8,7 +8,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class NewStackCommandSettings : CommandSettingsBase
+public class NewStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack. Must be unique.")]
     [CommandOption("-n|--name")]
@@ -23,7 +23,7 @@ internal class NewStackCommandSettings : CommandSettingsBase
     public string? BranchName { get; init; }
 }
 
-internal class NewStackCommand(
+public class NewStackCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<NewStackCommandSettings>

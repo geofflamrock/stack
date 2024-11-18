@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Stack.Config;
 
-internal class Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches)
+public class Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches)
 {
     public string Name { get; private set; } = Name;
     public string RemoteUri { get; private set; } = RemoteUri;
@@ -19,7 +19,7 @@ internal class Stack(string Name, string RemoteUri, string SourceBranch, List<st
     }
 }
 
-internal static class StackExtensionMethods
+public static class StackExtensionMethods
 {
     public static bool IsCurrentStack(this Stack stack, string currentBranch)
     {
@@ -32,14 +32,14 @@ internal static class StackExtensionMethods
     }
 }
 
-internal interface IStackConfig
+public interface IStackConfig
 {
     string GetConfigPath();
     List<Stack> Load();
     void Save(List<Stack> stacks);
 }
 
-internal class StackConfig : IStackConfig
+public class StackConfig : IStackConfig
 {
     public string GetConfigPath()
     {

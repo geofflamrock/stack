@@ -6,7 +6,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class NewBranchCommandSettings : DryRunCommandSettingsBase
+public class NewBranchCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -17,7 +17,7 @@ internal class NewBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-internal class NewBranchCommand(
+public class NewBranchCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<NewBranchCommandSettings>

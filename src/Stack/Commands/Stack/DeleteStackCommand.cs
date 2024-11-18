@@ -7,14 +7,14 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class DeleteStackCommandSettings : CommandSettingsBase
+public class DeleteStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to delete.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 }
 
-internal class DeleteStackCommand(
+public class DeleteStackCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<DeleteStackCommandSettings>

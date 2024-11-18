@@ -7,7 +7,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class StackStatusCommandSettings : CommandSettingsBase
+public class StackStatusCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to show the status of.")]
     [CommandOption("-n|--name")]
@@ -20,7 +20,7 @@ internal class StackStatusCommandSettings : CommandSettingsBase
 
 record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 
-internal class StackStatusCommand(
+public class StackStatusCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IGitHubOperations gitHubOperations,

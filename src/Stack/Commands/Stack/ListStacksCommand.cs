@@ -6,9 +6,9 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class ListStacksCommandSettings : CommandSettingsBase;
+public class ListStacksCommandSettings : CommandSettingsBase;
 
-internal class ListStacksCommand(
+public class ListStacksCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<ListStacksCommandSettings>

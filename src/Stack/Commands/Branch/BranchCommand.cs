@@ -8,7 +8,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class BranchCommandSettings : DryRunCommandSettingsBase
+public class BranchCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]
@@ -23,7 +23,7 @@ internal class BranchCommandSettings : DryRunCommandSettingsBase
     public BranchAction? Action { get; init; }
 }
 
-internal enum BranchAction
+public enum BranchAction
 {
     [Description("Add an existing branch")]
     Add,
@@ -32,7 +32,7 @@ internal enum BranchAction
     Create
 }
 
-internal class BranchCommand(
+public class BranchCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<BranchCommandSettings>
