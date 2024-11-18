@@ -74,7 +74,16 @@ jobs:
         run: dotnet build --no-restore -c Release
 
       - name: Test
-        run: dotnet test --no-build -c Release --verbosity normal
+        run: dotnet test --no-build -c Release --verbosity normal --logger "trx;LogFileName=${{ github.workspace }}/tests/test_results.trx"
+
+      - name: Create test report
+        uses: phoenix-actions/test-reporting@v15
+        if: success() || failure() # run this step even if previous step failed
+        with:
+          name: Tests
+          path: ${{ github.workspace }}/tests/*.trx
+          reporter: dotnet-trx
+          output-to: step-summary
 
   publish:
     needs: [version, build]
