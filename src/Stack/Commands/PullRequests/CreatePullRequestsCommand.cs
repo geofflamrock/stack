@@ -124,7 +124,15 @@ internal class CreatePullRequestsCommand(
                         prListStart = 0;
                     }
 
-                    prBody = prBody.Insert(prListStart, prBodyMarkdown);
+                    if (prBody.Length > 0 && prListStart == 0)
+                    {
+                        // Add some newlines so that the PR list is separated from the rest of the PR body
+                        prBody = prBody.Insert(prListStart, prBodyMarkdown + "\n\n");
+                    }
+                    else
+                    {
+                        prBody = prBody.Insert(prListStart, prBodyMarkdown);
+                    }
 
                     gitHubOperations.EditPullRequest(pullRequest.Number, prBody, settings.GetGitHubOperationSettings());
                 }
