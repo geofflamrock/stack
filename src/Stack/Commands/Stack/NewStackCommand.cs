@@ -1,10 +1,12 @@
 
 
 using System.ComponentModel;
+using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -30,33 +32,119 @@ public class NewStackCommand(
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
-        await Task.CompletedTask;
+        var handler = new NewStackCommandHandler(
+            new NewStackCommandInputProvider(new ConsoleInputProvider(console)),
+            gitOperations,
+            stackConfig);
 
-        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
+        var response = await handler.Handle(
+            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName),
+            CancellationToken.None);
 
-        var name = settings.Name ?? console.Prompt(new TextPrompt<string>("Stack name:"));
-
-        var branchesPrompt = new SelectionPrompt<string>().Title("Select a branch to start your stack from:").PageSize(10);
-
-        branchesPrompt.AddChoices(branches);
-
-        var sourceBranch = settings.SourceBranch ?? console.Prompt(branchesPrompt);
-        console.WriteLine($"Source branch: {sourceBranch}");
-
-        var stacks = stackConfig.Load();
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        stacks.Add(new Config.Stack(name, remoteUri, sourceBranch, []));
-
-        stackConfig.Save(stacks);
-
-        console.WriteLine($"Stack '{name}' created from source branch '{sourceBranch}'");
-
-        if (console.Prompt(new ConfirmationPrompt("Do you want to add an existing branch or create a new branch and add it to the stack?")))
+        if (response.BranchAction is BranchAction.Create)
         {
-            return await new BranchCommand(console, gitOperations, stackConfig).ExecuteAsync(context, new BranchCommandSettings { Stack = name, Verbose = settings.Verbose, WorkingDirectory = settings.WorkingDirectory });
+            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/] with new branch [blue]{response.BranchName}[/]");
+        }
+        else if (response.BranchAction is BranchAction.Add)
+        {
+            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/] with existing branch [blue]{response.BranchName}[/]");
+        }
+        else
+        {
+            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/]");
         }
 
         return 0;
+    }
+}
+
+public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName)
+{
+    public static NewStackCommandInputs Empty => new(null, null, null);
+}
+
+public record NewStackCommandResponse(string StackName, string SourceBranch, BranchAction? BranchAction, string? BranchName);
+
+public interface INewStackCommandInputProvider
+{
+    string GetStackName();
+    string GetSourceBranch(string[] branches);
+    string GetNewBranchName();
+    bool ConfirmAddOrCreateBranch();
+    BranchAction SelectAddOrCreateBranch();
+    string GetBranchToAdd(string[] branches);
+    bool ConfirmSwitchToBranch();
+}
+
+public class NewStackCommandInputProvider(IInputProvider inputProvider) : INewStackCommandInputProvider
+{
+    public const string StackNamePrompt = "Stack name:";
+    public const string SourceBranchPrompt = "Select a branch to start your stack from:";
+    public const string BranchNamePrompt = "Branch name:";
+    public const string ConfirmAddOrCreateBranchPrompt = "Do you want to add an existing branch or create a new branch and add it to the stack?";
+    public const string AddOrCreateBranchPrompt = "Add or create a branch:";
+    public const string AddBranchNamePrompt = "Select a branch to add to the stack:";
+    public const string SwitchToBranchPrompt = "Do you want to switch to the new branch?";
+
+    public string GetStackName() => inputProvider.Text(StackNamePrompt);
+    public string GetSourceBranch(string[] branches) => inputProvider.Select(SourceBranchPrompt, branches);
+    public string GetNewBranchName() => inputProvider.Text(BranchNamePrompt);
+    public bool ConfirmAddOrCreateBranch() => inputProvider.Confirm(ConfirmAddOrCreateBranchPrompt);
+    public BranchAction SelectAddOrCreateBranch() => inputProvider.Select(AddOrCreateBranchPrompt, [BranchAction.Create, BranchAction.Add], action => action.Humanize());
+    public string GetBranchToAdd(string[] branches) => inputProvider.Select(AddBranchNamePrompt, branches);
+    public bool ConfirmSwitchToBranch() => inputProvider.Confirm(SwitchToBranchPrompt);
+}
+
+public class NewStackCommandHandler(INewStackCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
+{
+    public async Task<NewStackCommandResponse> Handle(NewStackCommandInputs inputs, CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+
+        var name = inputs.Name ?? inputProvider.GetStackName();
+
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(GitOperationSettings.Default);
+
+        var sourceBranch = inputs.SourceBranch ?? inputProvider.GetSourceBranch(branches);
+
+        var stacks = stackConfig.Load();
+        var remoteUri = gitOperations.GetRemoteUri(GitOperationSettings.Default);
+        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
+        string? branchName = null;
+        BranchAction? branchAction = null;
+
+        if (inputs.BranchName is not null || inputProvider.ConfirmAddOrCreateBranch())
+        {
+            branchAction = inputs.BranchName is not null ? BranchAction.Create : inputProvider.SelectAddOrCreateBranch();
+
+            if (branchAction == BranchAction.Create)
+            {
+                branchName = inputs.BranchName ?? inputProvider.GetNewBranchName();
+
+                gitOperations.CreateNewBranch(branchName, sourceBranch, GitOperationSettings.Default);
+                gitOperations.PushNewBranch(branchName, GitOperationSettings.Default);
+            }
+            else
+            {
+                branchName = inputProvider.GetBranchToAdd(branches);
+            }
+        }
+
+        if (branchName is not null)
+        {
+            stack.Branches.Add(branchName);
+        }
+
+        stacks.Add(stack);
+
+        stackConfig.Save(stacks);
+
+        if (branchName is not null && (inputs.BranchName is not null || inputProvider.ConfirmSwitchToBranch()))
+        {
+            gitOperations.ChangeBranch(branchName, GitOperationSettings.Default);
+        }
+
+        return new NewStackCommandResponse(name, sourceBranch, branchAction, branchName);
     }
 }
 
