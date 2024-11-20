@@ -47,13 +47,10 @@ jobs:
         include:
           - name: Linux
             os: ubuntu-latest
-            tests-directory: ./tests/
           - name: Windows
             os: windows-latest
-            tests-directory: .\tests\
           - name: macOS
             os: macos-latest
-            tests-directory: ./tests/
 
     name: Build and test on ${{ matrix.name }}
 
@@ -77,14 +74,15 @@ jobs:
         run: dotnet build --no-restore -c Release
 
       - name: Test
-        run: dotnet test --no-build -c Release --verbosity normal --logger "trx;LogFileName=${{ github.workspace }}${{ matrix.tests-directory }}test_results.trx"
+        run: dotnet test --no-build -c Release --verbosity normal --logger "trx;LogFileName=${{ github.workspace }}/tests/test_results.trx"
 
       - name: Create test report
         uses: phoenix-actions/test-reporting@v15
         if: success() || failure() # run this step even if previous step failed
         with:
           name: Tests
-          path: ${{ github.workspace }}${{ matrix.tests-directory }}*.trx
+          path: ${{ github.workspace }}/tests/*.trx
+          path-replace-backslashes: true # Required for Windows paths
           reporter: dotnet-trx
           output-to: step-summary
 
