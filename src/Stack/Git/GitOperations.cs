@@ -23,6 +23,7 @@ public interface IGitOperations
     void MergeFromLocalSourceBranch(string sourceBranchName, GitOperationSettings settings);
     string GetCurrentBranch(GitOperationSettings settings);
     string GetDefaultBranch(GitOperationSettings settings);
+    bool DoesLocalBranchExist(string branchName, GitOperationSettings settings);
     bool DoesRemoteBranchExist(string branchName, GitOperationSettings settings);
     string[] GetBranchesThatExistLocally(string[] branches, GitOperationSettings settings);
     string[] GetBranchesThatExistInRemote(string[] branches, GitOperationSettings settings);
@@ -95,6 +96,11 @@ public class GitOperations(IAnsiConsole console) : IGitOperations
     public bool DoesRemoteBranchExist(string branchName, GitOperationSettings settings)
     {
         return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}", settings).Trim().Length > 0;
+    }
+
+    public bool DoesLocalBranchExist(string branchName, GitOperationSettings settings)
+    {
+        return ExecuteGitCommandAndReturnOutput($"branch --list {branchName}", settings).Trim().Length > 0;
     }
 
     public string[] GetBranchesThatExistLocally(string[] branches, GitOperationSettings settings)
