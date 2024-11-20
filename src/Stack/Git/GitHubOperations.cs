@@ -96,7 +96,7 @@ public class GitHubOperations(IAnsiConsole console) : IGitHubOperations
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            console.WriteLine(infoBuilder.ToString());
+            console.MarkupLine($"[grey]{infoBuilder}[/]");
         }
 
         return infoBuilder.ToString();
@@ -135,7 +135,7 @@ public class GitHubOperations(IAnsiConsole console) : IGitHubOperations
         {
             if (infoBuilder.Length > 0)
             {
-                console.WriteLine(infoBuilder.ToString());
+                console.MarkupLine($"[grey]{infoBuilder}[/]");
             }
         }
     }
