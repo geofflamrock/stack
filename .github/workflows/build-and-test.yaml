@@ -82,6 +82,7 @@ jobs:
         with:
           name: Tests
           path: ${{ github.workspace }}/tests/*.trx
+          path-replace-backslashes: true # Required for Windows paths
           reporter: dotnet-trx
           output-to: step-summary
 
