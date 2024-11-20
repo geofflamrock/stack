@@ -170,7 +170,7 @@ public class GitOperations(IAnsiConsole console) : IGitOperations
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            console.WriteLine(infoBuilder.ToString());
+            console.MarkupLine($"[grey]{infoBuilder}[/]");
         }
 
         return infoBuilder.ToString();
@@ -193,7 +193,7 @@ public class GitOperations(IAnsiConsole console) : IGitOperations
                 // changes to the Git repository as the output might be important.
                 // In verbose mode we would have already written the output
                 // of the command so don't write it again.
-                console.WriteLine(output);
+                console.MarkupLine($"[grey]{output}[/]");
             }
         }
     }
