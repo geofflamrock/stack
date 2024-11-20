@@ -1,18 +1,14 @@
 using System.ComponentModel;
-using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
 public class StackSwitchCommandSettings : CommandSettingsBase
 {
-    [Description("The name of the stack to switch to.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-
     [Description("The name of the branch to switch to.")]
     [CommandOption("-b|--branch")]
     public string? Branch { get; init; }
@@ -21,46 +17,70 @@ public class StackSwitchCommandSettings : CommandSettingsBase
 public class StackSwitchCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<StackStatusCommandSettings>
+    IStackConfig stackConfig) : AsyncCommand<StackSwitchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
+    {
+        await Task.CompletedTask;
+
+        var handler = new StackSwitchCommandHandler(
+            new StackSwitchCommandInputProvider(new ConsoleInputProvider(console)),
+            gitOperations,
+            stackConfig);
+
+        await handler.Handle(
+            new StackSwitchCommandInputs(settings.Branch),
+            settings.GetGitOperationSettings());
+
+        return 0;
+    }
+}
+
+public record StackSwitchCommandInputs(string? Branch);
+
+public record StackSwitchCommandResponse();
+
+public interface IStackSwitchCommandInputProvider
+{
+    string SelectBranch(List<Config.Stack> stacks, string currentBranch);
+}
+
+public class StackSwitchCommandInputProvider(IInputProvider inputProvider) : IStackSwitchCommandInputProvider
+{
+    const string SelectBranchPrompt = "Select branch:";
+
+    public string SelectBranch(List<Config.Stack> stacks, string currentBranch)
+    {
+        return inputProvider.SelectGrouped(
+            SelectBranchPrompt,
+            stacks
+                .OrderByCurrentStackThenByName(currentBranch)
+                .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.Branches]))
+                .ToArray());
+    }
+}
+
+public class StackSwitchCommandHandler(IStackSwitchCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
+{
+    public async Task<StackSwitchCommandResponse> Handle(
+        StackSwitchCommandInputs inputs,
+        GitOperationSettings gitOperationSettings)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-
-        if (remoteUri is null)
-        {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
-        }
+        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
+        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (stacksForRemote.Count == 0)
-        {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
-        }
+        var branchSelection = inputs.Branch ?? inputProvider.SelectBranch(stacksForRemote, currentBranch);
 
-        var branchSelectionPrompt = new SelectionPrompt<string>()
-            .Title("Select branch")
-            .PageSize(10);
+        if (inputs.Branch is not null && !gitOperations.DoesLocalBranchExist(branchSelection, gitOperationSettings))
+            throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");
 
-        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        gitOperations.ChangeBranch(branchSelection, gitOperationSettings);
 
-        foreach (var stack in stacksForRemote.OrderByCurrentStackThenByName(currentBranch))
-        {
-            var allBranchesInStack = new List<string>([stack.SourceBranch, .. stack.Branches]).ToArray();
-            var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStack, settings.GetGitOperationSettings());
-            branchSelectionPrompt.AddChoiceGroup(stack.Name, branchesThatExistLocally);
-        }
-
-        var selectedBranch = console.Prompt(branchSelectionPrompt);
-
-        gitOperations.ChangeBranch(selectedBranch, settings.GetGitOperationSettings());
-
-        return 0;
+        return new();
     }
 }
