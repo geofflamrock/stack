@@ -4,6 +4,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -18,7 +19,8 @@ public class StackStatusCommandSettings : CommandSettingsBase
     public bool All { get; init; }
 }
 
-record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
+public record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
+public record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
 public class StackStatusCommand(
     IAnsiConsole console,
@@ -27,114 +29,34 @@ public class StackStatusCommand(
     IStackConfig stackConfig)
     : AsyncCommand<StackStatusCommandSettings>
 {
-    record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
-
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var handler = new StackStatusCommandHandler(
+            new StackStatusCommandInputProvider(new ConsoleInputProvider(console)),
+            new StackStatusCommandOutputProvider(console),
+            gitOperations,
+            gitHubOperations,
+            stackConfig);
 
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-
-        if (remoteUri is null)
-        {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
-        }
-
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-
-        if (stacksForRemote.Count == 0)
-        {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
-        }
+        var response = await handler.Handle(
+            new StackStatusCommandInputs(settings.Name, settings.All),
+            settings.GetGitOperationSettings(),
+            settings.GetGitHubOperationSettings());
 
         var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
 
-        var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
-
-        if (settings.All)
-        {
-            stacksForRemote.ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([], [])));
-        }
-        else
-        {
-            var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-            var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
-            stacksToCheckStatusFor.Add(stack, new StackStatus([], []));
-        }
-
-        console.Status()
-            .Start("Checking status of remote branches...", ctx =>
-            {
-                foreach (var (stack, status) in stacksToCheckStatusFor
-                )
-                {
-                    var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
-                    var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStack, settings.GetGitOperationSettings());
-
-                    gitOperations.FetchBranches(branchesThatExistInRemote, settings.GetGitOperationSettings());
-
-                    void CheckRemoteBranch(string branch, string sourceBranch)
-                    {
-                        var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, settings.GetGitOperationSettings());
-                        var branchStatus = new BranchStatus(true, ahead, behind);
-                        status.BranchStatuses[branch] = branchStatus;
-                    }
-
-                    var parentBranch = stack.SourceBranch;
-
-                    foreach (var branch in stack.Branches)
-                    {
-                        if (branchesThatExistInRemote.Contains(branch))
-                        {
-                            CheckRemoteBranch(branch, parentBranch);
-                            parentBranch = branch;
-                        }
-                        else
-                        {
-                            status.BranchStatuses[branch] = new BranchStatus(false, 0, 0);
-                        }
-                    }
-                }
-            });
-
-        console.Status()
-            .Start("Checking status of GitHub pull requests...", ctx =>
-            {
-                foreach (var (stack, status) in stacksToCheckStatusFor)
-                {
-                    try
-                    {
-                        foreach (var branch in stack.Branches)
-                        {
-                            var pr = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
-
-                            if (pr is not null)
-                            {
-                                status.PullRequests[branch] = pr;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        console.MarkupLine($"[orange1]Error checking GitHub pull requests: {ex.Message}[/]");
-                    }
-                }
-            });
-
-        foreach (var (stack, status) in stacksToCheckStatusFor)
+        foreach (var (stack, status) in response.Statuses)
         {
             var stackRoot = new Tree($"[yellow]{stack.Name}:[/] [grey]{stack.SourceBranch}[/]");
 
             string BuildBranchName(string branch, string? parentBranch, bool isSourceBranchForStack)
             {
-                var barnchStatus = status.BranchStatuses.GetValueOrDefault(branch);
+                var branchStatus = status.BranchStatuses.GetValueOrDefault(branch);
                 var branchNameBuilder = new StringBuilder();
 
-                var color = barnchStatus?.ExistsInRemote == false ? "grey" : isSourceBranchForStack ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
-                Decoration? decoration = barnchStatus?.ExistsInRemote == false ? Decoration.Strikethrough : null;
+                var color = branchStatus?.ExistsInRemote == false ? "grey" : isSourceBranchForStack ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
+                Decoration? decoration = branchStatus?.ExistsInRemote == false ? Decoration.Strikethrough : null;
 
                 if (color is not null && decoration is not null)
                 {
@@ -153,17 +75,17 @@ public class StackStatusCommand(
                     branchNameBuilder.Append(branch);
                 }
 
-                if (barnchStatus?.Ahead > 0 && barnchStatus?.Behind > 0)
+                if (branchStatus?.Ahead > 0 && branchStatus?.Behind > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({barnchStatus.Ahead} ahead, {barnchStatus.Behind} behind {parentBranch})[/]");
+                    branchNameBuilder.Append($" [grey]({branchStatus.Ahead} ahead, {branchStatus.Behind} behind {parentBranch})[/]");
                 }
-                else if (barnchStatus?.Ahead > 0)
+                else if (branchStatus?.Ahead > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({barnchStatus.Ahead} ahead of {parentBranch})[/]");
+                    branchNameBuilder.Append($" [grey]({branchStatus.Ahead} ahead of {parentBranch})[/]");
                 }
-                else if (barnchStatus?.Behind > 0)
+                else if (branchStatus?.Behind > 0)
                 {
-                    branchNameBuilder.Append($" [grey]({barnchStatus.Behind} behind {parentBranch})[/]");
+                    branchNameBuilder.Append($" [grey]({branchStatus.Behind} behind {parentBranch})[/]");
                 }
 
                 if (status.PullRequests.TryGetValue(branch, out var pr))
@@ -190,5 +112,147 @@ public class StackStatusCommand(
         }
 
         return 0;
+    }
+}
+
+public record StackStatusCommandInputs(string? Name, bool All);
+public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
+
+public interface IStackStatusCommandInputProvider
+{
+    string SelectStack(List<Config.Stack> stacks, string currentBranch);
+}
+
+public interface IStackStatusCommandOutputProvider
+{
+    void Status(string message, Action action);
+    void Warning(string message);
+}
+
+public class StackStatusCommandInputProvider(IInputProvider inputProvider) : IStackStatusCommandInputProvider
+{
+    public const string SelectStackPrompt = "Select stack:";
+
+    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
+    {
+        return inputProvider.Select(
+            SelectStackPrompt,
+            stacks
+                .OrderByCurrentStackThenByName(currentBranch)
+                .Select(s => s.Name)
+                .ToArray());
+    }
+}
+
+public class StackStatusCommandOutputProvider(IAnsiConsole console) : IStackStatusCommandOutputProvider
+{
+    public void Status(string message, Action action)
+    {
+        console.Status().Start(message, (_) => action());
+    }
+
+    public void Warning(string message)
+    {
+        console.MarkupLine($"[orange1]{message}[/]");
+    }
+}
+
+public class StackStatusCommandHandler(
+    IStackStatusCommandInputProvider inputProvider,
+    IStackStatusCommandOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig)
+{
+    public async Task<StackStatusCommandResponse> Handle(
+        StackStatusCommandInputs inputs,
+        GitOperationSettings gitOperationSettings,
+        GitHubOperationSettings gitHubOperationSettings)
+    {
+        await Task.CompletedTask;
+        var stacks = stackConfig.Load();
+
+        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
+        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
+
+        var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
+
+        if (inputs.All)
+        {
+            stacksForRemote
+                .OrderByCurrentStackThenByName(currentBranch)
+                .ToList()
+                .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([], [])));
+        }
+        else
+        {
+            var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+            var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+            if (stack is null)
+            {
+                throw new InvalidOperationException($"Stack '{stackSelection}' not found.");
+            }
+
+            stacksToCheckStatusFor.Add(stack, new StackStatus([], []));
+        }
+
+        outputProvider.Status("Checking status of remote branches...", () =>
+        {
+            foreach (var (stack, status) in stacksToCheckStatusFor)
+            {
+                var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
+                var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStack, gitOperationSettings);
+
+                gitOperations.FetchBranches(branchesThatExistInRemote, gitOperationSettings);
+
+                void CheckRemoteBranch(string branch, string sourceBranch)
+                {
+                    var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch, gitOperationSettings);
+                    var branchStatus = new BranchStatus(true, ahead, behind);
+                    status.BranchStatuses[branch] = branchStatus;
+                }
+
+                var parentBranch = stack.SourceBranch;
+
+                foreach (var branch in stack.Branches)
+                {
+                    if (branchesThatExistInRemote.Contains(branch))
+                    {
+                        CheckRemoteBranch(branch, parentBranch);
+                        parentBranch = branch;
+                    }
+                    else
+                    {
+                        status.BranchStatuses[branch] = new BranchStatus(false, 0, 0);
+                    }
+                }
+            }
+        });
+
+        outputProvider.Status("Checking status of GitHub pull requests...", () =>
+        {
+            foreach (var (stack, status) in stacksToCheckStatusFor)
+            {
+                try
+                {
+                    foreach (var branch in stack.Branches)
+                    {
+                        var pr = gitHubOperations.GetPullRequest(branch, gitHubOperationSettings);
+
+                        if (pr is not null)
+                        {
+                            status.PullRequests[branch] = pr;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
+                }
+            }
+        });
+
+        return new StackStatusCommandResponse(stacksToCheckStatusFor);
     }
 }
