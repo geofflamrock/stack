@@ -28,12 +28,10 @@ public class DeleteStackCommand() : AsyncCommand<DeleteStackCommandSettings>
         var console = AnsiConsole.Console;
         var handler = new DeleteStackCommandHandler(
             new DeleteStackCommandInputProvider(new ConsoleInputProvider(console)),
-            new GitOperations(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(
-            new DeleteStackCommandInputs(settings.Name, settings.Force),
-            settings.GetGitOperationSettings());
+        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name, settings.Force));
 
         if (response.DeletedStackName is not null)
             console.MarkupLine($"Stack [yellow]{response.DeletedStackName}[/] deleted");
@@ -73,15 +71,13 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 
 public class DeleteStackCommandHandler(IDeleteStackCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
 {
-    public async Task<DeleteStackCommandResponse> Handle(
-        DeleteStackCommandInputs inputs,
-        GitOperationSettings gitOperationSettings)
+    public async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
-        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
+        var remoteUri = gitOperations.GetRemoteUri();
+        var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 

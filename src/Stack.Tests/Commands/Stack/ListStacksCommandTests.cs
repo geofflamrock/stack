@@ -23,7 +23,7 @@ public class ListStacksCommandTests
     //     var remoteUri = Some.HttpsUri().ToString();
     //     var aDifferentRemoteUri = Some.HttpsUri().ToString();
 
-    //     gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
+    //     gitOperations.GetRemoteUri().Returns(remoteUri);
 
     //     var stacks = new List<Config.Stack>
     //     {
@@ -54,7 +54,7 @@ public class ListStacksCommandTests
     //     var remoteUri = Some.HttpsUri().ToString();
     //     var differentRemoteUri = Some.HttpsUri().ToString();
 
-    //     gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
+    //     gitOperations.GetRemoteUri().Returns(remoteUri);
 
     //     var stacks = new List<Config.Stack>
     //     {

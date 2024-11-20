@@ -19,13 +19,13 @@ public class CreatePullRequestsCommand() : AsyncCommand<CreatePullRequestsComman
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console);
+        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
         var gitHubOperations = new GitHubOperations(console);
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -35,7 +35,7 @@ public class CreatePullRequestsCommand() : AsyncCommand<CreatePullRequestsComman
             return 0;
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var currentBranch = gitOperations.GetCurrentBranch();
         var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
@@ -64,7 +64,7 @@ public class CreatePullRequestsCommand() : AsyncCommand<CreatePullRequestsComman
                     pullRequestsInStack.Add(existingPullRequest);
                 }
 
-                if (gitOperations.DoesRemoteBranchExist(branch, settings.GetGitOperationSettings()))
+                if (gitOperations.DoesRemoteBranchExist(branch))
                 {
                     if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {

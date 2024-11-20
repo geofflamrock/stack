@@ -22,12 +22,10 @@ public class StackSwitchCommand() : AsyncCommand<StackSwitchCommandSettings>
 
         var handler = new StackSwitchCommandHandler(
             new StackSwitchCommandInputProvider(new ConsoleInputProvider(console)),
-            new GitOperations(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(
-            new StackSwitchCommandInputs(settings.Branch),
-            settings.GetGitOperationSettings());
+        await handler.Handle(new StackSwitchCommandInputs(settings.Branch));
 
         return 0;
     }
@@ -59,24 +57,22 @@ public class StackSwitchCommandInputProvider(IInputProvider inputProvider) : ISt
 
 public class StackSwitchCommandHandler(IStackSwitchCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
 {
-    public async Task<StackSwitchCommandResponse> Handle(
-        StackSwitchCommandInputs inputs,
-        GitOperationSettings gitOperationSettings)
+    public async Task<StackSwitchCommandResponse> Handle(StackSwitchCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
-        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
+        var remoteUri = gitOperations.GetRemoteUri();
+        var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         var branchSelection = inputs.Branch ?? inputProvider.SelectBranch(stacksForRemote, currentBranch);
 
-        if (inputs.Branch is not null && !gitOperations.DoesLocalBranchExist(branchSelection, gitOperationSettings))
+        if (inputs.Branch is not null && !gitOperations.DoesLocalBranchExist(branchSelection))
             throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");
 
-        gitOperations.ChangeBranch(branchSelection, gitOperationSettings);
+        gitOperations.ChangeBranch(branchSelection);
 
         return new();
     }

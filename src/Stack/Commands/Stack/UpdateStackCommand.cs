@@ -27,12 +27,10 @@ public class UpdateStackCommand() : AsyncCommand<UpdateStackCommandSettings>
         var handler = new UpdateStackCommandHandler(
             new UpdateStackCommandInputProvider(new ConsoleInputProvider(console)),
             new ConsoleOutputProvider(console),
-            new GitOperations(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(
-            new UpdateStackCommandInputs(settings.Name, settings.Force),
-            settings.GetGitOperationSettings());
+        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Force));
 
         return 0;
     }
@@ -73,14 +71,12 @@ public class UpdateStackCommandHandler(
     IGitOperations gitOperations,
     IStackConfig stackConfig)
 {
-    public async Task<UpdateStackCommandResponse> Handle(
-        UpdateStackCommandInputs inputs,
-        GitOperationSettings gitOperationSettings)
+    public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
+        var remoteUri = gitOperations.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -89,7 +85,7 @@ public class UpdateStackCommandHandler(
             return new UpdateStackCommandResponse();
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
+        var currentBranch = gitOperations.GetCurrentBranch();
         var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
@@ -102,17 +98,17 @@ public class UpdateStackCommandHandler(
             {
                 outputProvider.Information($"Merging {sourceBranchName.Stack()} into {branch.Branch()}");
 
-                gitOperations.UpdateBranch(sourceBranchName, gitOperationSettings);
-                gitOperations.UpdateBranch(branch, gitOperationSettings);
-                gitOperations.MergeFromLocalSourceBranch(sourceBranchName, gitOperationSettings);
-                gitOperations.PushBranch(branch, gitOperationSettings);
+                gitOperations.UpdateBranch(sourceBranchName);
+                gitOperations.UpdateBranch(branch);
+                gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
+                gitOperations.PushBranch(branch);
             }
 
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                if (gitOperations.DoesRemoteBranchExist(branch, gitOperationSettings))
+                if (gitOperations.DoesRemoteBranchExist(branch))
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
@@ -126,7 +122,7 @@ public class UpdateStackCommandHandler(
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
-                gitOperations.ChangeBranch(currentBranch, gitOperationSettings);
+                gitOperations.ChangeBranch(currentBranch);
             }
         }
 

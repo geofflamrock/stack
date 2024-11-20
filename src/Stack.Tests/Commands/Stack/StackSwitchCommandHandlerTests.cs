@@ -20,8 +20,8 @@ public class StackSwitchCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -33,10 +33,10 @@ public class StackSwitchCommandHandlerTests
         inputProvider.SelectBranch(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("branch-3");
 
         // Act
-        await handler.Handle(new StackSwitchCommandInputs(null), GitOperationSettings.Default);
+        await handler.Handle(new StackSwitchCommandInputs(null));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-3", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().ChangeBranch("branch-3");
     }
 
     [Fact]
@@ -50,9 +50,9 @@ public class StackSwitchCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-3", Arg.Any<GitOperationSettings>()).Returns(true);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.DoesLocalBranchExist("branch-3").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
@@ -62,10 +62,10 @@ public class StackSwitchCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new StackSwitchCommandInputs("branch-3"), GitOperationSettings.Default);
+        await handler.Handle(new StackSwitchCommandInputs("branch-3"));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-3", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().ChangeBranch("branch-3");
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
@@ -80,9 +80,9 @@ public class StackSwitchCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-3", Arg.Any<GitOperationSettings>()).Returns(false);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.DoesLocalBranchExist("branch-3").Returns(false);
 
         var stacks = new List<Config.Stack>(
         [
@@ -92,7 +92,7 @@ public class StackSwitchCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         // Act and assert
-        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs("branch-3"), GitOperationSettings.Default))
+        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs("branch-3")))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Branch 'branch-3' does not exist.");
     }

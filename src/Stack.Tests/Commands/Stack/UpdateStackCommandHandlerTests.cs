@@ -22,8 +22,8 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -32,21 +32,21 @@ public class UpdateStackCommandHandlerTests
         inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
         inputProvider.ConfirmUpdate().Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>(), Arg.Any<GitOperationSettings>()).Returns(true);
+        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false), GitOperationSettings.Default);
+        await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().UpdateBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().PushBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().UpdateBranch("branch-1");
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
+        gitOperations.Received().PushBranch("branch-2");
 
-        gitOperations.Received().UpdateBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().UpdateBranch("branch-3", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().PushBranch("branch-3", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().UpdateBranch("branch-3");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
+        gitOperations.Received().PushBranch("branch-3");
     }
 
     [Fact]
@@ -61,8 +61,8 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -73,18 +73,18 @@ public class UpdateStackCommandHandlerTests
 
         var branchesThatExistInRemote = new List<string>(["branch-1", "branch-3"]);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Is<string>(b => branchesThatExistInRemote.Contains(b)), Arg.Any<GitOperationSettings>()).Returns(true);
+        gitOperations.DoesRemoteBranchExist(Arg.Is<string>(b => branchesThatExistInRemote.Contains(b))).Returns(true);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false), GitOperationSettings.Default);
+        await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().UpdateBranch("branch-3", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().PushBranch("branch-3", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().UpdateBranch("branch-1");
+        gitOperations.Received().UpdateBranch("branch-3");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
+        gitOperations.Received().PushBranch("branch-3");
 
-        gitOperations.DidNotReceive().UpdateBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.DidNotReceive().UpdateBranch("branch-2");
     }
 
     [Fact]
@@ -99,8 +99,8 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -108,21 +108,21 @@ public class UpdateStackCommandHandlerTests
 
         inputProvider.ConfirmUpdate().Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>(), Arg.Any<GitOperationSettings>()).Returns(true);
+        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs("Stack1", false), GitOperationSettings.Default);
+        await handler.Handle(new UpdateStackCommandInputs("Stack1", false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().UpdateBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().PushBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().UpdateBranch("branch-1");
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
+        gitOperations.Received().PushBranch("branch-2");
 
-        gitOperations.Received().UpdateBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().UpdateBranch("branch-3", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-2", Arg.Any<GitOperationSettings>());
-        gitOperations.Received().PushBranch("branch-3", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().UpdateBranch("branch-3");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
+        gitOperations.Received().PushBranch("branch-3");
 
         inputProvider.DidNotReceive().SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>());
     }
@@ -139,8 +139,8 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -149,7 +149,7 @@ public class UpdateStackCommandHandlerTests
         inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, true), GitOperationSettings.Default);
+        await handler.Handle(new UpdateStackCommandInputs(null, true));
 
         // Assert
         inputProvider.DidNotReceive().ConfirmUpdate();
@@ -167,8 +167,8 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -176,7 +176,7 @@ public class UpdateStackCommandHandlerTests
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false), GitOperationSettings.Default))
+        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -193,10 +193,10 @@ public class UpdateStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
 
         // We are on a specific branch in the stack
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-2");
+        gitOperations.GetCurrentBranch().Returns("branch-2");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -205,12 +205,12 @@ public class UpdateStackCommandHandlerTests
         inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
         inputProvider.ConfirmUpdate().Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>(), Arg.Any<GitOperationSettings>()).Returns(true);
+        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false), GitOperationSettings.Default);
+        await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().ChangeBranch("branch-2");
     }
 }

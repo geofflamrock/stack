@@ -23,8 +23,8 @@ public class StackStatusCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
         var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
@@ -37,15 +37,15 @@ public class StackStatusCommandHandlerTests
             .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations
-            .GetBranchesThatExistInRemote(Arg.Any<string[]>(), Arg.Any<GitOperationSettings>())
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
             .Returns(["branch-1", "branch-3", "branch-5"]);
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-3", "branch-1", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-5", "branch-3", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-5", "branch-3")
             .Returns((1, 0));
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
@@ -55,7 +55,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitOperationSettings.Default, GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitHubOperationSettings.Default);
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>
@@ -88,8 +88,8 @@ public class StackStatusCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
         var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
@@ -101,15 +101,15 @@ public class StackStatusCommandHandlerTests
             .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations
-            .GetBranchesThatExistInRemote(Arg.Any<string[]>(), Arg.Any<GitOperationSettings>())
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
             .Returns(["branch-1", "branch-3", "branch-5"]);
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-3", "branch-1", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-5", "branch-3", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-5", "branch-3")
             .Returns((1, 0));
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
@@ -119,7 +119,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false), GitOperationSettings.Default, GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false), GitHubOperationSettings.Default);
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>
@@ -154,8 +154,8 @@ public class StackStatusCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
         var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
@@ -167,19 +167,19 @@ public class StackStatusCommandHandlerTests
             .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations
-            .GetBranchesThatExistInRemote(Arg.Any<string[]>(), Arg.Any<GitOperationSettings>())
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
             .Returns(["branch-1", "branch-2", "branch-3", "branch-4", "branch-5"]);
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-3", "branch-1", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-5", "branch-3", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-5", "branch-3")
             .Returns((1, 0));
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-4", "branch-2", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-4", "branch-2")
             .Returns((3, 1));
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
@@ -189,7 +189,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true), GitOperationSettings.Default, GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true), GitHubOperationSettings.Default);
 
         // Assert
         var expectedBranchStatuesForStack1 = new Dictionary<string, BranchStatus>
@@ -230,8 +230,8 @@ public class StackStatusCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
         var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
@@ -241,7 +241,7 @@ public class StackStatusCommandHandlerTests
         // Act and assert
         var incorrectStackName = Some.Name();
         await handler
-            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false), GitOperationSettings.Default, GitHubOperationSettings.Default))
+            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false), GitHubOperationSettings.Default))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{incorrectStackName}' not found.");
     }
@@ -259,8 +259,8 @@ public class StackStatusCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
         var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
@@ -273,11 +273,11 @@ public class StackStatusCommandHandlerTests
             .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations
-            .GetBranchesThatExistInRemote(Arg.Any<string[]>(), Arg.Any<GitOperationSettings>())
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
             .Returns(["branch-1", "branch-5"]);
 
         gitOperations
-            .GetStatusOfRemoteBranch("branch-5", "branch-1", Arg.Any<GitOperationSettings>())
+            .GetStatusOfRemoteBranch("branch-5", "branch-1")
             .Returns((1, 0));
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
@@ -287,7 +287,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitOperationSettings.Default, GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitHubOperationSettings.Default);
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>

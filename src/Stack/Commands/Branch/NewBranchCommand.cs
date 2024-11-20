@@ -24,12 +24,12 @@ public class NewBranchCommand() : AsyncCommand<NewBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console);
+        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
         var stackConfig = new StackConfig();
 
-        var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var defaultBranch = gitOperations.GetDefaultBranch();
+        var remoteUri = gitOperations.GetRemoteUri();
+        var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacks = stackConfig.Load();
 
@@ -50,8 +50,8 @@ public class NewBranchCommand() : AsyncCommand<NewBranchCommandSettings>
 
         console.WriteLine($"Creating branch '{branchName}' from '{sourceBranch}' in stack '{stack.Name}'");
 
-        gitOperations.CreateNewBranch(branchName, sourceBranch, settings.GetGitOperationSettings());
-        gitOperations.PushNewBranch(branchName, settings.GetGitOperationSettings());
+        gitOperations.CreateNewBranch(branchName, sourceBranch);
+        gitOperations.PushNewBranch(branchName);
 
         stack.Branches.Add(branchName);
 
@@ -63,7 +63,7 @@ public class NewBranchCommand() : AsyncCommand<NewBranchCommandSettings>
 
         if (switchToNewBranch)
         {
-            gitOperations.ChangeBranch(branchName, settings.GetGitOperationSettings());
+            gitOperations.ChangeBranch(branchName);
         }
 
         return 0;
