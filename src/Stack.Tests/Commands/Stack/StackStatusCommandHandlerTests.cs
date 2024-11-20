@@ -4,6 +4,7 @@ using Stack.Commands;
 using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
+using Stack.Infrastructure;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -17,7 +18,7 @@ public class StackStatusCommandHandlerTests
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
-        var outputProvider = Substitute.For<IStackStatusCommandOutputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -82,7 +83,7 @@ public class StackStatusCommandHandlerTests
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
-        var outputProvider = Substitute.For<IStackStatusCommandOutputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -148,7 +149,7 @@ public class StackStatusCommandHandlerTests
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
-        var outputProvider = Substitute.For<IStackStatusCommandOutputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -224,7 +225,7 @@ public class StackStatusCommandHandlerTests
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
-        var outputProvider = Substitute.For<IStackStatusCommandOutputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -253,7 +254,7 @@ public class StackStatusCommandHandlerTests
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
-        var outputProvider = Substitute.For<IStackStatusCommandOutputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();

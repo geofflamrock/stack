@@ -34,7 +34,7 @@ public class StackStatusCommand(
         await Task.CompletedTask;
         var handler = new StackStatusCommandHandler(
             new StackStatusCommandInputProvider(new ConsoleInputProvider(console)),
-            new StackStatusCommandOutputProvider(console),
+            new ConsoleOutputProvider(console),
             gitOperations,
             gitHubOperations,
             stackConfig);
@@ -123,12 +123,6 @@ public interface IStackStatusCommandInputProvider
     string SelectStack(List<Config.Stack> stacks, string currentBranch);
 }
 
-public interface IStackStatusCommandOutputProvider
-{
-    void Status(string message, Action action);
-    void Warning(string message);
-}
-
 public class StackStatusCommandInputProvider(IInputProvider inputProvider) : IStackStatusCommandInputProvider
 {
     public const string SelectStackPrompt = "Select stack:";
@@ -144,22 +138,11 @@ public class StackStatusCommandInputProvider(IInputProvider inputProvider) : ISt
     }
 }
 
-public class StackStatusCommandOutputProvider(IAnsiConsole console) : IStackStatusCommandOutputProvider
-{
-    public void Status(string message, Action action)
-    {
-        console.Status().Start(message, (_) => action());
-    }
 
-    public void Warning(string message)
-    {
-        console.MarkupLine($"[orange1]{message}[/]");
-    }
-}
 
 public class StackStatusCommandHandler(
     IStackStatusCommandInputProvider inputProvider,
-    IStackStatusCommandOutputProvider outputProvider,
+    IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
