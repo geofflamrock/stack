@@ -8,14 +8,15 @@ namespace Stack.Commands;
 
 public class ListStacksCommandSettings : CommandSettingsBase;
 
-public class ListStacksCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<ListStacksCommandSettings>
+public class ListStacksCommand() : AsyncCommand<ListStacksCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {
         await Task.CompletedTask;
+        var console = AnsiConsole.Console;
+        var gitOperations = new GitOperations(console);
+        var stackConfig = new StackConfig();
+
         var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());

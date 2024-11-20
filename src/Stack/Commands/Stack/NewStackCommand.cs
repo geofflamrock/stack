@@ -25,17 +25,24 @@ public class NewStackCommandSettings : CommandSettingsBase
     public string? BranchName { get; init; }
 }
 
-public class NewStackCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<NewStackCommandSettings>
+public enum BranchAction
+{
+    [Description("Add an existing branch")]
+    Add,
+
+    [Description("Create a new branch")]
+    Create
+}
+
+public class NewStackCommand() : AsyncCommand<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
+        var console = AnsiConsole.Console;
         var handler = new NewStackCommandHandler(
             new NewStackCommandInputProvider(new ConsoleInputProvider(console)),
-            gitOperations,
-            stackConfig);
+            new GitOperations(console),
+            new StackConfig());
 
         var response = await handler.Handle(
             new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName),

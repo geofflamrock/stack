@@ -19,18 +19,16 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public bool Force { get; init; }
 }
 
-public class UpdateStackCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<UpdateStackCommandSettings>
+public class UpdateStackCommand() : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
+        var console = AnsiConsole.Console;
         var handler = new UpdateStackCommandHandler(
             new UpdateStackCommandInputProvider(new ConsoleInputProvider(console)),
             new ConsoleOutputProvider(console),
-            gitOperations,
-            stackConfig);
+            new GitOperations(console),
+            new StackConfig());
 
         await handler.Handle(
             new UpdateStackCommandInputs(settings.Name, settings.Force),

@@ -22,22 +22,20 @@ public class StackStatusCommandSettings : CommandSettingsBase
 public record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 public record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
-public class StackStatusCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IGitHubOperations gitHubOperations,
-    IStackConfig stackConfig)
-    : AsyncCommand<StackStatusCommandSettings>
+public class StackStatusCommand() : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         await Task.CompletedTask;
+        var console = AnsiConsole.Console;
+        var gitOperations = new GitOperations(console);
+
         var handler = new StackStatusCommandHandler(
             new StackStatusCommandInputProvider(new ConsoleInputProvider(console)),
             new ConsoleOutputProvider(console),
             gitOperations,
-            gitHubOperations,
-            stackConfig);
+            new GitHubOperations(console),
+            new StackConfig());
 
         var response = await handler.Handle(
             new StackStatusCommandInputs(settings.Name, settings.All),

@@ -19,16 +19,17 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     public bool Force { get; init; }
 }
 
-public class DeleteStackCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<DeleteStackCommandSettings>
+public class DeleteStackCommand() : AsyncCommand<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
         await Task.CompletedTask;
 
-        var handler = new DeleteStackCommandHandler(new DeleteStackCommandInputProvider(new ConsoleInputProvider(console)), gitOperations, stackConfig);
+        var console = AnsiConsole.Console;
+        var handler = new DeleteStackCommandHandler(
+            new DeleteStackCommandInputProvider(new ConsoleInputProvider(console)),
+            new GitOperations(console),
+            new StackConfig());
 
         var response = await handler.Handle(
             new DeleteStackCommandInputs(settings.Name, settings.Force),

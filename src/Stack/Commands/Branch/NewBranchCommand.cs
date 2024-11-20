@@ -17,14 +17,15 @@ public class NewBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class NewBranchCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<NewBranchCommandSettings>
+public class NewBranchCommand() : AsyncCommand<NewBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
     {
         await Task.CompletedTask;
+
+        var console = AnsiConsole.Console;
+        var gitOperations = new GitOperations(console);
+        var stackConfig = new StackConfig();
 
         var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
         var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());

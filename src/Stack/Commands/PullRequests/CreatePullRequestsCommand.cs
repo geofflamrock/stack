@@ -14,15 +14,14 @@ public class CreatePullRequestsCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class CreatePullRequestsCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IGitHubOperations gitHubOperations,
-    IStackConfig stackConfig) : AsyncCommand<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand() : AsyncCommand<CreatePullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
-        await Task.CompletedTask;
+        var console = AnsiConsole.Console;
+        var gitOperations = new GitOperations(console);
+        var gitHubOperations = new GitHubOperations(console);
+        var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
 
@@ -40,7 +39,7 @@ public class CreatePullRequestsCommand(
         var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
         var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        await new StackStatusCommand(console, gitOperations, gitHubOperations, stackConfig)
+        await new StackStatusCommand()
             .ExecuteAsync(context, new StackStatusCommandSettings
             {
                 Name = stack.Name,

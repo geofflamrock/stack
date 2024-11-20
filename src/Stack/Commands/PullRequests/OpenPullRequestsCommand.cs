@@ -14,15 +14,16 @@ public class OpenPullRequestsCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class OpenPullRequestsCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IGitHubOperations gitHubOperations,
-    IStackConfig stackConfig) : AsyncCommand<OpenPullRequestsCommandSettings>
+public class OpenPullRequestsCommand() : AsyncCommand<OpenPullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, OpenPullRequestsCommandSettings settings)
     {
         await Task.CompletedTask;
+
+        var console = AnsiConsole.Console;
+        var gitOperations = new GitOperations(console);
+        var gitHubOperations = new GitHubOperations(console);
+        var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
 

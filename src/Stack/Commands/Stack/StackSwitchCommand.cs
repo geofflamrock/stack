@@ -14,19 +14,16 @@ public class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-public class StackSwitchCommand(
-    IAnsiConsole console,
-    IGitOperations gitOperations,
-    IStackConfig stackConfig) : AsyncCommand<StackSwitchCommandSettings>
+public class StackSwitchCommand() : AsyncCommand<StackSwitchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
     {
-        await Task.CompletedTask;
+        var console = AnsiConsole.Console;
 
         var handler = new StackSwitchCommandHandler(
             new StackSwitchCommandInputProvider(new ConsoleInputProvider(console)),
-            gitOperations,
-            stackConfig);
+            new GitOperations(console),
+            new StackConfig());
 
         await handler.Handle(
             new StackSwitchCommandInputs(settings.Branch),
