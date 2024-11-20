@@ -4,14 +4,14 @@ using Spectre.Console;
 
 namespace Stack.Git;
 
-internal record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
     public static GitOperationSettings Default => new(false, false, null);
 }
 
 
 
-internal interface IGitOperations
+public interface IGitOperations
 {
     void CreateNewBranch(string branchName, string sourceBranch, GitOperationSettings settings);
     void PushNewBranch(string branchName, GitOperationSettings settings);
@@ -33,7 +33,7 @@ internal interface IGitOperations
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate(GitOperationSettings settings);
 }
 
-internal class GitOperations(IAnsiConsole console) : IGitOperations
+public class GitOperations(IAnsiConsole console) : IGitOperations
 {
     public void CreateNewBranch(string branchName, string sourceBranch, GitOperationSettings settings)
     {

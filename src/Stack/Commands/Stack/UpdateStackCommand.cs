@@ -6,14 +6,14 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class UpdateStackCommandSettings : DryRunCommandSettingsBase
+public class UpdateStackCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 }
 
-internal class UpdateStackCommand(
+public class UpdateStackCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<UpdateStackCommandSettings>

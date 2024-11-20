@@ -7,7 +7,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class StackSwitchCommandSettings : CommandSettingsBase
+public class StackSwitchCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to switch to.")]
     [CommandOption("-s|--stack")]
@@ -18,7 +18,7 @@ internal class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-internal class StackSwitchCommand(
+public class StackSwitchCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IStackConfig stackConfig) : AsyncCommand<StackStatusCommandSettings>

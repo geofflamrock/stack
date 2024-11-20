@@ -4,21 +4,21 @@ using Spectre.Console;
 
 namespace Stack.Git;
 
-internal record GitHubOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitHubOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
     public static GitHubOperationSettings Default => new(false, false, null);
 }
 
-internal static class GitHubPullRequestStates
+public static class GitHubPullRequestStates
 {
     public const string Open = "OPEN";
     public const string Closed = "CLOSED";
     public const string Merged = "MERGED";
 }
 
-internal record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url);
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url);
 
-internal static class GitHubPullRequestExtensionMethods
+public static class GitHubPullRequestExtensionMethods
 {
     public static Color GetPullRequestColor(this GitHubPullRequest pullRequest)
     {
@@ -37,14 +37,14 @@ internal static class GitHubPullRequestExtensionMethods
     }
 }
 
-internal interface IGitHubOperations
+public interface IGitHubOperations
 {
     GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings);
     GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, GitHubOperationSettings settings);
     void EditPullRequest(int number, string body, GitHubOperationSettings settings);
 }
 
-internal class GitHubOperations(IAnsiConsole console) : IGitHubOperations
+public class GitHubOperations(IAnsiConsole console) : IGitHubOperations
 {
     public GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
     {

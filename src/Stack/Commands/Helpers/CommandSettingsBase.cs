@@ -4,7 +4,7 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class CommandSettingsBase : CommandSettings
+public class CommandSettingsBase : CommandSettings
 {
     [Description("Show verbose output.")]
     [CommandOption("--verbose")]

@@ -5,11 +5,11 @@ using Stack.Config;
 
 namespace Stack.Commands;
 
-internal class OpenConfigCommandSettings : CommandSettingsBase
+public class OpenConfigCommandSettings : CommandSettingsBase
 {
 }
 
-internal class OpenConfigCommand(IAnsiConsole console, IStackConfig stackConfig) : AsyncCommand<CommandSettingsBase>
+public class OpenConfigCommand(IAnsiConsole console, IStackConfig stackConfig) : AsyncCommand<CommandSettingsBase>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CommandSettingsBase settings)
     {

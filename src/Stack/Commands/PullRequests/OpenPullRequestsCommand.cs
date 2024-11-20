@@ -7,14 +7,14 @@ using Stack.Git;
 
 namespace Stack.Commands;
 
-internal class OpenPullRequestsCommandSettings : DryRunCommandSettingsBase
+public class OpenPullRequestsCommandSettings : DryRunCommandSettingsBase
 {
     [Description("The name of the stack to open PRs for.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 }
 
-internal class OpenPullRequestsCommand(
+public class OpenPullRequestsCommand(
     IAnsiConsole console,
     IGitOperations gitOperations,
     IGitHubOperations gitHubOperations,
