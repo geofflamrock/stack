@@ -4,6 +4,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -12,6 +13,10 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     [Description("The name of the stack to delete.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("Force delete the stack without prompting.")]
+    [CommandOption("-f|--force")]
+    public bool Force { get; init; }
 }
 
 public class DeleteStackCommand(
@@ -23,29 +28,78 @@ public class DeleteStackCommand(
     {
         await Task.CompletedTask;
 
+        var handler = new DeleteStackCommandHandler(new DeleteStackCommandInputProvider(new ConsoleInputProvider(console)), gitOperations, stackConfig);
+
+        var response = await handler.Handle(
+            new DeleteStackCommandInputs(settings.Name, settings.Force),
+            settings.GetGitOperationSettings());
+
+        if (response.DeletedStackName is not null)
+            console.MarkupLine($"Stack [yellow]{response.DeletedStackName}[/] deleted");
+
+        return 0;
+    }
+}
+
+public interface IDeleteStackCommandInputProvider
+{
+    string SelectStack(List<Config.Stack> stacks, string currentBranch);
+    bool ConfirmDelete();
+}
+
+public class DeleteStackCommandInputProvider(IInputProvider inputProvider) : IDeleteStackCommandInputProvider
+{
+    const string SelectStackPrompt = "Select stack:";
+    const string DeleteStackPrompt = "Are you sure you want to delete this stack?";
+
+    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
+    {
+        return inputProvider.Select(SelectStackPrompt, stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray());
+    }
+
+    public bool ConfirmDelete()
+    {
+        return inputProvider.Confirm(DeleteStackPrompt);
+    }
+}
+
+public record DeleteStackCommandInputs(string? Name, bool Force)
+{
+    public static DeleteStackCommandInputs Empty => new(null, false);
+}
+
+public record DeleteStackCommandResponse(string? DeletedStackName);
+
+public class DeleteStackCommandHandler(IDeleteStackCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
+{
+    public async Task<DeleteStackCommandResponse> Handle(
+        DeleteStackCommandInputs inputs,
+        GitOperationSettings gitOperationSettings)
+    {
+        await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
+        var remoteUri = gitOperations.GetRemoteUri(gitOperationSettings);
+        var currentBranch = gitOperations.GetCurrentBranch(gitOperationSettings);
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (stacksForRemote.Count == 0)
+        var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (stack is null)
         {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
+            throw new InvalidOperationException("Stack not found.");
         }
 
-        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
-
-        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to delete this stack?")))
+        if (inputs.Force || inputProvider.ConfirmDelete())
         {
             stacks.Remove(stack);
             stackConfig.Save(stacks);
-            console.WriteLine($"Stack deleted");
+
+            return new DeleteStackCommandResponse(stack.Name);
         }
 
-        return 0;
+        return new DeleteStackCommandResponse(null);
     }
 }
