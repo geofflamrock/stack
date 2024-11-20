@@ -51,11 +51,11 @@ public class StackStatusCommandHandlerTests
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
 
         gitHubOperations
-            .GetPullRequest("branch-3", Arg.Any<GitHubOperationSettings>())
+            .GetPullRequest("branch-3")
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>
@@ -115,11 +115,11 @@ public class StackStatusCommandHandlerTests
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
 
         gitHubOperations
-            .GetPullRequest("branch-3", Arg.Any<GitHubOperationSettings>())
+            .GetPullRequest("branch-3")
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false), GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false));
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>
@@ -185,11 +185,11 @@ public class StackStatusCommandHandlerTests
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
 
         gitHubOperations
-            .GetPullRequest("branch-3", Arg.Any<GitHubOperationSettings>())
+            .GetPullRequest("branch-3")
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true), GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true));
 
         // Assert
         var expectedBranchStatuesForStack1 = new Dictionary<string, BranchStatus>
@@ -241,7 +241,7 @@ public class StackStatusCommandHandlerTests
         // Act and assert
         var incorrectStackName = Some.Name();
         await handler
-            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false), GitHubOperationSettings.Default))
+            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{incorrectStackName}' not found.");
     }
@@ -283,11 +283,11 @@ public class StackStatusCommandHandlerTests
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
 
         gitHubOperations
-            .GetPullRequest("branch-5", Arg.Any<GitHubOperationSettings>())
+            .GetPullRequest("branch-5")
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false), GitHubOperationSettings.Default);
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
 
         // Assert
         var expectedBranchStatues = new Dictionary<string, BranchStatus>
