@@ -52,6 +52,7 @@ public class StackSwitchCommandHandlerTests
 
         gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
         gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.DoesLocalBranchExist("branch-3", Arg.Any<GitOperationSettings>()).Returns(true);
 
         var stacks = new List<Config.Stack>(
         [

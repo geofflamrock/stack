@@ -76,7 +76,7 @@ public class StackSwitchCommandHandler(IStackSwitchCommandInputProvider inputPro
 
         var branchSelection = inputs.Branch ?? inputProvider.SelectBranch(stacksForRemote, currentBranch);
 
-        if (!gitOperations.DoesLocalBranchExist(branchSelection, gitOperationSettings))
+        if (inputs.Branch is not null && !gitOperations.DoesLocalBranchExist(branchSelection, gitOperationSettings))
             throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");
 
         gitOperations.ChangeBranch(branchSelection, gitOperationSettings);
