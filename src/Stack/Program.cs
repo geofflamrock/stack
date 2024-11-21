@@ -14,6 +14,7 @@ app.Configure(configure =>
     configure.AddCommand<ListStacksCommand>("list").WithDescription("List stacks.");
     configure.AddCommand<StackStatusCommand>("status").WithDescription("Shows the status of a stack.");
     configure.AddCommand<DeleteStackCommand>("delete").WithDescription("Deletes a stack.");
+    configure.AddCommand<CleanupStackCommand>("cleanup").WithDescription("Cleans up unused branches in a stack.");
 
     // Branch commands
     configure.AddCommand<StackSwitchCommand>("switch").WithDescription("Switches to a branch in a stack.");
