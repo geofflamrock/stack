@@ -22,7 +22,7 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
 
         var console = AnsiConsole.Console;
         var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var gitHubOperations = new GitHubOperations(console);
+        var gitHubOperations = new GitHubOperations(console, settings.GetGitHubOperationSettings());
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
@@ -45,7 +45,7 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
 
         foreach (var branch in stack.Branches)
         {
-            var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+            var existingPullRequest = gitHubOperations.GetPullRequest(branch);
 
             if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
             {

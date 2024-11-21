@@ -20,7 +20,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
     {
         var console = AnsiConsole.Console;
         var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var gitHubOperations = new GitHubOperations(console);
+        var gitHubOperations = new GitHubOperations(console, settings.GetGitHubOperationSettings());
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
@@ -56,7 +56,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
 
             foreach (var branch in stack.Branches)
             {
-                var existingPullRequest = gitHubOperations.GetPullRequest(branch, settings.GetGitHubOperationSettings());
+                var existingPullRequest = gitHubOperations.GetPullRequest(branch);
 
                 if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                 {
@@ -70,7 +70,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
                     {
                         var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
                         console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
-                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "", settings.GetGitHubOperationSettings());
+                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "");
 
                         if (pullRequest is not null)
                         {
@@ -133,7 +133,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
                         prBody = prBody.Insert(prListStart, prBodyMarkdown);
                     }
 
-                    gitHubOperations.EditPullRequest(pullRequest.Number, prBody, settings.GetGitHubOperationSettings());
+                    gitHubOperations.EditPullRequest(pullRequest.Number, prBody);
                 }
             }
             else

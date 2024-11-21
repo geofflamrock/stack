@@ -34,12 +34,10 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new StackStatusCommandInputProvider(new ConsoleInputProvider(console)),
             new ConsoleOutputProvider(console),
             gitOperations,
-            new GitHubOperations(console),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(
-            new StackStatusCommandInputs(settings.Name, settings.All),
-            settings.GetGitHubOperationSettings());
+        var response = await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All));
 
         var currentBranch = gitOperations.GetCurrentBranch();
 
@@ -144,9 +142,7 @@ public class StackStatusCommandHandler(
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
-    public async Task<StackStatusCommandResponse> Handle(
-        StackStatusCommandInputs inputs,
-        GitHubOperationSettings gitHubOperationSettings)
+    public async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -217,7 +213,7 @@ public class StackStatusCommandHandler(
                 {
                     foreach (var branch in stack.Branches)
                     {
-                        var pr = gitHubOperations.GetPullRequest(branch, gitHubOperationSettings);
+                        var pr = gitHubOperations.GetPullRequest(branch);
 
                         if (pr is not null)
                         {

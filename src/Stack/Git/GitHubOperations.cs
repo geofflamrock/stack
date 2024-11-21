@@ -39,40 +39,40 @@ public static class GitHubPullRequestExtensionMethods
 
 public interface IGitHubOperations
 {
-    GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings);
-    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, GitHubOperationSettings settings);
-    void EditPullRequest(int number, string body, GitHubOperationSettings settings);
+    GitHubPullRequest? GetPullRequest(string branch);
+    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body);
+    void EditPullRequest(int number, string body);
 }
 
-public class GitHubOperations(IAnsiConsole console) : IGitHubOperations
+public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings settings) : IGitHubOperations
 {
-    public GitHubPullRequest? GetPullRequest(string branch, GitHubOperationSettings settings)
+    public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url --head {branch} --state all", settings);
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, GitHubOperationSettings settings)
+    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body)
     {
-        ExecuteGitHubCommand($"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}", settings);
+        ExecuteGitHubCommand($"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}");
 
         if (settings.DryRun)
         {
             return null;
         }
 
-        return GetPullRequest(headBranch, settings);
+        return GetPullRequest(headBranch);
     }
 
-    public void EditPullRequest(int number, string body, GitHubOperationSettings settings)
+    public void EditPullRequest(int number, string body)
     {
-        ExecuteGitHubCommand($"pr edit {number} --body \"{body}\"", settings);
+        ExecuteGitHubCommand($"pr edit {number} --body \"{body}\"");
     }
 
-    private string ExecuteGitHubCommandAndReturnOutput(string command, GitHubOperationSettings settings)
+    private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
             console.MarkupLine($"[grey]git {command}[/]");
@@ -102,7 +102,7 @@ public class GitHubOperations(IAnsiConsole console) : IGitHubOperations
         return infoBuilder.ToString();
     }
 
-    private void ExecuteGitHubCommand(string command, GitHubOperationSettings settings)
+    private void ExecuteGitHubCommand(string command)
     {
         if (settings.Verbose)
             console.MarkupLine($"[grey]gh {command}[/]");
