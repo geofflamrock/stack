@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using Stack.Commands;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
@@ -15,10 +16,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -33,8 +35,8 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmCleanup().Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
         await handler.Handle(CleanupStackCommandInputs.Empty);
@@ -48,10 +50,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -66,8 +69,8 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmCleanup().Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
         await handler.Handle(CleanupStackCommandInputs.Empty);
@@ -81,10 +84,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -99,8 +103,8 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmCleanup().Returns(false);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(false);
 
         // Act
         await handler.Handle(CleanupStackCommandInputs.Empty);
@@ -114,10 +118,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -132,13 +137,13 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.ConfirmCleanup().Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
         await handler.Handle(new CleanupStackCommandInputs("Stack1", false));
 
         // Assert
-        inputProvider.DidNotReceive().SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>());
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
 
     [Fact]
@@ -146,10 +151,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -164,13 +170,13 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
         await handler.Handle(new CleanupStackCommandInputs(null, true));
 
         // Assert
-        inputProvider.DidNotReceive().ConfirmCleanup();
+        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteBranches);
     }
 
     [Fact]
@@ -178,10 +184,11 @@ public class CleanupStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -196,7 +203,7 @@ public class CleanupStackCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.ConfirmCleanup().Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act and assert
         var invalidStackName = Some.Name();
