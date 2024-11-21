@@ -16,7 +16,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -49,7 +49,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -82,7 +82,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -115,7 +115,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -147,7 +147,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -179,7 +179,7 @@ public class CleanupStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<ICleanupStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 

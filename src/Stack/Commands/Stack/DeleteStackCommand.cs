@@ -14,7 +14,7 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Force delete the stack without prompting.")]
+    [Description("Force cleanup and delete the stack without prompting.")]
     [CommandOption("-f|--force")]
     public bool Force { get; init; }
 }
@@ -27,7 +27,8 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
 
         var console = AnsiConsole.Console;
         var handler = new DeleteStackCommandHandler(
-            new DeleteStackCommandInputProvider(new ConsoleInputProvider(console)),
+            new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
@@ -40,25 +41,19 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
     }
 }
 
-public interface IDeleteStackCommandInputProvider
+public static class DeleteStackCommandInputProviderExtensionMethods
 {
-    string SelectStack(List<Config.Stack> stacks, string currentBranch);
-    bool ConfirmDelete();
-}
-
-public class DeleteStackCommandInputProvider(IInputProvider inputProvider) : IDeleteStackCommandInputProvider
-{
-    const string SelectStackPrompt = "Select stack:";
     const string DeleteStackPrompt = "Are you sure you want to delete this stack?";
+    const string CleanupStackPrompt = "Do you want to delete these local branches?";
 
-    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
-    {
-        return inputProvider.Select(SelectStackPrompt, stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray());
-    }
-
-    public bool ConfirmDelete()
+    public static bool ConfirmDelete(this IInputProvider inputProvider)
     {
         return inputProvider.Confirm(DeleteStackPrompt);
+    }
+
+    public static bool ConfirmCleanupDuringDelete(this IInputProvider inputProvider)
+    {
+        return inputProvider.Confirm(CleanupStackPrompt);
     }
 }
 
@@ -69,7 +64,11 @@ public record DeleteStackCommandInputs(string? Name, bool Force)
 
 public record DeleteStackCommandResponse(string? DeletedStackName);
 
-public class DeleteStackCommandHandler(IDeleteStackCommandInputProvider inputProvider, IGitOperations gitOperations, IStackConfig stackConfig)
+public class DeleteStackCommandHandler(
+    IInputProvider inputProvider,
+    IOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig)
 {
     public async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
     {
@@ -91,10 +90,23 @@ public class DeleteStackCommandHandler(IDeleteStackCommandInputProvider inputPro
 
         if (inputs.Force || inputProvider.ConfirmDelete())
         {
-            stacks.Remove(stack);
-            stackConfig.Save(stacks);
+            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(gitOperations, stack);
 
-            return new DeleteStackCommandResponse(stack.Name);
+            if (branchesNeedingCleanup.Length > 0)
+            {
+                if (!inputs.Force)
+                    CleanupStackCommandHandler.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
+
+                if (inputs.Force || inputProvider.ConfirmCleanupDuringDelete())
+                {
+                    CleanupStackCommandHandler.CleanupBranches(gitOperations, outputProvider, branchesNeedingCleanup);
+                }
+
+                stacks.Remove(stack);
+                stackConfig.Save(stacks);
+
+                return new DeleteStackCommandResponse(stack.Name);
+            }
         }
 
         return new DeleteStackCommandResponse(null);

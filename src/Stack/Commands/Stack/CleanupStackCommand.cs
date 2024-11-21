@@ -27,7 +27,7 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
 
         var console = AnsiConsole.Console;
         var handler = new CleanupStackCommandHandler(
-            new CleanupStackCommandInputProvider(new ConsoleInputProvider(console)),
+            new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
@@ -38,28 +38,6 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
     }
 }
 
-public interface ICleanupStackCommandInputProvider
-{
-    string SelectStack(List<Config.Stack> stacks, string currentBranch);
-    bool ConfirmCleanup();
-}
-
-public class CleanupStackCommandInputProvider(IInputProvider inputProvider) : ICleanupStackCommandInputProvider
-{
-    const string SelectStackPrompt = "Select stack:";
-    const string CleanupStackPrompt = "Do you want to continue?";
-
-    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
-    {
-        return inputProvider.Select(SelectStackPrompt, stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray());
-    }
-
-    public bool ConfirmCleanup()
-    {
-        return inputProvider.Confirm(CleanupStackPrompt);
-    }
-}
-
 public record CleanupStackCommandInputs(string? Name, bool Force)
 {
     public static CleanupStackCommandInputs Empty => new(null, false);
@@ -67,8 +45,16 @@ public record CleanupStackCommandInputs(string? Name, bool Force)
 
 public record CleanupStackCommandResponse(string? CleanedUpStackName);
 
+public static class CleanupStackCommandInputProviderExtensionMethods
+{
+    public static bool ConfirmCleanup(this IInputProvider inputProvider)
+    {
+        return inputProvider.Confirm("Do you want to continue?");
+    }
+}
+
 public class CleanupStackCommandHandler(
-    ICleanupStackCommandInputProvider inputProvider,
+    IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IStackConfig stackConfig)
@@ -94,9 +80,9 @@ public class CleanupStackCommandHandler(
         var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
 
-        var branchesToCleanUp = branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToList();
+        var branchesToCleanUp = GetBranchesNeedingCleanup(gitOperations, stack);
 
-        if (branchesToCleanUp.Count == 0)
+        if (branchesToCleanUp.Length == 0)
         {
             outputProvider.Information("No branches to clean up");
             return;
@@ -104,27 +90,41 @@ public class CleanupStackCommandHandler(
 
         if (!inputs.Force)
         {
-            outputProvider.Information($"The following branches from stack {stack.Name.Stack()} will be deleted:");
-
-            foreach (var branch in branchesToCleanUp)
-            {
-                outputProvider.Information($"  {branch.Branch()}");
-            }
+            OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
         }
 
         if (inputs.Force || inputProvider.ConfirmCleanup())
         {
-            foreach (var branch in stack.Branches)
-            {
-                if (!branchesInTheStackThatExistInTheRemote.Contains(branch) &&
-                    branchesInTheStackThatExistLocally.Contains(branch))
-                {
-                    outputProvider.Information($"Deleting local branch {branch.Branch()}");
-                    gitOperations.DeleteLocalBranch(branch);
-                }
-            }
+            CleanupBranches(gitOperations, outputProvider, branchesToCleanUp);
 
             outputProvider.Information($"Stack {stack.Name.Stack()} cleaned up");
+        }
+    }
+
+    public static string[] GetBranchesNeedingCleanup(IGitOperations gitOperations, Config.Stack stack)
+    {
+        var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
+        var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
+
+        return branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToArray();
+    }
+
+    public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
+    {
+        outputProvider.Information("The following branches will be deleted:");
+
+        foreach (var branch in branches)
+        {
+            outputProvider.Information($"  {branch}");
+        }
+    }
+
+    public static void CleanupBranches(IGitOperations gitOperations, IOutputProvider outputProvider, string[] branches)
+    {
+        foreach (var branch in branches)
+        {
+            outputProvider.Information($"Deleting local branch {branch.Branch()}");
+            gitOperations.DeleteLocalBranch(branch);
         }
     }
 }
