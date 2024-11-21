@@ -22,7 +22,7 @@ public class StackStatusCommandSettings : CommandSettingsBase
 public record BranchStatus(bool ExistsInRemote, int Ahead, int Behind);
 public record StackStatus(Dictionary<string, BranchStatus> BranchStatuses, Dictionary<string, GitHubPullRequest> PullRequests);
 
-public class StackStatusCommand() : AsyncCommand<StackStatusCommandSettings>
+public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {

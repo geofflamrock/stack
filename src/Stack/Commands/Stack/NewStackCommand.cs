@@ -34,7 +34,7 @@ public enum BranchAction
     Create
 }
 
-public class NewStackCommand() : AsyncCommand<NewStackCommandSettings>
+public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {

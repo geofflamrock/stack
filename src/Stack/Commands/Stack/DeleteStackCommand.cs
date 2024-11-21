@@ -19,7 +19,7 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     public bool Force { get; init; }
 }
 
-public class DeleteStackCommand() : AsyncCommand<DeleteStackCommandSettings>
+public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {

@@ -17,7 +17,7 @@ public class NewBranchCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class NewBranchCommand() : AsyncCommand<NewBranchCommandSettings>
+public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
     {
