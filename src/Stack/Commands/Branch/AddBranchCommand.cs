@@ -24,13 +24,13 @@ public class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console);
+        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
         var stackConfig = new StackConfig();
 
-        var defaultBranch = gitOperations.GetDefaultBranch(settings.GetGitOperationSettings());
-        var remoteUri = gitOperations.GetRemoteUri(settings.GetGitOperationSettings());
-        var currentBranch = gitOperations.GetCurrentBranch(settings.GetGitOperationSettings());
-        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(settings.GetGitOperationSettings());
+        var defaultBranch = gitOperations.GetDefaultBranch();
+        var remoteUri = gitOperations.GetRemoteUri();
+        var currentBranch = gitOperations.GetCurrentBranch();
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
         var stacks = stackConfig.Load();
 

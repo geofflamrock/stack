@@ -20,8 +20,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -37,7 +37,7 @@ public class NewStackCommandHandlerTests
         inputProvider.ConfirmSwitchToBranch().Returns(true);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
@@ -46,7 +46,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["new-branch"])
         });
 
-        gitOperations.Received().ChangeBranch("new-branch", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().ChangeBranch("new-branch");
     }
 
     [Fact]
@@ -60,8 +60,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -77,7 +77,7 @@ public class NewStackCommandHandlerTests
         inputProvider.ConfirmSwitchToBranch().Returns(true);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
@@ -86,7 +86,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["branch-2"])
         });
 
-        gitOperations.Received().ChangeBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.Received().ChangeBranch("branch-2");
     }
 
     [Fact]
@@ -100,8 +100,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -114,7 +114,7 @@ public class NewStackCommandHandlerTests
         inputProvider.ConfirmAddOrCreateBranch().Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
@@ -123,7 +123,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", [])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch(Arg.Any<string>(), Arg.Any<GitOperationSettings>());
+        gitOperations.DidNotReceive().ChangeBranch(Arg.Any<string>());
     }
 
     [Fact]
@@ -137,8 +137,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -154,7 +154,7 @@ public class NewStackCommandHandlerTests
         inputProvider.ConfirmSwitchToBranch().Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch-1"));
@@ -163,7 +163,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["new-branch-1"])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch("new-branch-1", Arg.Any<GitOperationSettings>());
+        gitOperations.DidNotReceive().ChangeBranch("new-branch-1");
     }
 
     [Fact]
@@ -177,8 +177,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -194,7 +194,7 @@ public class NewStackCommandHandlerTests
         inputProvider.ConfirmSwitchToBranch().Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
@@ -203,7 +203,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["branch-2"])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch("branch-2", Arg.Any<GitOperationSettings>());
+        gitOperations.DidNotReceive().ChangeBranch("branch-2");
     }
 
     [Fact]
@@ -217,8 +217,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -232,7 +232,7 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs("Stack1", null, null);
 
         // Act
-        var response = await handler.Handle(inputs, CancellationToken.None);
+        var response = await handler.Handle(inputs);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
@@ -255,8 +255,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -270,7 +270,7 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs(null, "branch-1", null);
 
         // Act
-        var response = await handler.Handle(inputs, CancellationToken.None);
+        var response = await handler.Handle(inputs);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
@@ -293,8 +293,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -309,7 +309,7 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs(null, null, "new-branch");
 
         // Act
-        var response = await handler.Handle(inputs, CancellationToken.None);
+        var response = await handler.Handle(inputs);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
@@ -335,8 +335,8 @@ public class NewStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate(Arg.Any<GitOperationSettings>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -351,7 +351,7 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs("Stack1", "branch-1", "new-branch");
 
         // Act
-        var response = await handler.Handle(inputs, CancellationToken.None);
+        var response = await handler.Handle(inputs);
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));

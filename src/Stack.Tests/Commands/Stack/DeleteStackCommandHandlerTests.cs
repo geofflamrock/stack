@@ -20,8 +20,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -37,7 +37,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.ConfirmDelete().Returns(true);
 
         // Act
-        var response = await handler.Handle(DeleteStackCommandInputs.Empty, GitOperationSettings.Default);
+        var response = await handler.Handle(DeleteStackCommandInputs.Empty);
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
@@ -58,8 +58,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -75,7 +75,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.ConfirmDelete().Returns(false);
 
         // Act
-        var response = await handler.Handle(DeleteStackCommandInputs.Empty, GitOperationSettings.Default);
+        var response = await handler.Handle(DeleteStackCommandInputs.Empty);
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse(null));
@@ -97,8 +97,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -113,7 +113,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.ConfirmDelete().Returns(true);
 
         // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false), GitOperationSettings.Default);
+        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
@@ -136,8 +136,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -152,7 +152,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
 
         // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs(null, true), GitOperationSettings.Default);
+        var response = await handler.Handle(new DeleteStackCommandInputs(null, true));
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
@@ -175,8 +175,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -189,7 +189,7 @@ public class DeleteStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", true), GitOperationSettings.Default);
+        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", true));
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
@@ -212,8 +212,8 @@ public class DeleteStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
 
-        gitOperations.GetRemoteUri(Arg.Any<GitOperationSettings>()).Returns(remoteUri);
-        gitOperations.GetCurrentBranch(Arg.Any<GitOperationSettings>()).Returns("branch-1");
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
@@ -230,7 +230,7 @@ public class DeleteStackCommandHandlerTests
 
         // Act and assert
         await handler
-            .Invoking(h => h.Handle(DeleteStackCommandInputs.Empty, GitOperationSettings.Default))
+            .Invoking(h => h.Handle(DeleteStackCommandInputs.Empty))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
