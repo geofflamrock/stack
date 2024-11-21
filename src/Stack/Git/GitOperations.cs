@@ -20,6 +20,7 @@ public interface IGitOperations
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
     void UpdateBranch(string branchName);
+    void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
     string GetCurrentBranch();
     string GetDefaultBranch();
@@ -76,6 +77,11 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         }
 
         PullBranch(branchName);
+    }
+
+    public void DeleteLocalBranch(string branchName)
+    {
+        ExecuteGitCommand($"branch -D {branchName}");
     }
 
     public void MergeFromLocalSourceBranch(string sourceBranchName)
