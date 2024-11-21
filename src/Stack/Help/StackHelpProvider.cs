@@ -5,57 +5,30 @@ using Spectre.Console.Rendering;
 
 namespace Stack.Help;
 
-public static class CommandNames
+public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(settings)
 {
-    public const string New = "new";
-    public const string List = "list";
-    public const string Status = "status";
-    public const string Delete = "delete";
-    public const string Cleanup = "cleanup";
-    public const string Switch = "switch";
-    public const string Update = "update";
-    public const string Branch = "branch";
-    public const string Config = "config";
-    public const string Pr = "pr";
-}
-
-
-public static class CommandGroups
-{
-    public const string Stack = "Stack";
-    public const string Branch = "Branch";
-    public const string GitHub = "GitHub";
-    public const string Advanced = "Advanced";
-}
-
-public class StackHelpProvider : HelpProvider
-{
-    Dictionary<string, string[]> KnownGroups = new Dictionary<string, string[]>
+    readonly Dictionary<string, string[]> KnownGroups = new()
     {
-        { CommandGroups.Stack, [CommandNames.New, CommandNames.List, CommandNames.List, CommandNames.Delete] },
+        { CommandGroups.Stack, [CommandNames.New, CommandNames.List, CommandNames.List, CommandNames.Delete, CommandNames.Status] },
         { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
         { CommandGroups.GitHub, [CommandNames.Pr] },
         { CommandGroups.Advanced, [CommandNames.Config] },
     };
 
-    public StackHelpProvider(ICommandAppSettings settings) : base(settings)
+    public override IEnumerable<IRenderable> GetHeader(ICommandModel model, ICommandInfo? command)
     {
+        if (command is null)
+        {
+            return
+            [
+                new Text("Stack is a tool to help manage multiple Git branches that stack on top of each other."),
+                Text.NewLine,
+                Text.NewLine,
+            ];
+        }
+
+        return base.GetHeader(model, command);
     }
-
-    // public override IEnumerable<IRenderable> GetHeader(ICommandModel model, ICommandInfo? command)
-    // {
-    //     if (command is null)
-    //     {
-    //         return
-    //         [
-    //             new Text("Stack is a tool to help (me) manage multiple Git branches that stack on top of each other."),
-    //             Text.NewLine,
-    //             Text.NewLine,
-    //         ];
-    //     }
-
-    //     return base.GetHeader(model, command);
-    // }
 
     public override IEnumerable<IRenderable> GetCommands(ICommandModel model, ICommandInfo? command)
     {
@@ -66,31 +39,35 @@ public class StackHelpProvider : HelpProvider
 
             foreach (var group in commandGroups)
             {
-                renderables.Add(new Rule($"{group.Key.ToUpper()} COMMANDS"));
-                foreach (var cmd in group)
+                var groupModel = new GroupCommandModel(model, [.. group]);
+
+                var groupHelp = base.GetCommands(groupModel, command);
+
+                if (groupHelp.Count() > 1)
                 {
-                    renderables.Add(new Text($"[yellow]{cmd.Name}[/] - {cmd.Description}"));
+                    renderables.Add(new Markup($"{Environment.NewLine}[yellow]{(group.Key is not null ? $"{group.Key.ToUpper()} " : "OTHER")}COMMANDS:[/]{Environment.NewLine}"));
+                    var commandGrid = (Grid)groupHelp.Last();
+                    commandGrid.Columns.First().Width(7);
+                    renderables.Add(commandGrid);
                 }
             }
+
+            return renderables;
         }
 
         return base.GetCommands(model, command);
     }
 
-    public override IEnumerable<IRenderable> Write(ICommandModel model, ICommandInfo? command)
+    private class GroupCommandModel(ICommandModel parent, IReadOnlyList<ICommandInfo> commands) : ICommandModel
     {
-        if (command is null)
-        {
-            var renderables = new List<IRenderable>
-            {
-                new Text("Stack is a tool to help manage multiple Git branches that stack on top of each other."),
-                Text.NewLine,
-                Text.NewLine,
-            };
-            renderables.AddRange(base.Write(model, command));
-            return renderables;
-        }
+        public string ApplicationName => parent.ApplicationName;
 
-        return base.Write(model, command);
+        public string? ApplicationVersion => parent.ApplicationVersion;
+
+        public IReadOnlyList<string[]> Examples => parent.Examples;
+
+        public IReadOnlyList<ICommandInfo> Commands => commands;
+
+        public ICommandInfo? DefaultCommand => parent.DefaultCommand;
     }
 }
