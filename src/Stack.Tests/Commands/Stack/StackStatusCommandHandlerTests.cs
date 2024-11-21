@@ -41,6 +41,10 @@ public class StackStatusCommandHandlerTests
             .Returns(["branch-1", "branch-3", "branch-5"]);
 
         gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
             .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
@@ -58,19 +62,15 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false));
 
         // Assert
-        var expectedBranchStatues = new Dictionary<string, BranchStatus>
+        var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { "branch-3", new BranchStatus(true, 10, 5) },
-            { "branch-5", new BranchStatus(true, 1, 0) }
-        };
-        var expectedPullRequests = new Dictionary<string, GitHubPullRequest>
-        {
-            { "branch-3", pr }
+            { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
-                stack1, new(expectedBranchStatues, expectedPullRequests)
+                stack1, new(expectedBranchDetails)
             }
         });
     }
@@ -105,6 +105,10 @@ public class StackStatusCommandHandlerTests
             .Returns(["branch-1", "branch-3", "branch-5"]);
 
         gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
             .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
@@ -122,19 +126,15 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false));
 
         // Assert
-        var expectedBranchStatues = new Dictionary<string, BranchStatus>
+        var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { "branch-3", new BranchStatus(true, 10, 5) },
-            { "branch-5", new BranchStatus(true, 1, 0) }
-        };
-        var expectedPullRequests = new Dictionary<string, GitHubPullRequest>
-        {
-            { "branch-3", pr }
+            { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
-                stack1, new(expectedBranchStatues, expectedPullRequests)
+                stack1, new(expectedBranchDetails)
             }
         });
 
@@ -171,6 +171,10 @@ public class StackStatusCommandHandlerTests
             .Returns(["branch-1", "branch-2", "branch-3", "branch-4", "branch-5"]);
 
         gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-2", "branch-3", "branch-4", "branch-5"]);
+
+        gitOperations
             .GetStatusOfRemoteBranch("branch-3", "branch-1")
             .Returns((10, 5));
 
@@ -192,27 +196,22 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, true));
 
         // Assert
-        var expectedBranchStatuesForStack1 = new Dictionary<string, BranchStatus>
+        var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
         {
-            { "branch-3", new BranchStatus(true, 10, 5) },
-            { "branch-5", new BranchStatus(true, 1, 0) }
+            { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
-        var expectedPullRequestsForStack1 = new Dictionary<string, GitHubPullRequest>
+        var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
         {
-            { "branch-3", pr }
+            { "branch-4", new BranchDetail { Status = new BranchStatus(true, true, 3, 1) } }
         };
-        var expectedBranchStatuesForStack2 = new Dictionary<string, BranchStatus>
-        {
-            { "branch-4", new BranchStatus(true, 3, 1) }
-        };
-        var expectedPullRequestsForStack2 = new Dictionary<string, GitHubPullRequest>();
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
-                stack1, new(expectedBranchStatuesForStack1, expectedPullRequestsForStack1)
+                stack1, new(expectedBranchDetailsForStack1)
             },
             {
-                stack2, new(expectedBranchStatuesForStack2, expectedPullRequestsForStack2)
+                stack2, new(expectedBranchDetailsForStack2)
             }
         });
     }
@@ -277,6 +276,10 @@ public class StackStatusCommandHandlerTests
             .Returns(["branch-1", "branch-5"]);
 
         gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
             .GetStatusOfRemoteBranch("branch-5", "branch-1")
             .Returns((1, 0));
 
@@ -290,19 +293,76 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false));
 
         // Assert
-        var expectedBranchStatues = new Dictionary<string, BranchStatus>
+        var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { "branch-3", new BranchStatus(false, 0, 0) },
-            { "branch-5", new BranchStatus(true, 1, 0) }
-        };
-        var expectedPullRequests = new Dictionary<string, GitHubPullRequest>
-        {
-            { "branch-5", pr }
+            { "branch-3", new BranchDetail { Status = new BranchStatus(true, false, 0, 0) } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0), PullRequest = pr } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
-                stack1, new(expectedBranchStatues, expectedPullRequests)
+                stack1, new(expectedBranchDetails)
+            }
+        });
+    }
+
+    [Fact]
+    public async Task WhenMultipleBranchesExistInAStack_AndOneNoLongerExistsOnTheRemoteAndLocally_ReturnsCorrectStatus()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
+        stackConfig.Load().Returns(stacks);
+
+        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
+
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-5"]);
+
+        gitOperations
+            .GetStatusOfRemoteBranch("branch-5", "branch-1")
+            .Returns((1, 0));
+
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+
+        gitHubOperations
+            .GetPullRequest("branch-5")
+            .Returns(pr);
+
+        // Act
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+
+        // Assert
+        var expectedBranchDetails = new Dictionary<string, BranchDetail>
+        {
+            { "branch-3", new BranchDetail { Status = new BranchStatus(false, false, 0, 0) } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0), PullRequest = pr } }
+        };
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
+        {
+            {
+                stack1, new(expectedBranchDetails)
             }
         });
     }
