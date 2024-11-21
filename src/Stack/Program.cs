@@ -39,6 +39,3 @@ app.Configure(configure =>
 });
 
 await app.RunAsync(args);
-
-
-
