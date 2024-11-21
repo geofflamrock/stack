@@ -16,10 +16,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -55,10 +56,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -95,10 +97,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -135,10 +138,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -175,10 +179,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -213,10 +218,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -247,10 +253,11 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 

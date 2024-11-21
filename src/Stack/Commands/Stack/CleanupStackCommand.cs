@@ -31,6 +31,7 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
             new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Name, settings.Force));
@@ -50,6 +51,7 @@ public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
     public async Task Handle(CleanupStackCommandInputs inputs)
@@ -62,7 +64,7 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
         var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
@@ -74,7 +76,7 @@ public class CleanupStackCommandHandler(
         var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
 
-        var branchesToCleanUp = GetBranchesNeedingCleanup(gitOperations, stack);
+        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -95,17 +97,30 @@ public class CleanupStackCommandHandler(
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(IGitOperations gitOperations, Config.Stack stack)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitOperations gitOperations, IGitHubOperations gitHubOperations)
     {
         var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
 
-        return branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToArray();
+        var branchesThatCanBeCleanedUp = branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToList();
+        var branchesThatAreLocalAndInRemote = branchesInTheStackThatExistLocally.Intersect(branchesInTheStackThatExistInTheRemote);
+
+        foreach (var branch in branchesThatAreLocalAndInRemote)
+        {
+            var pullRequest = gitHubOperations.GetPullRequest(branch);
+
+            if (pullRequest is not null && pullRequest.State != GitHubPullRequestStates.Open)
+            {
+                branchesThatCanBeCleanedUp.Add(branch);
+            }
+        }
+
+        return branchesThatCanBeCleanedUp.ToArray();
     }
 
     public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
     {
-        outputProvider.Information("The following branches exist locally but not on the remote:");
+        outputProvider.Information("The following branches exist locally but not on the remote or pull request associated with the branch is no longer open:");
 
         foreach (var branch in branches)
         {
