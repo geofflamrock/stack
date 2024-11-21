@@ -14,7 +14,7 @@ public class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-public class StackSwitchCommand() : AsyncCommand<StackSwitchCommandSettings>
+public class StackSwitchCommand : AsyncCommand<StackSwitchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
     {
