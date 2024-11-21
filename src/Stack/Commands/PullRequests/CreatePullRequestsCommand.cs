@@ -14,7 +14,7 @@ public class CreatePullRequestsCommandSettings : DryRunCommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class CreatePullRequestsCommand() : AsyncCommand<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {

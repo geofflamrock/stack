@@ -8,7 +8,7 @@ namespace Stack.Commands;
 
 public class ListStacksCommandSettings : CommandSettingsBase;
 
-public class ListStacksCommand() : AsyncCommand<ListStacksCommandSettings>
+public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {

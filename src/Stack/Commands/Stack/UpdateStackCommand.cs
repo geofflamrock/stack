@@ -19,7 +19,7 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     public bool Force { get; init; }
 }
 
-public class UpdateStackCommand() : AsyncCommand<UpdateStackCommandSettings>
+public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
