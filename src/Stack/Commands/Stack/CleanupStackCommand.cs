@@ -64,7 +64,7 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
         var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
