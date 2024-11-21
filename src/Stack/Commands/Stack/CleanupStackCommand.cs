@@ -5,6 +5,7 @@ using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Commands.Helpers;
 
 namespace Stack.Commands;
 
@@ -45,14 +46,6 @@ public record CleanupStackCommandInputs(string? Name, bool Force)
 
 public record CleanupStackCommandResponse(string? CleanedUpStackName);
 
-public static class CleanupStackCommandInputProviderExtensionMethods
-{
-    public static bool ConfirmCleanup(this IInputProvider inputProvider)
-    {
-        return inputProvider.Confirm("Do you want to continue?");
-    }
-}
-
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
@@ -69,7 +62,8 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is null)
@@ -93,7 +87,7 @@ public class CleanupStackCommandHandler(
             OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
         }
 
-        if (inputs.Force || inputProvider.ConfirmCleanup())
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
             CleanupBranches(gitOperations, outputProvider, branchesToCleanUp);
 
@@ -111,11 +105,11 @@ public class CleanupStackCommandHandler(
 
     public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
     {
-        outputProvider.Information("The following branches will be deleted:");
+        outputProvider.Information("The following branches exist locally but not on the remote:");
 
         foreach (var branch in branches)
         {
-            outputProvider.Information($"  {branch}");
+            outputProvider.Information($"  {branch.Branch()}");
         }
     }
 

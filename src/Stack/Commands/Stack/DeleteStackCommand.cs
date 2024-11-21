@@ -5,6 +5,7 @@ using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Commands.Helpers;
 
 namespace Stack.Commands;
 
@@ -35,25 +36,9 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name, settings.Force));
 
         if (response.DeletedStackName is not null)
-            console.MarkupLine($"Stack [yellow]{response.DeletedStackName}[/] deleted");
+            console.MarkupLine($"Stack {response.DeletedStackName.Branch()} deleted");
 
         return 0;
-    }
-}
-
-public static class DeleteStackCommandInputProviderExtensionMethods
-{
-    const string DeleteStackPrompt = "Are you sure you want to delete this stack?";
-    const string CleanupStackPrompt = "Do you want to delete these local branches?";
-
-    public static bool ConfirmDelete(this IInputProvider inputProvider)
-    {
-        return inputProvider.Confirm(DeleteStackPrompt);
-    }
-
-    public static bool ConfirmCleanupDuringDelete(this IInputProvider inputProvider)
-    {
-        return inputProvider.Confirm(CleanupStackPrompt);
     }
 }
 
@@ -80,7 +65,8 @@ public class DeleteStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is null)
@@ -88,7 +74,7 @@ public class DeleteStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputs.Force || inputProvider.ConfirmDelete())
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
             var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(gitOperations, stack);
 
@@ -97,16 +83,16 @@ public class DeleteStackCommandHandler(
                 if (!inputs.Force)
                     CleanupStackCommandHandler.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
 
-                if (inputs.Force || inputProvider.ConfirmCleanupDuringDelete())
+                if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
                     CleanupStackCommandHandler.CleanupBranches(gitOperations, outputProvider, branchesNeedingCleanup);
                 }
-
-                stacks.Remove(stack);
-                stackConfig.Save(stacks);
-
-                return new DeleteStackCommandResponse(stack.Name);
             }
+
+            stacks.Remove(stack);
+            stackConfig.Save(stacks);
+
+            return new DeleteStackCommandResponse(stack.Name);
         }
 
         return new DeleteStackCommandResponse(null);
