@@ -31,6 +31,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
             new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name, settings.Force));
@@ -53,6 +54,7 @@ public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
     public async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
@@ -76,7 +78,7 @@ public class DeleteStackCommandHandler(
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
-            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(gitOperations, stack);
+            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
 
             if (branchesNeedingCleanup.Length > 0)
             {
