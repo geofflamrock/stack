@@ -124,14 +124,14 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             if (status.Branches.Values.All(branch => BranchCouldBeCleanedUp(branch)))
             {
                 console.WriteLine();
-                console.MarkupLine("All branches exist locally but not in the remote repository or the associated pull request is no longer open. This stack might be able to be deleted.");
+                console.MarkupLine("All branches exist locally but not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
                 console.WriteLine();
                 console.MarkupLine($"Run [purple]stack delete --name \"{stack.Name}\"[/] to delete the stack if it's no longer needed.");
             }
             else if (status.Branches.Values.Any(branch => BranchCouldBeCleanedUp(branch)))
             {
                 console.WriteLine();
-                console.MarkupLine("Some branches exist locally but not in the remote repository or the associated pull request is no longer open.");
+                console.MarkupLine("Some branches exist locally but not in the remote repository or the pull request associated with the branch is no longer open.");
                 console.WriteLine();
                 console.MarkupLine($"Run [purple]stack cleanup --name \"{stack.Name}\"[/] to clean up local branches.");
             }
