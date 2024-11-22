@@ -1,0 +1,36 @@
+name: Build, test and release
+
+on:
+  # push:
+  #   branches: ["main"]
+  #   tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  create_version_pull_request:
+    name: Create versioning pull request
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
+      - name: Download auto
+        run: |
+          curl -vkL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          chmod +x ${{ runner.temp }}/auto
+
+      - name: Get next release number
+        id: next_release
+        run: echo "version=$(${{ runner.temp }}/auto shipit --dry-run --quiet)" >> $GITHUB_OUTPUT
+
+      - name: Update changelog
+        run: ${{ runner.temp }}/auto changelog
+
+      - name: Create versioning pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/release
+          title: Release version ${{ steps.next_release.outputs.version }}
+          commit-message: Release version ${{ steps.next_release.outputs.version }}
