@@ -1,4 +1,4 @@
-name: Build, test and release
+name: Create versioning pull request
 
 on:
   # push:
@@ -11,6 +11,8 @@ jobs:
   create_version_pull_request:
     name: Create versioning pull request
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,8 +26,6 @@ jobs:
       - name: Get next release number
         id: next_release
         run: ${{ runner.temp }}/auto shipit --dry-run --quiet
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog
