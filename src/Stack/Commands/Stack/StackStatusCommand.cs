@@ -143,6 +143,14 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 console.WriteLine();
                 console.MarkupLine($"Run [aqua]stack delete --name \"{stack.Name}\"[/] to delete the stack.");
             }
+
+            if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+            {
+                console.WriteLine();
+                console.MarkupLine("There are changes in source branches that have not been applied to the stack.");
+                console.WriteLine();
+                console.MarkupLine($"Run [aqua]stack update --name \"{stack.Name}\"[/] to update the stack.");
+            }
         }
 
         return 0;
