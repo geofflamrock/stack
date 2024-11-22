@@ -28,7 +28,7 @@ jobs:
 
       - name: Get next release number
         id: next_release
-        run: echo "version=${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}}" >> $GITHUB_OUTPUT
+        run: echo "version=$(${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}})" >> $GITHUB_OUTPUT
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
