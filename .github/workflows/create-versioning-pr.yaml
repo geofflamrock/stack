@@ -24,6 +24,8 @@ jobs:
       - name: Get next release number
         id: next_release
         run: ${{ runner.temp }}/auto shipit --dry-run --quiet
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog
