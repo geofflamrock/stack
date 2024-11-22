@@ -29,7 +29,7 @@ app.Configure(configure =>
     // GitHub commands
     configure.AddBranch(CommandNames.Pr, pr =>
         {
-            pr.SetDescription("Manages pull requests for a stack. [[EXPERIMENTAL]]");
+            pr.SetDescription("Manages pull requests for a stack.");
             pr.AddCommand<CreatePullRequestsCommand>(CommandNames.Create).WithDescription("Creates pull requests for a stack.");
             pr.AddCommand<OpenPullRequestsCommand>(CommandNames.Open).WithDescription("Opens pull requests for a stack in the default browser.");
         });
