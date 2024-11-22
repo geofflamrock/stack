@@ -18,12 +18,12 @@ jobs:
 
       - name: Download auto
         run: |
-          curl -vkL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
           chmod +x ${{ runner.temp }}/auto
 
       - name: Get next release number
         id: next_release
-        run: echo "version=$(${{ runner.temp }}/auto shipit --dry-run --quiet)" >> $GITHUB_OUTPUT
+        run: ${{ runner.temp }}/auto shipit --dry-run --quiet
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog
@@ -32,5 +32,5 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: auto/release
-          title: Release version ${{ steps.next_release.outputs.version }}
-          commit-message: Release version ${{ steps.next_release.outputs.version }}
+          title: Release version
+          commit-message: Release version
