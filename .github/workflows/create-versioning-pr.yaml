@@ -28,7 +28,7 @@ jobs:
         run: ${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}}
 
       - name: Update changelog
-        run: ${{ runner.temp }}/auto changelog --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
+        run: ${{ runner.temp }}/auto changelog --no-git-commit
 
       - name: Create versioning pull request
         uses: peter-evans/create-pull-request@v7
