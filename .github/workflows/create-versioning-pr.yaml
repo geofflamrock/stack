@@ -28,7 +28,7 @@ jobs:
 
       - name: Get next release number
         id: next_release
-        run: ${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}}
+        run: echo "version=${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}}" >> $GITHUB_OUTPUT
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
@@ -37,6 +37,6 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: auto/release
-          title: Release version
-          commit-message: Release version
+          title: Release version ${{ steps.next_release.outputs.version }}
+          commit-message: Release version ${{ steps.next_release.outputs.version }}
           base: main
