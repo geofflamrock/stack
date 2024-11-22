@@ -120,7 +120,7 @@ public class CleanupStackCommandHandler(
 
     public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
     {
-        outputProvider.Information("The following branches exist locally but not on the remote or pull request associated with the branch is no longer open:");
+        outputProvider.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
 
         foreach (var branch in branches)
         {
