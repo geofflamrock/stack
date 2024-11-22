@@ -40,3 +40,4 @@ jobs:
           title: Release version ${{ steps.next_release.outputs.version }}
           commit-message: Release version ${{ steps.next_release.outputs.version }}
           base: main
+          labels: autorelease
