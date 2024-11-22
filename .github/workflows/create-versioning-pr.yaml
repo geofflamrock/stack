@@ -25,7 +25,7 @@ jobs:
 
       - name: Get next release number
         id: next_release
-        run: ${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.ref_name}}
+        run: ${{ runner.temp }}/auto shipit --dry-run --quiet --base-branch ${{ github.head_ref}}
 
       - name: Update changelog
         run: ${{ runner.temp }}/auto changelog --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
@@ -36,3 +36,4 @@ jobs:
           branch: auto/release
           title: Release version
           commit-message: Release version
+          base: main
