@@ -37,7 +37,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name, settings.Force));
 
         if (response.DeletedStackName is not null)
-            console.MarkupLine($"Stack {response.DeletedStackName.Branch()} deleted");
+            console.MarkupLine($"Stack {response.DeletedStackName.Stack()} deleted");
 
         return 0;
     }
@@ -76,7 +76,7 @@ public class DeleteStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack(stack.Name)))
         {
             var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
 

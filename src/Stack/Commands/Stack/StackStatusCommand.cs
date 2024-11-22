@@ -56,7 +56,7 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
                 var branchNameBuilder = new StringBuilder();
 
                 var color = branchDetail?.Status.ExistsInRemote == false ? "grey" : isSourceBranchForStack ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
-                Decoration? decoration = branchDetail?.Status.ExistsInRemote == false ? Decoration.Strikethrough : null;
+                Decoration? decoration = branchDetail?.Status.ExistsInRemote == false || branchDetail?.Status.ExistsLocally == false ? Decoration.Strikethrough : null;
 
                 if (color is not null && decoration is not null)
                 {
@@ -117,23 +117,39 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 
             bool BranchCouldBeCleanedUp(BranchDetail branchDetail)
             {
-                return branchDetail.Status.ExistsLocally && !branchDetail.Status.ExistsInRemote ||
-                    branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open;
+                return branchDetail.Status.ExistsLocally &&
+                        (!branchDetail.Status.ExistsInRemote ||
+                        branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open);
             }
 
             if (status.Branches.Values.All(branch => BranchCouldBeCleanedUp(branch)))
             {
                 console.WriteLine();
-                console.MarkupLine("All branches exist locally but not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
+                console.MarkupLine("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
                 console.WriteLine();
-                console.MarkupLine($"Run [purple]stack delete --name \"{stack.Name}\"[/] to delete the stack if it's no longer needed.");
+                console.MarkupLine($"Run [aqua]stack delete --name \"{stack.Name}\"[/] to delete the stack if it's no longer needed.");
             }
             else if (status.Branches.Values.Any(branch => BranchCouldBeCleanedUp(branch)))
             {
                 console.WriteLine();
-                console.MarkupLine("Some branches exist locally but not in the remote repository or the pull request associated with the branch is no longer open.");
+                console.MarkupLine("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
                 console.WriteLine();
-                console.MarkupLine($"Run [purple]stack cleanup --name \"{stack.Name}\"[/] to clean up local branches.");
+                console.MarkupLine($"Run [aqua]stack cleanup --name \"{stack.Name}\"[/] to clean up local branches.");
+            }
+            else if (status.Branches.Values.All(branch => !branch.Status.ExistsLocally))
+            {
+                console.WriteLine();
+                console.MarkupLine("No branches exist locally. This stack might be able to be deleted.");
+                console.WriteLine();
+                console.MarkupLine($"Run [aqua]stack delete --name \"{stack.Name}\"[/] to delete the stack.");
+            }
+
+            if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+            {
+                console.WriteLine();
+                console.MarkupLine("There are changes in source branches that have not been applied to the stack.");
+                console.WriteLine();
+                console.MarkupLine($"Run [aqua]stack update --name \"{stack.Name}\"[/] to update the stack.");
             }
         }
 
