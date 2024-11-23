@@ -1,0 +1,31 @@
+name: Check PR has Semver Label
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, labeled, unlabeled]
+
+jobs:
+  check_pr:
+    name: Check PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # For pr-check to create a status
+      statuses: write
+      # Needed to create PR statuses/checks
+      checks: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
+      - name: Download auto
+        run: |
+          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          chmod +x ${{ runner.temp }}/auto
+
+      - name: Check PR
+        run: ${{ runner.temp }}/auto pr-check --context "Versioning / Semver Label" --url "${{ github.api_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

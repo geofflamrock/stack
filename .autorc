@@ -1,0 +1,27 @@
+{
+  "plugins": [
+    "git-tag",
+    "released",
+    [
+      "omit-release-notes",
+      {
+        "labels": "release"
+      }
+    ],
+    [
+      "upload-assets",
+      [
+        "./artifacts/**/*.zip",
+        "./artifacts/**/*.tar.gz"
+      ]
+    ]
+  ],
+  "onlyPublishWithReleaseLabel": false,
+  "labels": [
+    {
+      "name": "default",
+      "releaseType": "none",
+      "default": true
+    }
+  ]
+}
