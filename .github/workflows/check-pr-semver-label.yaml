@@ -1,9 +1,9 @@
-name: Check PR has Semver Label
+name: Check PR has release label
 
 on:
   pull_request:
     branches: ["main"]
-    types: [opened, labeled, unlabeled]
+    types: [opened, synchronize, labeled, unlabeled]
 
 jobs:
   check_pr:
@@ -28,4 +28,4 @@ jobs:
           chmod +x ${{ runner.temp }}/auto
 
       - name: Check PR
-        run: ${{ runner.temp }}/auto pr-check --context "Versioning / Semver Label" --url "${{ github.api_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: ${{ runner.temp }}/auto pr-check --context "Versioning / Release Label" --url "${{ github.api_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
