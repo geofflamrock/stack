@@ -19,8 +19,8 @@
   "onlyPublishWithReleaseLabel": false,
   "labels": [
     {
-      "name": "default",
-      "releaseType": "none",
+      "name": "skip-release",
+      "releaseType": "skip",
       "default": true
     }
   ]
