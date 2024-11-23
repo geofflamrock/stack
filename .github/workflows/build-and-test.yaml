@@ -51,14 +51,14 @@ jobs:
         id: branch_names
         uses: OctopusDeploy/util-actions/current-branch-name@current-branch-name.0.1.0
 
-      - name: Get pre-release version when no version
+      - name: Get pre-release version when next release version does not exist
         id: get_pre_release_version
         uses: paulhatch/semantic-version@v5.4.0
         with:
           tag_prefix: "v"
           version_format: "${major}.${minor}.${patch}-${{ steps.branch_names.outputs.branch_name }}.${{ github.run_number }}-${{ github.run_attempt }}"
 
-      - name: Get pre-release version when version
+      - name: Get pre-release version when next release version exists
         id: get_specific_pre_release_version
         run: echo "version=${{ steps.get_next_release_version.outputs.version }}-${{ steps.branch_names.outputs.branch_name }}.${{ github.run_number }}-${{ github.run_attempt }}" >> $GITHUB_OUTPUT
 
@@ -72,7 +72,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "version=${{ steps.set_create_release.outputs.create_release == 'true' && steps.get_next_release_version.outputs.version || steps.get_specific_pre_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ steps.set_create_release.outputs.create_release == 'true' && steps.get_next_release_version.outputs.version || steps.get_next_release_version.outputs.version != '' && steps.get_specific_pre_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Print version
         run: echo "Version ${{ steps.get_version.outputs.version }}"
