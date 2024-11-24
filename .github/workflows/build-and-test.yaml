@@ -169,7 +169,7 @@ jobs:
         run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
 
       - name: Update changelog if publishing release
-        run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com)"
+        run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
         # if: needs.version.outputs.create_release == 'true'
 
       - name: Copy changelog to publish folder
