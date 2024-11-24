@@ -1,6 +1,6 @@
 # stack
 
-A tool to help manage multiple Git branches that stack on top of each other.
+A tool to help manage multiple Git branches and pull requests that stack on top of each other.
 
 ## What is this thing?
 
@@ -9,6 +9,10 @@ When working on a large new feature for your application, you might want to brea
 Managing multiple branches that all work together into a set of work can be a difficult task, particularly over time if you need to wait for reviews whilst your `main` branch has moved forward, or you need to incorporate feedback to your work.
 
 This tool can help you to manage multiple branches that form together into a `stack`.
+
+See [stacking.dev](https://www.stacking.dev/) for a longer description of the problem this tool is aiming to help you solve.
+
+Note: This repo is under active development and is likely to have rough edges, bugs and missing things.
 
 ## Getting started
 
@@ -31,13 +35,13 @@ Multiple branches are managed in a **stack**. This is an _explicit_ set of branc
 
 All commands can be run from anywhere inside the Git repository you are working with, or optionally using the `--working-dir` option.
 
-Data is stored inside a config file TODO: location.
+Data is stored inside a config file in `{user}/stack/config.json`. You can open the config file by running `stack config`.
 
 ### Creating a stack
 
 To create a stack:
 
-- In your terminal, change to anywhere within the Git repository you want to manage branches for.
+- In your terminal, change to your Git repository.
 - Run `stack new`.
 - Give your stack a name.
 - Select a branch to start your stack from.
@@ -52,7 +56,6 @@ Working within a stack is the same as working with Git as per normal, make your 
 
 Once you've done some work on the first branch within the stack, at some point you'll likely want a second branch. To do this:
 
-- Change to your Git repository if you haven't already.
 - Run `stack branch new`.
 - Give the branch a name.
 
@@ -76,6 +79,21 @@ Branches in the stack will be updated by:
 - Repeating this until all branches are updated.
 
 ### Creating pull requests for the stack
+
+When you've made your changes you can create a set of pull requests that build off each other. This requires that you have the `gh` CLI installed on your path and authenticated (`gh auth`).
+
+To do this:
+
+- Run `stack pr create`.
+- Confirm that you want to create pull requests for the stack.
+- For each branch you'll be asked for the title of the pull request.
+- The pull request will then be created, targeting the previous branch in the stack.
+
+When all the pull requests have been created you'll be asked for a pull request stack description if there is more than 1 pull request in the stack. This will be added to the top of the description of each pull request along with a set of links to all pull requests in the stack. For an example of this look at https://github.com/geofflamrock/stack/pull/32.
+
+You can then open each pull request if the stack if you want to view them.
+
+`stack pr create` can be run multiple times, if there are new branches in the stack that don't have an associated pull request these will be created and the description updated on each pull request.
 
 ## Stack commands
 
