@@ -160,14 +160,20 @@ jobs:
       - name: Publish
         run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
 
+      - name: Copy changelog to publish folder
+        run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
+
+      - name: Copy readme to publish folder
+        run: cp ${{ github.workspace }}/README.md ${{ github.workspace }}/publish
+
       - run: mkdir -p ${{ github.workspace }}/artifacts
 
-      - name: Create tar.gz arhive
+      - name: Create tar.gz archive
         run: tar -czf ${{ github.workspace }}/artifacts/stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.tar.gz *
         working-directory: ${{ github.workspace }}/publish
         if: matrix.archive_type == 'tar'
 
-      - name: Create zip arhive
+      - name: Create zip archive
         run: zip -r ${{ github.workspace }}/artifacts/stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.zip *
         working-directory: ${{ github.workspace }}/publish
         if: matrix.archive_type == 'zip'
