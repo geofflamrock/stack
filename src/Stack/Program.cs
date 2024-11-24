@@ -24,6 +24,7 @@ app.Configure(configure =>
             branch.SetDescription("Manages branches in a stack.");
             branch.AddCommand<NewBranchCommand>(CommandNames.New).WithDescription("Creates a new branch in a stack.");
             branch.AddCommand<AddBranchCommand>(CommandNames.Add).WithDescription("Adds an existing branch in a stack.");
+            branch.AddCommand<RemoveBranchCommand>(CommandNames.Remove).WithDescription("Removes a branch from a stack.");
         });
 
     // GitHub commands
