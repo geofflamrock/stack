@@ -9,11 +9,13 @@ public class OpenConfigCommandSettings : CommandSettingsBase
 {
 }
 
-public class OpenConfigCommand(IAnsiConsole console, IStackConfig stackConfig) : AsyncCommand<CommandSettingsBase>
+public class OpenConfigCommand : AsyncCommand<CommandSettingsBase>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CommandSettingsBase settings)
     {
         await Task.CompletedTask;
+        var console = AnsiConsole.Console;
+        var stackConfig = new StackConfig();
 
         var configPath = stackConfig.GetConfigPath();
 
