@@ -167,9 +167,7 @@ jobs:
 
       - name: Update changelog if publishing release
         run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
-        # if: needs.version.outputs.create_release == 'true'
-
-      - run: cat CHANGELOG.md
+        if: needs.version.outputs.create_release == 'true'
 
       - name: Copy changelog to publish folder
         run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
