@@ -3,8 +3,15 @@ name: Build, test and release
 on:
   push:
     branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
+
   pull_request:
     branches: ["main"]
+    paths-ignore:
+      - "README.md"
+      - "CHANGELOG.md"
 
 jobs:
   version:
@@ -57,11 +64,11 @@ jobs:
 
       - name: Set whether to create a release
         id: set_create_release
-        run: echo "create_release=${{ steps.get_next_release_semver_bump_type.outputs.bump_type != '' }}" >> $GITHUB_OUTPUT
+        run: echo "create_release=${{ github.ref == 'refs/heads/main' && steps.get_next_release_semver_bump_type.outputs.bump_type != '' }}" >> $GITHUB_OUTPUT
 
       - name: Get version
         id: get_version
-        run: echo "version=${{ github.ref == 'refs/heads/main' && steps.get_next_release_semver_bump_type.outputs.bump_type != '' && steps.get_next_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ steps.set_create_release.outputs.create_release == 'true' && steps.get_next_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Print version
         run: echo "Version ${{ steps.get_version.outputs.version }}"
@@ -143,14 +150,19 @@ jobs:
             archive_type: tar
 
     name: Publish ${{ matrix.name }}
-
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
+      - name: Download auto
+        run: |
+          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          chmod +x ${{ runner.temp }}/auto
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -158,7 +170,11 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Publish
-        run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
+        run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
+
+      - name: Update changelog if publishing release
+        run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
+        if: needs.version.outputs.create_release == 'true'
 
       - name: Copy changelog to publish folder
         run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
