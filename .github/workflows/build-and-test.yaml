@@ -143,12 +143,7 @@ jobs:
             archive_type: tar
 
     name: Publish ${{ matrix.name }}
-
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src
-
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -168,7 +163,7 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: Publish
-        run: dotnet publish Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
+        run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
 
       - name: Update changelog if publishing release
         run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
