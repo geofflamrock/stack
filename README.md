@@ -99,32 +99,224 @@ You can then open each pull request if the stack if you want to view them.
 
 ### `stack new`
 
+Creates a new stack.
+
+```shell
+USAGE:
+    stack new [OPTIONS]
+
+OPTIONS:
+    -h, --help             Prints help information
+    -v, --version          Prints version information
+        --verbose          Show verbose output
+        --working-dir      The path to the directory containing the git repository. Defaults to the current directory
+    -n, --name             The name of the stack. Must be unique
+    -s, --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
+    -b, --branch           The name of the branch to create within the stack
+```
+
 ### `stack list`
+
+Lists stacks for the current repository.
+
+```shell
+USAGE:
+    stack list [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+```
 
 ### `stack status`
 
+Shows the status of a stack, including commits compared to other branches and the status of any associated pull requests.
+
+```shell
+USAGE:
+    stack status [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+    -n, --name           The name of the stack to show the status of
+        --all            Show status of all stacks
+```
+
 ### `stack delete`
+
+Deletes a stack. If there are local branches which no longer exist on the remote or the associated pull request is no longer open these can be deleted as part of the command.
+
+```shell
+USAGE:
+    stack delete [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+    -n, --name           The name of the stack to delete
+    -f, --force          Force cleanup and delete the stack without prompting
+```
 
 ## Branch commands
 
 ### `stack update`
 
+Updates the branches for a stack by merging each branch.
+
+```shell
+USAGE:
+    stack update [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to update
+    -f, --force          Force the update of the stack
+```
+
 ### `stack switch`
+
+Switches to a different branch in the current stack or another stack.
+
+```shell
+USAGE:
+    stack switch [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+    -b, --branch         The name of the branch to switch to
+```
 
 ### `stack cleanup`
 
+Cleans up local branches in a stack which no longer exist on the remote or where the associated pull request is no longer open.
+
+```shell
+USAGE:
+    stack cleanup [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to cleanup
+    -f, --force          Cleanup the stack without prompting
+```
+
 ### `stack branch new`
+
+Creates a new branch from the last branch in the stack and adds it.
+
+```shell
+USAGE:
+    stack branch new [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -s, --stack          The name of the stack to create the branch in
+    -n, --name           The name of the branch to create
+```
 
 ### `stack branch add`
 
+Adds an existing branch to the end of the stack.
+
+```shell
+USAGE:
+    stack branch add [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -s, --stack          The name of the stack to create the branch in
+    -n, --name           The name of the branch to add
+```
+
 ### `stack branch remove`
+
+Removes a branch from a stack.
+
+```shell
+USAGE:
+    stack branch remove [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -s, --stack          The name of the stack to create the branch in
+    -n, --name           The name of the branch to add
+    -f, --force          Force removing the branch without prompting
+```
 
 ## GitHub commands
 
 ### `stack pr create`
 
+Creates and/or updates pull requests for each branch in a stack.
+
+```shell
+USAGE:
+    stack pr create [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to create pull requests for
+```
+
 ### `stack pr open`
+
+Opens pull requests for a stack in the default browser.
+
+```shell
+USAGE:
+    stack pr open [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to open PRs for
+```
 
 ## Advanced commands
 
 ### `stack config`
+
+Opens the configuration file in the default editor.
+
+```shell
+USAGE:
+    stack config [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+```
