@@ -7,6 +7,7 @@ on:
     branches: ["main"]
     paths:
       - "**" # Run on all files
+      - "!.github/workflows/docs-only.yaml" # Except only this file
       - "!README.md" # Except only readme changes
       - "!CHANGELOG.md" # Except only changelog changes
 
