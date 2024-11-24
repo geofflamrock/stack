@@ -20,8 +20,8 @@ See [stacking.dev](https://www.stacking.dev/) for a longer description of the pr
 
 In order to use `stack` you'll need the following:
 
-- The `git` CLI installed and added to your path
-- The `gh` CLI if you want to use some of the GitHub integration points.
+- The `git` CLI installed, added to your path and configured to access your repository.
+- The `gh` CLI installed, added to your path and authenticated if you want to use some of the GitHub integration points.
 
 ### Installing `stack`
 
@@ -33,7 +33,7 @@ Run `stack` to get a list of the available commands.
 
 Multiple branches are managed in a **stack**. This is an _explicit_ set of branches that you want to manage and keep updated as you work. `stack` doesn't try and automatically work out which branches were first created from other ones, it takes the opinion that you are in control of which branches you to manage together. Every stack has a **source branch** which it starts from, this is likely to be the default branch of your repository.
 
-`stack` operates using the `git` and (optionally) `gh` CLI to perform the branch actions that you likely would do if you were trying to manage branches yourself.
+`stack` operates using the `git` and (optionally) `gh` CLI to perform the branch actions that you likely would do if you were trying to manage branches yourself. As a result it doesn't need to store any specific credentials, and inherits any defaults you might have for your Git configuration.
 
 All commands can be run from anywhere inside the Git repository you are working with, or optionally using the `--working-dir` option.
 
@@ -59,6 +59,7 @@ Working within a stack is the same as working with Git as per normal, make your 
 Once you've done some work on the first branch within the stack, at some point you'll likely want a second branch. To do this:
 
 - Run `stack branch new`.
+- Select the stack to create the branch in.
 - Give the branch a name.
 
 The new branch will be created from the branch at the bottom of the stack and you can then switch to the branch if you would like to in order to make more changes.
@@ -80,9 +81,15 @@ Branches in the stack will be updated by:
 - Pushing changes for the second branch to the remote.
 - Repeating this until all branches are updated.
 
+#### Rough edges
+
+Updating a stack, particularly if it has a number of branches in it, can result in lots of merge commits. I'm exploring whether there are any improvements that can be made here for merging. I'd also like to support updating via a rebase as well in the future.
+
+If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This is a bit of a pain, I'm exploring whether there are any improvements that can be made here, perhaps by first merging into the just-merged local branch instead of ignoring it.
+
 ### Creating pull requests for the stack
 
-When you've made your changes you can create a set of pull requests that build off each other. This requires that you have the `gh` CLI installed on your path and authenticated (`gh auth`).
+When you've made your changes you can create a set of pull requests that build off each other. This requires that you have the `gh` CLI installed on your path and authenticated (run `gh auth login`).
 
 To do this:
 
