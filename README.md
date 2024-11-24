@@ -4,15 +4,15 @@ A tool to help manage multiple Git branches and pull requests that stack on top 
 
 ## What is this thing?
 
-When working on a large new feature for your application, you might want to break the work for this into small chunks in separate branches so that it's easier to get each part reviewed by your team in a pull request and merged in. Each part of this work will likely need to build on the last part.
+When working on a large new feature for your application, it can be helpful to break your work into small chunks in separate branches. This makes it easier to get each part reviewed by your team in a pull request and merged in. Each part of this work will likely need to build on the last part.
 
-Managing multiple branches that all work together into a set of work can be a difficult task, particularly over time if you need to wait for reviews whilst your `main` branch has moved forward, or you need to incorporate feedback to your work.
+Managing multiple branches and pull requests that all build together into a set of work can be a difficult task, particularly over time whilst you need to wait for reviews and your `main` branch has moved forward, or you need to incorporate feedback to your work.
 
 This tool can help you to manage multiple branches that form together into a `stack`.
 
 See [stacking.dev](https://www.stacking.dev/) for a longer description of the problem this tool is aiming to help you solve.
 
-Note: This repo is under active development and is likely to have rough edges, bugs and missing things.
+**Note: This project is under active development and is likely to have rough edges, bugs and missing things. Until it reaches `v1.0.0` it also might change at any time.**
 
 ## Getting started
 
@@ -26,6 +26,8 @@ In order to use `stack` you'll need the following:
 ### Installing `stack`
 
 To install stack download the relevant binary for your OS from the latest GitHub release, unarchive it and (optionally) add `stack` to your path.
+
+Run `stack` to get a list of the available commands.
 
 ## How does it work?
 
