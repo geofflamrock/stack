@@ -1,8 +1,10 @@
 using FluentAssertions;
 using NSubstitute;
 using Stack.Commands;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 
 namespace Stack.Tests.Commands.Stack;
@@ -15,7 +17,7 @@ public class StackSwitchCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackSwitchCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -30,7 +32,7 @@ public class StackSwitchCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectBranch(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("branch-3");
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns("branch-3");
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(null));
@@ -45,7 +47,7 @@ public class StackSwitchCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackSwitchCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -75,7 +77,7 @@ public class StackSwitchCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackSwitchCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
