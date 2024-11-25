@@ -5,6 +5,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
+using Stack.Commands.Helpers;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -16,7 +17,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -29,8 +30,8 @@ public class UpdateStackCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmUpdate().Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
         gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 
@@ -55,7 +56,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -68,8 +69,8 @@ public class UpdateStackCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmUpdate().Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
         var branchesThatExistInRemote = new List<string>(["branch-1", "branch-3"]);
 
@@ -93,7 +94,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -106,7 +107,7 @@ public class UpdateStackCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.ConfirmUpdate().Returns(true);
+        inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
         gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 
@@ -124,7 +125,7 @@ public class UpdateStackCommandHandlerTests
         gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
         gitOperations.Received().PushBranch("branch-3");
 
-        inputProvider.DidNotReceive().SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>());
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
 
     [Fact]
@@ -133,7 +134,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -146,13 +147,13 @@ public class UpdateStackCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, true));
 
         // Assert
-        inputProvider.DidNotReceive().ConfirmUpdate();
+        inputProvider.DidNotReceive().Confirm(Questions.ConfirmUpdateStack);
     }
 
     [Fact]
@@ -161,7 +162,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -187,7 +188,7 @@ public class UpdateStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IUpdateStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
@@ -202,8 +203,8 @@ public class UpdateStackCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
-        inputProvider.ConfirmUpdate().Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
         gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
 

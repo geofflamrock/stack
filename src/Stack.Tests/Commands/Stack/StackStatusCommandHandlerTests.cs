@@ -5,6 +5,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
+using Stack.Commands.Helpers;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -17,7 +18,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -31,7 +32,7 @@ public class StackStatusCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
@@ -82,7 +83,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -148,7 +149,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -223,7 +224,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -252,7 +253,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -266,7 +267,7 @@ public class StackStatusCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
@@ -313,7 +314,7 @@ public class StackStatusCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IStackStatusCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
@@ -327,7 +328,7 @@ public class StackStatusCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectStack(Arg.Any<List<Config.Stack>>(), Arg.Any<string>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
