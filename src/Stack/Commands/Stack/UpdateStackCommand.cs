@@ -2,6 +2,7 @@ using System.ComponentModel;
 using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
@@ -25,7 +26,7 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
     {
         var console = AnsiConsole.Console;
         var handler = new UpdateStackCommandHandler(
-            new UpdateStackCommandInputProvider(new ConsoleInputProvider(console)),
+            new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
@@ -33,28 +34,6 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
         await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Force));
 
         return 0;
-    }
-}
-
-public interface IUpdateStackCommandInputProvider
-{
-    string SelectStack(List<Config.Stack> stacks, string currentBranch);
-    bool ConfirmUpdate();
-}
-
-public class UpdateStackCommandInputProvider(IInputProvider inputProvider) : IUpdateStackCommandInputProvider
-{
-    const string SelectStackPrompt = "Select stack:";
-    const string UpdateStackPrompt = "Are you sure you want to update this stack?";
-
-    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
-    {
-        return inputProvider.Select(SelectStackPrompt, stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray());
-    }
-
-    public bool ConfirmUpdate()
-    {
-        return inputProvider.Confirm(UpdateStackPrompt);
     }
 }
 
@@ -66,7 +45,7 @@ public record UpdateStackCommandInputs(string? Name, bool Force)
 public record UpdateStackCommandResponse();
 
 public class UpdateStackCommandHandler(
-    IUpdateStackCommandInputProvider inputProvider,
+    IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IStackConfig stackConfig)
@@ -86,13 +65,14 @@ public class UpdateStackCommandHandler(
         }
 
         var currentBranch = gitOperations.GetCurrentBranch();
-        var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{stackSelection}' not found.");
 
-        if (inputs.Force || inputProvider.ConfirmUpdate())
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
         {
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
