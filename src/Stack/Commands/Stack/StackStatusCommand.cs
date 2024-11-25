@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
@@ -36,7 +37,7 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
         var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
 
         var handler = new StackStatusCommandHandler(
-            new StackStatusCommandInputProvider(new ConsoleInputProvider(console)),
+            new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             gitOperations,
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
@@ -160,30 +161,8 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 public record StackStatusCommandInputs(string? Name, bool All);
 public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
 
-public interface IStackStatusCommandInputProvider
-{
-    string SelectStack(List<Config.Stack> stacks, string currentBranch);
-}
-
-public class StackStatusCommandInputProvider(IInputProvider inputProvider) : IStackStatusCommandInputProvider
-{
-    public const string SelectStackPrompt = "Select stack:";
-
-    public string SelectStack(List<Config.Stack> stacks, string currentBranch)
-    {
-        return inputProvider.Select(
-            SelectStackPrompt,
-            stacks
-                .OrderByCurrentStackThenByName(currentBranch)
-                .Select(s => s.Name)
-                .ToArray());
-    }
-}
-
-
-
 public class StackStatusCommandHandler(
-    IStackStatusCommandInputProvider inputProvider,
+    IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IGitHubOperations gitHubOperations,
@@ -209,7 +188,8 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stackSelection = inputs.Name ?? inputProvider.SelectStack(stacksForRemote, currentBranch);
+            var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+            var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
             var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
             if (stack is null)
             {
