@@ -292,4 +292,41 @@ public class DeleteStackCommandHandlerTests
         });
         gitOperations.Received().DeleteLocalBranch("branch-3");
     }
+
+    [Fact]
+    public async Task WhenOnlyOneStackExists_DoesNotAskForStackName()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", [])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+
+        // Act
+        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
+
+        // Assert
+        response.Should().Be(new DeleteStackCommandResponse("Stack1"));
+        stacks.Should().BeEmpty();
+
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+    }
 }

@@ -27,7 +27,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -51,7 +52,7 @@ public class UpdateStackCommandHandlerTests
     }
 
     [Fact]
-    public async Task WhenABrancheInTheStackNoLongerExistsOnTheRemote_SkipsOverUpdatingThatBranch()
+    public async Task WhenABranchInTheStackNoLongerExistsOnTheRemote_SkipsOverUpdatingThatBranch()
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
@@ -66,7 +67,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -104,7 +106,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
@@ -144,7 +147,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -172,7 +176,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         // Act and assert
@@ -200,7 +205,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-2");
 
         var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<Config.Stack>([stack1]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -213,5 +219,45 @@ public class UpdateStackCommandHandlerTests
 
         // Assert
         gitOperations.Received().ChangeBranch("branch-2");
+    }
+
+    [Fact]
+    public async Task WhenOnlyASingleStackExists_DoesNotAskForStackName_UpdatesStack()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stacks = new List<Config.Stack>([stack1]);
+        stackConfig.Load().Returns(stacks);
+
+        inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
+
+        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, false));
+
+        // Assert
+        gitOperations.Received().UpdateBranch("branch-1");
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
+        gitOperations.Received().PushBranch("branch-2");
+
+        gitOperations.Received().UpdateBranch("branch-2");
+        gitOperations.Received().UpdateBranch("branch-3");
+        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
+        gitOperations.Received().PushBranch("branch-3");
+
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
 }

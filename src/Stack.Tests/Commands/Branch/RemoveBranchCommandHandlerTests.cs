@@ -269,4 +269,43 @@ public class RemoveBranchCommandHandlerTests
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
+
+    [Fact]
+    public async Task WhenOnlyOneStackExists_DoesNotAskForStackName()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3")).Returns(true);
+
+        // Act
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
+
+        // Assert
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", remoteUri, "branch-1", ["branch-5"])
+        });
+
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+    }
 }
