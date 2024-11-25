@@ -1,8 +1,10 @@
 using FluentAssertions;
 using NSubstitute;
 using Stack.Commands;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 
 namespace Stack.Tests.Commands.Stack;
@@ -15,7 +17,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -29,12 +31,12 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(true);
-        inputProvider.SelectAddOrCreateBranch().Returns(BranchAction.Create);
-        inputProvider.GetNewBranchName().Returns("new-branch");
-        inputProvider.ConfirmSwitchToBranch().Returns(true);
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
+        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
+        inputProvider.Text(Questions.BranchName).Returns("new-branch");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
@@ -55,7 +57,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -69,12 +71,12 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(true);
-        inputProvider.SelectAddOrCreateBranch().Returns(BranchAction.Add);
-        inputProvider.GetBranchToAdd(Arg.Any<string[]>()).Returns("branch-2");
-        inputProvider.ConfirmSwitchToBranch().Returns(true);
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
+        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-2");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
@@ -95,7 +97,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -109,9 +111,10 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(false);
+
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
@@ -132,7 +135,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -146,12 +149,13 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(true);
-        inputProvider.SelectAddOrCreateBranch().Returns(BranchAction.Create);
-        inputProvider.GetNewBranchName().Returns("new-branch-1");
-        inputProvider.ConfirmSwitchToBranch().Returns(false);
+
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
+        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
+        inputProvider.Text(Questions.BranchName).Returns("new-branch-1");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
@@ -172,7 +176,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -186,12 +190,12 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(true);
-        inputProvider.SelectAddOrCreateBranch().Returns(BranchAction.Add);
-        inputProvider.GetBranchToAdd(Arg.Any<string[]>()).Returns("branch-2");
-        inputProvider.ConfirmSwitchToBranch().Returns(false);
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
+        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-2");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
@@ -212,7 +216,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -226,8 +230,8 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(false);
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         var inputs = new NewStackCommandInputs("Stack1", null, null);
 
@@ -241,7 +245,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", [])
         });
 
-        inputProvider.DidNotReceive().GetStackName();
+        inputProvider.DidNotReceive().Text(Questions.StackName);
     }
 
     [Fact]
@@ -250,7 +254,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -264,8 +268,8 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.ConfirmAddOrCreateBranch().Returns(false);
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         var inputs = new NewStackCommandInputs(null, "branch-1", null);
 
@@ -279,7 +283,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", [])
         });
 
-        inputProvider.DidNotReceive().GetSourceBranch(Arg.Any<string[]>());
+        inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
     }
 
     [Fact]
@@ -288,7 +292,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -302,8 +306,8 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
         // Note there shouldn't be any more inputs required at all
 
         var inputs = new NewStackCommandInputs(null, null, "new-branch");
@@ -318,8 +322,8 @@ public class NewStackCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["new-branch"])
         });
 
-        inputProvider.Received().GetStackName();
-        inputProvider.Received().GetSourceBranch(Arg.Any<string[]>());
+        inputProvider.Received().Text(Questions.StackName);
+        inputProvider.Received().Select(Questions.SelectSourceBranch, Arg.Any<string[]>());
         inputProvider.ClearReceivedCalls();
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
@@ -330,7 +334,7 @@ public class NewStackCommandHandlerTests
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<INewStackCommandInputProvider>();
+        var inputProvider = Substitute.For<IInputProvider>();
         var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
@@ -343,10 +347,6 @@ public class NewStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        inputProvider.GetStackName().Returns("Stack1");
-        inputProvider.GetSourceBranch(Arg.Any<string[]>()).Returns("branch-1");
-        // Note there shouldn't be any more inputs required at all
 
         var inputs = new NewStackCommandInputs("Stack1", "branch-1", "new-branch");
 
