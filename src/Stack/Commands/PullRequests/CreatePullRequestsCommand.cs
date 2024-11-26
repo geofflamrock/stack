@@ -2,8 +2,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -19,9 +21,37 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var gitHubOperations = new GitHubOperations(console, settings.GetGitHubOperationSettings());
-        var stackConfig = new StackConfig();
+
+        var handler = new CreatePullRequestsCommandHandler(
+            new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new StackConfig());
+
+        await handler.Handle(new CreatePullRequestsCommandInputs(settings.Name));
+
+        return 0;
+    }
+}
+
+public record CreatePullRequestsCommandInputs(string? StackName)
+{
+    public static CreatePullRequestsCommandInputs Empty => new((string?)null);
+}
+
+public record CreatePullRequestsCommandResponse();
+
+public class CreatePullRequestsCommandHandler(
+    IInputProvider inputProvider,
+    IOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig)
+{
+    public async Task<CreatePullRequestsCommandResponse> Handle(CreatePullRequestsCommandInputs inputs)
+    {
+        await Task.CompletedTask;
 
         var stacks = stackConfig.Load();
 
@@ -31,25 +61,31 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
 
         if (stacksForRemote.Count == 0)
         {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
+            outputProvider.Information("No stacks found for current repository.");
+            return new CreatePullRequestsCommandResponse();
         }
 
         var currentBranch = gitOperations.GetCurrentBranch();
-        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
+        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        await new StackStatusCommand()
-            .ExecuteAsync(context, new StackStatusCommandSettings
-            {
-                Name = stack.Name,
-                WorkingDirectory = settings.WorkingDirectory,
-                Verbose = settings.Verbose
-            });
+        if (stack is null)
+        {
+            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+        }
 
-        console.WriteLine();
+        // await new StackStatusCommand()
+        //     .ExecuteAsync(context, new StackStatusCommandSettings
+        //     {
+        //         Name = stack.Name,
+        //         WorkingDirectory = settings.WorkingDirectory,
+        //         Verbose = settings.Verbose
+        //     });
 
-        if (console.Prompt(new ConfirmationPrompt("Are you sure you want to create pull requests for branches in this stack?")))
+        // console.WriteLine();
+
+        if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
         {
             var sourceBranch = stack.SourceBranch;
             var pullRequestsInStack = new List<GitHubPullRequest>();
@@ -60,7 +96,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
 
                 if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
                 {
-                    console.MarkupLine($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]. Skipping...");
+                    outputProvider.Information($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch {branch.Branch()} to {sourceBranch.Branch()}. Skipping...");
                     pullRequestsInStack.Add(existingPullRequest);
                 }
 
@@ -68,13 +104,13 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
                 {
                     if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
-                        var prTitle = console.Prompt(new TextPrompt<string>($"Pull request title for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]:"));
-                        console.MarkupLine($"Creating pull request for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                        var prTitle = inputProvider.Text(Questions.PulRequestTitle(branch, sourceBranch));
+                        outputProvider.Information($"Creating pull request for branch {branch.Branch()} to {sourceBranch.Branch}");
                         var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "");
 
                         if (pullRequest is not null)
                         {
-                            console.MarkupLine($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch [blue]{branch}[/] to [blue]{sourceBranch}[/]");
+                            outputProvider.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {branch.Branch()} to {sourceBranch.Branch()}");
                             pullRequestsInStack.Add(pullRequest);
                         }
                     }
@@ -86,7 +122,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             if (pullRequestsInStack.Count > 1)
             {
                 var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
-                var stackDescription = console.Prompt(new TextPrompt<string>("Stack description for PR:").DefaultValue(defaultStackDescription));
+                var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
 
                 if (stackDescription != stack.PullRequestDescription)
                 {
@@ -138,10 +174,10 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             }
             else
             {
-                console.MarkupLine("Only one pull request in stack, not adding PR list to description.");
+                outputProvider.Information("Only one pull request in stack, not adding PR list to description.");
             }
 
-            if (console.Prompt(new ConfirmationPrompt("Open the pull requests in the browser?")))
+            if (inputProvider.Confirm(Questions.OpenPullRequests))
             {
                 foreach (var pullRequest in pullRequestsInStack)
                 {
@@ -153,6 +189,6 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             }
         }
 
-        return 0;
+        return new CreatePullRequestsCommandResponse();
     }
 }
