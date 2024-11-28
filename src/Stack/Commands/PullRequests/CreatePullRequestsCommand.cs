@@ -106,7 +106,7 @@ public class CreatePullRequestsCommandHandler(
                     if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
                         var prTitle = inputProvider.Text(Questions.PullRequestTitle(branch, sourceBranch));
-                        outputProvider.Information($"Creating pull request for branch {branch.Branch()} to {sourceBranch.Branch}");
+                        outputProvider.Information($"Creating pull request for branch {branch.Branch()} to {sourceBranch.Branch()}");
                         var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "");
 
                         if (pullRequest is not null)
