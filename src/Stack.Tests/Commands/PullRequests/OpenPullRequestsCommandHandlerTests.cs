@@ -142,6 +142,46 @@ public class OpenPullRequestsCommandHandlerTests
     }
 
     [Fact]
+    public async Task WhenOnlyOneStackExists_DoesNotAskForStackName_OpensAllPullRequestsForTheStack()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        gitHubOperations
+            .GetPullRequest("branch-3")
+            .Returns(prForBranch3);
+
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        gitHubOperations
+            .GetPullRequest("branch-5")
+            .Returns(prForBranch5);
+
+        // Act
+        await handler.Handle(OpenPullRequestsCommandInputs.Empty);
+
+        // Assert        
+        gitHubOperations.Received().OpenPullRequest(prForBranch3);
+        gitHubOperations.Received().OpenPullRequest(prForBranch5);
+    }
+
+    [Fact]
     public async Task WhenStackNameIsProvided_ButItStackDoesNotExist_Throws()
     {
         // Arrange
