@@ -52,7 +52,7 @@ public class CreatePullRequestsCommandHandlerTests
         var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
         gitHubOperations
             .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty)
-            .Returns(prForBranch3);
+            .Returns(prForBranch5);
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
