@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -24,8 +26,35 @@ public class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var stackConfig = new StackConfig();
+
+        var handler = new AddBranchCommandHandler(
+            new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
+            new StackConfig());
+
+        await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));
+
+        return 0;
+    }
+}
+
+public record AddBranchCommandInputs(string? StackName, string? BranchName)
+{
+    public static AddBranchCommandInputs Empty => new(null, null);
+}
+
+public record AddBranchCommandResponse();
+
+public class AddBranchCommandHandler(
+    IInputProvider inputProvider,
+    IOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig)
+{
+    public async Task<AddBranchCommandResponse> Handle(AddBranchCommandInputs inputs)
+    {
+        await Task.CompletedTask;
 
         var defaultBranch = gitOperations.GetDefaultBranch();
         var remoteUri = gitOperations.GetRemoteUri();
@@ -38,24 +67,40 @@ public class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
+            outputProvider.Information("No stacks found for current repository.");
+            return new AddBranchCommandResponse();
         }
 
-        var stackSelection = settings.Stack ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
+        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (stack is null)
+        {
+            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+        }
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
+        var branchName = inputs.BranchName ?? inputProvider.Select(Questions.SelectBranch, branches);
 
-        var branchName = settings.Name ?? console.Prompt(Prompts.Branch(branches));
+        if (stack.Branches.Contains(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
+        }
 
-        console.WriteLine($"Adding branch '{branchName}' to stack '{stack.Name}'");
+        if (!gitOperations.DoesLocalBranchExist(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' does not exist locally.");
+        }
+
+        outputProvider.Information($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
 
         stack.Branches.Add(branchName);
 
         stackConfig.Save(stacks);
 
-        console.WriteLine($"Branch added");
-        return 0;
+        outputProvider.Information($"Branch added");
+
+        return new AddBranchCommandResponse();
     }
 }

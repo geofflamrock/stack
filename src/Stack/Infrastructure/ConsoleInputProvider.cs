@@ -6,7 +6,7 @@ public record ChoiceGroup<T>(T Group, T[] Choices);
 
 public interface IInputProvider
 {
-    string Text(string prompt);
+    string Text(string prompt, string? defaultValue = null);
     string Select(string prompt, string[] choices);
     T Select<T>(string prompt, T[] choices, Func<T, string>? converter = null) where T : notnull;
     T SelectGrouped<T>(string prompt, ChoiceGroup<T>[] choices, Func<T, string>? converter = null) where T : notnull;
@@ -17,7 +17,15 @@ public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
 {
     private readonly IAnsiConsole console = console;
 
-    public string Text(string prompt) => console.Prompt(new TextPrompt<string>(prompt));
+    public string Text(string prompt, string? defaultValue = null)
+    {
+        var textPrompt = new TextPrompt<string>(prompt);
+
+        if (defaultValue is not null)
+            textPrompt.DefaultValue(defaultValue);
+
+        return console.Prompt(textPrompt);
+    }
 
     public string Select(string prompt, string[] choices)
     {
