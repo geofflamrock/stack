@@ -66,7 +66,7 @@ public class CreatePullRequestsCommandHandler(
         }
 
         var currentBranch = gitOperations.GetCurrentBranch();
-        var stack = InputHelpers.SelectStack(inputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {

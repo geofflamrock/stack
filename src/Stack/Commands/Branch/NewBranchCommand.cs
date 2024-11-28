@@ -75,7 +75,7 @@ public class NewBranchCommandHandler(
             return new NewBranchCommandResponse();
         }
 
-        var stack = InputHelpers.SelectStack(inputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {

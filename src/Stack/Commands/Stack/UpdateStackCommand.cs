@@ -66,7 +66,7 @@ public class UpdateStackCommandHandler(
 
         var currentBranch = gitOperations.GetCurrentBranch();
 
-        var stack = InputHelpers.SelectStack(inputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.Name, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
