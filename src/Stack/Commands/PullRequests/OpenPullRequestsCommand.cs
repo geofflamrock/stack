@@ -1,9 +1,10 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -18,13 +19,38 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
 {
     public override async Task<int> ExecuteAsync(CommandContext context, OpenPullRequestsCommandSettings settings)
     {
-        await Task.CompletedTask;
-
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var gitHubOperations = new GitHubOperations(console, settings.GetGitHubOperationSettings());
-        var stackConfig = new StackConfig();
 
+        var handler = new OpenPullRequestsCommandHandler(
+            new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new StackConfig());
+
+        await handler.Handle(new OpenPullRequestsCommandInputs(settings.Name));
+
+        return 0;
+    }
+}
+
+public record OpenPullRequestsCommandInputs(string? StackName)
+{
+    public static OpenPullRequestsCommandInputs Empty => new((string?)null);
+}
+
+public record OpenPullRequestsCommandResponse();
+
+public class OpenPullRequestsCommandHandler(
+    IInputProvider inputProvider,
+    IOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
+    IStackConfig stackConfig)
+{
+    public async Task<OpenPullRequestsCommandResponse> Handle(OpenPullRequestsCommandInputs inputs)
+    {
+        await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
         var remoteUri = gitOperations.GetRemoteUri();
@@ -33,13 +59,19 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
 
         if (stacksForRemote.Count == 0)
         {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
+            outputProvider.Information("No stacks found for current repository.");
+            return new OpenPullRequestsCommandResponse();
         }
 
         var currentBranch = gitOperations.GetCurrentBranch();
-        var stackSelection = settings.Name ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
+        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (stack is null)
+        {
+            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+        }
 
         var pullRequestsInStack = new List<GitHubPullRequest>();
 
@@ -55,18 +87,15 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
 
         if (pullRequestsInStack.Count == 0)
         {
-            console.MarkupLine($"No pull requests found for stack [yellow]{stack.Name}[/]");
-            return 0;
+            outputProvider.Information($"No pull requests found for stack {stack.Name.Branch()}");
+            return new OpenPullRequestsCommandResponse();
         }
 
         foreach (var pullRequest in pullRequestsInStack)
         {
-            Process.Start(new ProcessStartInfo(pullRequest.Url.ToString())
-            {
-                UseShellExecute = true
-            });
+            gitHubOperations.OpenPullRequest(pullRequest);
         }
 
-        return 0;
+        return new OpenPullRequestsCommandResponse();
     }
 }
