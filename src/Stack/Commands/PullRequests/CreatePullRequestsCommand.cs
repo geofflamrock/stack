@@ -104,7 +104,7 @@ public class CreatePullRequestsCommandHandler(
                 {
                     if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
-                        var prTitle = inputProvider.Text(Questions.PulRequestTitle(branch, sourceBranch));
+                        var prTitle = inputProvider.Text(Questions.PullRequestTitle(branch, sourceBranch));
                         outputProvider.Information($"Creating pull request for branch {branch.Branch()} to {sourceBranch.Branch}");
                         var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "");
 
@@ -137,8 +137,8 @@ public class CreatePullRequestsCommandHandler(
                 var prList = pullRequestsInStack
                     .Select(pr => $"- {pr.Url}")
                     .ToList();
-                var prListMarkdown = string.Join("\n", prList);
-                var prBodyMarkdown = $"{stackMarkerStart}\n{stackDescription}\n\n{prListMarkdown}\n{stackMarkerEnd}";
+                var prListMarkdown = string.Join(Environment.NewLine, prList);
+                var prBodyMarkdown = $"{stackMarkerStart}{Environment.NewLine}{stackDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{stackMarkerEnd}";
 
                 foreach (var pullRequest in pullRequestsInStack)
                 {

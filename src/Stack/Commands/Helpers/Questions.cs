@@ -17,7 +17,7 @@ public static class Questions
     public const string AddOrCreateBranch = "Add or create a branch:";
     public const string ConfirmSwitchToBranch = "Do you want to switch to the new branch?";
     public const string ConfirmCreatePullRequests = "Are you sure you want to create/update pull requests for branches in this stack?";
-    public static string PulRequestTitle(string sourceBranch, string targetBranch) => $"Pull request title for branch {sourceBranch.Branch()} to {targetBranch.Branch()}:";
+    public static string PullRequestTitle(string sourceBranch, string targetBranch) => $"Pull request title for branch {sourceBranch.Branch()} to {targetBranch.Branch()}:";
     public const string PullRequestStackDescription = "Stack description for pull request:";
     public const string OpenPullRequests = "Open the pull requests in the browser?";
 }
