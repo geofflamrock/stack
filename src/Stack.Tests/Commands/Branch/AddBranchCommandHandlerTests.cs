@@ -115,6 +115,7 @@ public class AddBranchCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-5");
 
         // Act
         await handler.Handle(new AddBranchCommandInputs(null, null));
