@@ -31,7 +31,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -65,7 +66,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -99,7 +101,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -133,7 +136,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -166,7 +170,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -199,7 +204,8 @@ public class CleanupStackCommandHandlerTests
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
+            new("Stack2", remoteUri, "branch-3", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -211,5 +217,38 @@ public class CleanupStackCommandHandlerTests
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
+    }
+
+    [Fact]
+    public async Task WhenOnlyASingleStackExists_StackIsSelectedAutomatically()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
+        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+
+        // Act
+        await handler.Handle(new CleanupStackCommandInputs(null, true));
+
+        // Assert
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
 }

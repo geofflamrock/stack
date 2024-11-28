@@ -367,4 +367,69 @@ public class StackStatusCommandHandlerTests
             }
         });
     }
+
+    [Fact]
+    public async Task WhenOnlyOneStackExists_DoesNotAskForStackName_ReturnsStatus()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1]);
+        stackConfig.Load().Returns(stacks);
+
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
+
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetStatusOfRemoteBranch("branch-3", "branch-1")
+            .Returns((10, 5));
+
+        gitOperations
+            .GetStatusOfRemoteBranch("branch-5", "branch-3")
+            .Returns((1, 0));
+
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+
+        gitHubOperations
+            .GetPullRequest("branch-3")
+            .Returns(pr);
+
+        // Act
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+
+        // Assert
+        var expectedBranchDetails = new Dictionary<string, BranchDetail>
+        {
+            { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
+            { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+        };
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
+        {
+            {
+                stack1, new(expectedBranchDetails)
+            }
+        });
+
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+    }
 }

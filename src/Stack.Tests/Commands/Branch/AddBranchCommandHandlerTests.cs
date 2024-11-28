@@ -92,6 +92,43 @@ public class AddBranchCommandHandlerTests
     }
 
     [Fact]
+    public async Task WhenOnlyOneStackExists_DoesNotAskForStackName_AddsBranchFromStack()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-3"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-5");
+
+        // Act
+        await handler.Handle(new AddBranchCommandInputs(null, null));
+
+        // Assert
+        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
+        });
+    }
+
+    [Fact]
     public async Task WhenStackNameProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange

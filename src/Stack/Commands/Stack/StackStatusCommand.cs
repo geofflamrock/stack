@@ -77,12 +77,11 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
-            var stackSelection = inputs.Name ?? inputProvider.Select(Questions.SelectStack, stackNames);
-            var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+            var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.Name, stacksForRemote, currentBranch);
+
             if (stack is null)
             {
-                throw new InvalidOperationException($"Stack '{stackSelection}' not found.");
+                throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
             }
 
             stacksToCheckStatusFor.Add(stack, new StackStatus([]));

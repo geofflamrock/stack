@@ -65,10 +65,7 @@ public class RemoveBranchCommandHandler(
         var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-
-        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
-        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
-        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
