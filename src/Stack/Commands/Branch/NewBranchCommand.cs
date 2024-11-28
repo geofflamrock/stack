@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -15,6 +17,10 @@ public class NewBranchCommandSettings : DryRunCommandSettingsBase
     [Description("The name of the branch to create.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("Force creating the branch without prompting.")]
+    [CommandOption("-f|--force")]
+    public bool Force { get; init; }
 }
 
 public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
@@ -24,12 +30,40 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
-        var stackConfig = new StackConfig();
+
+        var handler = new NewBranchCommandHandler(
+            new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
+            new GitOperations(console, settings.GetGitOperationSettings()),
+            new StackConfig());
+
+        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Force));
+
+        return 0;
+    }
+}
+
+public record NewBranchCommandInputs(string? StackName, string? BranchName, bool Force)
+{
+    public static NewBranchCommandInputs Empty => new(null, null, false);
+}
+
+public record NewBranchCommandResponse();
+
+public class NewBranchCommandHandler(
+    IInputProvider inputProvider,
+    IOutputProvider outputProvider,
+    IGitOperations gitOperations,
+    IStackConfig stackConfig)
+{
+    public async Task<NewBranchCommandResponse> Handle(NewBranchCommandInputs inputs)
+    {
+        await Task.CompletedTask;
 
         var defaultBranch = gitOperations.GetDefaultBranch();
         var remoteUri = gitOperations.GetRemoteUri();
         var currentBranch = gitOperations.GetCurrentBranch();
+        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
         var stacks = stackConfig.Load();
 
@@ -37,18 +71,34 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            console.WriteLine("No stacks found for current repository.");
-            return 0;
+            outputProvider.Information("No stacks found for current repository.");
+            return new NewBranchCommandResponse();
         }
 
-        var stackSelection = settings.Stack ?? console.Prompt(Prompts.Stack(stacksForRemote, currentBranch));
-        var stack = stacksForRemote.First(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
+        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+
+        if (stack is null)
+        {
+            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+        }
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
-        var branchName = settings.Name ?? console.Prompt(new TextPrompt<string>("Branch name:"));
+        var branchName = inputs.BranchName ?? inputProvider.Text(Questions.BranchName);
 
-        console.WriteLine($"Creating branch '{branchName}' from '{sourceBranch}' in stack '{stack.Name}'");
+        if (stack.Branches.Contains(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
+        }
+
+        if (gitOperations.DoesLocalBranchExist(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
+        }
+
+        outputProvider.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
 
         gitOperations.CreateNewBranch(branchName, sourceBranch);
         gitOperations.PushNewBranch(branchName);
@@ -57,15 +107,13 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
 
         stackConfig.Save(stacks);
 
-        console.WriteLine($"Branch created");
+        outputProvider.Information($"Branch created");
 
-        var switchToNewBranch = console.Prompt(new ConfirmationPrompt("Do you want to switch to the new branch?"));
-
-        if (switchToNewBranch)
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
         {
             gitOperations.ChangeBranch(branchName);
         }
 
-        return 0;
+        return new NewBranchCommandResponse();
     }
 }
