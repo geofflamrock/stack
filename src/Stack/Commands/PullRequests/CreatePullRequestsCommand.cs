@@ -75,15 +75,16 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        // await new StackStatusCommand()
-        //     .ExecuteAsync(context, new StackStatusCommandSettings
-        //     {
-        //         Name = stack.Name,
-        //         WorkingDirectory = settings.WorkingDirectory,
-        //         Verbose = settings.Verbose
-        //     });
+        var stackStatusCommandHandler = new StackStatusCommandHandler(
+            inputProvider,
+            outputProvider,
+            gitOperations,
+            gitHubOperations,
+            stackConfig);
 
-        // console.WriteLine();
+        await stackStatusCommandHandler.Handle(new StackStatusCommandInputs(stack.Name, false));
+
+        outputProvider.NewLine();
 
         if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
         {
