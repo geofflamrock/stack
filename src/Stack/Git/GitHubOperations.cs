@@ -42,6 +42,7 @@ public interface IGitHubOperations
     GitHubPullRequest? GetPullRequest(string branch);
     GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body);
     void EditPullRequest(int number, string body);
+    void OpenPullRequest(GitHubPullRequest pullRequest);
 }
 
 public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings settings) : IGitHubOperations
@@ -70,6 +71,11 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
     public void EditPullRequest(int number, string body)
     {
         ExecuteGitHubCommand($"pr edit {number} --body \"{body}\"");
+    }
+
+    public void OpenPullRequest(GitHubPullRequest pullRequest)
+    {
+        ExecuteGitHubCommand($"pr view {pullRequest.Number} --web");
     }
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)
