@@ -75,9 +75,7 @@ public class NewBranchCommandHandler(
             return new NewBranchCommandResponse();
         }
 
-        var stackNames = stacksForRemote.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
-        var stackSelection = inputs.StackName ?? inputProvider.Select(Questions.SelectStack, stackNames);
-        var stack = stacksForRemote.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stack = InputHelpers.SelectStack(inputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
