@@ -89,6 +89,8 @@ public class NewStackCommandHandler(
 
         var sourceBranch = inputs.SourceBranch ?? inputProvider.Select(Questions.SelectSourceBranch, branches);
 
+        outputProvider.Information($"Source branch: {sourceBranch.Branch()}");
+
         var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri();
         var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
