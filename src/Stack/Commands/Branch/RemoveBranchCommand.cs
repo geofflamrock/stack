@@ -72,14 +72,14 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputs.BranchName ?? inputProvider.Select(Questions.SelectBranch, [.. stack.Branches]);
+        var branchName = InputHelpers.SelectBranch(inputProvider, outputProvider, inputs.BranchName, [.. stack.Branches]);
 
         if (!stack.Branches.Contains(branchName))
         {
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmRemoveBranch(stack.Name, branchName)))
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {
             stack.Branches.Remove(branchName);
             stackConfig.Save(stacks);

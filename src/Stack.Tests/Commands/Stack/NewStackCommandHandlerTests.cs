@@ -18,7 +18,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -58,7 +59,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -98,7 +100,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -136,7 +139,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -177,7 +181,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -217,7 +222,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -255,7 +261,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -293,7 +300,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -335,7 +343,8 @@ public class NewStackCommandHandlerTests
         var gitOperations = Substitute.For<IGitOperations>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var handler = new NewStackCommandHandler(inputProvider, gitOperations, stackConfig);
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 

@@ -28,5 +28,18 @@ public static class InputHelpers
 
         return stack;
     }
+
+    public static string SelectBranch(
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        string? name,
+        string[] branches)
+    {
+        var branch = name ?? inputProvider.Select(Questions.SelectBranch, branches);
+
+        outputProvider.Information($"Branch name: {branch.Branch()}");
+
+        return branch;
+    }
 }
 

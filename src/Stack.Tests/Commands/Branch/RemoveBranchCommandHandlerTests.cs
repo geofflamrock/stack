@@ -38,7 +38,7 @@ public class RemoveBranchCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
@@ -77,7 +77,7 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs("Stack1", null, false));
@@ -147,7 +147,7 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs(null, "branch-3", false));
@@ -230,7 +230,7 @@ public class RemoveBranchCommandHandlerTests
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         });
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3"));
+        inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch);
     }
 
     [Fact]
@@ -295,7 +295,7 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch("Stack1", "branch-3")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs(null, null, false));

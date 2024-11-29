@@ -42,6 +42,7 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
         var console = AnsiConsole.Console;
         var handler = new NewStackCommandHandler(
             new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
@@ -74,6 +75,7 @@ public record NewStackCommandResponse(string StackName, string SourceBranch, Bra
 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
+    IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IStackConfig stackConfig)
 {
@@ -106,7 +108,7 @@ public class NewStackCommandHandler(
             }
             else
             {
-                branchName = inputProvider.Select(Questions.SelectBranch, branches);
+                branchName = InputHelpers.SelectBranch(inputProvider, outputProvider, null, branches);
             }
         }
 

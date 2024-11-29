@@ -74,7 +74,7 @@ public class DeleteStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack(stack.Name)))
+        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
             var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
 
