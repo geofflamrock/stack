@@ -83,13 +83,11 @@ public class NewStackCommandHandler(
     {
         await Task.CompletedTask;
 
-        var name = inputs.Name ?? inputProvider.Text(Questions.StackName);
+        var name = inputProvider.Text(outputProvider, Questions.StackName, inputs.Name);
 
         var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var sourceBranch = inputs.SourceBranch ?? inputProvider.Select(Questions.SelectSourceBranch, branches);
-
-        outputProvider.Information($"Source branch: {sourceBranch.Branch()}");
+        var sourceBranch = inputProvider.Select(outputProvider, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
 
         var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri();
@@ -103,14 +101,14 @@ public class NewStackCommandHandler(
 
             if (branchAction == BranchAction.Create)
             {
-                branchName = inputs.BranchName ?? inputProvider.Text(Questions.BranchName);
+                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName);
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
                 gitOperations.PushNewBranch(branchName);
             }
             else
             {
-                branchName = InputHelpers.SelectBranch(inputProvider, outputProvider, null, branches);
+                branchName = inputProvider.SelectBranch(outputProvider, null, branches);
             }
         }
 

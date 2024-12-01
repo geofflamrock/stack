@@ -65,14 +65,14 @@ public class RemoveBranchCommandHandler(
         var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = InputHelpers.SelectBranch(inputProvider, outputProvider, inputs.BranchName, [.. stack.Branches]);
+        var branchName = inputProvider.SelectBranch(outputProvider, inputs.BranchName, [.. stack.Branches]);
 
         if (!stack.Branches.Contains(branchName))
         {

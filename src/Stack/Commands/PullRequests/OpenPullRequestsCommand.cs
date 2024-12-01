@@ -64,7 +64,7 @@ public class OpenPullRequestsCommandHandler(
         }
 
         var currentBranch = gitOperations.GetCurrentBranch();
-        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {

@@ -67,7 +67,7 @@ public class DeleteStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
 
         if (stack is null)
         {

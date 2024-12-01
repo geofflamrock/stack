@@ -5,10 +5,64 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands.Helpers;
 
-public static class InputHelpers
+public static class InputProviderExtensionMethods
 {
+    public static string Text(
+        this IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        string prompt,
+        string? presetValue,
+        string? defaultValue = null)
+    {
+        if (presetValue is not null)
+        {
+            outputProvider.Information($"{prompt} {presetValue.ToInputDisplay()}");
+
+            return presetValue;
+        }
+
+        return inputProvider.Text(prompt, defaultValue);
+    }
+
+    public static string Select(
+        this IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        string prompt,
+        string? presetValue,
+        string[] choices)
+    {
+        if (presetValue is not null)
+        {
+            outputProvider.Information($"{prompt} {presetValue.ToInputDisplay()}");
+
+            return presetValue;
+        }
+
+        return inputProvider.Select(prompt, choices);
+    }
+
+    public static T Select<T>(
+        this IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        string prompt,
+        T? presetValue,
+        T[] choices,
+        Func<T, string>? converter = null)
+        where T : notnull
+    {
+        if (presetValue is not null)
+        {
+            var convertedValue = converter?.Invoke(presetValue) ?? presetValue.ToString()!;
+            outputProvider.Information($"{prompt} {convertedValue.ToInputDisplay()}");
+
+            return presetValue;
+        }
+
+        return inputProvider.Select(prompt, choices, converter);
+    }
+
     public static Config.Stack? SelectStack(
-        IInputProvider inputProvider,
+        this IInputProvider inputProvider,
         IOutputProvider outputProvider,
         string? name,
         List<Config.Stack> stacks,
@@ -23,23 +77,19 @@ public static class InputHelpers
 
         if (stack is not null)
         {
-            outputProvider.Information($"Stack name: {stack.Name.Stack()}");
+            outputProvider.Information($"{Questions.SelectStack} {stack.Name.Stack()}");
         }
 
         return stack;
     }
 
     public static string SelectBranch(
-        IInputProvider inputProvider,
+        this IInputProvider inputProvider,
         IOutputProvider outputProvider,
         string? name,
         string[] branches)
     {
-        var branch = name ?? inputProvider.Select(Questions.SelectBranch, branches);
-
-        outputProvider.Information($"Branch name: {branch.Branch()}");
-
-        return branch;
+        return inputProvider.Select(outputProvider, Questions.SelectBranch, name, branches);
     }
 }
 
