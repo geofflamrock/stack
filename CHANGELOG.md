@@ -1,3 +1,15 @@
+# v0.2.1 (Sun Dec 01 2024)
+
+#### 🐛 Bug Fix
+
+- Improves input selection [#82](https://github.com/geofflamrock/stack/pull/82) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.2.0 (Thu Nov 28 2024)
 
 #### 🚀 New Feature
