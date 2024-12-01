@@ -31,14 +31,11 @@ public static class InputProviderExtensionMethods
         string? presetValue,
         string[] choices)
     {
-        if (presetValue is not null)
-        {
-            outputProvider.Information($"{prompt} {presetValue.ToInputDisplay()}");
+        var selection = presetValue ?? inputProvider.Select(prompt, choices);
 
-            return presetValue;
-        }
+        outputProvider.Information($"{prompt} {selection.ToInputDisplay()}");
 
-        return inputProvider.Select(prompt, choices);
+        return selection;
     }
 
     public static T Select<T>(
@@ -48,17 +45,14 @@ public static class InputProviderExtensionMethods
         T? presetValue,
         T[] choices,
         Func<T, string>? converter = null)
-        where T : notnull
     {
-        if (presetValue is not null)
-        {
-            var convertedValue = converter?.Invoke(presetValue) ?? presetValue.ToString()!;
-            outputProvider.Information($"{prompt} {convertedValue.ToInputDisplay()}");
+#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+        var selection = presetValue ?? inputProvider.Select(prompt, choices, converter);
+#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
 
-            return presetValue;
-        }
+        outputProvider.Information($"{prompt} {converter?.Invoke(selection)?.ToInputDisplay() ?? selection!.ToString()!.ToInputDisplay()}");
 
-        return inputProvider.Select(prompt, choices, converter);
+        return selection;
     }
 
     public static Config.Stack? SelectStack(

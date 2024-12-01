@@ -97,7 +97,13 @@ public class NewStackCommandHandler(
 
         if (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch))
         {
-            branchAction = inputs.BranchName is not null ? BranchAction.Create : inputProvider.Select(Questions.AddOrCreateBranch, [BranchAction.Create, BranchAction.Add], action => action.Humanize()); ;
+            BranchAction? presetBranchAction = inputs.BranchName is not null ? BranchAction.Create : null;
+            branchAction = inputProvider.Select(
+                outputProvider,
+                Questions.AddOrCreateBranch,
+                presetBranchAction,
+                [BranchAction.Create, BranchAction.Add],
+                action => action.Humanize());
 
             if (branchAction == BranchAction.Create)
             {
