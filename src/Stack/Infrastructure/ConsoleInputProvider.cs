@@ -19,7 +19,7 @@ public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
 
     public string Text(string prompt, string? defaultValue = null)
     {
-        var textPrompt = new TextPrompt<string>(prompt);
+        var textPrompt = new TextPrompt<string>(prompt).PromptStyle(Style.Parse("blue"));
 
         if (defaultValue is not null)
             textPrompt.DefaultValue(defaultValue);

@@ -42,6 +42,7 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
         var console = AnsiConsole.Console;
         var handler = new NewStackCommandHandler(
             new ConsoleInputProvider(console),
+            new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
@@ -74,6 +75,7 @@ public record NewStackCommandResponse(string StackName, string SourceBranch, Bra
 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
+    IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IStackConfig stackConfig)
 {
@@ -81,11 +83,11 @@ public class NewStackCommandHandler(
     {
         await Task.CompletedTask;
 
-        var name = inputs.Name ?? inputProvider.Text(Questions.StackName);
+        var name = inputProvider.Text(outputProvider, Questions.StackName, inputs.Name);
 
         var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var sourceBranch = inputs.SourceBranch ?? inputProvider.Select(Questions.SelectSourceBranch, branches);
+        var sourceBranch = inputProvider.Select(outputProvider, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
 
         var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri();
@@ -95,18 +97,23 @@ public class NewStackCommandHandler(
 
         if (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch))
         {
-            branchAction = inputs.BranchName is not null ? BranchAction.Create : inputProvider.Select(Questions.AddOrCreateBranch, [BranchAction.Create, BranchAction.Add], action => action.Humanize()); ;
+            branchAction = inputs.BranchName is not null ? BranchAction.Create : inputProvider.Select(
+                Questions.AddOrCreateBranch,
+                [BranchAction.Create, BranchAction.Add],
+                action => action.Humanize());
+
+            outputProvider.Information($"{Questions.AddOrCreateBranch} {branchAction.Humanize()}");
 
             if (branchAction == BranchAction.Create)
             {
-                branchName = inputs.BranchName ?? inputProvider.Text(Questions.BranchName);
+                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName);
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
                 gitOperations.PushNewBranch(branchName);
             }
             else
             {
-                branchName = inputProvider.Select(Questions.SelectBranch, branches);
+                branchName = inputProvider.SelectBranch(outputProvider, null, branches);
             }
         }
 

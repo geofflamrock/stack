@@ -38,7 +38,7 @@ public class DeleteStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act
         var response = await handler.Handle(DeleteStackCommandInputs.Empty);
@@ -78,7 +78,7 @@ public class DeleteStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(false);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(false);
 
         // Act
         var response = await handler.Handle(DeleteStackCommandInputs.Empty);
@@ -118,7 +118,7 @@ public class DeleteStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act
         var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
@@ -171,7 +171,7 @@ public class DeleteStackCommandHandlerTests
             new("Stack2", remoteUri, "branch-2", [])
         });
 
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack("Stack1"));
+        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class DeleteStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act and assert
         await handler
@@ -278,7 +278,7 @@ public class DeleteStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
@@ -318,7 +318,7 @@ public class DeleteStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack("Stack1")).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act
         var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));

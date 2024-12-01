@@ -71,7 +71,7 @@ public class AddBranchCommandHandler(
             return new AddBranchCommandResponse();
         }
 
-        var stack = InputHelpers.SelectStack(inputProvider, outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -79,7 +79,7 @@ public class AddBranchCommandHandler(
         }
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
-        var branchName = inputs.BranchName ?? inputProvider.Select(Questions.SelectBranch, branches);
+        var branchName = inputProvider.SelectBranch(outputProvider, inputs.BranchName, branches);
 
         if (stack.Branches.Contains(branchName))
         {
