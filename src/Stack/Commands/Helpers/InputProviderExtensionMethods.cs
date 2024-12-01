@@ -38,23 +38,6 @@ public static class InputProviderExtensionMethods
         return selection;
     }
 
-    public static T Select<T>(
-        this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
-        string prompt,
-        T? presetValue,
-        T[] choices,
-        Func<T, string>? converter = null)
-    {
-#pragma warning disable CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-        var selection = presetValue ?? inputProvider.Select(prompt, choices, converter);
-#pragma warning restore CS8714 // The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
-
-        outputProvider.Information($"{prompt} {converter?.Invoke(selection)?.ToInputDisplay() ?? selection!.ToString()!.ToInputDisplay()}");
-
-        return selection;
-    }
-
     public static Config.Stack? SelectStack(
         this IInputProvider inputProvider,
         IOutputProvider outputProvider,
