@@ -32,8 +32,13 @@
       "changelogTitle": "🐛 Bug Fix",
       "description": "Increment the patch version when merged",
       "releaseType": "patch",
-      "color": "#870048",
-      "default": true
+      "color": "#870048"
+    },
+    {
+      "name": "release",
+      "changelogTitle": "",
+      "description": "Release the next version when merged",
+      "releaseType": "release"
     },
     {
       "name": "dependencies",
@@ -74,6 +79,13 @@
       "changelogTitle": "🤖 Automation",
       "description": "Changes to automation such as CI",
       "releaseType": "none"
+    },
+    {
+      "name": "chore",
+      "changelogTitle": "",
+      "description": "Chore that should not be included in release notes",
+      "releaseType": "none",
+      "default": true
     }
   ]
 }
