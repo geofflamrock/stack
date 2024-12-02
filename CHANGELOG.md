@@ -1,3 +1,16 @@
+# v0.2.2 (Mon Dec 02 2024)
+
+#### 🐛 Bug Fix
+
+- Fixes issue with double stack name output [#85](https://github.com/geofflamrock/stack/pull/85) ([@geofflamrock](https://github.com/geofflamrock))
+- Don't include branch in update when PR is merged [#83](https://github.com/geofflamrock/stack/pull/83) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.2.1 (Sun Dec 01 2024)
 
 #### 🐛 Bug Fix
