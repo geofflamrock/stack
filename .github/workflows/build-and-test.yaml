@@ -238,7 +238,7 @@ jobs:
 
   versioning_pr:
     name: Create versioning pull request
-    needs: [version]
+    needs: [version, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
