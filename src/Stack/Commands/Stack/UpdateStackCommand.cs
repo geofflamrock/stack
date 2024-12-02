@@ -29,6 +29,7 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Force));
@@ -48,6 +49,7 @@ public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
+    IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
     public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
@@ -87,14 +89,17 @@ public class UpdateStackCommandHandler(
 
             foreach (var branch in stack.Branches)
             {
-                if (gitOperations.DoesRemoteBranchExist(branch))
+                var pullRequest = gitHubOperations.GetPullRequest(branch);
+
+                if (gitOperations.DoesRemoteBranchExist(branch) &&
+                    (pullRequest is null || pullRequest.State != GitHubPullRequestStates.Merged))
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
                 }
                 else
                 {
-                    outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository. Skipping...");
+                    outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
                 }
             }
 
