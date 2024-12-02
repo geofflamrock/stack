@@ -27,25 +27,25 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName).Returns("branch-5");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("branch-5");
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         await handler.Handle(NewBranchCommandInputs.Empty);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -69,25 +69,25 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName).Returns("branch-5");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("branch-5");
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
         await handler.Handle(NewBranchCommandInputs.Empty);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -111,15 +111,15 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Text(Questions.BranchName).Returns("branch-5");
 
@@ -128,7 +128,7 @@ public class NewBranchCommandHandlerTests
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -151,14 +151,14 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Text(Questions.BranchName).Returns("branch-5");
 
@@ -167,7 +167,7 @@ public class NewBranchCommandHandlerTests
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
         });
@@ -188,7 +188,7 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -219,15 +219,15 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -235,7 +235,7 @@ public class NewBranchCommandHandlerTests
         await handler.Handle(new NewBranchCommandInputs(null, "branch-5", false));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -259,7 +259,7 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -292,7 +292,7 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -324,25 +324,67 @@ public class NewBranchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         // Act
         await handler.Handle(new NewBranchCommandInputs("Stack1", "branch-5", true));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task WhenStackHasANameWithMultipleWords_SuggestsAGoodDefaultNewBranchName()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
+
+        var stacks = new List<global::Stack.Models.Stack>(
+        [
+            new("A stack with multiple words", remoteUri, "branch-1", ["branch-3"]),
+            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("A stack with multiple words");
+        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-2").Returns("branch-5");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
+
+        // Act
+        await handler.Handle(NewBranchCommandInputs.Empty);
+
+        // Assert
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        {
+            new("A stack with multiple words", remoteUri, "branch-1", ["branch-3", "branch-5"]),
+            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+        });
+        gitOperations.Received().ChangeBranch("branch-5");
     }
 }

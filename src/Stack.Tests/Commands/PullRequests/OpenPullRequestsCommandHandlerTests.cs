@@ -27,15 +27,15 @@ public class OpenPullRequestsCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -73,15 +73,15 @@ public class OpenPullRequestsCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -116,7 +116,7 @@ public class OpenPullRequestsCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -157,7 +157,7 @@ public class OpenPullRequestsCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
         ]);
@@ -197,7 +197,7 @@ public class OpenPullRequestsCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])

@@ -48,7 +48,7 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
 }
 
 public record StackStatusCommandInputs(string? Name, bool All);
-public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
+public record StackStatusCommandResponse(Dictionary<Models.Stack, StackStatus> Statuses);
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
@@ -66,7 +66,7 @@ public class StackStatusCommandHandler(
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
         var currentBranch = gitOperations.GetCurrentBranch();
 
-        var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
+        var stacksToCheckStatusFor = new Dictionary<Models.Stack, StackStatus>();
 
         if (inputs.All)
         {

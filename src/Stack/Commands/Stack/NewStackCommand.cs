@@ -91,7 +91,7 @@ public class NewStackCommandHandler(
 
         var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri();
-        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Models.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 
@@ -106,7 +106,7 @@ public class NewStackCommandHandler(
 
             if (branchAction == BranchAction.Create)
             {
-                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName);
+                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
                 gitOperations.PushNewBranch(branchName);

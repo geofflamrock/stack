@@ -26,15 +26,15 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
@@ -44,7 +44,7 @@ public class RemoveBranchCommandHandlerTests
         await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -66,15 +66,15 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -84,7 +84,7 @@ public class RemoveBranchCommandHandlerTests
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -106,7 +106,7 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -136,15 +136,15 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -153,7 +153,7 @@ public class RemoveBranchCommandHandlerTests
         await handler.Handle(new RemoveBranchCommandInputs(null, "branch-3", false));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -176,7 +176,7 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -208,15 +208,15 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
@@ -225,7 +225,7 @@ public class RemoveBranchCommandHandlerTests
         await handler.Handle(new RemoveBranchCommandInputs(null, null, true));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -248,21 +248,21 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs("Stack1", "branch-3", true));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -285,14 +285,14 @@ public class RemoveBranchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<Config.Stack>(
+        var stacks = new List<global::Stack.Models.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -301,7 +301,7 @@ public class RemoveBranchCommandHandlerTests
         await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-5"])
         });

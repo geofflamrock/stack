@@ -38,11 +38,11 @@ public static class InputProviderExtensionMethods
         return selection;
     }
 
-    public static Config.Stack? SelectStack(
+    public static Models.Stack? SelectStack(
         this IInputProvider inputProvider,
         IOutputProvider outputProvider,
         string? name,
-        List<Config.Stack> stacks,
+        List<Models.Stack> stacks,
         string currentBranch)
     {
         var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();

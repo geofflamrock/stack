@@ -84,7 +84,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
-        var branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName);
+        var branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
         if (stack.Branches.Contains(branchName))
         {
