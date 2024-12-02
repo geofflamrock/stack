@@ -9,7 +9,7 @@ public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDir
     public static GitOperationSettings Default => new(false, false, null);
 }
 
-
+public record Commit(string Sha, string Message, bool IsMerge);
 
 public interface IGitOperations
 {
@@ -31,6 +31,7 @@ public interface IGitOperations
     bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName);
     string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
     (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
+    Commit[] GetCommitsBetweenBranches(string branch, string sourceBranchName);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
 }
@@ -140,6 +141,17 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public Commit[] GetCommitsBetweenBranches(string branch, string sourceBranchName)
+    {
+        var commits = ExecuteGitCommandAndReturnOutput($"log --pretty=format:\"%H|%s|%P\" {sourceBranchName}..{branch}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        return commits.Select(c =>
+        {
+            var parts = c.Split('|');
+            var parentCommitHashes = parts[2].Split(' ');
+            return new Commit(parts[0], parts[1], parentCommitHashes.Length > 1);
+        }).Reverse().ToArray();
     }
 
     public string GetRemoteUri()

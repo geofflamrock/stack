@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Text;
+using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
@@ -25,7 +26,7 @@ public class BranchDetail
     public BranchStatus Status { get; set; } = new(false, false, 0, 0);
     public GitHubPullRequest? PullRequest { get; set; }
 }
-public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int Ahead, int Behind);
+public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int Ahead, int Behind, Commit[]? Commits = null);
 public record StackStatus(Dictionary<string, BranchDetail> Branches);
 
 public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
@@ -101,7 +102,8 @@ public class StackStatusCommandHandler(
                 {
                     var branchExistsLocally = branchesThatExistLocally.Contains(branch);
                     var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch);
-                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind);
+                    var commits = gitOperations.GetCommitsBetweenBranches(branch, sourceBranch);
+                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind, commits);
                     status.Branches[branch].Status = branchStatus;
                 }
 
@@ -221,8 +223,8 @@ public class StackStatusCommandHandler(
             bool BranchCouldBeCleanedUp(BranchDetail branchDetail)
             {
                 return branchDetail.Status.ExistsLocally &&
-                        (!branchDetail.Status.ExistsInRemote ||
-                        branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open);
+                    (!branchDetail.Status.ExistsInRemote ||
+                    branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open);
             }
 
             if (status.Branches.Values.All(branch => BranchCouldBeCleanedUp(branch)))
@@ -253,6 +255,21 @@ public class StackStatusCommandHandler(
                 outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
                 outputProvider.NewLine();
                 outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+            }
+
+            foreach (var (branch, branchDetail) in status.Branches)
+            {
+                if (branchDetail.Status.Commits is not null)
+                {
+                    outputProvider.NewLine();
+                    outputProvider.Information($"Commits between {stack.SourceBranch.Branch()} and {branch.Branch()}:");
+                    outputProvider.NewLine();
+                    foreach (var commit in branchDetail.Status.Commits)
+                    {
+                        var commitMessage = commit.IsMerge ? commit.Message.Truncate(80).Muted() : commit.Message.Truncate(80);
+                        outputProvider.Information($"{commit.Sha[..7].Stack()} {commitMessage}");
+                    }
+                }
             }
         }
 
