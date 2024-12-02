@@ -21,6 +21,7 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
       next_release_version: ${{ steps.get_next_release_version.outputs.version }}
       create_release: ${{ steps.set_create_release.outputs.create_release }}
+      has_unreleased_changes: ${{ steps.set_has_unreleased_changes.outputs.has_unreleased_changes }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -42,7 +43,7 @@ jobs:
 
       - name: Get next release semver bump type
         id: get_next_release_semver_bump_type
-        run: echo "bump_type=$(${{ runner.temp }}/auto version)" >> $GITHUB_OUTPUT
+        run: echo "bump_type=$(${{ runner.temp }}/auto version --only-publish-with-release-label)" >> $GITHUB_OUTPUT
 
       - name: Print next release semver bump type
         run: echo "${{ steps.get_next_release_semver_bump_type.outputs.bump_type }}"
@@ -65,6 +66,10 @@ jobs:
       - name: Set whether to create a release
         id: set_create_release
         run: echo "create_release=${{ github.ref == 'refs/heads/main' && steps.get_next_release_semver_bump_type.outputs.bump_type != '' }}" >> $GITHUB_OUTPUT
+
+      - name: Set whether there are unreleased changes
+        id: set_has_unreleased_changes
+        run: echo "has_unreleased_changes=${{ steps.get_next_release_semver_bump_type.outputs.bump_type == '' && steps.get_next_release_version.outputs.version != '' }}" >> $GITHUB_OUTPUT
 
       - name: Get version
         id: get_version
@@ -229,4 +234,50 @@ jobs:
           chmod +x ${{ runner.temp }}/auto
 
       - name: Release
-        run: ${{ runner.temp }}/auto shipit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
+        run: ${{ runner.temp }}/auto shipit --no-changelog --only-publish-with-release-label --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
+
+  versioning_pr:
+    name: Create versioning pull request
+    needs: [version]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    if: github.ref == 'refs/heads/main' && needs.version.outputs.has_unreleased_changes == 'true'
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
+      - name: Download auto
+        run: |
+          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          chmod +x ${{ runner.temp }}/auto
+
+      - name: Update changelog
+        id: update_changelog
+        run: |
+          echo "changes<<EOF" >> $GITHUB_ENV
+          echo "$(${{ runner.temp }}/auto changelog --quiet --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com)" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create versioning pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/release
+          title: Release version `${{ needs.version.outputs.next_release_version }}`
+          commit-message: Release version `${{ needs.version.outputs.next_release_version }}`
+          labels: |
+            release
+            chore
+          body: |
+            This PR will release version `${{ needs.version.outputs.next_release_version }}`
+
+            ## Changes
+            ${{ env.changes }}
+
+            ## Releasing a new version
+            To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
+            If you don't see your changes in the list above, please check your PR is tagged with an appropriate label to include your change in the release notes.
