@@ -73,14 +73,13 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var stackStatusCommandHandler = new StackStatusCommandHandler(
-            inputProvider,
+        StackStatusHelpers.CheckStackStatus(
+            [stack],
+            currentBranch,
             outputProvider,
             gitOperations,
             gitHubOperations,
-            stackConfig);
-
-        await stackStatusCommandHandler.Handle(new StackStatusCommandInputs(stack.Name, false));
+            false);
 
         outputProvider.NewLine();
 
