@@ -36,7 +36,7 @@ public class NewStackCommandHandlerTests
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName).Returns("new-branch");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("new-branch");
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act

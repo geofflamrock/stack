@@ -121,7 +121,7 @@ public class NewBranchCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
-        inputProvider.Text(Questions.BranchName).Returns("branch-5");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("branch-5");
 
         // Act
         await handler.Handle(new NewBranchCommandInputs("Stack1", null, false));
@@ -160,7 +160,7 @@ public class NewBranchCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
 
-        inputProvider.Text(Questions.BranchName).Returns("branch-5");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("branch-5");
 
         // Act
         await handler.Handle(new NewBranchCommandInputs(null, null, false));
