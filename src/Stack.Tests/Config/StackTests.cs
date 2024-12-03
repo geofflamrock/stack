@@ -11,7 +11,7 @@ public class StackTests
     public void GetDefaultBranchName_WhenNoBranchesInStack_ShouldReturnBranchNameWithTheNumber1AtTheEnd_BecauseItIsTheFirstBranch()
     {
         // Arrange
-        var stack = new Stack.Config.Stack("Test Stack", Some.HttpsUri().ToString(), "branch-1", []);
+        var stack = new Config.Stack("Test Stack", Some.HttpsUri().ToString(), "branch-1", []);
 
         // Act
         var branch = stack.GetDefaultBranchName();
@@ -24,7 +24,7 @@ public class StackTests
     public void GetDefaultBranchName_WhenMultipleBranchesInStack_ShouldReturnBranchNameWithCorrectNumberAtTheEnd()
     {
         // Arrange
-        var stack = new Stack.Config.Stack("Test Stack", Some.HttpsUri().ToString(), "branch-1", ["branch-2", "branch-3"]);
+        var stack = new Config.Stack("Test Stack", Some.HttpsUri().ToString(), "branch-1", ["branch-2", "branch-3"]);
 
         // Act
         var branch = stack.GetDefaultBranchName();
