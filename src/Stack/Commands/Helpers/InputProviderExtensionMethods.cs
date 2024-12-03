@@ -54,7 +54,7 @@ public static class InputProviderExtensionMethods
 
         if (stack is not null)
         {
-            outputProvider.Information($"{Questions.SelectStack} {stack.Name.Stack()}");
+            outputProvider.Information($"{Questions.SelectStack} {stack.Name.ToInputDisplay()}");
         }
 
         return stack;

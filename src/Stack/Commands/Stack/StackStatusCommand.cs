@@ -66,14 +66,11 @@ public class StackStatusCommandHandler(
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
         var currentBranch = gitOperations.GetCurrentBranch();
 
-        var stacksToCheckStatusFor = new Dictionary<Models.Stack, StackStatus>();
+        var stacksToCheckStatusFor = new List<Models.Stack>();
 
         if (inputs.All)
         {
-            stacksForRemote
-                .OrderByCurrentStackThenByName(currentBranch)
-                .ToList()
-                .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([])));
+            stacksToCheckStatusFor.AddRange(stacks);
         }
         else
         {
@@ -84,8 +81,37 @@ public class StackStatusCommandHandler(
                 throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
             }
 
-            stacksToCheckStatusFor.Add(stack, new StackStatus([]));
+            stacksToCheckStatusFor.Add(stack);
         }
+
+        var stackStatusResults = StackStatusHelpers.CheckStackStatus(
+            stacksToCheckStatusFor,
+            currentBranch,
+            outputProvider,
+            gitOperations,
+            gitHubOperations,
+            true);
+
+        return new StackStatusCommandResponse(stackStatusResults);
+    }
+}
+
+public static class StackStatusHelpers
+{
+    public static Dictionary<Config.Stack, StackStatus> CheckStackStatus(
+        List<Config.Stack> stacks,
+        string currentBranch,
+        IOutputProvider outputProvider,
+        IGitOperations gitOperations,
+        IGitHubOperations gitHubOperations,
+        bool checkBranchAndStackCleanup)
+    {
+        var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
+
+        stacks
+            .OrderByCurrentStackThenByName(currentBranch)
+            .ToList()
+            .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([])));
 
         outputProvider.Status("Checking status of remote branches...", () =>
         {
@@ -214,7 +240,7 @@ public class StackStatusCommandHandler(
             outputProvider.Tree(header, items.ToArray());
         }
 
-        if (stacksToCheckStatusFor.Count == 1)
+        if (checkBranchAndStackCleanup && stacksToCheckStatusFor.Count == 1)
         {
             var (stack, status) = stacksToCheckStatusFor.First();
 
@@ -256,6 +282,6 @@ public class StackStatusCommandHandler(
             }
         }
 
-        return new StackStatusCommandResponse(stacksToCheckStatusFor);
+        return stacksToCheckStatusFor;
     }
 }
