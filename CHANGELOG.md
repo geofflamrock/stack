@@ -6,6 +6,24 @@
 
 #### 🤖 Automation
 
+- Removes ignore of changelog file from build [#90](https://github.com/geofflamrock/stack/pull/90) ([@geofflamrock](https://github.com/geofflamrock))
+- Makes versioning PR job run after publish [#87](https://github.com/geofflamrock/stack/pull/87) ([@geofflamrock](https://github.com/geofflamrock))
+- Put versioning PR back in again [#86](https://github.com/geofflamrock/stack/pull/86) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
+# v0.3.0 (Tue Dec 03 2024)
+
+#### 🚀 New Feature
+
+- Suggest a default name when creating a branch [#84](https://github.com/geofflamrock/stack/pull/84) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🤖 Automation
+
 - Makes versioning PR job run after publish [#87](https://github.com/geofflamrock/stack/pull/87) ([@geofflamrock](https://github.com/geofflamrock))
 - Put versioning PR back in again [#86](https://github.com/geofflamrock/stack/pull/86) ([@geofflamrock](https://github.com/geofflamrock))
 
