@@ -106,7 +106,7 @@ public class NewStackCommandHandler(
 
             if (branchAction == BranchAction.Create)
             {
-                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName);
+                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
                 gitOperations.PushNewBranch(branchName);

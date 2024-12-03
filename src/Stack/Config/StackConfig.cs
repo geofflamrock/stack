@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Humanizer;
 
 namespace Stack.Config;
 
@@ -16,6 +17,11 @@ public class Stack(string Name, string RemoteUri, string SourceBranch, List<stri
     public void SetPullRequestDescription(string description)
     {
         this.PullRequestDescription = description;
+    }
+
+    public string GetDefaultBranchName()
+    {
+        return $"{Name.Kebaberize()}-{Branches.Count + 1}";
     }
 }
 

@@ -36,7 +36,7 @@ public class NewStackCommandHandlerTests
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName).Returns("new-branch");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("new-branch");
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
@@ -158,7 +158,7 @@ public class NewStackCommandHandlerTests
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName).Returns("new-branch-1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("new-branch-1");
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
@@ -370,5 +370,46 @@ public class NewStackCommandHandlerTests
         });
 
         inputProvider.ReceivedCalls().Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task WhenAStackHasANameWithMultipleWords_SuggestsAGoodDefaultNewBranchName()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
+
+        var stacks = new List<Config.Stack>();
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
+        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
+        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-1").Returns("new-branch");
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
+
+        // Act
+        var response = await handler.Handle(NewStackCommandInputs.Empty);
+
+        // Assert
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("A stack with multiple words", "branch-1", BranchAction.Create, "new-branch"));
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("A stack with multiple words", remoteUri, "branch-1", ["new-branch"])
+        });
+
+        gitOperations.Received().ChangeBranch("new-branch");
     }
 }
