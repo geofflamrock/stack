@@ -91,7 +91,7 @@ public class NewStackCommandHandler(
 
         var stacks = stackConfig.Load();
         var remoteUri = gitOperations.GetRemoteUri();
-        var stack = new Models.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 

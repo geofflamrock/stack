@@ -29,15 +29,15 @@ public class CreatePullRequestsCommandHandlerTests
         gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
         gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
@@ -80,15 +80,15 @@ public class CreatePullRequestsCommandHandlerTests
         gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
         gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
@@ -147,15 +147,15 @@ A custom description
         gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
         gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
@@ -213,15 +213,15 @@ A custom description
         gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
         gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
@@ -264,7 +264,7 @@ A custom description
         gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
         gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
         ]);
@@ -308,7 +308,7 @@ A custom description
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])

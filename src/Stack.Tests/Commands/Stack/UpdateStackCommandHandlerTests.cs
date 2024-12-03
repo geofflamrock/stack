@@ -27,9 +27,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -68,9 +68,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -108,9 +108,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -149,9 +149,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
@@ -191,9 +191,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -221,9 +221,9 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         // Act and assert
@@ -251,9 +251,9 @@ public class UpdateStackCommandHandlerTests
         // We are on a specific branch in the stack
         gitOperations.GetCurrentBranch().Returns("branch-2");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -284,8 +284,8 @@ public class UpdateStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);

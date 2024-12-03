@@ -95,7 +95,7 @@ public class CleanupStackCommandHandler(
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(Models.Stack stack, IGitOperations gitOperations, IGitHubOperations gitHubOperations)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitOperations gitOperations, IGitHubOperations gitHubOperations)
     {
         var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);

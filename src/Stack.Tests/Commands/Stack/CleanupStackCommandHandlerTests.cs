@@ -29,7 +29,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -64,7 +64,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -99,7 +99,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -134,7 +134,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -168,7 +168,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -202,7 +202,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"]),
             new("Stack2", remoteUri, "branch-3", ["branch-4"])
@@ -237,7 +237,7 @@ public class CleanupStackCommandHandlerTests
         gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
         gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-2"])
         ]);

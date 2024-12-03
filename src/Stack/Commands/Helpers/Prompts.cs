@@ -5,7 +5,7 @@ namespace Stack.Commands;
 
 public static class Prompts
 {
-    public static IPrompt<string> Stack(List<Models.Stack> stacks, string currentBranch)
+    public static IPrompt<string> Stack(List<Config.Stack> stacks, string currentBranch)
     {
         return new SelectionPrompt<string>().Title("Select stack:")
             .PageSize(10)

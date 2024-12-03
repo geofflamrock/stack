@@ -25,7 +25,7 @@ public class StackSwitchCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -56,7 +56,7 @@ public class StackSwitchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-3").Returns(true);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])
@@ -86,7 +86,7 @@ public class StackSwitchCommandHandlerTests
         gitOperations.GetCurrentBranch().Returns("branch-1");
         gitOperations.DoesLocalBranchExist("branch-3").Returns(false);
 
-        var stacks = new List<global::Stack.Models.Stack>(
+        var stacks = new List<Config.Stack>(
         [
             new("Stack1", remoteUri, "branch-1", ["branch-3"]),
             new("Stack2", remoteUri, "branch-2", ["branch-4"])

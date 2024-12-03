@@ -26,11 +26,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
@@ -44,7 +44,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["new-branch"])
         });
@@ -67,11 +67,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
@@ -85,7 +85,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-2"])
         });
@@ -108,11 +108,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
@@ -124,7 +124,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", [])
         });
@@ -147,11 +147,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
@@ -166,7 +166,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch-1"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["new-branch-1"])
         });
@@ -189,11 +189,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
@@ -207,7 +207,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["branch-2"])
         });
@@ -230,11 +230,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
@@ -246,7 +246,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", [])
         });
@@ -269,11 +269,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
@@ -285,7 +285,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", [])
         });
@@ -308,11 +308,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
@@ -325,7 +325,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["new-branch"])
         });
@@ -351,11 +351,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         var inputs = new NewStackCommandInputs("Stack1", "branch-1", "new-branch");
 
@@ -364,7 +364,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, "branch-1", ["new-branch"])
         });
@@ -387,11 +387,11 @@ public class NewStackCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
-        var stacks = new List<global::Stack.Models.Stack>();
+        var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
         stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<global::Stack.Models.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<global::Stack.Models.Stack>>(0));
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
@@ -405,7 +405,7 @@ public class NewStackCommandHandlerTests
 
         // Assert
         response.Should().BeEquivalentTo(new NewStackCommandResponse("A stack with multiple words", "branch-1", BranchAction.Create, "new-branch"));
-        stacks.Should().BeEquivalentTo(new List<global::Stack.Models.Stack>
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("A stack with multiple words", remoteUri, "branch-1", ["new-branch"])
         });

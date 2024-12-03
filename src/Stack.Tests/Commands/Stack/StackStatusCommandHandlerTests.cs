@@ -27,9 +27,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -68,7 +68,7 @@ public class StackStatusCommandHandlerTests
             { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
             { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetails)
@@ -92,9 +92,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         outputProvider
@@ -132,7 +132,7 @@ public class StackStatusCommandHandlerTests
             { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
             { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetails)
@@ -158,9 +158,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         outputProvider
@@ -206,7 +206,7 @@ public class StackStatusCommandHandlerTests
         {
             { "branch-4", new BranchDetail { Status = new BranchStatus(true, true, 3, 1) } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetailsForStack1)
@@ -233,9 +233,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         // Act and assert
@@ -262,9 +262,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -299,7 +299,7 @@ public class StackStatusCommandHandlerTests
             { "branch-3", new BranchDetail { Status = new BranchStatus(true, false, 0, 0) } },
             { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0), PullRequest = pr } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetails)
@@ -323,9 +323,9 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stack2 = new global::Stack.Models.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1, stack2]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4"]);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -360,7 +360,7 @@ public class StackStatusCommandHandlerTests
             { "branch-3", new BranchDetail { Status = new BranchStatus(false, false, 0, 0) } },
             { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0), PullRequest = pr } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetails)
@@ -384,8 +384,8 @@ public class StackStatusCommandHandlerTests
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
 
-        var stack1 = new global::Stack.Models.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
-        var stacks = new List<global::Stack.Models.Stack>([stack1]);
+        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]);
+        var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
         outputProvider
@@ -423,7 +423,7 @@ public class StackStatusCommandHandlerTests
             { "branch-3", new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
             { "branch-5", new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
         };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<global::Stack.Models.Stack, StackStatus>
+        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
             {
                 stack1, new(expectedBranchDetails)
