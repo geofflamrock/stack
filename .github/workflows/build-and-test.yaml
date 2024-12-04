@@ -154,18 +154,9 @@ jobs:
 
     name: Publish ${{ matrix.name }}
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Get all tags
-
-      - name: Download auto
-        run: |
-          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
-          chmod +x ${{ runner.temp }}/auto
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -174,10 +165,6 @@ jobs:
 
       - name: Publish
         run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
-
-      - name: Update changelog if publishing release
-        run: ${{ runner.temp }}/auto changelog --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com
-        if: needs.version.outputs.create_release == 'true'
 
       - name: Copy changelog to publish folder
         run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
