@@ -5,7 +5,6 @@ on:
     branches: ["main"]
     paths:
       - "!**" # Exclude every file
-      - ".github/workflows/docs-only.yaml" # Except only this file
       - "README.md" # Except only readme changes
 
 jobs:
