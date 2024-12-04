@@ -56,11 +56,19 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
+      - name: Get GitHub App email address
+        id: get-user-email
+        run: echo "email=${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com" >> "$GITHUB_OUTPUT"
+
+      - name: Get GitHub App display name
+        id: get-user-name
+        run: echo "name=${{ steps.app-token.outputs.app-slug }}[bot]" >> "$GITHUB_OUTPUT"
+
       - name: Update changelog
         id: update_changelog
         run: |
           echo "changes<<EOF" >> $GITHUB_ENV
-          echo "$(${{ runner.temp }}/auto changelog --quiet --no-git-commit --name ${{ steps.app-token.outputs.app-slug }}[bot] --email ${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com)" >> $GITHUB_ENV
+          echo "$(${{ runner.temp }}/auto changelog --quiet --no-git-commit --name ${{ steps.get-user-name.outputs.name }} --email ${{ steps.get-user-email.outputs.email }})" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -84,5 +92,5 @@ jobs:
             To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
             If you don't see your changes in the list above, please check your PR is tagged with an appropriate label to include your change in the release notes.
           token: ${{ steps.app-token.outputs.token }}
-          author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
-          committer: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.get-user-id.outputs.user-id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+          author: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
+          committer: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
