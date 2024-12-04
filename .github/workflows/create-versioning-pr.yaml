@@ -11,16 +11,15 @@ jobs:
     name: Get versioning information
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.get_versioning_information.outputs.version }}
       next_release_version: ${{ steps.get_versioning_information.outputs.version }}
-      create_release: ${{ steps.get_versioning_information.outputs.create_release }}
       has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Get all tags
 
-      - uses: ./.github/actions/get-versioning-information
+      - name: Get versioning information
+        uses: ./.github/actions/get-versioning-information
         id: get_versioning_information
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
