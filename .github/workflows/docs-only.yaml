@@ -1,0 +1,16 @@
+name: Docs only (PR)
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "!**" # Exclude every file
+      - ".github/workflows/docs-only.yaml" # Except only this file
+      - "README.md" # Except only readme changes
+
+jobs:
+  pr_complete:
+    name: PR checks complete
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "PR required checks complete"
