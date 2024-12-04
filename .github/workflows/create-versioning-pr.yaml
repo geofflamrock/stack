@@ -11,7 +11,7 @@ jobs:
     name: Get versioning information
     runs-on: ubuntu-latest
     outputs:
-      next_release_version: ${{ steps.get_versioning_information.outputs.version }}
+      next_release_version: ${{ steps.get_versioning_information.outputs.next_release_version }}
       has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
     steps:
       - uses: actions/checkout@v4

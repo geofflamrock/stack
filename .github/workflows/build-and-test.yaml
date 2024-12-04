@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.get_versioning_information.outputs.version }}
-      next_release_version: ${{ steps.get_versioning_information.outputs.version }}
+      next_release_version: ${{ steps.get_versioning_information.outputs.next_release_version }}
       create_release: ${{ steps.get_versioning_information.outputs.create_release }}
       has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
     steps:
