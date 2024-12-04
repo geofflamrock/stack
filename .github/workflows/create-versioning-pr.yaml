@@ -1,0 +1,80 @@
+name: Create versioning pull request
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - README.md
+
+jobs:
+  version:
+    name: Get versioning information
+    runs-on: ubuntu-latest
+    outputs:
+      next_release_version: ${{ steps.get_versioning_information.outputs.version }}
+      has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
+      - name: Get versioning information
+        uses: ./.github/actions/get-versioning-information
+        id: get_versioning_information
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  versioning_pr:
+    name: Create versioning pull request
+    needs: [version]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    if: needs.version.outputs.has_unreleased_changes == 'true'
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0 # Get all tags
+          persist-credentials: false # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
+
+      - name: Download auto
+        run: |
+          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
+          chmod +x ${{ runner.temp }}/auto
+
+      - name: Update changelog
+        id: update_changelog
+        run: |
+          echo "changes<<EOF" >> $GITHUB_ENV
+          echo "$(${{ runner.temp }}/auto changelog --quiet --no-git-commit --name github-actions[bot] --email github-actions[bot]@users.noreply.github.com)" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Create versioning pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/release
+          title: Release version `${{ needs.version.outputs.next_release_version }}`
+          commit-message: Release version `${{ needs.version.outputs.next_release_version }}`
+          labels: |
+            release
+            chore
+          body: |
+            This PR will release version `${{ needs.version.outputs.next_release_version }}`
+
+            ## Changes
+            ${{ env.changes }}
+
+            ## Releasing a new version
+            To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
+            If you don't see your changes in the list above, please check your PR is tagged with an appropriate label to include your change in the release notes.
+          token: ${{ steps.app-token.outputs.token }}
