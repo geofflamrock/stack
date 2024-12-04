@@ -1,3 +1,22 @@
+# v0.3.1 (Wed Dec 04 2024)
+
+#### 🐛 Bug Fix
+
+- Fixes issue with duplicate changelog entries in built artifacts [#93](https://github.com/geofflamrock/stack/pull/93) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🤖 Automation
+
+- Use GitHub App as committer for versioning PR [#102](https://github.com/geofflamrock/stack/pull/102) ([@geofflamrock](https://github.com/geofflamrock))
+- Pass correct version number between workflow jobs [#101](https://github.com/geofflamrock/stack/pull/101) ([@geofflamrock](https://github.com/geofflamrock))
+- Create versioning PR in separate workflow [#99](https://github.com/geofflamrock/stack/pull/99) ([@geofflamrock](https://github.com/geofflamrock))
+- Add PR check jobs [#94](https://github.com/geofflamrock/stack/pull/94) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.3.0 (Tue Dec 03 2024)
 
 #### 🚀 New Feature
