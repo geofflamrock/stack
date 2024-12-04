@@ -16,6 +16,10 @@ jobs:
       create_release: ${{ steps.get_versioning_information.outputs.create_release }}
       has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get all tags
+
       - uses: ./.github/actions/get-versioning-information
         id: get_versioning_information
         with:
