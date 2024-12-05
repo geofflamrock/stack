@@ -16,7 +16,7 @@ public static class InputProviderExtensionMethods
     {
         if (presetValue is not null)
         {
-            outputProvider.Information($"{prompt} {presetValue.ToInputDisplay()}");
+            outputProvider.Information($"{prompt} {presetValue}");
 
             return presetValue;
         }
@@ -33,7 +33,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValue ?? inputProvider.Select(prompt, choices);
 
-        outputProvider.Information($"{prompt} {selection.ToInputDisplay()}");
+        outputProvider.Information($"{prompt} {selection}");
 
         return selection;
     }
@@ -54,7 +54,7 @@ public static class InputProviderExtensionMethods
 
         if (stack is not null)
         {
-            outputProvider.Information($"{Questions.SelectStack} {stack.Name.ToInputDisplay()}");
+            outputProvider.Information($"{Questions.SelectStack} {stack.Name}");
         }
 
         return stack;
