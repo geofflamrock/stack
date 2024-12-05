@@ -46,5 +46,5 @@ public static class OutputStyleExtensionMethods
     public static string Branch(this string name) => $"[blue]{name}[/]";
     public static string Muted(this string name) => $"[grey]{name}[/]";
     public static string Example(this string name) => $"[aqua]{name}[/]";
-    public static string ToInputDisplay(this string input) => $"[blue]{input}[/]";
+    public static string ToInputDisplay(this string input) => input;
 }
