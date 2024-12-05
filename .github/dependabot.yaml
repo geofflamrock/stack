@@ -1,8 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directories:
-      - "/src/*"
+    directory: "/src" # Need to specify the sub-directory to make sure projects are picked up
     schedule:
       interval: "daily"
 
