@@ -1,3 +1,27 @@
+# v0.3.2 (Fri Dec 06 2024)
+
+#### 🐛 Bug Fix
+
+- Fix issue with wrong target branch when creating PRs [#119](https://github.com/geofflamrock/stack/pull/119) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes styling of input [#107](https://github.com/geofflamrock/stack/pull/107) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🔩 Dependency Updates
+
+- Bump FluentAssertions from 6.12.2 to 7.0.0 [#108](https://github.com/geofflamrock/stack/pull/108) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### 🤖 Automation
+
+- Change to only use src directory for dependabot updates [#114](https://github.com/geofflamrock/stack/pull/114) ([@geofflamrock](https://github.com/geofflamrock))
+- Fix directories for nuget updates [#106](https://github.com/geofflamrock/stack/pull/106) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds dependabot for automated version updates [#105](https://github.com/geofflamrock/stack/pull/105) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 2
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.3.1 (Wed Dec 04 2024)
 
 #### 🐛 Bug Fix
