@@ -98,7 +98,9 @@ public class CreatePullRequestsCommandHandler(
                     pullRequestsInStack.Add(existingPullRequest);
                 }
 
-                if (gitOperations.DoesRemoteBranchExist(branch))
+                // If the source branch still exists and there is either no PR or the PR isn't merged
+                // then we consider this branch to be the source branch for the next PR in the stack
+                if (gitOperations.DoesRemoteBranchExist(branch) && (existingPullRequest is null || existingPullRequest.State != GitHubPullRequestStates.Merged))
                 {
                     if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
                     {
