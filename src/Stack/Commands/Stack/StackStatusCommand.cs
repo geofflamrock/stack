@@ -89,8 +89,15 @@ public class StackStatusCommandHandler(
             currentBranch,
             outputProvider,
             gitOperations,
-            gitHubOperations,
-            true);
+            gitHubOperations);
+
+        StackStatusHelpers.OutputStackStatus(stackStatusResults, gitOperations, outputProvider);
+
+        if (stacksToCheckStatusFor.Count == 1)
+        {
+            var (stack, status) = stackStatusResults.First();
+            StackStatusHelpers.OutputBranchAndStackCleanup(stack, status, outputProvider);
+        }
 
         return new StackStatusCommandResponse(stackStatusResults);
     }
@@ -103,8 +110,7 @@ public static class StackStatusHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitOperations gitOperations,
-        IGitHubOperations gitHubOperations,
-        bool checkBranchAndStackCleanup)
+        IGitHubOperations gitHubOperations)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -173,115 +179,147 @@ public static class StackStatusHelpers
             }
         });
 
-        foreach (var (stack, status) in stacksToCheckStatusFor)
+        return stacksToCheckStatusFor;
+    }
+
+    public static void OutputStackStatus(
+        Dictionary<Config.Stack, StackStatus> stackStatuses,
+        IGitOperations gitOperations,
+        IOutputProvider outputProvider)
+    {
+        foreach (var (stack, status) in stackStatuses)
         {
             var header = $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}";
             var items = new List<string>();
-            var stackRoot = new Tree($"{stack.Name.Stack()}: [grey]{stack.SourceBranch.Muted()}[/]");
-
-            string BuildBranchName(string branch, string? parentBranch, bool isSourceBranchForStack)
-            {
-                var branchDetail = status.Branches.GetValueOrDefault(branch);
-                var branchNameBuilder = new StringBuilder();
-
-                var color = branchDetail?.Status.ExistsInRemote == false ? "grey" : isSourceBranchForStack ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
-                Decoration? decoration = branchDetail?.Status.ExistsInRemote == false || branchDetail?.Status.ExistsLocally == false ? Decoration.Strikethrough : null;
-
-                if (color is not null && decoration is not null)
-                {
-                    branchNameBuilder.Append($"[{decoration} {color}]{branch}[/]");
-                }
-                else if (color is not null)
-                {
-                    branchNameBuilder.Append($"[{color}]{branch}[/]");
-                }
-                else if (decoration is not null)
-                {
-                    branchNameBuilder.Append($"[{decoration}]{branch}[/]");
-                }
-                else
-                {
-                    branchNameBuilder.Append(branch);
-                }
-
-                if (branchDetail?.Status.Ahead > 0 && branchDetail?.Status.Behind > 0)
-                {
-                    branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead, {branchDetail.Status.Behind} behind {parentBranch})[/]");
-                }
-                else if (branchDetail?.Status.Ahead > 0)
-                {
-                    branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead of {parentBranch})[/]");
-                }
-                else if (branchDetail?.Status.Behind > 0)
-                {
-                    branchNameBuilder.Append($" [grey]({branchDetail.Status.Behind} behind {parentBranch})[/]");
-                }
-
-                if (branchDetail?.PullRequest is not null)
-                {
-                    branchNameBuilder.Append($" {branchDetail.PullRequest.GetPullRequestDisplay()}");
-                }
-
-                return branchNameBuilder.ToString();
-            }
 
             string parentBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                items.Add(BuildBranchName(branch, parentBranch, false));
-
-                if (status.Branches.TryGetValue(branch, out var branchDetail) && branchDetail.Status.ExistsInRemote)
+                if (status.Branches.TryGetValue(branch, out var branchDetail))
                 {
-                    parentBranch = branch;
+                    items.Add(GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail, gitOperations));
+
+                    if (branchDetail.Status.ExistsInRemote &&
+                        (branchDetail.PullRequest is null || branchDetail.PullRequest.State != GitHubPullRequestStates.Merged))
+                    {
+                        parentBranch = branch;
+                    }
                 }
             }
-
-            outputProvider.Tree(header, items.ToArray());
+            outputProvider.Tree(header, [.. items]);
         }
+    }
 
-        if (checkBranchAndStackCleanup && stacksToCheckStatusFor.Count == 1)
+    public static string GetBranchAndPullRequestStatusOutput(
+        string branch,
+        string parentBranch,
+        BranchDetail branchDetail,
+        IGitOperations gitOperations)
+    {
+        var branchNameBuilder = new StringBuilder();
+        branchNameBuilder.Append(GetBranchStatusOutput(branch, parentBranch, branchDetail, gitOperations));
+
+        if (branchDetail.PullRequest is not null)
         {
-            var (stack, status) = stacksToCheckStatusFor.First();
+            branchNameBuilder.Append($" {branchDetail.PullRequest.GetPullRequestDisplay()}");
+        }
 
-            bool BranchCouldBeCleanedUp(BranchDetail branchDetail)
-            {
-                return branchDetail.Status.ExistsLocally &&
-                        (!branchDetail.Status.ExistsInRemote ||
-                        branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open);
-            }
+        return branchNameBuilder.ToString();
+    }
 
-            if (status.Branches.Values.All(branch => BranchCouldBeCleanedUp(branch)))
-            {
-                outputProvider.NewLine();
-                outputProvider.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
-                outputProvider.NewLine();
-                outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
-            }
-            else if (status.Branches.Values.Any(branch => BranchCouldBeCleanedUp(branch)))
-            {
-                outputProvider.NewLine();
-                outputProvider.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
-                outputProvider.NewLine();
-                outputProvider.Information($"Run {$"stack cleanup --name \"{stack.Name}\"".Example()} to clean up local branches.");
-            }
-            else if (status.Branches.Values.All(branch => !branch.Status.ExistsLocally))
-            {
-                outputProvider.NewLine();
-                outputProvider.Information("No branches exist locally. This stack might be able to be deleted.");
-                outputProvider.NewLine();
-                outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
-            }
+    public static string GetBranchStatusOutput(
+        string branch,
+        string parentBranch,
+        BranchDetail branchDetail,
+        IGitOperations gitOperations)
+    {
+        var branchNameBuilder = new StringBuilder();
+        var currentBranch = gitOperations.GetCurrentBranch();
+        var branchIsMerged =
+            branchDetail.Status.ExistsInRemote == false ||
+            branchDetail.Status.ExistsLocally == false ||
+            branchDetail.PullRequest is not null && branchDetail.PullRequest.State == GitHubPullRequestStates.Merged;
 
-            if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+        var color = branchIsMerged ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
+        Decoration? decoration = branchIsMerged ? Decoration.Strikethrough : null;
+
+        if (color is not null && decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration} {color}]{branch}[/]");
+        }
+        else if (color is not null)
+        {
+            branchNameBuilder.Append($"[{color}]{branch}[/]");
+        }
+        else if (decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration}]{branch}[/]");
+        }
+        else
+        {
+            branchNameBuilder.Append(branch);
+        }
+
+        if (!branchIsMerged)
+        {
+            if (branchDetail.Status.Ahead > 0 && branchDetail.Status.Behind > 0)
             {
-                outputProvider.NewLine();
-                outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
-                outputProvider.NewLine();
-                outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead, {branchDetail.Status.Behind} behind {parentBranch})[/]");
+            }
+            else if (branchDetail.Status.Ahead > 0)
+            {
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead of {parentBranch})[/]");
+            }
+            else if (branchDetail.Status.Behind > 0)
+            {
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.Behind} behind {parentBranch})[/]");
             }
         }
 
-        return stacksToCheckStatusFor;
+        return branchNameBuilder.ToString();
+    }
+
+    public static void OutputBranchAndStackCleanup(
+        Config.Stack stack,
+        StackStatus status,
+        IOutputProvider outputProvider)
+    {
+        bool BranchCouldBeCleanedUp(BranchDetail branchDetail)
+        {
+            return branchDetail.Status.ExistsLocally &&
+                    (!branchDetail.Status.ExistsInRemote ||
+                    branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Open);
+        }
+
+        if (status.Branches.Values.All(branch => BranchCouldBeCleanedUp(branch)))
+        {
+            outputProvider.NewLine();
+            outputProvider.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
+            outputProvider.NewLine();
+            outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
+        }
+        else if (status.Branches.Values.Any(branch => BranchCouldBeCleanedUp(branch)))
+        {
+            outputProvider.NewLine();
+            outputProvider.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
+            outputProvider.NewLine();
+            outputProvider.Information($"Run {$"stack cleanup --name \"{stack.Name}\"".Example()} to clean up local branches.");
+        }
+        else if (status.Branches.Values.All(branch => !branch.Status.ExistsLocally))
+        {
+            outputProvider.NewLine();
+            outputProvider.Information("No branches exist locally. This stack might be able to be deleted.");
+            outputProvider.NewLine();
+            outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
+        }
+
+        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+        {
+            outputProvider.NewLine();
+            outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
+            outputProvider.NewLine();
+            outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+        }
     }
 }

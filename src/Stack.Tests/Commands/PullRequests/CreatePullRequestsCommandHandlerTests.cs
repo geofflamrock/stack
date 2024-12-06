@@ -23,11 +23,19 @@ public class CreatePullRequestsCommandHandlerTests
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -74,11 +82,19 @@ public class CreatePullRequestsCommandHandlerTests
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -141,11 +157,19 @@ A custom description
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+             .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+             .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -207,11 +231,19 @@ A custom description
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -258,11 +290,19 @@ A custom description
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -335,11 +375,19 @@ A custom description
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
 
         gitOperations.GetRemoteUri().Returns(remoteUri);
         gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesRemoteBranchExist("branch-3").Returns(true);
-        gitOperations.DoesRemoteBranchExist("branch-5").Returns(true);
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
 
         var stacks = new List<Config.Stack>(
         [
