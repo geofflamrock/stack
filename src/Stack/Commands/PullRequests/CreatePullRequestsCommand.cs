@@ -74,14 +74,12 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var statuses = StackStatusHelpers.CheckStackStatus(
-            [stack],
+        var status = StackStatusHelpers.GetStackStatus(
+            stack,
             currentBranch,
             outputProvider,
             gitOperations,
             gitHubOperations);
-
-        var status = statuses[stack];
 
         var sourceBranch = stack.SourceBranch;
         var pullRequestCreateActions = new List<GitHubPullRequestCreateAction>();
@@ -89,19 +87,17 @@ public class CreatePullRequestsCommandHandler(
 
         foreach (var branch in stack.Branches)
         {
-            var branchStatus = status.Branches[branch];
-            var existingPullRequest = branchStatus.PullRequest;
+            var branchDetail = status.Branches[branch];
+            var existingPullRequest = branchDetail.PullRequest;
 
-            if (branchStatus.PullRequest is not null && branchStatus.PullRequest.State != GitHubPullRequestStates.Closed)
+            if (branchDetail.HasPullRequest)
             {
-                pullRequestsInStack.Add(branchStatus.PullRequest);
+                pullRequestsInStack.Add(branchDetail.PullRequest!);
             }
 
-            // If the source branch still exists and there is either no PR or the PR isn't merged
-            // then we consider this branch to be the source branch for the next PR in the stack
-            if (branchStatus.Status.ExistsInRemote && (branchStatus.PullRequest is null || branchStatus.PullRequest.State != GitHubPullRequestStates.Merged))
+            if (branchDetail.IsActive)
             {
-                if (branchStatus.PullRequest is null || branchStatus.PullRequest.State == GitHubPullRequestStates.Closed)
+                if (!branchDetail.HasPullRequest)
                 {
                     pullRequestCreateActions.Add(new GitHubPullRequestCreateAction(branch, sourceBranch));
                 }
@@ -110,7 +106,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackStatusHelpers.OutputStackStatus(statuses, gitOperations, outputProvider);
+        StackStatusHelpers.OutputStackStatus(stack, status, gitOperations, outputProvider);
 
         outputProvider.NewLine();
 
