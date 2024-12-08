@@ -1,3 +1,15 @@
+# v0.4.0 (Sun Dec 08 2024)
+
+#### 🚀 New Feature
+
+- Improve pull request creation [#123](https://github.com/geofflamrock/stack/pull/123) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.3.2 (Fri Dec 06 2024)
 
 #### 🐛 Bug Fix
