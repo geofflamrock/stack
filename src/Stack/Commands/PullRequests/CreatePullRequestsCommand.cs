@@ -110,32 +110,12 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
+        StackStatusHelpers.OutputStackStatus(statuses, gitOperations, outputProvider);
+
+        outputProvider.NewLine();
+
         if (pullRequestCreateActions.Count > 0)
         {
-            StackStatusHelpers.OutputStackStatus(statuses, gitOperations, outputProvider);
-            // var branchDisplayItems = new List<string>();
-            // var parentBranch = stack.SourceBranch;
-
-            // foreach (var branch in stack.Branches)
-            // {
-            //     var branchDetail = status.Branches[branch];
-            //     if (branchDetail.PullRequest is not null)
-            //     {
-            //         branchDisplayItems.Add(StackStatusHelpers.GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail, gitOperations));
-            //     }
-            //     else
-            //     {
-            //         branchDisplayItems.Add($"{StackStatusHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail, gitOperations)} *NEW*");
-            //     }
-            //     parentBranch = branch;
-            // }
-
-            // outputProvider.Tree(
-            //     $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}",
-            //     [.. branchDisplayItems]);
-
-            outputProvider.NewLine();
-
             if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
             {
                 foreach (var action in pullRequestCreateActions)
@@ -237,6 +217,8 @@ public class CreatePullRequestsCommandHandler(
                                 prBody = prBody.Insert(prListStart, prBodyMarkdown);
                             }
 
+                            outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
+
                             gitHubOperations.EditPullRequest(pullRequest.Number, prBody);
                         }
                     }
@@ -253,6 +235,10 @@ public class CreatePullRequestsCommandHandler(
                     }
                 }
             }
+        }
+        else
+        {
+            outputProvider.Information("No pull requests to create.");
         }
 
         return new CreatePullRequestsCommandResponse();
