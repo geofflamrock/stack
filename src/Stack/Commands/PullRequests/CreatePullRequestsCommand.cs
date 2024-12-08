@@ -1,3 +1,4 @@
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics;
 using Spectre.Console;
@@ -73,122 +74,188 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        StackStatusHelpers.CheckStackStatus(
-            [stack],
+        var status = StackStatusHelpers.GetStackStatus(
+            stack,
             currentBranch,
             outputProvider,
             gitOperations,
-            gitHubOperations,
-            false);
+            gitHubOperations);
+
+        var sourceBranch = stack.SourceBranch;
+        var pullRequestCreateActions = new List<GitHubPullRequestCreateAction>();
+
+        foreach (var branch in stack.Branches)
+        {
+            var branchDetail = status.Branches[branch];
+
+            if (branchDetail.IsActive)
+            {
+                if (!branchDetail.HasPullRequest)
+                {
+                    pullRequestCreateActions.Add(new GitHubPullRequestCreateAction(branch, sourceBranch));
+                }
+
+                sourceBranch = branch;
+            }
+        }
+
+        StackStatusHelpers.OutputStackStatus(stack, status, gitOperations, outputProvider);
 
         outputProvider.NewLine();
 
-        if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
+        if (pullRequestCreateActions.Count > 0)
         {
-            var sourceBranch = stack.SourceBranch;
-            var pullRequestsInStack = new List<GitHubPullRequest>();
-
-            foreach (var branch in stack.Branches)
+            if (inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(pullRequestCreateActions.Count)))
             {
-                var existingPullRequest = gitHubOperations.GetPullRequest(branch);
+                GetPullRequestTitles(inputProvider, pullRequestCreateActions);
 
-                if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
-                {
-                    outputProvider.Information($"Pull request {existingPullRequest.GetPullRequestDisplay()} already exists for branch {branch.Branch()} to {sourceBranch.Branch()}. Skipping...");
-                    pullRequestsInStack.Add(existingPullRequest);
-                }
+                outputProvider.NewLine();
 
-                // If the source branch still exists and there is either no PR or the PR isn't merged
-                // then we consider this branch to be the source branch for the next PR in the stack
-                if (gitOperations.DoesRemoteBranchExist(branch) && (existingPullRequest is null || existingPullRequest.State != GitHubPullRequestStates.Merged))
+                OutputUpdatedStackStatus(outputProvider, gitOperations, stack, status, pullRequestCreateActions);
+
+                outputProvider.NewLine();
+
+                if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
                 {
-                    if (existingPullRequest is null || existingPullRequest.State == GitHubPullRequestStates.Closed)
+                    CreatePullRequests(outputProvider, gitHubOperations, status, pullRequestCreateActions);
+
+                    var pullRequestsInStack = status.Branches.Values
+                        .Where(branch => branch.HasPullRequest)
+                        .Select(branch => branch.PullRequest!)
+                        .ToList();
+
+                    if (pullRequestsInStack.Count > 1)
                     {
-                        var prTitle = inputProvider.Text(Questions.PullRequestTitle(branch, sourceBranch));
-                        outputProvider.Information($"Creating pull request for branch {branch.Branch()} to {sourceBranch.Branch()}");
-                        var pullRequest = gitHubOperations.CreatePullRequest(branch, sourceBranch, prTitle, "");
+                        UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubOperations, stackConfig, stacks, stack, pullRequestsInStack);
+                    }
 
-                        if (pullRequest is not null)
+                    if (inputProvider.Confirm(Questions.OpenPullRequests))
+                    {
+                        foreach (var pullRequest in pullRequestsInStack)
                         {
-                            outputProvider.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {branch.Branch()} to {sourceBranch.Branch()}");
-                            pullRequestsInStack.Add(pullRequest);
+                            gitHubOperations.OpenPullRequest(pullRequest);
                         }
                     }
-
-                    sourceBranch = branch;
                 }
             }
-
-            if (pullRequestsInStack.Count > 1)
-            {
-                var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
-                var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
-
-                if (stackDescription != stack.PullRequestDescription)
-                {
-                    stack.SetPullRequestDescription(stackDescription);
-                    stackConfig.Save(stacks);
-                }
-
-                // Edit each PR and add to the top of the description
-                // the details of each PR in the stack
-                var stackMarkerStart = "<!-- stack-pr-list -->";
-                var stackMarkerEnd = "<!-- /stack-pr-list -->";
-                var prList = pullRequestsInStack
-                    .Select(pr => $"- {pr.Url}")
-                    .ToList();
-                var prListMarkdown = string.Join(Environment.NewLine, prList);
-                var prBodyMarkdown = $"{stackMarkerStart}{Environment.NewLine}{stackDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{stackMarkerEnd}";
-
-                foreach (var pullRequest in pullRequestsInStack)
-                {
-                    // Find the existing part of the PR body that has the PR list
-                    // and replace it with the updated PR list
-                    var prBody = pullRequest.Body;
-
-                    var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
-                    var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
-
-                    if (prListStart >= 0 && prListEnd >= 0)
-                    {
-                        prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
-                    }
-
-                    if (prListStart == -1)
-                    {
-                        prListStart = 0;
-                    }
-
-                    if (prBody.Length > 0 && prListStart == 0)
-                    {
-                        // Add some newlines so that the PR list is separated from the rest of the PR body
-                        prBody = prBody.Insert(prListStart, prBodyMarkdown + "\n\n");
-                    }
-                    else
-                    {
-                        prBody = prBody.Insert(prListStart, prBodyMarkdown);
-                    }
-
-                    gitHubOperations.EditPullRequest(pullRequest.Number, prBody);
-                }
-            }
-            else
-            {
-                outputProvider.Information("Only one pull request in stack, not adding PR list to description.");
-            }
-
-            if (inputProvider.Confirm(Questions.OpenPullRequests))
-            {
-                foreach (var pullRequest in pullRequestsInStack)
-                {
-                    Process.Start(new ProcessStartInfo(pullRequest.Url.ToString())
-                    {
-                        UseShellExecute = true
-                    });
-                }
-            }
+        }
+        else
+        {
+            outputProvider.Information("No new pull requests to create.");
         }
 
         return new CreatePullRequestsCommandResponse();
     }
+
+    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, IOutputProvider outputProvider, IGitHubOperations gitHubOperations, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
+    {
+        var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
+        var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
+
+        if (stackDescription != stack.PullRequestDescription)
+        {
+            stack.SetPullRequestDescription(stackDescription);
+            stackConfig.Save(stacks);
+        }
+
+        // Edit each PR and add to the top of the description
+        // the details of each PR in the stack
+        var stackMarkerStart = "<!-- stack-pr-list -->";
+        var stackMarkerEnd = "<!-- /stack-pr-list -->";
+
+        var prList = pullRequestsInStack
+            .Select(pr => $"- {pr.Url}")
+            .ToList();
+        var prListMarkdown = string.Join(Environment.NewLine, prList);
+        var prBodyMarkdown = $"{stackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{stackMarkerEnd}";
+
+        foreach (var pullRequest in pullRequestsInStack)
+        {
+            // Find the existing part of the PR body that has the PR list
+            // and replace it with the updated PR list
+            var prBody = pullRequest.Body;
+
+            var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
+            var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
+
+            if (prListStart >= 0 && prListEnd >= 0)
+            {
+                prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
+            }
+
+            if (prListStart == -1)
+            {
+                prListStart = 0;
+            }
+
+            if (prBody.Length > 0 && prListStart == 0)
+            {
+                // Add some newlines so that the PR list is separated from the rest of the PR body
+                prBody = prBody.Insert(prListStart, prBodyMarkdown + "\n\n");
+            }
+            else
+            {
+                prBody = prBody.Insert(prListStart, prBodyMarkdown);
+            }
+
+            outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
+
+            gitHubOperations.EditPullRequest(pullRequest.Number, prBody);
+        }
+    }
+
+    private static void CreatePullRequests(IOutputProvider outputProvider, IGitHubOperations gitHubOperations, StackStatus status, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+    {
+        foreach (var action in pullRequestCreateActions)
+        {
+            var branchDetail = status.Branches[action.HeadBranch];
+            outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, "");
+
+            if (pullRequest is not null)
+            {
+                outputProvider.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+                branchDetail.PullRequest = pullRequest;
+            }
+        }
+    }
+
+    private static void OutputUpdatedStackStatus(IOutputProvider outputProvider, IGitOperations gitOperations, Config.Stack stack, StackStatus status, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+    {
+        var branchDisplayItems = new List<string>();
+        var parentBranch = stack.SourceBranch;
+
+        foreach (var branch in stack.Branches)
+        {
+            var branchDetail = status.Branches[branch];
+            if (branchDetail.PullRequest is not null)
+            {
+                branchDisplayItems.Add(StackStatusHelpers.GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail, gitOperations));
+            }
+            else
+            {
+                var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
+                branchDisplayItems.Add($"{StackStatusHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail, gitOperations)} *NEW* {action?.Title}");
+            }
+            parentBranch = branch;
+        }
+
+        outputProvider.Tree(
+            $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}",
+            [.. branchDisplayItems]);
+    }
+
+    private static void GetPullRequestTitles(IInputProvider inputProvider, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+    {
+        foreach (var action in pullRequestCreateActions)
+        {
+            action.Title = inputProvider.Text(Questions.PullRequestTitle(action.HeadBranch, action.BaseBranch));
+        }
+    }
+
+    record GitHubPullRequestCreateAction(string HeadBranch, string BaseBranch)
+    {
+        public string? Title { get; set; }
+    }
 }
+

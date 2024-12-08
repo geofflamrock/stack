@@ -81,7 +81,7 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
-            console.MarkupLine($"[grey]git {command}[/]");
+            console.MarkupLine($"[grey]gh {command}[/]");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -127,7 +127,7 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
         var result = ShellExecutor.ExecuteCommand(
             "gh",
             command,
-            ".",
+            settings.WorkingDirectory ?? ".",
             (_) => { },
             (info) => infoBuilder.AppendLine(info),
             (error) => errorBuilder.AppendLine(error));
