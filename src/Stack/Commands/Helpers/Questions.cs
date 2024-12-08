@@ -1,3 +1,4 @@
+using Humanizer;
 using Stack.Infrastructure;
 
 namespace Stack.Commands.Helpers;
@@ -16,6 +17,7 @@ public static class Questions
     public const string ConfirmAddOrCreateBranch = "Do you want to add an existing branch or create a new branch and add it to the stack?";
     public const string AddOrCreateBranch = "Add or create a branch:";
     public const string ConfirmSwitchToBranch = "Do you want to switch to the new branch?";
+    public static string ConfirmStartCreatePullRequests(int numberOfBranchesWithoutPullRequests) => $"There {"are".ToQuantity(numberOfBranchesWithoutPullRequests, ShowQuantityAs.None)} {"branch".ToQuantity(numberOfBranchesWithoutPullRequests)} to create pull requests for. Do you want to continue?";
     public const string ConfirmCreatePullRequests = "Are you sure you want to create pull requests for branches in this stack?";
     public static string PullRequestTitle(string sourceBranch, string targetBranch) => $"Title for pull request from {sourceBranch.Branch()} -> {targetBranch.Branch()}:";
     public const string PullRequestStackDescription = "Stack description for pull request:";

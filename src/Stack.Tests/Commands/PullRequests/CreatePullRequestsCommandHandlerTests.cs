@@ -48,6 +48,7 @@ public class CreatePullRequestsCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
@@ -107,6 +108,7 @@ public class CreatePullRequestsCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
@@ -182,6 +184,7 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -256,6 +259,7 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
@@ -310,6 +314,7 @@ A custom description
         ]);
         stackConfig.Load().Returns(stacks);
 
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
@@ -400,6 +405,7 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-1")).Returns("PR Title for branch-5");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
