@@ -223,10 +223,7 @@ public class CreatePullRequestsCommandHandler(
                     {
                         foreach (var pullRequest in pullRequestsInStack)
                         {
-                            Process.Start(new ProcessStartInfo(pullRequest.Url.ToString())
-                            {
-                                UseShellExecute = true
-                            });
+                            gitHubOperations.OpenPullRequest(pullRequest);
                         }
                     }
                 }
