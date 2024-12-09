@@ -30,7 +30,8 @@ public interface IGitOperations
     string[] GetBranchesThatExistInRemote(string[] branches);
     bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName);
     string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
-    (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
+    (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
+    (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
 }
@@ -135,9 +136,16 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
-    public (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName)
+    public (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName)
     {
-        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}").Trim();
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
+        var parts = status.Split('\t');
+        return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName)
+    {
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...origin/{branchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
     }

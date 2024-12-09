@@ -8,14 +8,14 @@ namespace Stack.Commands.Helpers;
 
 public class BranchDetail
 {
-    public BranchStatus Status { get; set; } = new(false, false, 0, 0);
+    public BranchStatus Status { get; set; } = new(false, false, 0, 0, 0, 0);
     public GitHubPullRequest? PullRequest { get; set; }
 
     public bool IsActive => Status.ExistsLocally && Status.ExistsInRemote && (PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged);
     public bool CouldBeCleanedUp => Status.ExistsLocally && (!Status.ExistsInRemote || PullRequest is not null && PullRequest.State == GitHubPullRequestStates.Merged);
     public bool HasPullRequest => PullRequest is not null && PullRequest.State != GitHubPullRequestStates.Closed;
 }
-public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int Ahead, int Behind);
+public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int AheadOfParent, int BehindParent, int AheadOfRemote, int BehindRemote);
 public record StackStatus(Dictionary<string, BranchDetail> Branches)
 {
     public string[] GetActiveBranches() => Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
@@ -50,8 +50,9 @@ public static class StackStatusHelpers
                 void CheckRemoteBranch(string branch, string sourceBranch)
                 {
                     var branchExistsLocally = branchesThatExistLocally.Contains(branch);
-                    var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch);
-                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind);
+                    var (ahead, behind) = gitOperations.CompareBranches(branch, sourceBranch);
+                    var (aheadRemote, behindRemote) = gitOperations.GetComparisonToRemoteTrackingBranch(branch);
+                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind, aheadRemote, behindRemote);
                     status.Branches[branch].Status = branchStatus;
                 }
 
@@ -68,7 +69,7 @@ public static class StackStatusHelpers
                     }
                     else
                     {
-                        status.Branches[branch].Status = new BranchStatus(branchesThatExistLocally.Contains(branch), false, 0, 0);
+                        status.Branches[branch].Status = new BranchStatus(branchesThatExistLocally.Contains(branch), false, 0, 0, 0, 0);
                     }
                 }
             }
@@ -129,7 +130,12 @@ public static class StackStatusHelpers
         IGitOperations gitOperations,
         IOutputProvider outputProvider)
     {
+        var (aheadRemote, behindRemote) = gitOperations.GetComparisonToRemoteTrackingBranch(stack.SourceBranch);
         var header = $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}";
+        if (aheadRemote > 0 || behindRemote > 0)
+        {
+            header += $" {behindRemote}{Emoji.Known.DownArrow}{aheadRemote}{Emoji.Known.UpArrow}".Muted();
+        }
         var items = new List<string>();
 
         string parentBranch = stack.SourceBranch;
@@ -146,7 +152,80 @@ public static class StackStatusHelpers
                 }
             }
         }
+
+        // outputProvider.Information(stack.Name.Stack());
         outputProvider.Tree(header, [.. items]);
+
+        // var items = new List<string[]>();
+
+        // string parentBranch = stack.SourceBranch;
+
+        // foreach (var branch in stack.Branches)
+        // {
+        //     if (status.Branches.TryGetValue(branch, out var branchDetail))
+        //     {
+        //         var branchNameBuilder = new StringBuilder();
+        //         var currentBranch = gitOperations.GetCurrentBranch();
+
+        //         var color = !branchDetail.IsActive ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
+        //         Decoration? decoration = !branchDetail.IsActive ? Decoration.Strikethrough : null;
+
+        //         if (color is not null && decoration is not null)
+        //         {
+        //             branchNameBuilder.Append($"[{decoration} {color}]{branch}[/]");
+        //         }
+        //         else if (color is not null)
+        //         {
+        //             branchNameBuilder.Append($"[{color}]{branch}[/]");
+        //         }
+        //         else if (decoration is not null)
+        //         {
+        //             branchNameBuilder.Append($"[{decoration}]{branch}[/]");
+        //         }
+        //         else
+        //         {
+        //             branchNameBuilder.Append(branch);
+        //         }
+
+        //         var statusBuilder = new StringBuilder();
+        //         var remoteStatusBuilder = new StringBuilder();
+
+        //         if (branchDetail.IsActive)
+        //         {
+        //             if (branchDetail.Status.AheadOfParent > 0 && branchDetail.Status.BehindParent > 0)
+        //             {
+        //                 statusBuilder.Append($"{branchDetail.Status.AheadOfParent} ahead, {branchDetail.Status.BehindParent} behind {parentBranch}".Muted());
+        //             }
+        //             else if (branchDetail.Status.AheadOfParent > 0)
+        //             {
+        //                 statusBuilder.Append($"{branchDetail.Status.AheadOfParent} ahead of {parentBranch}".Muted());
+        //             }
+        //             else if (branchDetail.Status.BehindParent > 0)
+        //             {
+        //                 statusBuilder.Append($"{branchDetail.Status.BehindParent} behind {parentBranch}".Muted());
+        //             }
+
+        //             if (branchDetail.Status.AheadOfRemote > 0 || branchDetail.Status.BehindRemote > 0)
+        //             {
+        //                 branchNameBuilder.Append($"  {branchDetail.Status.BehindRemote}{Emoji.Known.DownArrow}{branchDetail.Status.AheadOfRemote}{Emoji.Known.UpArrow}".Muted());
+        //             }
+        //         }
+
+        //         items.Add(
+        //         [
+        //             branchNameBuilder.ToString(),
+        //             statusBuilder.ToString(),
+        //             branchDetail.PullRequest?.GetPullRequestDisplay() ?? string.Empty
+        //         ]);
+
+        //         if (branchDetail.IsActive)
+        //         {
+        //             parentBranch = branch;
+        //         }
+        //     }
+        // }
+        // outputProvider.Information(header);
+        // outputProvider.Grid(["Branch", "Status", "Pull Request"], [.. items]);
     }
 
     public static string GetBranchAndPullRequestStatusOutput(
@@ -174,10 +253,6 @@ public static class StackStatusHelpers
     {
         var branchNameBuilder = new StringBuilder();
         var currentBranch = gitOperations.GetCurrentBranch();
-        var branchIsMerged =
-            branchDetail.Status.ExistsInRemote == false ||
-            branchDetail.Status.ExistsLocally == false ||
-            branchDetail.PullRequest is not null && branchDetail.PullRequest.State == GitHubPullRequestStates.Merged;
 
         var color = !branchDetail.IsActive ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
         Decoration? decoration = !branchDetail.IsActive ? Decoration.Strikethrough : null;
@@ -201,17 +276,22 @@ public static class StackStatusHelpers
 
         if (branchDetail.IsActive)
         {
-            if (branchDetail.Status.Ahead > 0 && branchDetail.Status.Behind > 0)
+            if (branchDetail.Status.AheadOfRemote > 0 || branchDetail.Status.BehindRemote > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead, {branchDetail.Status.Behind} behind {parentBranch})[/]");
+                branchNameBuilder.Append($" {branchDetail.Status.BehindRemote}{Emoji.Known.DownArrow}{branchDetail.Status.AheadOfRemote}{Emoji.Known.UpArrow}".Muted());
             }
-            else if (branchDetail.Status.Ahead > 0)
+
+            if (branchDetail.Status.AheadOfParent > 0 && branchDetail.Status.BehindParent > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead of {parentBranch})[/]");
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.AheadOfParent} ahead, {branchDetail.Status.BehindParent} behind {parentBranch})[/]");
             }
-            else if (branchDetail.Status.Behind > 0)
+            else if (branchDetail.Status.AheadOfParent > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Behind} behind {parentBranch})[/]");
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.AheadOfParent} ahead of {parentBranch})[/]");
+            }
+            else if (branchDetail.Status.BehindParent > 0)
+            {
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.BehindParent} behind {parentBranch})[/]");
             }
         }
 
@@ -245,7 +325,7 @@ public static class StackStatusHelpers
             outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
         }
 
-        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.BehindParent > 0))
         {
             outputProvider.NewLine();
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
