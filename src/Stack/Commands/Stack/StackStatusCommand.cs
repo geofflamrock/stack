@@ -61,7 +61,7 @@ public class StackStatusCommandHandler(
 
         if (inputs.All)
         {
-            stacksToCheckStatusFor.AddRange(stacks);
+            stacksToCheckStatusFor.AddRange(stacksForRemote);
         }
         else
         {
