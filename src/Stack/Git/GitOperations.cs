@@ -16,10 +16,12 @@ public interface IGitOperations
     void CreateNewBranch(string branchName, string sourceBranch);
     void PushNewBranch(string branchName);
     void PushBranch(string branchName);
+    void PushBranches(string[] branches, bool force, bool forceWithLease);
     void ChangeBranch(string branchName);
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
     void UpdateBranch(string branchName);
+    void UpdateBranches(string[] branches);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
     string GetCurrentBranch();
@@ -53,6 +55,19 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         ExecuteGitCommand($"push origin {branchName}");
     }
 
+    public void PushBranches(string[] branches, bool force, bool forceWithLease)
+    {
+        var command = $"push origin {string.Join(" ", branches)}";
+
+        if (force)
+            command += " --force";
+
+        if (forceWithLease)
+            command += " --force-with-lease";
+
+        ExecuteGitCommand(command);
+    }
+
     public void ChangeBranch(string branchName)
     {
         ExecuteGitCommand($"checkout {branchName}");
@@ -68,16 +83,51 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         ExecuteGitCommand($"pull origin {branchName}");
     }
 
+    public void FetchAndMergeBranch(string branchName)
+    {
+        ExecuteGitCommand($"fetch origin {branchName}:{branchName}");
+    }
+
     public void UpdateBranch(string branchName)
     {
         var currentBranch = GetCurrentBranch();
 
-        if (!currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+        if (currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
         {
-            ChangeBranch(branchName);
+            PullBranch(branchName);
+        }
+        else
+        {
+            FetchAndMergeBranch(branchName);
+        }
+    }
+
+    public void FetchAndMergeBranches(string[] branches)
+    {
+        var fetchBranches = branches.Select(b => $"{b}:{b}").ToArray();
+        ExecuteGitCommand($"fetch origin {string.Join(" ", fetchBranches)}");
+    }
+
+    public void UpdateBranches(string[] branches)
+    {
+        var currentBranch = GetCurrentBranch();
+
+        var branchesToFetchAndMerge = branches.Where(b => !currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        if (branchesToFetchAndMerge.Length > 0)
+        {
+            FetchAndMergeBranches(branchesToFetchAndMerge);
         }
 
-        PullBranch(branchName);
+        var branchesToPull = branches.Where(b => currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        if (branchesToPull.Length > 0)
+        {
+            foreach (var branch in branchesToPull)
+            {
+                PullBranch(branch);
+            }
+        }
     }
 
     public void DeleteLocalBranch(string branchName)
@@ -187,7 +237,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
             console.MarkupLine($"[grey]{infoBuilder}[/]");
         }
 
-        return infoBuilder.ToString();
+        return string.Join(Environment.NewLine, errorBuilder.ToString(), infoBuilder.ToString());
     }
 
     private void ExecuteGitCommand(string command)

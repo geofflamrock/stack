@@ -4,7 +4,6 @@ namespace Stack.Infrastructure;
 
 public interface IOutputProvider
 {
-    void Grid(string[] headers, string[][] rows);
     void Tree(string header, string[] items);
     void Status(string message, Action action);
     void Information(string message);
@@ -38,21 +37,6 @@ public class ConsoleOutputProvider(IAnsiConsole console) : IOutputProvider
             tree.AddNode(item);
 
         console.Write(tree);
-    }
-
-    public void Grid(string[] headers, string[][] rows)
-    {
-        var grid = new Grid();
-
-        foreach (var header in headers)
-            grid.AddColumn();
-
-        grid.AddRow(headers);
-
-        foreach (var row in rows)
-            grid.AddRow(row);
-
-        console.Write(grid);
     }
 }
 

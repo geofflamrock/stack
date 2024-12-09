@@ -55,6 +55,13 @@ public class StackStatusCommandHandler(
 
         var remoteUri = gitOperations.GetRemoteUri();
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (stacksForRemote.Count == 0)
+        {
+            outputProvider.Information("No stacks found for current repository.");
+            return new StackStatusCommandResponse([]);
+        }
+
         var currentBranch = gitOperations.GetCurrentBranch();
 
         var stacksToCheckStatusFor = new List<Config.Stack>();
