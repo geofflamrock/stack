@@ -73,6 +73,15 @@ public class UpdateStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
+        var status = StackStatusHelpers.GetStackStatus(
+            stack,
+            currentBranch,
+            outputProvider,
+            gitOperations,
+            gitHubOperations);
+
+        StackStatusHelpers.OutputStackStatus(stack, status, gitOperations, outputProvider);
+
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
         {
             void MergeFromSourceBranch(string branch, string sourceBranchName)

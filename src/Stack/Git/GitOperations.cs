@@ -237,7 +237,8 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
             console.MarkupLine($"[grey]{infoBuilder}[/]");
         }
 
-        return string.Join(Environment.NewLine, errorBuilder.ToString(), infoBuilder.ToString());
+        // return string.Join(Environment.NewLine, errorBuilder.ToString(), infoBuilder.ToString());
+        return infoBuilder.ToString();
     }
 
     private void ExecuteGitCommand(string command)
