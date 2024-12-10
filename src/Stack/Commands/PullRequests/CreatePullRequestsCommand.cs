@@ -133,7 +133,7 @@ public class CreatePullRequestsCommandHandler(
                         outputProvider.Information("Creating pull requests as drafts.");
                     }
 
-                    CreatePullRequests(outputProvider, gitHubOperations, status, pullRequestCreateActions, draft);
+                    CreatePullRequests(outputProvider, gitOperations, gitHubOperations, status, pullRequestCreateActions, draft);
 
                     var pullRequestsInStack = status.Branches.Values
                         .Where(branch => branch.HasPullRequest)
@@ -222,16 +222,27 @@ public class CreatePullRequestsCommandHandler(
 
     private static void CreatePullRequests(
         IOutputProvider outputProvider,
+        IGitOperations gitOperations,
         IGitHubOperations gitHubOperations,
         StackStatus status,
         List<GitHubPullRequestCreateAction> pullRequestCreateActions,
         bool draft)
     {
+        var pullRequestTemplatePath = Path.Join(gitOperations.GetRootOfRepository(), ".github", "pull_request_template.md");
+        var body = string.Empty;
+        var pullRequestTemplate = gitOperations.GetFileContents(pullRequestTemplatePath);
+
+        if (pullRequestTemplate is not null)
+        {
+            body = pullRequestTemplate;
+            outputProvider.Information("Using pull request template from repository");
+        }
+
         foreach (var action in pullRequestCreateActions)
         {
             var branchDetail = status.Branches[action.HeadBranch];
             outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
-            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, "", draft);
+            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, body, draft);
 
             if (pullRequest is not null)
             {

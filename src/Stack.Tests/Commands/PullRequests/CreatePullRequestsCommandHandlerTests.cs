@@ -444,6 +444,62 @@ A custom description
     }
 
     [Fact]
+    public async Task WhenAPullRequestTemplateExistsInTheRepo_ItIsUsedAsTheBodyOfANewPullRequest()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3"]);
+
+        gitOperations.GetRootOfRepository().Returns("repo");
+        gitOperations.GetFileContents(Path.Join("repo", ".github", "pull_request_template.md")).Returns("PR Template");
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
+            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
+
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", "PR Template", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        gitHubOperations
+            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", "PR Template", false)
+            .Returns(prForBranch3);
+
+        // Act
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+
+        // Assert        
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", "PR Template", false);
+    }
+
+    [Fact]
     public async Task WhenAskedWhetherToCreateAPullRequestAsADraft_AndTheAnswerIsYes_PullRequestsCreatedAsADraft()
     {
         // Arrange
