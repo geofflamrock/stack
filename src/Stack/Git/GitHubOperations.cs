@@ -16,12 +16,15 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url);
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft);
 
 public static class GitHubPullRequestExtensionMethods
 {
     public static Color GetPullRequestColor(this GitHubPullRequest pullRequest)
     {
+        if (pullRequest.IsDraft)
+            return Color.Grey;
+
         return pullRequest.State switch
         {
             GitHubPullRequestStates.Open => Color.Green,
@@ -40,7 +43,7 @@ public static class GitHubPullRequestExtensionMethods
 public interface IGitHubOperations
 {
     GitHubPullRequest? GetPullRequest(string branch);
-    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body);
+    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
@@ -49,16 +52,23 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url --head {branch} --state all");
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body)
+    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, bool draft)
     {
-        ExecuteGitHubCommand($"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}");
+        var command = $"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}";
+
+        if (draft)
+        {
+            command += " --draft";
+        }
+
+        ExecuteGitHubCommand(command);
 
         if (settings.DryRun)
         {
