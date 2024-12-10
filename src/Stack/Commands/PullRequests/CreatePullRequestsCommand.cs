@@ -127,8 +127,7 @@ public class CreatePullRequestsCommandHandler(
                     {
                         draft = inputProvider.Confirm(Questions.CreatePullRequestsAsDrafts, false);
                     }
-
-                    if (inputs.Draft == true)
+                    else if (draft)
                     {
                         outputProvider.Information("Creating pull requests as drafts.");
                     }
