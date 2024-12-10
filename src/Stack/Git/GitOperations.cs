@@ -114,22 +114,34 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
     {
         var currentBranch = GetCurrentBranch();
 
-        var branchesToFetchAndMerge = branches.Where(b => !currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
-
-        if (branchesToFetchAndMerge.Length > 0)
+        foreach (var branch in branches)
         {
-            FetchAndMergeBranches(branchesToFetchAndMerge);
-        }
-
-        var branchesToPull = branches.Where(b => currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
-
-        if (branchesToPull.Length > 0)
-        {
-            foreach (var branch in branchesToPull)
+            if (!currentBranch.Equals(branch, StringComparison.OrdinalIgnoreCase))
             {
-                PullBranch(branch);
+                ChangeBranch(branch);
             }
+
+            PullBranch(branch);
         }
+
+        ChangeBranch(currentBranch);
+
+        // var branchesToFetchAndMerge = branches.Where(b => !currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        // if (branchesToFetchAndMerge.Length > 0)
+        // {
+        //     FetchAndMergeBranches(branchesToFetchAndMerge);
+        // }
+
+        // var branchesToPull = branches.Where(b => currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        // if (branchesToPull.Length > 0)
+        // {
+        //     foreach (var branch in branchesToPull)
+        //     {
+        //         PullBranch(branch);
+        //     }
+        // }
     }
 
     public void DeleteLocalBranch(string branchName)

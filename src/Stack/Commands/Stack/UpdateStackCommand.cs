@@ -82,26 +82,34 @@ public class UpdateStackCommandHandler(
 
         StackStatusHelpers.OutputStackStatus(stack, status, gitOperations, outputProvider);
 
+        outputProvider.NewLine();
+
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
         {
+            var activeBranches = status.Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
+
+            if (status.Branches.Any(b => b.Value.IsActive && b.Value.HasChangesInRemote))
+            {
+                outputProvider.Status("Pulling changes from remote", () =>
+                {
+                    //gitOperations.UpdateBranches(activeBranches);
+                });
+            }
+
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
-                outputProvider.Information($"Merging {sourceBranchName.Stack()} into {branch.Branch()}");
-
-                gitOperations.UpdateBranch(sourceBranchName);
-                gitOperations.UpdateBranch(branch);
+                outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+                gitOperations.ChangeBranch(branch);
                 gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
-                gitOperations.PushBranch(branch);
             }
 
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                var pullRequest = gitHubOperations.GetPullRequest(branch);
+                var branchDetail = status.Branches[branch];
 
-                if (gitOperations.DoesRemoteBranchExist(branch) &&
-                    (pullRequest is null || pullRequest.State != GitHubPullRequestStates.Merged))
+                if (branchDetail.IsActive)
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
@@ -111,6 +119,12 @@ public class UpdateStackCommandHandler(
                     outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
                 }
             }
+
+            outputProvider.Status("Pushing changes to remote", () =>
+            {
+                //gitOperations.PushBranches(activeBranches, false, false);
+            });
+
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

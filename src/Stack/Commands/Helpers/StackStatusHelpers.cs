@@ -14,6 +14,7 @@ public class BranchDetail
     public bool IsActive => Status.ExistsLocally && Status.ExistsInRemote && (PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged);
     public bool CouldBeCleanedUp => Status.ExistsLocally && (!Status.ExistsInRemote || PullRequest is not null && PullRequest.State == GitHubPullRequestStates.Merged);
     public bool HasPullRequest => PullRequest is not null && PullRequest.State != GitHubPullRequestStates.Closed;
+    public bool HasChangesInRemote => Status.AheadOfRemote > 0 || Status.BehindRemote > 0;
 }
 public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int AheadOfParent, int BehindParent, int AheadOfRemote, int BehindRemote);
 public record StackStatus(Dictionary<string, BranchDetail> Branches)
@@ -41,7 +42,7 @@ public static class StackStatusHelpers
         var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
         var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
 
-        outputProvider.Status("Fetching branches...", () =>
+        outputProvider.Status("Fetching changes from remote...", () =>
         {
             gitOperations.FetchBranches(branchesThatExistInRemote);
         });
@@ -60,6 +61,10 @@ public static class StackStatusHelpers
                 }
 
                 var parentBranch = stack.SourceBranch;
+
+                status.Branches.Add(stack.SourceBranch, new BranchDetail());
+                var sourceBranchRemoteStatus = gitOperations.GetComparisonToRemoteTrackingBranch(stack.SourceBranch);
+                status.Branches[stack.SourceBranch].Status = new BranchStatus(branchesThatExistLocally.Contains(stack.SourceBranch), true, 0, 0, sourceBranchRemoteStatus.Ahead, sourceBranchRemoteStatus.Behind);
 
                 foreach (var branch in stack.Branches)
                 {
@@ -133,11 +138,11 @@ public static class StackStatusHelpers
         IGitOperations gitOperations,
         IOutputProvider outputProvider)
     {
-        var (aheadRemote, behindRemote) = gitOperations.GetComparisonToRemoteTrackingBranch(stack.SourceBranch);
+        var sourceBranchStatus = status.Branches[stack.SourceBranch].Status;
         var header = $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}";
-        if (aheadRemote > 0 || behindRemote > 0)
+        if (sourceBranchStatus.AheadOfRemote > 0 || sourceBranchStatus.BehindRemote > 0)
         {
-            header += $" {behindRemote}{Emoji.Known.DownArrow}{aheadRemote}{Emoji.Known.UpArrow}".Muted();
+            header += $" {sourceBranchStatus.BehindRemote}{Emoji.Known.DownArrow}{sourceBranchStatus.AheadOfRemote}{Emoji.Known.UpArrow}".Muted();
         }
 
         var items = new List<string>();
