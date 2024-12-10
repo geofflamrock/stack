@@ -119,7 +119,7 @@ public class UpdateStackCommandHandlerTests
         var branchesThatExistInRemote = new List<string>(["branch-1", "branch-2", "branch-3"]);
 
         gitOperations.DoesRemoteBranchExist(Arg.Is<string>(b => branchesThatExistInRemote.Contains(b))).Returns(true);
-        gitHubOperations.GetPullRequest("branch-2").Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri()));
+        gitHubOperations.GetPullRequest("branch-2").Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));

@@ -53,7 +53,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-5", "branch-3")
             .Returns((1, 0));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-3")
@@ -117,7 +117,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-5", "branch-3")
             .Returns((1, 0));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-3")
@@ -187,7 +187,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-4", "branch-2")
             .Returns((3, 1));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-3")
@@ -263,7 +263,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-4", "branch-2")
             .Returns((3, 1));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-3")
@@ -360,7 +360,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-5", "branch-1")
             .Returns((1, 0));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-5")
@@ -421,7 +421,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-5", "branch-1")
             .Returns((1, 0));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-5")
@@ -484,7 +484,7 @@ public class StackStatusCommandHandlerTests
             .CompareBranches("branch-5", "branch-3")
             .Returns((1, 0));
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri());
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
         gitHubOperations
             .GetPullRequest("branch-3")

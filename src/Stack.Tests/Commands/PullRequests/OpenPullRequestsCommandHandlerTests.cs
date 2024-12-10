@@ -39,12 +39,12 @@ public class OpenPullRequestsCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-3")
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-5")
             .Returns(prForBranch5);
@@ -85,12 +85,12 @@ public class OpenPullRequestsCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-3")
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Closed, Some.HttpsUri());
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Closed, Some.HttpsUri(), false);
 
         // Act
         await handler.Handle(OpenPullRequestsCommandInputs.Empty);
@@ -123,12 +123,12 @@ public class OpenPullRequestsCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-3")
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-5")
             .Returns(prForBranch5);
@@ -163,12 +163,12 @@ public class OpenPullRequestsCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-3")
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-5")
             .Returns(prForBranch5);
@@ -204,12 +204,12 @@ public class OpenPullRequestsCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-3")
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri());
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
             .GetPullRequest("branch-5")
             .Returns(prForBranch5);
