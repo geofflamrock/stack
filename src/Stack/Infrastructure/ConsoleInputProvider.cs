@@ -10,7 +10,7 @@ public interface IInputProvider
     string Select(string prompt, string[] choices);
     T Select<T>(string prompt, T[] choices, Func<T, string>? converter = null) where T : notnull;
     T SelectGrouped<T>(string prompt, ChoiceGroup<T>[] choices, Func<T, string>? converter = null) where T : notnull;
-    bool Confirm(string prompt);
+    bool Confirm(string prompt, bool defaultValue = true);
 }
 
 public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
@@ -65,7 +65,15 @@ public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
         return console.Prompt(select);
     }
 
-    public bool Confirm(string prompt) => console.Prompt(new ConfirmationPrompt(prompt));
+    public bool Confirm(string prompt, bool defaultValue = true)
+    {
+        var confirmationPrompt = new ConfirmationPrompt(prompt)
+        {
+            DefaultValue = defaultValue
+        };
+
+        return console.Prompt(confirmationPrompt);
+    }
 }
 
 

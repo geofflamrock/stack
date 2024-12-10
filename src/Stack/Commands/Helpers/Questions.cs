@@ -22,4 +22,5 @@ public static class Questions
     public static string PullRequestTitle(string sourceBranch, string targetBranch) => $"Title for pull request from {sourceBranch.Branch()} -> {targetBranch.Branch()}:";
     public const string PullRequestStackDescription = "Stack description for pull request:";
     public const string OpenPullRequests = "Open the pull requests in the browser?";
+    public const string CreatePullRequestsAsDrafts = "Create pull requests as drafts?";
 }
