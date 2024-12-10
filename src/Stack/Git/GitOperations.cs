@@ -36,6 +36,8 @@ public interface IGitOperations
     (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
+    string GetRootOfRepository();
+    string? GetFileContents(string path);
 }
 
 public class GitOperations(IAnsiConsole console, GitOperationSettings settings) : IGitOperations
@@ -208,6 +210,19 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
     public string[] GetLocalBranchesOrderedByMostRecentCommitterDate()
     {
         return ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short) --sort=-committerdate").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    public string GetRootOfRepository()
+    {
+        return ExecuteGitCommandAndReturnOutput("rev-parse --show-toplevel").Trim();
+    }
+
+    public string? GetFileContents(string path)
+    {
+        if (!File.Exists(path))
+            return null;
+
+        return File.ReadAllText(path);
     }
 
     private string ExecuteGitCommandAndReturnOutput(string command)

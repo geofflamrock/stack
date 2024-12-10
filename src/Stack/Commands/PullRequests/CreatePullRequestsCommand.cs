@@ -117,7 +117,7 @@ public class CreatePullRequestsCommandHandler(
 
                 if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
                 {
-                    CreatePullRequests(outputProvider, gitHubOperations, status, pullRequestCreateActions);
+                    CreatePullRequests(outputProvider, gitOperations, gitHubOperations, status, pullRequestCreateActions);
 
                     var pullRequestsInStack = status.Branches.Values
                         .Where(branch => branch.HasPullRequest)
@@ -204,13 +204,23 @@ public class CreatePullRequestsCommandHandler(
         }
     }
 
-    private static void CreatePullRequests(IOutputProvider outputProvider, IGitHubOperations gitHubOperations, StackStatus status, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+    private static void CreatePullRequests(IOutputProvider outputProvider, IGitOperations gitOperations, IGitHubOperations gitHubOperations, StackStatus status, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
     {
+        var pullRequestTemplatePath = Path.Join(gitOperations.GetRootOfRepository(), ".github", "pull_request_template.md");
+        var body = string.Empty;
+        var pullRequestTemplate = gitOperations.GetFileContents(pullRequestTemplatePath);
+
+        if (pullRequestTemplate is not null)
+        {
+            body = pullRequestTemplate;
+            outputProvider.Information("Using pull request template from repository");
+        }
+
         foreach (var action in pullRequestCreateActions)
         {
             var branchDetail = status.Branches[action.HeadBranch];
             outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
-            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, "");
+            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, body);
 
             if (pullRequest is not null)
             {
