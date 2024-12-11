@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Octopus.Shellfish;
 using Spectre.Console;
@@ -172,21 +173,23 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         var editorFileName = editorSplit[0];
         var editorArguments = editorSplit.Length > 1 ? string.Join(' ', editorSplit.Skip(1)) : string.Empty;
 
-        var errorBuilder = new StringBuilder();
-
-        int result = ShellExecutor.ExecuteCommand(
-            editorFileName,
-            $"\"{path}\" {editorArguments}",
-            ".",
-            (_) => { },
-            (_) => { },
-            (error) => errorBuilder.AppendLine(error));
-
-        if (result != 0)
+        var processStartInfo = new ProcessStartInfo
         {
-            console.MarkupLine($"[red]{errorBuilder}[/]");
-            throw new Exception("Failed to open file in editor.");
+            FileName = editorFileName,
+            Arguments = $"\"{path}\" {editorArguments}",
+            UseShellExecute = true,
+            CreateNoWindow = true
+        };
+
+        var process = Process.Start(processStartInfo);
+
+        if (process == null)
+        {
+            console.MarkupLine("[red]Failed to start editor process.[/]");
+            return;
         }
+
+        process.WaitForExit();
     }
 
     private string ExecuteGitCommandAndReturnOutput(string command)

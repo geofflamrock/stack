@@ -21,6 +21,6 @@ public static class Questions
     public const string ConfirmCreatePullRequests = "Are you sure you want to create pull requests for branches in this stack?";
     public const string PullRequestTitle = "Title:";
     public const string PullRequestStackDescription = "Stack description for pull request:";
-    public const string OpenPullRequests = "Open the new pull requests in a browser?";
+    public const string OpenPullRequests = "Open new pull requests in a browser?";
     public const string CreatePullRequestAsDraft = "Create pull request as draft?";
 }
