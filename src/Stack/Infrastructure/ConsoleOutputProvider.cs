@@ -10,6 +10,7 @@ public interface IOutputProvider
     void Warning(string message);
     void Error(string message);
     void Debug(string message);
+    void Rule(string message);
 }
 
 public static class OutputProviderExtensionMethods
@@ -37,6 +38,14 @@ public class ConsoleOutputProvider(IAnsiConsole console) : IOutputProvider
             tree.AddNode(item);
 
         console.Write(tree);
+    }
+
+    public void Rule(string message)
+    {
+        var rule = new Rule(message);
+        rule.LeftJustified();
+        rule.DoubleBorder();
+        console.Write(rule);
     }
 }
 

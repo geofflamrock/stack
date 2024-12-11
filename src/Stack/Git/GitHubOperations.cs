@@ -43,7 +43,7 @@ public static class GitHubPullRequestExtensionMethods
 public interface IGitHubOperations
 {
     GitHubPullRequest? GetPullRequest(string branch);
-    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, bool draft);
+    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
@@ -59,9 +59,9 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string body, bool draft)
+    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
     {
-        var command = $"pr create --title \"{title}\" --body \"{body}\" --base {baseBranch} --head {headBranch}";
+        var command = $"pr create --title \"{title}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
 
         if (draft)
         {
