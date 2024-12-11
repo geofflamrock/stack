@@ -1,3 +1,21 @@
+# v0.5.0 (Wed Dec 11 2024)
+
+#### 🚀 New Feature
+
+- More improvements to pull request creation [#133](https://github.com/geofflamrock/stack/pull/133) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🔩 Dependency Updates
+
+- Bump Octopus.Shellfish from 0.2.1180 to 0.2.2130 [#116](https://github.com/geofflamrock/stack/pull/116) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump Microsoft.NET.Test.Sdk from 17.11.1 to 17.12.0 [#125](https://github.com/geofflamrock/stack/pull/125) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### Authors: 2
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.4.0 (Tue Dec 10 2024)
 
 #### 🚀 New Feature
