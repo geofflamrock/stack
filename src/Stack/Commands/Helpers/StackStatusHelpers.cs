@@ -39,12 +39,14 @@ public static class StackStatusHelpers
             .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([])));
 
         var allBranchesInStacks = stacks.SelectMany(s => new List<string>([s.SourceBranch]).Concat(s.Branches)).Distinct().ToArray();
-        var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
-        var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
+        var branchesThatExistInRemote = Array.Empty<string>();
+        var branchesThatExistLocally = Array.Empty<string>();
 
         outputProvider.Status("Fetching changes from remote...", () =>
         {
-            gitOperations.FetchBranches(branchesThatExistInRemote);
+            // gitOperations.FetchBranches(branchesThatExistInRemote, true);
+            branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
+            branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
         });
 
         outputProvider.Status("Checking status of branches...", () =>
@@ -82,6 +84,42 @@ public static class StackStatusHelpers
                 }
             }
         });
+
+        // outputProvider.Status("Checking status of branches...", () =>
+        // {
+        //     foreach (var (stack, status) in stacksToCheckStatusFor)
+        //     {
+        //         void CheckBranchStatus(string branch, string sourceBranch)
+        //         {
+        //             var branchExistsLocally = branchesThatExistLocally.Contains(branch);
+        //             // var (ahead, behind) = gitOperations.CompareBranches(branch, sourceBranch);
+        //             var (aheadRemote, behindRemote) = gitOperations.GetComparisonToRemoteTrackingBranch(branch);
+        //             var branchStatus = new BranchStatus(branchExistsLocally, true, 0, 0, aheadRemote, behindRemote);
+        //             status.Branches[branch].Status = branchStatus;
+        //         }
+
+        //         var parentBranch = stack.SourceBranch;
+
+        //         status.Branches.Add(stack.SourceBranch, new BranchDetail());
+        //         var sourceBranchRemoteStatus = gitOperations.GetComparisonToRemoteTrackingBranch(stack.SourceBranch);
+        //         status.Branches[stack.SourceBranch].Status = new BranchStatus(branchesThatExistLocally.Contains(stack.SourceBranch), true, 0, 0, sourceBranchRemoteStatus.Ahead, sourceBranchRemoteStatus.Behind);
+
+        //         foreach (var branch in stack.Branches)
+        //         {
+        //             status.Branches.Add(branch, new BranchDetail());
+
+        //             if (branchesThatExistInRemote.Contains(branch))
+        //             {
+        //                 CheckBranchStatus(branch, parentBranch);
+        //                 parentBranch = branch;
+        //             }
+        //             else
+        //             {
+        //                 status.Branches[branch].Status = new BranchStatus(branchesThatExistLocally.Contains(branch), false, 0, 0, 0, 0);
+        //             }
+        //         }
+        //     }
+        // });
 
         outputProvider.Status("Checking status of GitHub pull requests...", () =>
         {

@@ -18,7 +18,7 @@ public interface IGitOperations
     void PushBranch(string branchName);
     void PushBranches(string[] branches, bool force, bool forceWithLease);
     void ChangeBranch(string branchName);
-    void FetchBranches(string[] branches);
+    void FetchBranches(string[] branches, bool prune = false);
     void PullBranch(string branchName);
     void UpdateBranch(string branchName);
     void UpdateBranches(string[] branches);
@@ -75,9 +75,12 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         ExecuteGitCommand($"checkout {branchName}");
     }
 
-    public void FetchBranches(string[] branches)
+    public void FetchBranches(string[] branches, bool prune = false)
     {
-        ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
+        if (prune)
+            ExecuteGitCommand($"fetch --prune origin {string.Join(" ", branches)}");
+        else
+            ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
     }
 
     public void PullBranch(string branchName)
@@ -183,9 +186,13 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
 
     public string[] GetBranchesThatExistInRemote(string[] branches)
     {
-        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var remoteBranches = ExecuteGitCommandAndReturnOutput("branch --remote --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
+        return branches.Where(b => remoteBranches.Any(lb => lb.Equals($"origin/{b}", StringComparison.OrdinalIgnoreCase))).ToArray();
+
+        // var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+        // return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
     public bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
