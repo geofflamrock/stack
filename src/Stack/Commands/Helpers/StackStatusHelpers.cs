@@ -40,18 +40,12 @@ public static class StackStatusHelpers
             .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([])));
 
         var allBranchesInStacks = stacks.SelectMany(s => new List<string>([s.SourceBranch]).Concat(s.Branches)).Distinct().ToArray();
-        var branchesThatExistInRemote = Array.Empty<string>();
-        var branchesThatExistLocally = Array.Empty<string>();
-
-        outputProvider.Status("Fetching changes from remote...", () =>
-        {
-            // gitOperations.FetchBranches(branchesThatExistInRemote, true);
-            branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
-            branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
-        });
 
         outputProvider.Status("Checking status of branches...", () =>
         {
+            var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
+            var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
+
             foreach (var (stack, status) in stacksToCheckStatusFor)
             {
                 void CheckBranchStatus(string branch, string sourceBranch)
