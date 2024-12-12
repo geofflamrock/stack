@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Octopus.Shellfish;
 using Spectre.Console;
@@ -37,7 +38,7 @@ public interface IGitOperations
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
-    string? GetFileContents(string path);
+    void OpenFileInEditorAndWaitForClose(string path);
 }
 
 public class GitOperations(IAnsiConsole console, GitOperationSettings settings) : IGitOperations
@@ -236,12 +237,36 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         return ExecuteGitCommandAndReturnOutput("rev-parse --show-toplevel").Trim();
     }
 
-    public string? GetFileContents(string path)
+    public void OpenFileInEditorAndWaitForClose(string path)
     {
-        if (!File.Exists(path))
-            return null;
+        var editor = GetConfiguredEditor();
+        if (string.IsNullOrWhiteSpace(editor))
+        {
+            console.MarkupLine("[red]No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.[/]");
+            return;
+        }
 
-        return File.ReadAllText(path);
+        var editorSplit = editor.Split(' ');
+        var editorFileName = editorSplit[0];
+        var editorArguments = editorSplit.Length > 1 ? string.Join(' ', editorSplit.Skip(1)) : string.Empty;
+
+        var processStartInfo = new ProcessStartInfo
+        {
+            FileName = editorFileName,
+            Arguments = $"\"{path}\" {editorArguments}",
+            UseShellExecute = true,
+            CreateNoWindow = true
+        };
+
+        var process = Process.Start(processStartInfo);
+
+        if (process == null)
+        {
+            console.MarkupLine("[red]Failed to start editor process.[/]");
+            return;
+        }
+
+        process.WaitForExit();
     }
 
     private string ExecuteGitCommandAndReturnOutput(string command)
@@ -295,5 +320,10 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
                 console.MarkupLine($"[grey]{output}[/]");
             }
         }
+    }
+
+    private string GetConfiguredEditor()
+    {
+        return ExecuteGitCommandAndReturnOutput("config --get core.editor").Trim();
     }
 }

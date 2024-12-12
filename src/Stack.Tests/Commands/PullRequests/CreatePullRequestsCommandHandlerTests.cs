@@ -20,7 +20,8 @@ public class CreatePullRequestsCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -50,25 +51,24 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -80,7 +80,8 @@ public class CreatePullRequestsCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -110,18 +111,17 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         gitHubOperations
@@ -156,7 +156,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -186,15 +187,15 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations.GetPullRequest("branch-3").Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         gitHubOperations
@@ -209,8 +210,8 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.DidNotReceive().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false);
+        gitHubOperations.DidNotReceive().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
         var expectedStackDescription = $@"<!-- stack-pr-list -->
 A custom description
 
@@ -231,7 +232,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -261,25 +263,24 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         // Act
-        await handler.Handle(new CreatePullRequestsCommandInputs("Stack1", null));
+        await handler.Handle(new CreatePullRequestsCommandInputs("Stack1"));
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -291,7 +292,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -316,25 +318,24 @@ A custom description
 
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, false);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -346,7 +347,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
 
@@ -362,7 +364,7 @@ A custom description
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(h => h.Handle(new CreatePullRequestsCommandInputs(invalidStackName, null)))
+        await handler.Invoking(h => h.Handle(new CreatePullRequestsCommandInputs(invalidStackName)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -377,7 +379,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -407,15 +410,15 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-1")).Returns("PR Title for branch-5");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Merged, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Merged, Some.HttpsUri(), false);
         gitHubOperations.GetPullRequest("branch-3").Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-1", "PR Title for branch-5", string.Empty, false)
+            .CreatePullRequest("branch-5", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         gitHubOperations
@@ -430,8 +433,8 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.DidNotReceive().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, false);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-1", "PR Title for branch-5", string.Empty, false);
+        gitHubOperations.DidNotReceive().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-1", "PR Title", Arg.Any<string>(), false);
         var expectedStackDescription = $@"<!-- stack-pr-list -->
 A custom description
 
@@ -452,7 +455,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -470,7 +474,7 @@ A custom description
             .Returns(["branch-1", "branch-3"]);
 
         gitOperations.GetRootOfRepository().Returns("repo");
-        gitOperations.GetFileContents(Path.Join("repo", ".github", "pull_request_template.md")).Returns("PR Template");
+        fileOperations.Exists(Path.Join("repo", ".github", "pull_request_template.md")).Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
@@ -485,18 +489,19 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", "PR Template", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", "PR Template", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", "PR Template", false)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", "PR Template", false);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        fileOperations.Received().Copy(Path.Join("repo", ".github", "pull_request_template.md"), Arg.Any<string>(), true);
     }
 
     [Fact]
@@ -508,7 +513,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -538,30 +544,29 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Confirm(Questions.CreatePullRequestsAsDrafts, false).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, true)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), true)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, true)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), true)
             .Returns(prForBranch5);
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, true);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, true);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), true);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), true);
     }
 
     [Fact]
-    public async Task WhenDraftIsProvided_PullRequestsAreCreatedAsDrafts()
+    public async Task WhenAskedWhetherToEditTheBodyOfAPull_AndTheAnswerIsYes_TheBodyFileIsOpenedInEditor()
     {
         // Arrange
         var gitOperations = Substitute.For<IGitOperations>();
@@ -569,7 +574,8 @@ A custom description
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
 
         var remoteUri = Some.HttpsUri().ToString();
         outputProvider
@@ -599,25 +605,26 @@ A custom description
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle("branch-3", "branch-1")).Returns("PR Title for branch-3");
-        inputProvider.Text(Questions.PullRequestTitle("branch-5", "branch-3")).Returns("PR Title for branch-5");
+        inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(false);
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.EditPullRequestBody).Returns(true);
 
-        var prForBranch3 = new GitHubPullRequest(1, "PR Title for branch-3", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
         gitHubOperations
-            .CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, true)
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch3);
 
-        var prForBranch5 = new GitHubPullRequest(2, "PR Title for branch-5", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
         gitHubOperations
-            .CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, true)
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch5);
 
         // Act
-        await handler.Handle(new CreatePullRequestsCommandInputs(null, true));
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title for branch-3", string.Empty, true);
-        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title for branch-5", string.Empty, true);
-        inputProvider.DidNotReceive().Confirm(Questions.CreatePullRequestsAsDrafts, false);
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
+        gitOperations.Received().OpenFileInEditorAndWaitForClose(Arg.Any<string>());
     }
 }

@@ -19,8 +19,9 @@ public static class Questions
     public const string ConfirmSwitchToBranch = "Do you want to switch to the new branch?";
     public static string ConfirmStartCreatePullRequests(int numberOfBranchesWithoutPullRequests) => $"There {"are".ToQuantity(numberOfBranchesWithoutPullRequests, ShowQuantityAs.None)} {"branch".ToQuantity(numberOfBranchesWithoutPullRequests)} to create pull requests for. Do you want to continue?";
     public const string ConfirmCreatePullRequests = "Are you sure you want to create pull requests for branches in this stack?";
-    public static string PullRequestTitle(string sourceBranch, string targetBranch) => $"Title for pull request from {sourceBranch.Branch()} -> {targetBranch.Branch()}:";
+    public const string PullRequestTitle = "Title:";
     public const string PullRequestStackDescription = "Stack description for pull request:";
-    public const string OpenPullRequests = "Open the pull requests in the browser?";
-    public const string CreatePullRequestsAsDrafts = "Create pull requests as drafts?";
+    public const string OpenPullRequests = "Open new pull requests in a browser?";
+    public const string CreatePullRequestAsDraft = "Create pull request as draft?";
+    public const string EditPullRequestBody = "Edit pull request body? This will open a file in your default editor.";
 }
