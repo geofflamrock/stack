@@ -268,7 +268,7 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestTemplatePath is not null)
         {
-            outputProvider.Information($"Found pull request template in repository at {pullRequestTemplatePath}, this will be used as the default body for each pull request.");
+            outputProvider.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
         }
 
         foreach (var action in pullRequestCreateActions)
