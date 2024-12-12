@@ -266,6 +266,11 @@ public class CreatePullRequestsCommandHandler(
             .Select(fileName => Path.Join(gitOperations.GetRootOfRepository(), ".github", fileName))
             .FirstOrDefault(fileOperations.Exists);
 
+        if (pullRequestTemplatePath is not null)
+        {
+            outputProvider.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
+        }
+
         foreach (var action in pullRequestCreateActions)
         {
             outputProvider.NewLine();
@@ -277,9 +282,10 @@ public class CreatePullRequestsCommandHandler(
             if (pullRequestTemplatePath is not null)
                 fileOperations.Copy(pullRequestTemplatePath, action.BodyFilePath, true);
 
-            outputProvider.Information($"Edit body for pull request from {action.HeadBranch.Branch()} -> {action.BaseBranch.Branch()}, save and close when ready");
-
-            gitOperations.OpenFileInEditorAndWaitForClose(action.BodyFilePath);
+            if (inputProvider.Confirm(Questions.EditPullRequestBody))
+            {
+                gitOperations.OpenFileInEditorAndWaitForClose(action.BodyFilePath);
+            }
 
             action.Draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
         }

@@ -564,4 +564,67 @@ A custom description
         gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), true);
         gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), true);
     }
+
+    [Fact]
+    public async Task WhenAskedWhetherToEditTheBodyOfAPull_AndTheAnswerIsYes_TheBodyFileIsOpenedInEditor()
+    {
+        // Arrange
+        var gitOperations = Substitute.For<IGitOperations>();
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var fileOperations = Substitute.For<IFileOperations>();
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
+
+        gitOperations.GetRemoteUri().Returns(remoteUri);
+        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations
+            .GetBranchesThatExistInRemote(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        gitOperations
+            .GetBranchesThatExistLocally(Arg.Any<string[]>())
+            .Returns(["branch-1", "branch-3", "branch-5"]);
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
+            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
+        inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(false);
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.EditPullRequestBody).Returns(true);
+
+        var prForBranch3 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        gitHubOperations
+            .CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false)
+            .Returns(prForBranch3);
+
+        var prForBranch5 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
+        gitHubOperations
+            .CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false)
+            .Returns(prForBranch5);
+
+        // Act
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+
+        // Assert        
+        gitHubOperations.Received().CreatePullRequest("branch-3", "branch-1", "PR Title", Arg.Any<string>(), false);
+        gitHubOperations.Received().CreatePullRequest("branch-5", "branch-3", "PR Title", Arg.Any<string>(), false);
+        gitOperations.Received().OpenFileInEditorAndWaitForClose(Arg.Any<string>());
+    }
 }
