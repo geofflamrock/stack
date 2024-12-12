@@ -10,7 +10,8 @@ public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(sett
     readonly Dictionary<string, string[]> KnownGroups = new()
     {
         { CommandGroups.Stack, [CommandNames.New, CommandNames.List, CommandNames.List, CommandNames.Delete, CommandNames.Status] },
-        { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Fetch, CommandNames.Push, CommandNames.Pull, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
+        { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
+        { CommandGroups.Remote, [CommandNames.Fetch, CommandNames.Push, CommandNames.Pull] },
         { CommandGroups.GitHub, [CommandNames.Pr] },
         { CommandGroups.Advanced, [CommandNames.Config] },
     };
@@ -21,6 +22,7 @@ public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(sett
         {
             return
             [
+                new FigletText("Stack"),
                 new Text("Stack is a tool to help manage multiple Git branches that stack on top of each other."),
                 Text.NewLine,
                 Text.NewLine,
@@ -45,7 +47,7 @@ public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(sett
 
                 if (groupHelp.Count() > 1)
                 {
-                    renderables.Add(new Markup($"{Environment.NewLine}[yellow]{(group.Key is not null ? $"{group.Key.ToUpper()} " : "OTHER")}COMMANDS:[/]{Environment.NewLine}"));
+                    renderables.Add(new Markup($"{Environment.NewLine}{(group.Key is not null ? $"{group.Key.ToUpper()} " : "OTHER")}COMMANDS:{Environment.NewLine}"));
                     var commandGrid = (Grid)groupHelp.Last();
                     commandGrid.Columns.First().Width(7);
                     renderables.Add(commandGrid);

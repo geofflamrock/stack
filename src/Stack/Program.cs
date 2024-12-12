@@ -1,4 +1,6 @@
-﻿using Spectre.Console.Cli;
+﻿using System.Drawing;
+using Spectre.Console;
+using Spectre.Console.Cli;
 using Stack.Commands;
 using Stack.Help;
 
@@ -6,6 +8,10 @@ var app = new CommandApp();
 app.Configure(configure =>
 {
     configure.SetApplicationName("stack");
+    configure.Settings.HelpProviderStyles!.Commands!.Header = Style.Plain;
+    configure.Settings.HelpProviderStyles!.Options!.Header = Style.Plain;
+    configure.Settings.HelpProviderStyles!.Usage!.Header = Style.Plain;
+
     configure.SetHelpProvider(new StackHelpProvider(configure.Settings));
     configure.UseAssemblyInformationalVersion();
 
@@ -17,9 +23,6 @@ app.Configure(configure =>
 
     // Branch commands
     configure.AddCommand<StackSwitchCommand>(CommandNames.Switch).WithDescription("Switches to a branch in a stack.");
-    configure.AddCommand<FetchStackCommand>(CommandNames.Fetch).WithDescription("Fetches changes from the remote server.");
-    configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Push changes to the remote server.");
-    configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pull changes from the remote server.");
     configure.AddCommand<UpdateStackCommand>(CommandNames.Update).WithDescription("Updates the branches in a stack.");
     configure.AddCommand<CleanupStackCommand>(CommandNames.Cleanup).WithDescription("Cleans up unused branches in a stack.");
     configure.AddBranch(CommandNames.Branch, branch =>
@@ -29,6 +32,11 @@ app.Configure(configure =>
             branch.AddCommand<AddBranchCommand>(CommandNames.Add).WithDescription("Adds an existing branch in a stack.");
             branch.AddCommand<RemoveBranchCommand>(CommandNames.Remove).WithDescription("Removes a branch from a stack.");
         });
+
+    // Remote commands
+    configure.AddCommand<FetchStackCommand>(CommandNames.Fetch).WithDescription("Fetches changes from the remote server for a stack.");
+    configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pull changes from the remote server for a stack.");
+    configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Push changes to the remote server for a stack.");
 
     // GitHub commands
     configure.AddBranch(CommandNames.Pr, pr =>
