@@ -22,9 +22,11 @@ public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
         var textPrompt = new TextPrompt<string>(prompt);
 
         if (defaultValue is not null)
-            textPrompt.DefaultValue(defaultValue);
+            textPrompt.DefaultValue(defaultValue.EscapeMarkup());
 
-        return console.Prompt(textPrompt);
+        var result = console.Prompt(textPrompt);
+
+        return result.RemoveMarkup();
     }
 
     public string Select(string prompt, string[] choices)
