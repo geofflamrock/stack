@@ -10,7 +10,7 @@ namespace Stack.Commands;
 
 public class PullStackCommandSettings : DryRunCommandSettingsBase
 {
-    [Description("The name of the stack to show the status of.")]
+    [Description("The name of the stack to pull changes from the remote for.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 }

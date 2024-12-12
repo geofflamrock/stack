@@ -8,47 +8,39 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class PushStackCommandSettings : DryRunCommandSettingsBase
+public class FetchStackCommandSettings : DryRunCommandSettingsBase
 {
-    [Description("The name of the stack to push changes to the remote for.")]
+    [Description("The name of the stack to fetch changes from the remote for.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
-
-    [Description("Force the push of the stack.")]
-    [CommandOption("-f|--force")]
-    public bool Force { get; init; }
-
-    [Description("Force the push of the stack with lease.")]
-    [CommandOption("--force-with-lease")]
-    public bool ForceWithLease { get; init; }
 }
 
-public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
+public class FetchStackCommand : AsyncCommand<FetchStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, PushStackCommandSettings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, FetchStackCommandSettings settings)
     {
         var console = AnsiConsole.Console;
 
-        var handler = new PushStackCommandHandler(
+        var handler = new FetchStackCommandHandler(
             new ConsoleInputProvider(console),
             new ConsoleOutputProvider(console),
             new GitOperations(console, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new PushStackCommandInputs(settings.Name, settings.Force, settings.ForceWithLease));
+        await handler.Handle(new FetchStackCommandInputs(settings.Name));
 
         return 0;
     }
 }
 
-public record PushStackCommandInputs(string? Name, bool Force, bool ForceWithLease);
-public class PushStackCommandHandler(
+public record FetchStackCommandInputs(string? Name);
+public class FetchStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitOperations gitOperations,
     IStackConfig stackConfig)
 {
-    public async Task Handle(PushStackCommandInputs inputs)
+    public async Task Handle(FetchStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -69,9 +61,9 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
+        var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote([stack.SourceBranch, .. stack.Branches]);
 
-        outputProvider.Information($"Pushing changes for {string.Join(", ", branchesThatExistInRemote.Select(b => b.Branch()))} to remote...");
-        gitOperations.PushBranches(branchesThatExistInRemote, inputs.Force, inputs.ForceWithLease);
+        outputProvider.Information($"Fetching changes for {string.Join(", ", branchesThatExistInRemote.Select(b => b.Branch()))} to remote...");
+        gitOperations.FetchBranches(branchesThatExistInRemote, true);
     }
 }

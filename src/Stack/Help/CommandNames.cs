@@ -10,6 +10,7 @@ public static class CommandNames
     public const string Cleanup = "cleanup";
     public const string Switch = "switch";
     public const string Update = "update";
+    public const string Fetch = "fetch";
     public const string Push = "push";
     public const string Pull = "pull";
     public const string Branch = "branch";

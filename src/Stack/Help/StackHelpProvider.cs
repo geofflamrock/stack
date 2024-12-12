@@ -10,7 +10,7 @@ public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(sett
     readonly Dictionary<string, string[]> KnownGroups = new()
     {
         { CommandGroups.Stack, [CommandNames.New, CommandNames.List, CommandNames.List, CommandNames.Delete, CommandNames.Status] },
-        { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Push, CommandNames.Pull, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
+        { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Fetch, CommandNames.Push, CommandNames.Pull, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
         { CommandGroups.GitHub, [CommandNames.Pr] },
         { CommandGroups.Advanced, [CommandNames.Config] },
     };

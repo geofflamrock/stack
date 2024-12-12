@@ -17,6 +17,7 @@ app.Configure(configure =>
 
     // Branch commands
     configure.AddCommand<StackSwitchCommand>(CommandNames.Switch).WithDescription("Switches to a branch in a stack.");
+    configure.AddCommand<FetchStackCommand>(CommandNames.Fetch).WithDescription("Fetches changes from the remote server.");
     configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Push changes to the remote server.");
     configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pull changes from the remote server.");
     configure.AddCommand<UpdateStackCommand>(CommandNames.Update).WithDescription("Updates the branches in a stack.");
