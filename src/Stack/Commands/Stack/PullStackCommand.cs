@@ -63,6 +63,16 @@ public class PullStackCommandHandler(
 
         var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote([stack.SourceBranch, .. stack.Branches]);
 
-        gitOperations.UpdateBranches(branchesThatExistInRemote);
+        foreach (var branch in branchesThatExistInRemote)
+        {
+            outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
+            gitOperations.ChangeBranch(branch);
+            // await Task.Delay(100);
+            gitOperations.PullBranch(branch);
+        }
+
+        gitOperations.ChangeBranch(currentBranch);
+
+        // gitOperations.UpdateBranches(branchesThatExistInRemote);
     }
 }

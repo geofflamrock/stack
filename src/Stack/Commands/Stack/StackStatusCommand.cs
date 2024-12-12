@@ -17,6 +17,10 @@ public class StackStatusCommandSettings : CommandSettingsBase
     [Description("Show status of all stacks.")]
     [CommandOption("--all")]
     public bool All { get; init; }
+
+    [Description("Show full status including pull requests.")]
+    [CommandOption("--full")]
+    public bool Full { get; init; }
 }
 
 public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
@@ -32,13 +36,13 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All));
+        await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All, settings.Full));
 
         return 0;
     }
 }
 
-public record StackStatusCommandInputs(string? Name, bool All);
+public record StackStatusCommandInputs(string? Name, bool All, bool Full);
 public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
 
 public class StackStatusCommandHandler(
@@ -87,7 +91,8 @@ public class StackStatusCommandHandler(
             currentBranch,
             outputProvider,
             gitOperations,
-            gitHubOperations);
+            gitHubOperations,
+            inputs.Full);
 
         StackStatusHelpers.OutputStackStatus(stackStatusResults, gitOperations, outputProvider);
 

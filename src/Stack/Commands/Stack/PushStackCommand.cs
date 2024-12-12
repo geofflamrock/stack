@@ -70,6 +70,8 @@ public class PushStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
         var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
+
+        outputProvider.Information($"Pushing changes for {string.Join(", ", branchesThatExistInRemote.Select(b => b.Branch()))} to remote...");
         gitOperations.PushBranches(branchesThatExistInRemote, inputs.Force, inputs.ForceWithLease);
     }
 }

@@ -60,7 +60,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
@@ -124,7 +124,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false));
+        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false, true));
 
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
@@ -194,7 +194,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
@@ -270,7 +270,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
@@ -317,7 +317,7 @@ public class StackStatusCommandHandlerTests
         // Act and assert
         var incorrectStackName = Some.Name();
         await handler
-            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false)))
+            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{incorrectStackName}' not found.");
     }
@@ -367,7 +367,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
@@ -428,7 +428,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
@@ -491,7 +491,7 @@ public class StackStatusCommandHandlerTests
             .Returns(pr);
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>

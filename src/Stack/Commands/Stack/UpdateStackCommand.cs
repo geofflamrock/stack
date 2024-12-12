@@ -86,16 +86,6 @@ public class UpdateStackCommandHandler(
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
         {
-            var activeBranches = status.Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
-
-            if (status.Branches.Any(b => b.Value.IsActive && b.Value.HasChangesInRemote))
-            {
-                outputProvider.Status("Pulling changes from remote", () =>
-                {
-                    //gitOperations.UpdateBranches(activeBranches);
-                });
-            }
-
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
                 outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
@@ -120,17 +110,14 @@ public class UpdateStackCommandHandler(
                 }
             }
 
-            outputProvider.Status("Pushing changes to remote", () =>
-            {
-                //gitOperations.PushBranches(activeBranches, false, false);
-            });
-
-
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
                 gitOperations.ChangeBranch(currentBranch);
             }
+
+            var example = $"stack push --name \"{stack.Name}\"";
+            outputProvider.Information($"Stack updated successfully. To push changes to the remote, run {example.Example()}.");
         }
 
         return new UpdateStackCommandResponse();

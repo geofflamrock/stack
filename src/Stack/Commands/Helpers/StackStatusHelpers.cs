@@ -29,7 +29,8 @@ public static class StackStatusHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitOperations gitOperations,
-        IGitHubOperations gitHubOperations)
+        IGitHubOperations gitHubOperations,
+        bool includePullRequestStatus = true)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -121,28 +122,31 @@ public static class StackStatusHelpers
         //     }
         // });
 
-        outputProvider.Status("Checking status of GitHub pull requests...", () =>
+        if (includePullRequestStatus)
         {
-            foreach (var (stack, status) in stacksToCheckStatusFor)
+            outputProvider.Status("Checking status of GitHub pull requests...", () =>
             {
-                try
+                foreach (var (stack, status) in stacksToCheckStatusFor)
                 {
-                    foreach (var branch in stack.Branches)
+                    try
                     {
-                        var pr = gitHubOperations.GetPullRequest(branch);
-
-                        if (pr is not null)
+                        foreach (var branch in stack.Branches)
                         {
-                            status.Branches[branch].PullRequest = pr;
+                            var pr = gitHubOperations.GetPullRequest(branch);
+
+                            if (pr is not null)
+                            {
+                                status.Branches[branch].PullRequest = pr;
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
-                }
-            }
-        });
+            });
+        }
 
         return stacksToCheckStatusFor;
     }
