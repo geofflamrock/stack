@@ -63,7 +63,7 @@ public class FetchStackCommandHandler(
 
         var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote([stack.SourceBranch, .. stack.Branches]);
 
-        outputProvider.Information($"Fetching changes for {string.Join(", ", branchesThatExistInRemote.Select(b => b.Branch()))} from remote...");
+        outputProvider.Information($"Fetching changes for {string.Join(", ", branchesThatExistInRemote.Select(b => b.Branch()))} from remote");
         gitOperations.FetchBranches(branchesThatExistInRemote, true);
     }
 }

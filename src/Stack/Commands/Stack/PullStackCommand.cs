@@ -67,12 +67,9 @@ public class PullStackCommandHandler(
         {
             outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
             gitOperations.ChangeBranch(branch);
-            // await Task.Delay(100);
             gitOperations.PullBranch(branch);
         }
 
         gitOperations.ChangeBranch(currentBranch);
-
-        // gitOperations.UpdateBranches(branchesThatExistInRemote);
     }
 }
