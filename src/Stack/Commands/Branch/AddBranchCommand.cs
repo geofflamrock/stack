@@ -56,7 +56,7 @@ public class AddBranchCommandHandler(
     {
         await Task.CompletedTask;
 
-        var defaultBranch = gitOperations.GetDefaultBranch();
+        // var defaultBranch = gitOperations.GetDefaultBranch();
         var remoteUri = gitOperations.GetRemoteUri();
         var currentBranch = gitOperations.GetCurrentBranch();
         var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Spectre.Console;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -15,22 +16,25 @@ public class AddBranchCommandHandlerTests
     public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_AddsBranchToStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
+        var gitOperations = new GitOperations(Substitute.For<IAnsiConsole>(), new GitOperationSettings(false, false, repo.LocalDirectory.DirectoryPath));
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
-
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -38,7 +42,7 @@ public class AddBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-5");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
 
         // Act
         await handler.Handle(AddBranchCommandInputs.Empty);
@@ -46,8 +50,8 @@ public class AddBranchCommandHandlerTests
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
