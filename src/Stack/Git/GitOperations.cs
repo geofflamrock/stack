@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using Octopus.Shellfish;
-using Spectre.Console;
+using Stack.Infrastructure;
 
 namespace Stack.Git;
 
@@ -38,7 +38,7 @@ public interface IGitOperations
     void OpenFileInEditorAndWaitForClose(string path);
 }
 
-public class GitOperations(IAnsiConsole console, GitOperationSettings settings) : IGitOperations
+public class GitOperations(IOutputProvider outputProvider, GitOperationSettings settings) : IGitOperations
 {
     public void CreateNewBranch(string branchName, string sourceBranch)
     {
@@ -165,7 +165,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         var editor = GetConfiguredEditor();
         if (string.IsNullOrWhiteSpace(editor))
         {
-            console.MarkupLine("[red]No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.[/]");
+            outputProvider.Error("No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.");
             return;
         }
 
@@ -185,7 +185,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
 
         if (process == null)
         {
-            console.MarkupLine("[red]Failed to start editor process.[/]");
+            outputProvider.Error("Failed to start editor process.");
             return;
         }
 
@@ -195,7 +195,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
     private string ExecuteGitCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
-            console.MarkupLine($"[grey]git {command}[/]");
+            outputProvider.Debug($"git {command}");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -210,13 +210,13 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
 
         if (result != 0)
         {
-            console.MarkupLine($"[red]{errorBuilder}[/]");
+            outputProvider.Error($"{errorBuilder}");
             throw new Exception("Failed to execute git command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            console.MarkupLine($"[grey]{infoBuilder}[/]");
+            outputProvider.Debug($"{infoBuilder}");
         }
 
         return infoBuilder.ToString();
@@ -227,7 +227,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
         if (settings.DryRun)
         {
             if (settings.Verbose)
-                console.MarkupLine($"[grey]git {command}[/]");
+                outputProvider.Debug($"git {command}");
         }
         else
         {
@@ -239,7 +239,7 @@ public class GitOperations(IAnsiConsole console, GitOperationSettings settings) 
                 // changes to the Git repository as the output might be important.
                 // In verbose mode we would have already written the output
                 // of the command so don't write it again.
-                console.MarkupLine($"[grey]{output}[/]");
+                outputProvider.Debug($"{output}");
             }
         }
     }

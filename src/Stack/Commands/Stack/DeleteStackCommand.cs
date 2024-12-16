@@ -27,10 +27,12 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
+
         var handler = new DeleteStackCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 

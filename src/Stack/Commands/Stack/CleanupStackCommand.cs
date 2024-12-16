@@ -27,10 +27,12 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
+
         var handler = new CleanupStackCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 

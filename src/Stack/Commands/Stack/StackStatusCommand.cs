@@ -24,11 +24,12 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
 
         var handler = new StackStatusCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 

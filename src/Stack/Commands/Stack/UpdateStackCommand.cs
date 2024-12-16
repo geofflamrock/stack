@@ -25,10 +25,12 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
+
         var handler = new UpdateStackCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new StackConfig());
 

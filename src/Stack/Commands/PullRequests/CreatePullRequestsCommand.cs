@@ -20,11 +20,12 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
 
         var handler = new CreatePullRequestsCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new GitHubOperations(console, settings.GetGitHubOperationSettings()),
             new FileOperations(),
             new StackConfig());
