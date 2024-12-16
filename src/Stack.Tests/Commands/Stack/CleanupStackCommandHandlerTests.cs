@@ -15,25 +15,29 @@ public class CleanupStackCommandHandlerTests
     public async Task WhenBranchExistsLocally_ButNotInRemote_BranchIsDeletedLocally()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
+
+        var remoteUri = Some.HttpsUri().ToString();
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -43,7 +47,7 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.Received().DeleteLocalBranch("branch-2");
+        gitOperations.GetBranchesThatExistLocally([branchToCleanup, branchToKeep]).Should().BeEquivalentTo([branchToKeep]);
     }
 
     [Fact]

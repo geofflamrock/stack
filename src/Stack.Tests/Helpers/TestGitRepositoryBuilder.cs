@@ -7,11 +7,17 @@ namespace Stack.Tests.Helpers;
 
 public class TestGitRepositoryBuilder
 {
-    List<string> branches = [];
+    List<(string Name, bool PushToRemote)> branches = [];
 
     public TestGitRepositoryBuilder WithBranch(string branch)
     {
-        branches.Add(branch);
+        branches.Add((branch, false));
+        return this;
+    }
+
+    public TestGitRepositoryBuilder WithBranch(string branch, bool pushToRemote)
+    {
+        branches.Add((branch, pushToRemote));
         return this;
     }
 
@@ -21,7 +27,7 @@ public class TestGitRepositoryBuilder
         var remoteDirectory = new TemporaryDirectory(remote);
         var localDirectory = TemporaryDirectory.Create();
 
-        Repository.Init(remoteDirectory.DirectoryPath, true);
+        var remoteRepo = new Repository(Repository.Init(remoteDirectory.DirectoryPath, true));
         var repo = new Repository(Repository.Clone(remote, localDirectory.DirectoryPath));
         var defaultBranch = Some.BranchName();
         repo.Refs.UpdateTarget("HEAD", "refs/heads/" + defaultBranch);
@@ -30,7 +36,15 @@ public class TestGitRepositoryBuilder
 
         foreach (var branch in branches)
         {
-            repo.CreateBranch(branch);
+            repo.CreateBranch(branch.Name);
+
+            if (branch.PushToRemote)
+            {
+                repo.Branches.Update(repo.Branches[branch.Name],
+                    b => b.Remote = repo.Network.Remotes["origin"].Name,
+                    b => b.UpstreamBranch = $"refs/heads/{branch.Name}");
+                repo.Network.Push(repo.Branches[branch.Name]);
+            }
         }
 
         return new TestGitRepository(localDirectory, remoteDirectory, repo);
