@@ -31,7 +31,7 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
-            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Force));

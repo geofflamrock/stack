@@ -26,7 +26,7 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
             new ConsoleInputProvider(console),
             outputProvider,
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
-            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Name));

@@ -26,7 +26,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             new ConsoleInputProvider(console),
             outputProvider,
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
-            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new FileOperations(),
             new StackConfig());
 

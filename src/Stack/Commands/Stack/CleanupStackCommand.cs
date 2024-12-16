@@ -33,7 +33,7 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
-            new GitHubOperations(console, settings.GetGitHubOperationSettings()),
+            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Name, settings.Force));
