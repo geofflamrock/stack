@@ -30,11 +30,12 @@ public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
 
         var handler = new RemoveBranchCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Force));

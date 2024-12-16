@@ -30,11 +30,12 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
         await Task.CompletedTask;
 
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
 
         var handler = new NewBranchCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Force));

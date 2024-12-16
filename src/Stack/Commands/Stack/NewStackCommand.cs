@@ -40,10 +40,12 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
+
         var handler = new NewStackCommandHandler(
             new ConsoleInputProvider(console),
-            new ConsoleOutputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            outputProvider,
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
         var response = await handler.Handle(
