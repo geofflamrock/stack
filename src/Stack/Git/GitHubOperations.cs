@@ -1,6 +1,7 @@
 using System.Text;
 using Octopus.Shellfish;
 using Spectre.Console;
+using Stack.Infrastructure;
 
 namespace Stack.Git;
 
@@ -48,7 +49,7 @@ public interface IGitHubOperations
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
 
-public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings settings) : IGitHubOperations
+public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSettings settings) : IGitHubOperations
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
@@ -91,7 +92,7 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
-            console.MarkupLine($"[grey]gh {command}[/]");
+            outputProvider.Debug($"gh {command}");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -106,13 +107,13 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
 
         if (result != 0)
         {
-            console.MarkupLine($"[red]{errorBuilder}[/]");
+            outputProvider.Error($"{errorBuilder}");
             throw new Exception("Failed to execute gh command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            console.MarkupLine($"[grey]{infoBuilder}[/]");
+            outputProvider.Debug($"{infoBuilder}");
         }
 
         return infoBuilder.ToString();
@@ -121,7 +122,7 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
     private void ExecuteGitHubCommand(string command)
     {
         if (settings.Verbose)
-            console.MarkupLine($"[grey]gh {command}[/]");
+            outputProvider.Debug($"gh {command}");
 
         if (!settings.DryRun)
         {
@@ -144,14 +145,14 @@ public class GitHubOperations(IAnsiConsole console, GitHubOperationSettings sett
 
         if (result != 0)
         {
-            console.MarkupLine($"[red]{errorBuilder}[/]");
+            outputProvider.Error($"{errorBuilder}");
             throw new Exception("Failed to execute gh command.");
         }
         else
         {
             if (infoBuilder.Length > 0)
             {
-                console.MarkupLine($"[grey]{infoBuilder}[/]");
+                outputProvider.Debug($"{infoBuilder}");
             }
         }
     }

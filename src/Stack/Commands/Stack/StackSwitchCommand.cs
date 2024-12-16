@@ -20,10 +20,11 @@ public class StackSwitchCommand : AsyncCommand<StackSwitchCommandSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
     {
         var console = AnsiConsole.Console;
+        var outputProvider = new ConsoleOutputProvider(console);
 
         var handler = new StackSwitchCommandHandler(
             new ConsoleInputProvider(console),
-            new GitOperations(console, settings.GetGitOperationSettings()),
+            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
         await handler.Handle(new StackSwitchCommandInputs(settings.Branch));

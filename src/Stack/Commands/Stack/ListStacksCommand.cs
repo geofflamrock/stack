@@ -3,6 +3,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
+using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
@@ -14,7 +15,8 @@ public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
     {
         await Task.CompletedTask;
         var console = AnsiConsole.Console;
-        var gitOperations = new GitOperations(console, settings.GetGitOperationSettings());
+        var outputProvider = new ConsoleOutputProvider(console);
+        var gitOperations = new GitOperations(outputProvider, settings.GetGitOperationSettings());
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
