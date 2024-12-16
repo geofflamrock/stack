@@ -1,6 +1,7 @@
 using System;
 using LibGit2Sharp;
 using Microsoft.VisualBasic;
+using Stack.Git;
 
 namespace Stack.Tests.Helpers;
 
@@ -49,6 +50,7 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public TemporaryDirectory LocalDirectory { get; } = LocalDirectory;
     public TemporaryDirectory RemoteDirectory { get; } = RemoteDirectory;
     public string RemoteUri => RemoteDirectory.DirectoryPath;
+    public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
 
     public void Dispose()
     {

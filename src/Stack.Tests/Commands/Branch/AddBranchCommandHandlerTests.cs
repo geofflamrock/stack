@@ -19,16 +19,16 @@ public class AddBranchCommandHandlerTests
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToAdd = Some.BranchName();
-        var repo = new TestGitRepositoryBuilder()
+        using var repo = new TestGitRepositoryBuilder()
             .WithBranch(sourceBranch)
             .WithBranch(anotherBranch)
             .WithBranch(branchToAdd)
             .Build();
 
-        var gitOperations = new GitOperations(Substitute.For<IAnsiConsole>(), new GitOperationSettings(false, false, repo.LocalDirectory.DirectoryPath));
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
