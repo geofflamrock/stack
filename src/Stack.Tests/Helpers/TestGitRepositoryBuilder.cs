@@ -36,14 +36,14 @@ public class TestGitRepositoryBuilder
 
         foreach (var branch in branches)
         {
-            repo.CreateBranch(branch.Name);
+            var newBranch = repo.CreateBranch(branch.Name);
 
             if (branch.PushToRemote)
             {
-                repo.Branches.Update(repo.Branches[branch.Name],
+                repo.Branches.Update(newBranch,
                     b => b.Remote = repo.Network.Remotes["origin"].Name,
-                    b => b.UpstreamBranch = $"refs/heads/{branch.Name}");
-                repo.Network.Push(repo.Branches[branch.Name]);
+                    b => b.UpstreamBranch = newBranch.CanonicalName);
+                repo.Network.Push(newBranch);
             }
         }
 
