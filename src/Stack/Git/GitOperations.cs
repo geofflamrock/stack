@@ -24,7 +24,6 @@ public interface IGitOperations
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
     string GetCurrentBranch();
-    string GetDefaultBranch();
     bool DoesLocalBranchExist(string branchName);
     bool DoesRemoteBranchExist(string branchName);
     string[] GetBranchesThatExistLocally(string[] branches);
@@ -95,11 +94,6 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
     public string GetCurrentBranch()
     {
         return ExecuteGitCommandAndReturnOutput("branch --show-current").Trim();
-    }
-
-    public string GetDefaultBranch()
-    {
-        return ExecuteGitCommandAndReturnOutput("symbolic-ref refs/remotes/origin/HEAD").Trim().Replace("refs/remotes/origin/", "");
     }
 
     public bool DoesRemoteBranchExist(string branchName)
