@@ -59,29 +59,32 @@ public class AddBranchCommandHandlerTests
     public async Task WhenStackNameProvided_DoesNotAskForStackName_AddsBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-5");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
 
         // Act
         await handler.Handle(new AddBranchCommandInputs("Stack1", null));
@@ -90,8 +93,8 @@ public class AddBranchCommandHandlerTests
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -99,27 +102,30 @@ public class AddBranchCommandHandlerTests
     public async Task WhenOnlyOneStackExists_DoesNotAskForStackName_AddsBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-5");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
 
         // Act
         await handler.Handle(new AddBranchCommandInputs(null, null));
@@ -128,7 +134,7 @@ public class AddBranchCommandHandlerTests
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd])
         });
     }
 
@@ -136,21 +142,25 @@ public class AddBranchCommandHandlerTests
     public async Task WhenStackNameProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -166,22 +176,25 @@ public class AddBranchCommandHandlerTests
     public async Task WhenBranchNameProvided_DoesNotAskForBranchName_AddsBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -191,13 +204,13 @@ public class AddBranchCommandHandlerTests
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs(null, "branch-5"));
+        await handler.Handle(new AddBranchCommandInputs(null, branchToAdd));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
     }
@@ -206,29 +219,32 @@ public class AddBranchCommandHandlerTests
     public async Task WhenBranchNameProvided_ButBranchDoesNotExistLocally_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(false);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act and assert
-        var invalidBranchName = Some.Name();
+        var invalidBranchName = Some.BranchName();
         await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, invalidBranchName)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
@@ -239,54 +255,60 @@ public class AddBranchCommandHandlerTests
     public async Task WhenBranchNameProvided_ButBranchAlreadyExistsInStack_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act and assert
-        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, "branch-5")))
+        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, branchToAdd)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
-            .WithMessage($"Branch 'branch-5' already exists in stack 'Stack1'.");
+            .WithMessage($"Branch '{branchToAdd}' already exists in stack 'Stack1'.");
     }
 
     [Fact]
     public async Task WhenAllInputsProvided_DoesNotAskForAnything_AddsBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToAdd = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .WithBranch(branchToAdd)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-5").Returns(true);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -294,13 +316,13 @@ public class AddBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs("Stack1", "branch-5"));
+        await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, branchToAdd]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
