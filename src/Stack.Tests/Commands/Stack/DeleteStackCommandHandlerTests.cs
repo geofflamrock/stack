@@ -16,8 +16,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -56,8 +54,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -97,8 +93,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -138,8 +132,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -179,8 +171,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -218,8 +208,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
@@ -300,8 +288,6 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder().Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
