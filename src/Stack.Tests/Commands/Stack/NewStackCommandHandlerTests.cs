@@ -15,16 +15,18 @@ public class NewStackCommandHandlerTests
     public async Task WithANewBranch_AndSwitchingToTheBranch_TheStackIsCreatedAndTheCurrentBranchIsChanged()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -33,39 +35,42 @@ public class NewStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("new-branch");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["new-branch"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.Received().ChangeBranch("new-branch");
+        gitOperations.GetCurrentBranch().Should().Be(newBranch);
     }
 
     [Fact]
     public async Task WithAnExistingBranch_AndSwitchingToTheBranch_TheStackIsCreatedAndTheCurrentBranchIsChanged()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var existingBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(existingBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -74,39 +79,44 @@ public class NewStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-2");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(existingBranch);
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Add, existingBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
         });
 
-        gitOperations.Received().ChangeBranch("branch-2");
+        gitOperations.GetCurrentBranch().Should().Be(existingBranch);
     }
 
     [Fact]
     public async Task WithNoBranch_TheStackIsCreatedAndTheCurrentBranchIsNotChanged()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var existingBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(existingBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
+        gitOperations.ChangeBranch(existingBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -116,36 +126,40 @@ public class NewStackCommandHandlerTests
 
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch(Arg.Any<string>());
+        gitOperations.GetCurrentBranch().Should().Be(existingBranch);
     }
 
     [Fact]
     public async Task WithANewBranch_AndNotSwitchingToTheBranch_TheStackIsCreatedAndTheCurrentBranchIsNotChanged()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
+        gitOperations.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -155,39 +169,44 @@ public class NewStackCommandHandlerTests
 
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns("new-branch-1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch-1"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["new-branch-1"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch("new-branch-1");
+        gitOperations.GetCurrentBranch().Should().Be(sourceBranch);
     }
 
     [Fact]
     public async Task WithAnExistingBranch_AndNotSwitchingToTheBranch_TheStackIsCreatedAndTheCurrentBranchIsNotChanged()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var existingBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(existingBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
+        gitOperations.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -196,39 +215,40 @@ public class NewStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-2");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(existingBranch);
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Add, "branch-2"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Add, existingBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
         });
 
-        gitOperations.DidNotReceive().ChangeBranch("branch-2");
+        gitOperations.GetCurrentBranch().Should().Be(sourceBranch);
     }
 
     [Fact]
     public async Task WhenStackNameIsProvidedInInputs_TheProviderIsNotAskedForAName_AndTheStackIsCreatedWithTheName()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -236,7 +256,7 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         var inputs = new NewStackCommandInputs("Stack1", null, null);
@@ -245,10 +265,10 @@ public class NewStackCommandHandlerTests
         var response = await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.DidNotReceive().Text(Questions.StackName);
@@ -258,16 +278,17 @@ public class NewStackCommandHandlerTests
     public async Task WhenSourceBranchIsProvidedInInputs_TheProviderIsNotAskedForTheBranch_AndTheStackIsCreatedWithTheSourceBranch()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -278,16 +299,16 @@ public class NewStackCommandHandlerTests
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
-        var inputs = new NewStackCommandInputs(null, "branch-1", null);
+        var inputs = new NewStackCommandInputs(null, sourceBranch, null);
 
         // Act
         var response = await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", null, null));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
@@ -297,16 +318,18 @@ public class NewStackCommandHandlerTests
     public async Task WhenBranchNameIsProvidedInInputs_TheProviderIsNotAskedForTheBranchName_AndTheStackIsCreatedWithTheBranchName()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -315,19 +338,19 @@ public class NewStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         // Note there shouldn't be any more inputs required at all
 
-        var inputs = new NewStackCommandInputs(null, null, "new-branch");
+        var inputs = new NewStackCommandInputs(null, null, newBranch);
 
         // Act
         var response = await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["new-branch"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
         inputProvider.Received().Text(Questions.StackName);
@@ -340,16 +363,18 @@ public class NewStackCommandHandlerTests
     public async Task WhenAllInputsAreProvided_TheProviderIsNotAskedForAnything_AndTheStackIsCreatedCorrectly()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -357,16 +382,16 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        var inputs = new NewStackCommandInputs("Stack1", "branch-1", "new-branch");
+        var inputs = new NewStackCommandInputs("Stack1", sourceBranch, newBranch);
 
         // Act
         var response = await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", "branch-1", BranchAction.Create, "new-branch"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["new-branch"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
         inputProvider.ReceivedCalls().Should().BeEmpty();
@@ -376,16 +401,18 @@ public class NewStackCommandHandlerTests
     public async Task WhenAStackHasANameWithMultipleWords_SuggestsAGoodDefaultNewBranchName()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -394,22 +421,22 @@ public class NewStackCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns("branch-1");
+        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(true);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-1").Returns("new-branch");
+        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-1").Returns(newBranch);
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         var response = await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("A stack with multiple words", "branch-1", BranchAction.Create, "new-branch"));
+        response.Should().BeEquivalentTo(new NewStackCommandResponse("A stack with multiple words", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("A stack with multiple words", remoteUri, "branch-1", ["new-branch"])
+            new("A stack with multiple words", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.Received().ChangeBranch("new-branch");
+        gitOperations.GetCurrentBranch().Should().Be(newBranch);
     }
 }
