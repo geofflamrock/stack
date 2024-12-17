@@ -252,24 +252,26 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenThereAreLocalBranchesThatAreNotInTheRemote_AsksToCleanup_AndDeletesThemBeforeDeletingStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-3"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
 
         stackConfig.Load().Returns(stacks);
@@ -288,9 +290,9 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
-        gitOperations.Received().DeleteLocalBranch("branch-3");
+        gitOperations.GetBranchesThatExistLocally([branchToCleanup, branchToKeep]).Should().BeEquivalentTo([branchToKeep]);
     }
 
     [Fact]
