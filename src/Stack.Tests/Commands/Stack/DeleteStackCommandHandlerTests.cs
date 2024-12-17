@@ -15,22 +15,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenNoInputsAreProvided_AsksForName_AndConfirmation_AndDeletesStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -47,7 +47,7 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -55,22 +55,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenConfirmationIsFalse_DoesNotDeleteStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -87,8 +87,8 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse(null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -96,22 +96,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenNameIsProvided_AsksForConfirmation_AndDeletesStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -127,7 +127,7 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
@@ -137,22 +137,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenForceIsProvided_DoesNotAskForConfirmation_AndDeletesStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -168,7 +168,7 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack);
@@ -178,22 +178,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenNameAndForceAreProvided_DoesNotAskForAnyInput_AndDeletesStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -207,7 +207,7 @@ public class DeleteStackCommandHandlerTests
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.ReceivedCalls().Should().BeEmpty();
@@ -217,22 +217,22 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenStackDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", []),
-            new("Stack2", remoteUri, "branch-2", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -299,21 +299,21 @@ public class DeleteStackCommandHandlerTests
     public async Task WhenOnlyOneStackExists_DoesNotAskForStackName()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder().Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", [])
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
