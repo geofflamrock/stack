@@ -54,24 +54,26 @@ public class CleanupStackCommandHandlerTests
     public async Task WhenBranchExistsLocally_AndInRemote_BranchIsNotDeletedLocally()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        var anotherBranchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToKeep, true)
+            .WithBranch(anotherBranchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToKeep, anotherBranchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -82,31 +84,33 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.DidNotReceive().DeleteLocalBranch("branch-2");
+        gitOperations.GetBranchesThatExistLocally([branchToKeep, anotherBranchToKeep]).Should().BeEquivalentTo([branchToKeep, anotherBranchToKeep]);
     }
 
     [Fact]
     public async Task WhenConfirmationIsFalse_DoesNotDeleteAnyBranches()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -117,31 +121,33 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.DidNotReceive().DeleteLocalBranch("branch-2");
+        gitOperations.GetBranchesThatExistLocally([branchToKeep, branchToCleanup]).Should().BeEquivalentTo([branchToKeep, branchToCleanup]);
     }
 
     [Fact]
     public async Task WhenStackNameIsProvided_ItIsNotAskedFor()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -158,24 +164,26 @@ public class CleanupStackCommandHandlerTests
     public async Task WhenForceIsProvided_ItIsNotAskedFor()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -192,24 +200,26 @@ public class CleanupStackCommandHandlerTests
     public async Task WhenStackNameIsProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"]),
-            new("Stack2", remoteUri, "branch-3", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -227,23 +237,25 @@ public class CleanupStackCommandHandlerTests
     public async Task WhenOnlyASingleStackExists_StackIsSelectedAutomatically()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns(["branch-1", "branch-2"]);
-        gitOperations.GetBranchesThatExistInRemote(Arg.Any<string[]>()).Returns(["branch-1"]);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-2"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
         ]);
         stackConfig.Load().Returns(stacks);
 
