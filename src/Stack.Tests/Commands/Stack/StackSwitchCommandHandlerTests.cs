@@ -15,59 +15,70 @@ public class StackSwitchCommandHandlerTests
     public async Task WhenNoInputsAreProvided_AsksForBranch_ChangesToBranch()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToSwitchTo = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToSwitchTo)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
+        gitOperations.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns("branch-3");
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns(branchToSwitchTo);
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(null));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-3");
+        gitOperations.GetCurrentBranch().Should().Be(branchToSwitchTo);
     }
 
     [Fact]
     public async Task WhenBranchIsProvided_DoesNotAskForBranch_ChangesToBranch()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToSwitchTo = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToSwitchTo)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-3").Returns(true);
+        gitOperations.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
         ]);
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new StackSwitchCommandInputs("branch-3"));
+        await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-3");
+        gitOperations.GetCurrentBranch().Should().Be(branchToSwitchTo);
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
@@ -75,27 +86,33 @@ public class StackSwitchCommandHandlerTests
     public async Task WhenBranchIsProvided_AndBranchDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var branchToSwitchTo = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToSwitchTo)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-        gitOperations.DoesLocalBranchExist("branch-3").Returns(false);
+        gitOperations.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
         ]);
         stackConfig.Load().Returns(stacks);
 
         // Act and assert
-        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs("branch-3")))
+        var invalidBranchName = Some.BranchName();
+        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs(invalidBranchName)))
             .Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Branch 'branch-3' does not exist.");
+            .WithMessage($"Branch '{invalidBranchName}' does not exist.");
     }
 }
