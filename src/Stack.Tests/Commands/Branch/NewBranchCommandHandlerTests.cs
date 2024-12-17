@@ -7,7 +7,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 
-namespace Stack.Tests.Commands.Stack;
+namespace Stack.Tests.Commands.Branch;
 
 public class NewBranchCommandHandlerTests
 {
