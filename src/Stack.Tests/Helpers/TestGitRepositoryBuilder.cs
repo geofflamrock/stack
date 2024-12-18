@@ -1,23 +1,203 @@
-using System;
 using LibGit2Sharp;
-using Microsoft.VisualBasic;
 using Stack.Git;
 
 namespace Stack.Tests.Helpers;
 
+
+public class BranchBuilder
+{
+    string? name;
+    bool pushToRemote;
+    string? sourceBranch;
+    int numberOfEmptyCommits;
+
+    public BranchBuilder WithName(string name)
+    {
+        this.name = name;
+        return this;
+    }
+
+    public BranchBuilder FromSourceBranch(string sourceBranch)
+    {
+        this.sourceBranch = sourceBranch;
+        return this;
+    }
+
+    public BranchBuilder PushToRemote()
+    {
+        this.pushToRemote = true;
+        return this;
+    }
+
+    public BranchBuilder WithNumberOfEmptyCommits(int numberOfCommits)
+    {
+        this.numberOfEmptyCommits = numberOfCommits;
+        return this;
+    }
+
+    public void Build(Repository repository, string defaultBranchName)
+    {
+        var branchName = name ?? Some.BranchName();
+        var defaultBranch = repository.Branches[defaultBranchName];
+        var target = sourceBranch is not null ? repository.Branches[sourceBranch].Tip : defaultBranch.Tip;
+        var branch = repository.CreateBranch(branchName, target);
+
+        for (var i = 0; i < numberOfEmptyCommits; i++)
+        {
+            CreateEmptyCommit(repository, branch!, $"Empty commit {i + 1}");
+        }
+
+        if (pushToRemote)
+        {
+            repository.Branches.Update(branch,
+                b => b.Remote = repository.Network.Remotes["origin"].Name,
+                b => b.UpstreamBranch = branch!.CanonicalName);
+            repository.Network.Push(branch);
+        }
+    }
+
+    private static Commit CreateEmptyCommit(Repository repository, Branch branch, string message)
+    {
+        repository.Refs.UpdateTarget("HEAD", branch.CanonicalName);
+        var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
+
+        return repository.Commit(message, signature, signature, new CommitOptions() { AllowEmptyCommit = true });
+    }
+}
+
+public class CommitBuilder
+{
+    string? branchName;
+    string? message;
+    string? authorName;
+    string? authorEmail;
+    string? committerName;
+    string? committerEmail;
+    bool allowEmptyCommit;
+    bool pushToRemote;
+
+    public CommitBuilder OnBranch(string branch)
+    {
+        this.branchName = branch;
+        return this;
+    }
+
+    public CommitBuilder WithMessage(string message)
+    {
+        this.message = message;
+        return this;
+    }
+
+    public CommitBuilder WithAuthor(string name, string email)
+    {
+        authorName = name;
+        authorEmail = email;
+        return this;
+    }
+
+    public CommitBuilder WithCommitter(string name, string email)
+    {
+        committerName = name;
+        committerEmail = email;
+        return this;
+    }
+
+    public CommitBuilder AllowEmptyCommit()
+    {
+        allowEmptyCommit = true;
+        return this;
+    }
+
+    public CommitBuilder PushToRemote()
+    {
+        pushToRemote = true;
+        return this;
+    }
+
+    public void Build(Repository repository)
+    {
+        Branch? branch = null;
+
+        if (branchName is not null)
+        {
+            branch = repository.Branches[branchName];
+        }
+
+        if (branch is not null)
+        {
+            repository.Refs.UpdateTarget("HEAD", branch.CanonicalName);
+        }
+
+        var signature = new Signature(authorName ?? Some.Name(), authorEmail ?? Some.Name(), DateTimeOffset.Now);
+        var committer = new Signature(committerName ?? Some.Name(), committerEmail ?? Some.Name(), DateTimeOffset.Now);
+
+        repository.Commit(message ?? Some.Name(), signature, committer, new CommitOptions() { AllowEmptyCommit = allowEmptyCommit });
+
+        if (branch is not null && pushToRemote)
+        {
+            repository.Network.Push(branch);
+        }
+    }
+}
+
 public class TestGitRepositoryBuilder
 {
-    List<(string Name, bool PushToRemote)> branches = [];
+    List<Action<BranchBuilder>> branchBuilders = [];
+    List<Action<CommitBuilder>> commitBuilders = [];
 
     public TestGitRepositoryBuilder WithBranch(string branch)
     {
-        branches.Add((branch, false));
+        branchBuilders.Add(b => b.WithName(branch));
         return this;
     }
 
     public TestGitRepositoryBuilder WithBranch(string branch, bool pushToRemote)
     {
-        branches.Add((branch, pushToRemote));
+        branchBuilders.Add(b =>
+        {
+            b.WithName(branch);
+
+            if (pushToRemote)
+            {
+                b.PushToRemote();
+            }
+        });
+        return this;
+    }
+
+    public TestGitRepositoryBuilder WithBranch(Action<BranchBuilder> branchBuilder)
+    {
+        branchBuilders.Add(branchBuilder);
+        return this;
+    }
+
+    public TestGitRepositoryBuilder WithNumberOfEmptyCommits(string branchName, int number, bool pushToRemote)
+    {
+        for (var i = 0; i < number; i++)
+        {
+            commitBuilders.Add(b =>
+            {
+                b.OnBranch(branchName).WithMessage($"Empty commit {i + 1}").AllowEmptyCommit();
+
+                if (pushToRemote)
+                {
+                    b.PushToRemote();
+                }
+            });
+        }
+        return this;
+    }
+
+    public TestGitRepositoryBuilder WithNumberOfEmptyCommits(Action<CommitBuilder> commitBuilder, int number)
+    {
+        for (var i = 0; i < number; i++)
+        {
+            commitBuilders.Add(b =>
+            {
+                commitBuilder(b);
+                b.AllowEmptyCommit();
+            });
+        }
         return this;
     }
 
@@ -28,48 +208,48 @@ public class TestGitRepositoryBuilder
         var localDirectory = TemporaryDirectory.Create();
 
         var remoteRepo = new Repository(Repository.Init(remoteDirectory.DirectoryPath, true));
-        var repo = new Repository(Repository.Clone(remote, localDirectory.DirectoryPath));
-        var defaultBranch = Some.BranchName();
-        repo.Refs.UpdateTarget("HEAD", "refs/heads/" + defaultBranch);
+        var localRepo = new Repository(Repository.Clone(remote, localDirectory.DirectoryPath));
+        var defaultBranchName = Some.BranchName();
 
-        Commit(repo, ("README.md", "Hello, World!"));
+        localRepo.Refs.UpdateTarget("HEAD", "refs/heads/" + defaultBranchName);
 
-        foreach (var branch in branches)
+        CreateInitialCommit(localRepo);
+
+        foreach (var branchBuilder in branchBuilders)
         {
-            var newBranch = repo.CreateBranch(branch.Name);
-
-            if (branch.PushToRemote)
-            {
-                repo.Branches.Update(newBranch,
-                    b => b.Remote = repo.Network.Remotes["origin"].Name,
-                    b => b.UpstreamBranch = newBranch.CanonicalName);
-                repo.Network.Push(newBranch);
-            }
+            var builder = new BranchBuilder();
+            branchBuilder(builder);
+            builder.Build(localRepo, defaultBranchName);
         }
 
-        return new TestGitRepository(localDirectory, remoteDirectory, repo);
+        foreach (var commitBuilder in commitBuilders)
+        {
+            var builder = new CommitBuilder();
+            commitBuilder(builder);
+            builder.Build(localRepo);
+        }
+
+        return new TestGitRepository(localDirectory, remoteDirectory, localRepo);
     }
 
-    private Commit Commit(Repository repository, params (string Name, string? Content)[] files)
+    private static Commit CreateInitialCommit(Repository repository)
     {
-        var message = $"Commit: {Some.Name()}";
+        var message = $"Initial commit";
         var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
 
         return repository.Commit(message, signature, signature);
     }
 }
 
-public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirectory RemoteDirectory, Repository Repository) : IDisposable
+public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirectory RemoteDirectory, Repository LocalRepository) : IDisposable
 {
-    public TemporaryDirectory LocalDirectory { get; } = LocalDirectory;
-    public TemporaryDirectory RemoteDirectory { get; } = RemoteDirectory;
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        Repository.Dispose();
+        LocalRepository.Dispose();
         LocalDirectory.Dispose();
         RemoteDirectory.Dispose();
     }
