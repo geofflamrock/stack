@@ -75,26 +75,33 @@ public class UpdateStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
+        var status = StackStatusHelpers.GetStackStatus(
+            stack,
+            currentBranch,
+            outputProvider,
+            gitOperations,
+            gitHubOperations);
+
+        StackStatusHelpers.OutputStackStatus(stack, status, gitOperations, outputProvider);
+
+        outputProvider.NewLine();
+
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
         {
             void MergeFromSourceBranch(string branch, string sourceBranchName)
             {
-                outputProvider.Information($"Merging {sourceBranchName.Stack()} into {branch.Branch()}");
-
-                gitOperations.UpdateBranch(sourceBranchName);
-                gitOperations.UpdateBranch(branch);
+                outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+                gitOperations.ChangeBranch(branch);
                 gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
-                gitOperations.PushBranch(branch);
             }
 
             var sourceBranch = stack.SourceBranch;
 
             foreach (var branch in stack.Branches)
             {
-                var pullRequest = gitHubOperations.GetPullRequest(branch);
+                var branchDetail = status.Branches[branch];
 
-                if (gitOperations.DoesRemoteBranchExist(branch) &&
-                    (pullRequest is null || pullRequest.State != GitHubPullRequestStates.Merged))
+                if (branchDetail.IsActive)
                 {
                     MergeFromSourceBranch(branch, sourceBranch);
                     sourceBranch = branch;
@@ -110,6 +117,9 @@ public class UpdateStackCommandHandler(
             {
                 gitOperations.ChangeBranch(currentBranch);
             }
+
+            var example = $"stack push --name \"{stack.Name}\"";
+            outputProvider.Information($"Stack updated successfully. To push changes to the remote, run {example.Example()}.");
         }
 
         return new UpdateStackCommandResponse();

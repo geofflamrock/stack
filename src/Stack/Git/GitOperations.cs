@@ -17,10 +17,12 @@ public interface IGitOperations
     void CreateNewBranch(string branchName, string sourceBranch);
     void PushNewBranch(string branchName);
     void PushBranch(string branchName);
+    void PushBranches(string[] branches, bool force, bool forceWithLease);
     void ChangeBranch(string branchName);
-    void FetchBranches(string[] branches);
+    void FetchBranches(string[] branches, bool prune = false);
     void PullBranch(string branchName);
     void UpdateBranch(string branchName);
+    void UpdateBranches(string[] branches);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
     string GetCurrentBranch();
@@ -30,7 +32,8 @@ public interface IGitOperations
     string[] GetBranchesThatExistInRemote(string[] branches);
     bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName);
     string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
-    (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
+    (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
+    (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
@@ -54,14 +57,30 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         ExecuteGitCommand($"push origin {branchName}");
     }
 
+    public void PushBranches(string[] branches, bool force, bool forceWithLease)
+    {
+        var command = $"push origin {string.Join(" ", branches)}";
+
+        if (force)
+            command += " --force";
+
+        if (forceWithLease)
+            command += " --force-with-lease";
+
+        ExecuteGitCommand(command);
+    }
+
     public void ChangeBranch(string branchName)
     {
         ExecuteGitCommand($"checkout {branchName}");
     }
 
-    public void FetchBranches(string[] branches)
+    public void FetchBranches(string[] branches, bool prune = false)
     {
-        ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
+        if (prune)
+            ExecuteGitCommand($"fetch --prune origin {string.Join(" ", branches)}");
+        else
+            ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
     }
 
     public void PullBranch(string branchName)
@@ -69,16 +88,63 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         ExecuteGitCommand($"pull origin {branchName}");
     }
 
+    public void FetchAndMergeBranch(string branchName)
+    {
+        ExecuteGitCommand($"fetch origin {branchName}:{branchName}");
+    }
+
     public void UpdateBranch(string branchName)
     {
         var currentBranch = GetCurrentBranch();
 
-        if (!currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+        if (currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
         {
-            ChangeBranch(branchName);
+            PullBranch(branchName);
+        }
+        else
+        {
+            FetchAndMergeBranch(branchName);
+        }
+    }
+
+    public void FetchAndMergeBranches(string[] branches)
+    {
+        var fetchBranches = branches.Select(b => $"{b}:{b}").ToArray();
+        ExecuteGitCommand($"fetch origin {string.Join(" ", fetchBranches)}");
+    }
+
+    public void UpdateBranches(string[] branches)
+    {
+        var currentBranch = GetCurrentBranch();
+
+        foreach (var branch in branches)
+        {
+            if (!currentBranch.Equals(branch, StringComparison.OrdinalIgnoreCase))
+            {
+                ChangeBranch(branch);
+            }
+
+            PullBranch(branch);
         }
 
-        PullBranch(branchName);
+        ChangeBranch(currentBranch);
+
+        // var branchesToFetchAndMerge = branches.Where(b => !currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        // if (branchesToFetchAndMerge.Length > 0)
+        // {
+        //     FetchAndMergeBranches(branchesToFetchAndMerge);
+        // }
+
+        // var branchesToPull = branches.Where(b => currentBranch.Equals(b, StringComparison.OrdinalIgnoreCase)).ToArray();
+
+        // if (branchesToPull.Length > 0)
+        // {
+        //     foreach (var branch in branchesToPull)
+        //     {
+        //         PullBranch(branch);
+        //     }
+        // }
     }
 
     public void DeleteLocalBranch(string branchName)
@@ -115,9 +181,13 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
 
     public string[] GetBranchesThatExistInRemote(string[] branches)
     {
-        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var remoteBranches = ExecuteGitCommandAndReturnOutput("branch --remote --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
+        return branches.Where(b => remoteBranches.Any(lb => lb.Equals($"origin/{b}", StringComparison.OrdinalIgnoreCase))).ToArray();
+
+        // var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+        // return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
     public bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
@@ -132,9 +202,16 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
-    public (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName)
+    public (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName)
     {
-        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}").Trim();
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
+        var parts = status.Split('\t');
+        return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName)
+    {
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...origin/{branchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
@@ -213,6 +290,7 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
             outputProvider.Debug($"{infoBuilder}");
         }
 
+        // return string.Join(Environment.NewLine, errorBuilder.ToString(), infoBuilder.ToString());
         return infoBuilder.ToString();
     }
 
