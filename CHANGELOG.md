@@ -1,3 +1,37 @@
+# v0.6.0 (Thu Dec 19 2024)
+
+#### 🚀 New Feature
+
+- Ask before editing the PR body [#138](https://github.com/geofflamrock/stack/pull/138) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fix
+
+- Escape special characters from input default values [#135](https://github.com/geofflamrock/stack/pull/135) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🏠 Internal
+
+- Use output provider for Git and GitHub operations [#141](https://github.com/geofflamrock/stack/pull/141) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🧪 Tests
+
+- Use proper Git repository for open pull requests tests [#158](https://github.com/geofflamrock/stack/pull/158) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for create pull requests tests [#157](https://github.com/geofflamrock/stack/pull/157) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for update stack tests [#156](https://github.com/geofflamrock/stack/pull/156) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for stack status tests [#155](https://github.com/geofflamrock/stack/pull/155) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for stack switch tests [#154](https://github.com/geofflamrock/stack/pull/154) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for remove branch tests [#153](https://github.com/geofflamrock/stack/pull/153) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for new stack tests [#148](https://github.com/geofflamrock/stack/pull/148) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for delete stack tests [#147](https://github.com/geofflamrock/stack/pull/147) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for cleanup stack tests [#146](https://github.com/geofflamrock/stack/pull/146) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for new branch tests [#145](https://github.com/geofflamrock/stack/pull/145) ([@geofflamrock](https://github.com/geofflamrock))
+- Use proper Git repository for add branch tests [#144](https://github.com/geofflamrock/stack/pull/144) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.5.0 (Wed Dec 11 2024)
 
 #### 🚀 New Feature
