@@ -246,6 +246,16 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
 
+    public Commit GetTipOfBranch(string branchName)
+    {
+        return LocalRepository.Branches[branchName].Tip;
+    }
+
+    public List<Commit> GetCommitsReachableFromBranch(string branchName)
+    {
+        return [.. LocalRepository.Branches[branchName].Commits];
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);

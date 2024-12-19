@@ -15,163 +15,161 @@ public class UpdateStackCommandHandlerTests
     public async Task WhenMultipleBranchesExistInAStack_UpdatesAndMergesEachBranchInSequence()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
-
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1");
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
-        gitOperations.Received().PushBranch("branch-2");
-
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().UpdateBranch("branch-3");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
-        gitOperations.Received().PushBranch("branch-3");
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
     }
 
     [Fact]
     public async Task WhenABranchInTheStackNoLongerExistsOnTheRemote_SkipsOverUpdatingThatBranch()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10))
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        var branchesThatExistInRemote = new List<string>(["branch-1", "branch-3"]);
-
-        gitOperations.DoesRemoteBranchExist(Arg.Is<string>(b => branchesThatExistInRemote.Contains(b))).Returns(true);
-
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1");
-        gitOperations.Received().UpdateBranch("branch-3");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
-        gitOperations.Received().PushBranch("branch-3");
-
-        gitOperations.DidNotReceive().UpdateBranch("branch-2");
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
     }
 
     [Fact]
     public async Task WhenABranchInTheStackExistsOnTheRemote_ButThePullRequestIsMerged_SkipsOverUpdatingThatBranch()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        var branchesThatExistInRemote = new List<string>(["branch-1", "branch-2", "branch-3"]);
-
-        gitOperations.DoesRemoteBranchExist(Arg.Is<string>(b => branchesThatExistInRemote.Contains(b))).Returns(true);
-        gitHubOperations.GetPullRequest("branch-2").Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
+        gitHubOperations.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1");
-        gitOperations.Received().UpdateBranch("branch-3");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
-        gitOperations.Received().PushBranch("branch-3");
-
-        gitOperations.DidNotReceive().UpdateBranch("branch-2");
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
     }
 
     [Fact]
     public async Task WhenNameIsProvided_DoesNotAskForName_UpdatesCorrectStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
-
         // Act
         await handler.Handle(new UpdateStackCommandInputs("Stack1", false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1");
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
-        gitOperations.Received().PushBranch("branch-2");
-
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().UpdateBranch("branch-3");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
-        gitOperations.Received().PushBranch("branch-3");
-
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
 
@@ -179,20 +177,29 @@ public class UpdateStackCommandHandlerTests
     public async Task WhenForceIsProvided_DoesNotAskForConfirmation()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
@@ -202,6 +209,9 @@ public class UpdateStackCommandHandlerTests
         await handler.Handle(new UpdateStackCommandInputs(null, true));
 
         // Assert
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmUpdateStack);
     }
 
@@ -209,20 +219,29 @@ public class UpdateStackCommandHandlerTests
     public async Task WhenNameIsProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
@@ -237,74 +256,86 @@ public class UpdateStackCommandHandlerTests
     public async Task WhenOnASpecificBranchInTheStack_TheSameBranchIsSetAsCurrentAfterTheUpdate()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-
         // We are on a specific branch in the stack
-        gitOperations.GetCurrentBranch().Returns("branch-2");
+        gitOperations.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
-        var stack2 = new Config.Stack("Stack2", remoteUri, "branch-2", ["branch-4", "branch-5"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
-
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().ChangeBranch("branch-2");
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
+        gitOperations.GetCurrentBranch().Should().Be(branch1);
     }
 
     [Fact]
     public async Task WhenOnlyASingleStackExists_DoesNotAskForStackName_UpdatesStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .Build();
+
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
 
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
-
-        var stack1 = new Config.Stack("Stack1", remoteUri, "branch-1", ["branch-2", "branch-3"]);
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmUpdateStack).Returns(true);
 
-        gitOperations.DoesRemoteBranchExist(Arg.Any<string>()).Returns(true);
-
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false));
 
         // Assert
-        gitOperations.Received().UpdateBranch("branch-1");
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-1");
-        gitOperations.Received().PushBranch("branch-2");
-
-        gitOperations.Received().UpdateBranch("branch-2");
-        gitOperations.Received().UpdateBranch("branch-3");
-        gitOperations.Received().MergeFromLocalSourceBranch("branch-2");
-        gitOperations.Received().PushBranch("branch-3");
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
