@@ -7,7 +7,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 
-namespace Stack.Tests.Commands.Stack;
+namespace Stack.Tests.Commands.Branch;
 
 public class RemoveBranchCommandHandlerTests
 {
@@ -15,21 +15,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_RemovesBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -37,7 +39,7 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
@@ -46,8 +48,8 @@ public class RemoveBranchCommandHandlerTests
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -55,28 +57,30 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenStackNameProvided_DoesNotAskForStackName_RemovesBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
@@ -86,8 +90,8 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -95,21 +99,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenStackNameProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -125,21 +131,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenBranchNameProvided_DoesNotAskForBranchName_RemovesBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -150,13 +158,13 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, "branch-3", false));
+        await handler.Handle(new RemoveBranchCommandInputs(null, branchToRemove, false));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
     }
@@ -165,21 +173,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenBranchNameProvided_ButBranchDoesNotExistInStack_Throws()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
 
@@ -197,21 +207,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenForceProvided_DoesNotAskForConfirmation_RemovesBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -219,7 +231,7 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
 
         // Act
         await handler.Handle(new RemoveBranchCommandInputs(null, null, true));
@@ -227,8 +239,8 @@ public class RemoveBranchCommandHandlerTests
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch);
     }
@@ -237,21 +249,23 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenAllInputsProvided_DoesNotAskForAnything_RemovesBranchFromStack()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
@@ -259,13 +273,13 @@ public class RemoveBranchCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs("Stack1", "branch-3", true));
+        await handler.Handle(new RemoveBranchCommandInputs("Stack1", branchToRemove, true));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"]),
-            new("Stack2", remoteUri, "branch-2", ["branch-4"])
+            new("Stack1", repo.RemoteUri, sourceBranch, []),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
@@ -274,27 +288,29 @@ public class RemoveBranchCommandHandlerTests
     public async Task WhenOnlyOneStackExists_DoesNotAskForStackName()
     {
         // Arrange
-        var gitOperations = Substitute.For<IGitOperations>();
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
+        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
-
-        var remoteUri = Some.HttpsUri().ToString();
-
-        gitOperations.GetRemoteUri().Returns(remoteUri);
-        gitOperations.GetCurrentBranch().Returns("branch-1");
 
         var stacks = new List<Config.Stack>(
         [
-            new("Stack1", remoteUri, "branch-1", ["branch-3", "branch-5"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove])
         ]);
         stackConfig.Load().Returns(stacks);
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns("branch-3");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
@@ -303,7 +319,7 @@ public class RemoveBranchCommandHandlerTests
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, "branch-1", ["branch-5"])
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
