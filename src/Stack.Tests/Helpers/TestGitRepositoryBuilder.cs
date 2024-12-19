@@ -209,6 +209,12 @@ public class TestGitRepositoryBuilder
 
         var remoteRepo = new Repository(Repository.Init(remoteDirectory.DirectoryPath, true));
         var localRepo = new Repository(Repository.Clone(remote, localDirectory.DirectoryPath));
+
+        // Ensure that we can commit to this repository when tests run
+        // in a context where the user's name and email are not set.
+        localRepo.Config.Add("user.name", Some.Name());
+        localRepo.Config.Add("user.email", Some.Email());
+
         var defaultBranchName = Some.BranchName();
 
         localRepo.Refs.UpdateTarget("HEAD", "refs/heads/" + defaultBranchName);
@@ -245,6 +251,16 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
 {
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
+
+    public Commit GetTipOfBranch(string branchName)
+    {
+        return LocalRepository.Branches[branchName].Tip;
+    }
+
+    public List<Commit> GetCommitsReachableFromBranch(string branchName)
+    {
+        return [.. LocalRepository.Branches[branchName].Commits];
+    }
 
     public void Dispose()
     {
