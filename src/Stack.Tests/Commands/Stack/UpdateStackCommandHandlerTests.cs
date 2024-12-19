@@ -6,10 +6,11 @@ using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
 using Stack.Commands.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Stack;
 
-public class UpdateStackCommandHandlerTests
+public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenMultipleBranchesExistInAStack_UpdatesAndMergesEachBranchInSequence()
@@ -31,7 +32,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -71,7 +72,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -109,7 +110,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -151,7 +152,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -193,7 +194,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -235,7 +236,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -272,7 +273,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
@@ -318,7 +319,7 @@ public class UpdateStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
         var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
