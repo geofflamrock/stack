@@ -13,7 +13,7 @@ public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDir
 
 public record Commit(string Sha, string Message);
 
-public record GitBranchStatus(string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
+public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
 public interface IGitOperations
 {
@@ -176,20 +176,11 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
 
         foreach (var branchStatus in gitBranchVerbose)
         {
-            var match = regex.Match(branchStatus);
+            var status = GitBranchStatusParser.Parse(branchStatus);
 
-            if (match.Success && branches.Contains(match.Groups["branchName"].Value))
+            if (status is not null && branches.Contains(status.BranchName))
             {
-                var branchName = match.Groups["branchName"].Value;
-                var isCurrentBranch = match.Groups["isCurrentBranch"].Success;
-                var remoteTrackingBranchName = match.Groups["remoteTrackingBranchName"].Value;
-                var ahead = match.Groups["ahead"].Success ? int.Parse(match.Groups["ahead"].Value) : (match.Groups["aheadOnly"].Success ? int.Parse(match.Groups["aheadOnly"].Value) : 0);
-                var behind = match.Groups["behind"].Success ? int.Parse(match.Groups["behind"].Value) : (match.Groups["behindOnly"].Success ? int.Parse(match.Groups["behindOnly"].Value) : 0);
-                var remoteBranchExists = !string.IsNullOrEmpty(remoteTrackingBranchName) && !match.Groups["status"].Value.Contains("gone");
-                var sha = match.Groups["sha"].Value;
-                var message = match.Groups["message"].Value;
-
-                statuses.Add(branchName, new GitBranchStatus(remoteTrackingBranchName, remoteBranchExists, isCurrentBranch, ahead, behind, new Commit(sha, message)));
+                statuses.Add(status.BranchName, status);
             }
         }
 
