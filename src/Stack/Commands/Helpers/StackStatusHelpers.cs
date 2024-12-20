@@ -8,14 +8,14 @@ namespace Stack.Commands.Helpers;
 
 public class BranchDetail
 {
-    public BranchStatus Status { get; set; } = new(false, false, 0, 0);
+    public BranchStatus Status { get; set; } = new(false, false, 0, 0, 0, 0);
     public GitHubPullRequest? PullRequest { get; set; }
 
     public bool IsActive => Status.ExistsLocally && Status.ExistsInRemote && (PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged);
     public bool CouldBeCleanedUp => Status.ExistsLocally && (!Status.ExistsInRemote || PullRequest is not null && PullRequest.State == GitHubPullRequestStates.Merged);
     public bool HasPullRequest => PullRequest is not null && PullRequest.State != GitHubPullRequestStates.Closed;
 }
-public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int Ahead, int Behind);
+public record BranchStatus(bool ExistsLocally, bool ExistsInRemote, int AheadOfParent, int BehindParent, int AheadOfRemote, int BehindRemote);
 public record StackStatus(Dictionary<string, BranchDetail> Branches)
 {
     public string[] GetActiveBranches() => Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
@@ -28,7 +28,8 @@ public static class StackStatusHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitOperations gitOperations,
-        IGitHubOperations gitHubOperations)
+        IGitHubOperations gitHubOperations,
+        bool includePullRequestStatus = true)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -37,25 +38,29 @@ public static class StackStatusHelpers
             .ToList()
             .ForEach(stack => stacksToCheckStatusFor.Add(stack, new StackStatus([])));
 
-        outputProvider.Status("Checking status of remote branches...", () =>
+        var allBranchesInStacks = stacks.SelectMany(s => new List<string>([s.SourceBranch]).Concat(s.Branches)).Distinct().ToArray();
+
+        outputProvider.Status("Checking status of branches...", () =>
         {
+            var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStacks);
+            var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStacks);
+
             foreach (var (stack, status) in stacksToCheckStatusFor)
             {
-                var allBranchesInStack = new List<string>([stack.SourceBranch]).Concat(stack.Branches).Distinct().ToArray();
-                var branchesThatExistInRemote = gitOperations.GetBranchesThatExistInRemote(allBranchesInStack);
-                var branchesThatExistLocally = gitOperations.GetBranchesThatExistLocally(allBranchesInStack);
-
-                gitOperations.FetchBranches(branchesThatExistInRemote);
-
-                void CheckRemoteBranch(string branch, string sourceBranch)
+                void CheckBranchStatus(string branch, string sourceBranch)
                 {
                     var branchExistsLocally = branchesThatExistLocally.Contains(branch);
-                    var (ahead, behind) = gitOperations.GetStatusOfRemoteBranch(branch, sourceBranch);
-                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind);
+                    var (ahead, behind) = gitOperations.CompareBranches(branch, sourceBranch);
+                    var (aheadRemote, behindRemote) = gitOperations.GetComparisonToRemoteTrackingBranch(branch);
+                    var branchStatus = new BranchStatus(branchExistsLocally, true, ahead, behind, aheadRemote, behindRemote);
                     status.Branches[branch].Status = branchStatus;
                 }
 
                 var parentBranch = stack.SourceBranch;
+
+                status.Branches.Add(stack.SourceBranch, new BranchDetail());
+                var sourceBranchRemoteStatus = gitOperations.GetComparisonToRemoteTrackingBranch(stack.SourceBranch);
+                status.Branches[stack.SourceBranch].Status = new BranchStatus(branchesThatExistLocally.Contains(stack.SourceBranch), true, 0, 0, sourceBranchRemoteStatus.Ahead, sourceBranchRemoteStatus.Behind);
 
                 foreach (var branch in stack.Branches)
                 {
@@ -63,39 +68,42 @@ public static class StackStatusHelpers
 
                     if (branchesThatExistInRemote.Contains(branch))
                     {
-                        CheckRemoteBranch(branch, parentBranch);
+                        CheckBranchStatus(branch, parentBranch);
                         parentBranch = branch;
                     }
                     else
                     {
-                        status.Branches[branch].Status = new BranchStatus(branchesThatExistLocally.Contains(branch), false, 0, 0);
+                        status.Branches[branch].Status = new BranchStatus(branchesThatExistLocally.Contains(branch), false, 0, 0, 0, 0);
                     }
                 }
             }
         });
 
-        outputProvider.Status("Checking status of GitHub pull requests...", () =>
+        if (includePullRequestStatus)
         {
-            foreach (var (stack, status) in stacksToCheckStatusFor)
+            outputProvider.Status("Checking status of GitHub pull requests...", () =>
             {
-                try
+                foreach (var (stack, status) in stacksToCheckStatusFor)
                 {
-                    foreach (var branch in stack.Branches)
+                    try
                     {
-                        var pr = gitHubOperations.GetPullRequest(branch);
-
-                        if (pr is not null)
+                        foreach (var branch in stack.Branches)
                         {
-                            status.Branches[branch].PullRequest = pr;
+                            var pr = gitHubOperations.GetPullRequest(branch);
+
+                            if (pr is not null)
+                            {
+                                status.Branches[branch].PullRequest = pr;
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
-                }
-            }
-        });
+            });
+        }
 
         return stacksToCheckStatusFor;
     }
@@ -174,10 +182,6 @@ public static class StackStatusHelpers
     {
         var branchNameBuilder = new StringBuilder();
         var currentBranch = gitOperations.GetCurrentBranch();
-        var branchIsMerged =
-            branchDetail.Status.ExistsInRemote == false ||
-            branchDetail.Status.ExistsLocally == false ||
-            branchDetail.PullRequest is not null && branchDetail.PullRequest.State == GitHubPullRequestStates.Merged;
 
         var color = !branchDetail.IsActive ? "grey" : branch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ? "blue" : null;
         Decoration? decoration = !branchDetail.IsActive ? Decoration.Strikethrough : null;
@@ -201,17 +205,22 @@ public static class StackStatusHelpers
 
         if (branchDetail.IsActive)
         {
-            if (branchDetail.Status.Ahead > 0 && branchDetail.Status.Behind > 0)
+            if (branchDetail.Status.AheadOfRemote > 0 || branchDetail.Status.BehindRemote > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead, {branchDetail.Status.Behind} behind {parentBranch})[/]");
+                branchNameBuilder.Append($" {branchDetail.Status.BehindRemote}{Emoji.Known.DownArrow}{branchDetail.Status.AheadOfRemote}{Emoji.Known.UpArrow}".Muted());
             }
-            else if (branchDetail.Status.Ahead > 0)
+
+            if (branchDetail.Status.AheadOfParent > 0 && branchDetail.Status.BehindParent > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Ahead} ahead of {parentBranch})[/]");
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.AheadOfParent} ahead, {branchDetail.Status.BehindParent} behind {parentBranch})[/]");
             }
-            else if (branchDetail.Status.Behind > 0)
+            else if (branchDetail.Status.AheadOfParent > 0)
             {
-                branchNameBuilder.Append($" [grey]({branchDetail.Status.Behind} behind {parentBranch})[/]");
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.AheadOfParent} ahead of {parentBranch})[/]");
+            }
+            else if (branchDetail.Status.BehindParent > 0)
+            {
+                branchNameBuilder.Append($" [grey]({branchDetail.Status.BehindParent} behind {parentBranch})[/]");
             }
         }
 
@@ -245,7 +254,7 @@ public static class StackStatusHelpers
             outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
         }
 
-        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.Behind > 0))
+        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.BehindParent > 0))
         {
             outputProvider.NewLine();
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");

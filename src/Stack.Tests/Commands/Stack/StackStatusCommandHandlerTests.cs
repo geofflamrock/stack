@@ -54,8 +54,8 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5, 0, 0), PullRequest = pr } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -108,8 +108,8 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5, 0, 0), PullRequest = pr } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -165,12 +165,12 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5, 0, 0), PullRequest = pr } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0) } }
         };
         var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
         {
-            { aThirdBranch, new BranchDetail { Status = new BranchStatus(true, true, 3, 5) } }
+            { aThirdBranch, new BranchDetail { Status = new BranchStatus(true, true, 3, 5, 0, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -228,12 +228,12 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5, 0, 0), PullRequest = pr } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0) } }
         };
         var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
         {
-            { aThirdBranch, new BranchDetail { Status = new BranchStatus(true, true, 3, 5) } }
+            { aThirdBranch, new BranchDetail { Status = new BranchStatus(true, true, 3, 5, 0, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -325,8 +325,8 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, false, 0, 0) } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 11, 0), PullRequest = pr } } // The 11 commits are the 10 commits from the parent branch and one from this branch
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, false, 0, 0, 0, 0) } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 11, 0, 0, 0), PullRequest = pr } } // The 11 commits are the 10 commits from the parent branch and one from this branch
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -378,8 +378,8 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(false, false, 0, 0) } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0), PullRequest = pr } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(false, false, 0, 0, 0, 0) } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0), PullRequest = pr } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -430,8 +430,8 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5), PullRequest = pr } },
-            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0) } }
+            { aBranch, new BranchDetail { Status = new BranchStatus(true, true, 10, 5, 0, 0), PullRequest = pr } },
+            { aSecondBranch, new BranchDetail { Status = new BranchStatus(true, true, 1, 0, 0, 0) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
