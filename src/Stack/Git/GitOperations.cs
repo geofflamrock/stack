@@ -35,8 +35,6 @@ public interface IGitOperations
     string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
     (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
     (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
-    (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName);
-    Commit GetTipOfBranch(string branchName);
     Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
@@ -151,20 +149,6 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
-    }
-
-    public (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName)
-    {
-        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...origin/{branchName}").Trim();
-        var parts = status.Split('\t');
-        return (int.Parse(parts[0]), int.Parse(parts[1]));
-    }
-
-    public Commit GetTipOfBranch(string branchName)
-    {
-        var commit = ExecuteGitCommandAndReturnOutput($"rev-list -n 1 {branchName}").Trim();
-        var message = ExecuteGitCommandAndReturnOutput($"log -1 --pretty=%B {commit}").Trim();
-        return new Commit(commit, message);
     }
 
     public Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches)
