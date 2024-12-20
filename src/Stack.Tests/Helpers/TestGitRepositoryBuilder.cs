@@ -56,7 +56,7 @@ public class BranchBuilder
         }
     }
 
-    private static Commit CreateEmptyCommit(Repository repository, Branch branch, string message)
+    private static LibGit2Sharp.Commit CreateEmptyCommit(Repository repository, Branch branch, string message)
     {
         repository.Refs.UpdateTarget("HEAD", branch.CanonicalName);
         var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
@@ -238,7 +238,7 @@ public class TestGitRepositoryBuilder
         return new TestGitRepository(localDirectory, remoteDirectory, localRepo);
     }
 
-    private static Commit CreateInitialCommit(Repository repository)
+    private static LibGit2Sharp.Commit CreateInitialCommit(Repository repository)
     {
         var message = $"Initial commit";
         var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
@@ -252,12 +252,12 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
 
-    public Commit GetTipOfBranch(string branchName)
+    public LibGit2Sharp.Commit GetTipOfBranch(string branchName)
     {
         return LocalRepository.Branches[branchName].Tip;
     }
 
-    public List<Commit> GetCommitsReachableFromBranch(string branchName)
+    public List<LibGit2Sharp.Commit> GetCommitsReachableFromBranch(string branchName)
     {
         return [.. LocalRepository.Branches[branchName].Commits];
     }
