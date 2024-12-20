@@ -122,9 +122,9 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
 
     public string[] GetBranchesThatExistInRemote(string[] branches)
     {
-        var remoteBranches = ExecuteGitCommandAndReturnOutput("branch --remote --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        return branches.Where(b => remoteBranches.Any(lb => lb.Equals($"origin/{b}", StringComparison.OrdinalIgnoreCase))).ToArray();
+        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
     }
 
     public bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
