@@ -30,7 +30,6 @@ public static class StackStatusHelpers
         IOutputProvider outputProvider,
         IGitOperations gitOperations,
         IGitHubOperations gitHubOperations,
-        bool includeParentBranchStatus = true,
         bool includePullRequestStatus = true)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
@@ -62,7 +61,7 @@ public static class StackStatusHelpers
 
                 if (branchStatus is not null)
                 {
-                    var (aheadOfParent, behindParent) = includeParentBranchStatus && branchStatus.RemoteBranchExists ? gitOperations.CompareBranches(branch, parentBranch) : (0, 0);
+                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitOperations.CompareBranches(branch, parentBranch) : (0, 0);
 
                     status.Branches[branch].Status = new BranchStatus(true, branchStatus.RemoteBranchExists, branchStatus.IsCurrentBranch, aheadOfParent, behindParent, branchStatus.Ahead, branchStatus.Behind, branchStatus.Tip);
 

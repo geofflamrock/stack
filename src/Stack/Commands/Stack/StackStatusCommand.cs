@@ -18,10 +18,6 @@ public class StackStatusCommandSettings : CommandSettingsBase
     [CommandOption("--all")]
     public bool All { get; init; }
 
-    [Description("Show minimal status.")]
-    [CommandOption("--minimal")]
-    public bool Minimal { get; init; }
-
     [Description("Show full status including pull requests.")]
     [CommandOption("--full")]
     public bool Full { get; init; }
@@ -41,13 +37,13 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All, settings.Minimal, settings.Full));
+        await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All, settings.Full));
 
         return 0;
     }
 }
 
-public record StackStatusCommandInputs(string? Name, bool All, bool Minimal, bool Full);
+public record StackStatusCommandInputs(string? Name, bool All, bool Full);
 public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
 
 public class StackStatusCommandHandler(
@@ -90,7 +86,6 @@ public class StackStatusCommandHandler(
             outputProvider,
             gitOperations,
             gitHubOperations,
-            !inputs.Minimal,
             inputs.Full);
 
         StackStatusHelpers.OutputStackStatus(stackStatusResults, outputProvider);
