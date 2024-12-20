@@ -262,6 +262,11 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches[branchName].Commits];
     }
 
+    public LibGit2Sharp.Commit GetTipOfRemoteBranch(string branchName)
+    {
+        return LocalRepository.Branches[$"origin/{branchName}"].Tip;
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
