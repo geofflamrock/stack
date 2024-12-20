@@ -51,8 +51,9 @@ public class ConsoleOutputProvider(IAnsiConsole console) : IOutputProvider
 
 public static class OutputStyleExtensionMethods
 {
-    public static string Stack(this string name) => $"[yellow]{name}[/]";
-    public static string Branch(this string name) => $"[blue]{name}[/]";
-    public static string Muted(this string name) => $"[grey]{name}[/]";
-    public static string Example(this string name) => $"[aqua]{name}[/]";
+    public static string Stack(this string name) => $"[{Color.Yellow}]{name}[/]";
+    public static string Branch(this string name) => $"[{Color.Blue}]{name}[/]";
+    public static string Muted(this string name) => $"[{Color.Grey}]{name}[/]";
+    public static string Example(this string name) => $"[{Color.Aqua}]{name}[/]";
+    public static string Commit(this string name) => $"[{Color.Orange1}]{name}[/]";
 }

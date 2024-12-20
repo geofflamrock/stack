@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Octopus.Shellfish;
 using Stack.Infrastructure;
 
@@ -10,7 +11,9 @@ public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDir
     public static GitOperationSettings Default => new(false, false, null);
 }
 
+public record Commit(string Sha, string Message);
 
+public record GitBranchStatus(string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
 public interface IGitOperations
 {
@@ -33,6 +36,8 @@ public interface IGitOperations
     (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
     (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
     (int Ahead, int Behind) GetComparisonToRemoteTrackingBranch(string branchName);
+    Commit GetTipOfBranch(string branchName);
+    Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
@@ -117,9 +122,9 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
 
     public string[] GetBranchesThatExistInRemote(string[] branches)
     {
-        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var remoteBranches = ExecuteGitCommandAndReturnOutput("branch --remote --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
+        return branches.Where(b => remoteBranches.Any(lb => lb.Equals($"origin/{b}", StringComparison.OrdinalIgnoreCase))).ToArray();
     }
 
     public bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
@@ -153,6 +158,42 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...origin/{branchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public Commit GetTipOfBranch(string branchName)
+    {
+        var commit = ExecuteGitCommandAndReturnOutput($"rev-list -n 1 {branchName}").Trim();
+        var message = ExecuteGitCommandAndReturnOutput($"log -1 --pretty=%B {commit}").Trim();
+        return new Commit(commit, message);
+    }
+
+    public Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches)
+    {
+        var statuses = new Dictionary<string, GitBranchStatus>();
+
+        var gitBranchVerbose = ExecuteGitCommandAndReturnOutput("branch -vv").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        var regex = new Regex(@"^(?<isCurrentBranch>\*)?\s*(?<branchName>\S+)\s+(?<sha>\S+)\s*(\[(?<remoteTrackingBranchName>[^:]+)?(?::\s*(?<status>(ahead\s+(?<ahead>\d+),\s*behind\s+(?<behind>\d+))|(ahead\s+(?<aheadOnly>\d+))|(behind\s+(?<behindOnly>\d+))|(gone)))?\])?\s+(?<message>.+)$");
+
+        foreach (var branchStatus in gitBranchVerbose)
+        {
+            var match = regex.Match(branchStatus);
+
+            if (match.Success && branches.Contains(match.Groups["branchName"].Value))
+            {
+                var branchName = match.Groups["branchName"].Value;
+                var isCurrentBranch = match.Groups["isCurrentBranch"].Success;
+                var remoteTrackingBranchName = match.Groups["remoteTrackingBranchName"].Value;
+                var ahead = match.Groups["ahead"].Success ? int.Parse(match.Groups["ahead"].Value) : (match.Groups["aheadOnly"].Success ? int.Parse(match.Groups["aheadOnly"].Value) : 0);
+                var behind = match.Groups["behind"].Success ? int.Parse(match.Groups["behind"].Value) : (match.Groups["behindOnly"].Success ? int.Parse(match.Groups["behindOnly"].Value) : 0);
+                var remoteBranchExists = !string.IsNullOrEmpty(remoteTrackingBranchName) && !match.Groups["status"].Value.Contains("gone");
+                var sha = match.Groups["sha"].Value;
+                var message = match.Groups["message"].Value;
+
+                statuses.Add(branchName, new GitBranchStatus(remoteTrackingBranchName, remoteBranchExists, isCurrentBranch, ahead, behind, new Commit(sha, message)));
+            }
+        }
+
+        return statuses;
     }
 
     public string GetRemoteUri()
