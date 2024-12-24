@@ -11,6 +11,7 @@ public class StackHelpProvider(ICommandAppSettings settings) : HelpProvider(sett
     {
         { CommandGroups.Stack, [CommandNames.New, CommandNames.List, CommandNames.List, CommandNames.Delete, CommandNames.Status] },
         { CommandGroups.Branch, [CommandNames.Switch, CommandNames.Update, CommandNames.Cleanup, CommandNames.Branch] },
+        { CommandGroups.Remote, [CommandNames.Pull] },
         { CommandGroups.GitHub, [CommandNames.Pr] },
         { CommandGroups.Advanced, [CommandNames.Config] },
     };
