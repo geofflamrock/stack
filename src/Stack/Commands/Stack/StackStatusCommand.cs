@@ -88,6 +88,11 @@ public class StackStatusCommandHandler(
             gitHubOperations,
             inputs.Full);
 
+        if (stackStatusResults.Count == 1)
+        {
+            outputProvider.NewLine();
+        }
+
         StackStatusHelpers.OutputStackStatus(stackStatusResults, outputProvider);
 
         if (stacksToCheckStatusFor.Count == 1)
