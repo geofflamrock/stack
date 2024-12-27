@@ -165,7 +165,7 @@ public static class StackStatusHelpers
 
         if (branchDetail.PullRequest is not null)
         {
-            branchNameBuilder.Append($" {branchDetail.PullRequest.GetPullRequestDisplay()}");
+            branchNameBuilder.Append($"   {branchDetail.PullRequest.GetPullRequestDisplay()}");
         }
 
         return branchNameBuilder.ToString();
@@ -178,7 +178,7 @@ public static class StackStatusHelpers
     {
         var branchNameBuilder = new StringBuilder();
 
-        var branchName = branchDetail.Status.IsCurrentBranch ? $"* [{Color.Green}]{branch}[/]" : branch;
+        var branchName = branchDetail.Status.IsCurrentBranch ? $"* {branch.Branch()}" : branch;
         Color? color = branchDetail.Status.ExistsLocally ? null : Color.Grey;
         Decoration? decoration = branchDetail.Status.ExistsLocally ? null : Decoration.Strikethrough;
 
@@ -230,7 +230,7 @@ public static class StackStatusHelpers
 
         if (branchDetail.Status.Tip is not null)
         {
-            branchNameBuilder.Append($" {branchDetail.Status.Tip.Sha[..7].Commit()} {branchDetail.Status.Tip.Message}");
+            branchNameBuilder.Append($"   {branchDetail.Status.Tip.Sha[..7]} {branchDetail.Status.Tip.Message}");
         }
 
         return branchNameBuilder.ToString();

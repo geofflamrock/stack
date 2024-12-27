@@ -55,5 +55,4 @@ public static class OutputStyleExtensionMethods
     public static string Branch(this string name) => $"[{Color.Blue}]{name}[/]";
     public static string Muted(this string name) => $"[{Color.Grey}]{name}[/]";
     public static string Example(this string name) => $"[{Color.Aqua}]{name}[/]";
-    public static string Commit(this string name) => $"[{Color.Orange1}]{name}[/]";
 }
