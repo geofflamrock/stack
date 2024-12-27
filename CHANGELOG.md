@@ -1,3 +1,15 @@
+# v0.6.1 (Fri Dec 27 2024)
+
+#### 🐛 Bug Fix
+
+- Fixes issue with "double quotes" in PR [#161](https://github.com/geofflamrock/stack/pull/161) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.6.0 (Thu Dec 19 2024)
 
 #### 🚀 New Feature
