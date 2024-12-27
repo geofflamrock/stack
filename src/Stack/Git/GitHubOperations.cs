@@ -62,7 +62,7 @@ public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSet
 
     public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
     {
-        var command = $"pr create --title \"{title}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
+        var command = $"pr create --title \"{Sanitize(title)}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
 
         if (draft)
         {
@@ -81,7 +81,7 @@ public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSet
 
     public void EditPullRequest(int number, string body)
     {
-        ExecuteGitHubCommand($"pr edit {number} --body \"{body}\"");
+        ExecuteGitHubCommand($"pr edit {number} --body \"{Sanitize(body)}\"");
     }
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)
@@ -155,5 +155,10 @@ public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSet
                 outputProvider.Debug($"{infoBuilder}");
             }
         }
+    }
+
+    private string Sanitize(string value)
+    {
+        return value.Replace("\"", "\\\"");
     }
 }
