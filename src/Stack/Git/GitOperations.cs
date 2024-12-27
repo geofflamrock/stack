@@ -232,7 +232,7 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         process.WaitForExit();
     }
 
-    private string ExecuteGitCommandAndReturnOutput(string command, bool captureStandardError = true)
+    private string ExecuteGitCommandAndReturnOutput(string command, bool captureStandardError = false)
     {
         if (settings.Verbose)
             outputProvider.Debug($"git {command}");
@@ -269,7 +269,7 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         return output;
     }
 
-    private void ExecuteGitCommand(string command, bool captureStandardError = true)
+    private void ExecuteGitCommand(string command, bool captureStandardError = false)
     {
         if (settings.DryRun)
         {
