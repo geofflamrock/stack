@@ -47,7 +47,11 @@ public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
     }
 }
 
-public record PushStackCommandInputs(string? Name, bool Force, bool ForceWithLease, int MaxBatchSize);
+public record PushStackCommandInputs(string? Name, bool Force, bool ForceWithLease, int MaxBatchSize)
+{
+    public static PushStackCommandInputs Default => new(null, false, false, 5);
+}
+
 public class PushStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
