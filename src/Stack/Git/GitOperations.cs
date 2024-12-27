@@ -23,6 +23,7 @@ public interface IGitOperations
     void ChangeBranch(string branchName);
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
+    void PushBranches(string[] branches, bool force, bool forceWithLease);
     void UpdateBranch(string branchName);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
@@ -72,6 +73,19 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
     public void PullBranch(string branchName)
     {
         ExecuteGitCommand($"pull origin {branchName}");
+    }
+
+    public void PushBranches(string[] branches, bool force, bool forceWithLease)
+    {
+        var command = $"push origin {string.Join(" ", branches)}";
+
+        if (force)
+            command += " --force";
+
+        if (forceWithLease)
+            command += " --force-with-lease";
+
+        ExecuteGitCommand(command);
     }
 
     public void UpdateBranch(string branchName)
