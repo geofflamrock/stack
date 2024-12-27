@@ -157,8 +157,5 @@ public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSet
         }
     }
 
-    private string Sanitize(string value)
-    {
-        return value.Replace("\"", "\\\"");
-    }
+    private string Sanitize(string value) => value.Replace("\"", "\\\"");
 }
