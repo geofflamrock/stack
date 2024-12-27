@@ -86,7 +86,7 @@ public class PushStackCommandHandler(
 
         foreach (var branches in branchGroupsToPush)
         {
-            outputProvider.Information($"Pushing changes for {string.Join(", ", branches)} to remote");
+            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
             gitOperations.PushBranches([.. branches], inputs.Force, inputs.ForceWithLease);
         }
