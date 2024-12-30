@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 using Stack.Commands.Helpers;
 using Xunit.Abstractions;
 
-namespace Stack.Tests.Commands.Stack;
+namespace Stack.Tests.Commands.Remote;
 
 public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
