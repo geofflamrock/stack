@@ -302,14 +302,6 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches];
     }
 
-    public void RebaseCommits(string branchName, string sourceBranchName)
-    {
-        var branch = LocalRepository.Branches[branchName];
-        var sourceBranch = LocalRepository.Branches[sourceBranchName];
-        var remoteBranchName = branch.TrackedBranch.CanonicalName;
-        LocalRepository.Rebase.Start(branch, LocalRepository.Branches[remoteBranchName], sourceBranch, new Identity(Some.Name(), Some.Email()), new RebaseOptions());
-    }
-
     public void Dispose()
     {
         GC.SuppressFinalize(this);
