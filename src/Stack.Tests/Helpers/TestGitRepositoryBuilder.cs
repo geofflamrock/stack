@@ -67,7 +67,7 @@ public class BranchBuilder
 
 public class CommitBuilder
 {
-    string? branchName;
+    Func<Repository, string>? getBranchName;
     string? message;
     string? authorName;
     string? authorEmail;
@@ -78,7 +78,13 @@ public class CommitBuilder
 
     public CommitBuilder OnBranch(string branch)
     {
-        this.branchName = branch;
+        getBranchName = (_) => branch;
+        return this;
+    }
+
+    public CommitBuilder OnBranch(Func<Repository, string> getBranchName)
+    {
+        this.getBranchName = getBranchName;
         return this;
     }
 
@@ -118,8 +124,9 @@ public class CommitBuilder
     {
         Branch? branch = null;
 
-        if (branchName is not null)
+        if (getBranchName is not null)
         {
+            var branchName = getBranchName(repository);
             branch = repository.Branches[branchName];
         }
 
@@ -201,6 +208,20 @@ public class TestGitRepositoryBuilder
         return this;
     }
 
+    public TestGitRepositoryBuilder WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(string branch, int number, Action<CommitBuilder> commitBuilder)
+    {
+        for (var i = 0; i < number; i++)
+        {
+            commitBuilders.Add(b =>
+            {
+                commitBuilder(b);
+                b.OnBranch(r => r.Branches[branch].TrackedBranch.CanonicalName);
+                b.AllowEmptyCommit();
+            });
+        }
+        return this;
+    }
+
     public TestGitRepository Build()
     {
         var remote = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"), ".git");
@@ -260,6 +281,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public List<LibGit2Sharp.Commit> GetCommitsReachableFromBranch(string branchName)
     {
         return [.. LocalRepository.Branches[branchName].Commits];
+    }
+
+    public LibGit2Sharp.Commit GetTipOfRemoteBranch(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var remoteBranchName = branch.TrackedBranch.CanonicalName;
+        return LocalRepository.Branches[remoteBranchName].Tip;
     }
 
     public void Dispose()

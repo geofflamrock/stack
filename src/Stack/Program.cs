@@ -27,6 +27,9 @@ app.Configure(configure =>
             branch.AddCommand<RemoveBranchCommand>(CommandNames.Remove).WithDescription("Removes a branch from a stack.");
         });
 
+    // Remote commands
+    configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pulls changes from the remote repository for a stack.");
+
     // GitHub commands
     configure.AddBranch(CommandNames.Pr, pr =>
         {

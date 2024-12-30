@@ -280,6 +280,25 @@ OPTIONS:
     -f, --force          Force removing the branch without prompting
 ```
 
+## Remote commands
+
+### `stack pull`
+
+```shell
+Pulls changes from the remote repository for a stack.
+
+USAGE:
+    stack pull [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to pull changes from the remote for
+```
+
 ## GitHub commands
 
 ### `stack pr create`
