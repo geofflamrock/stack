@@ -21,6 +21,10 @@ public class NewBranchCommandSettings : DryRunCommandSettingsBase
     [Description("Force creating the branch without prompting.")]
     [CommandOption("-f|--force")]
     public bool Force { get; init; }
+
+    [Description("Push the new branch to the remote repository.")]
+    [CommandOption("--push")]
+    public bool Push { get; init; }
 }
 
 public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
@@ -38,15 +42,15 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Force));
+        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Force, settings.Push));
 
         return 0;
     }
 }
 
-public record NewBranchCommandInputs(string? StackName, string? BranchName, bool Force)
+public record NewBranchCommandInputs(string? StackName, string? BranchName, bool Force, bool Push)
 {
-    public static NewBranchCommandInputs Empty => new(null, null, false);
+    public static NewBranchCommandInputs Empty => new(null, null, false, false);
 }
 
 public record NewBranchCommandResponse();
@@ -99,13 +103,22 @@ public class NewBranchCommandHandler(
         outputProvider.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
 
         gitOperations.CreateNewBranch(branchName, sourceBranch);
-        gitOperations.PushNewBranch(branchName);
 
         stack.Branches.Add(branchName);
 
         stackConfig.Save(stacks);
 
-        outputProvider.Information($"Branch created");
+        if (inputs.Push)
+        {
+            gitOperations.PushNewBranch(branchName);
+        }
+
+        outputProvider.Information($"Branch {branchName.Branch()} created.");
+
+        if (!inputs.Push)
+        {
+            outputProvider.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+        }
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
         {

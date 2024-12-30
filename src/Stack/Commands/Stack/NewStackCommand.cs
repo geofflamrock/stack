@@ -25,10 +25,9 @@ public class NewStackCommandSettings : CommandSettingsBase
     [CommandOption("-b|--branch")]
     public string? BranchName { get; init; }
 
-    [Description("Don't push the new branch to the remote repository.")]
-    [CommandOption("--no-push")]
-    [DefaultValue(false)]
-    public bool NoPush { get; init; }
+    [Description("Push the new branch to the remote repository.")]
+    [CommandOption("--push")]
+    public bool Push { get; init; }
 }
 
 public enum BranchAction
@@ -54,13 +53,13 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(
-            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.NoPush));
+            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.Push));
 
         return 0;
     }
 }
 
-public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool NoPush)
+public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool Push)
 {
     public static NewStackCommandInputs Empty => new(null, null, null, false);
 }
@@ -104,7 +103,7 @@ public class NewStackCommandHandler(
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
 
-                if (!inputs.NoPush)
+                if (inputs.Push)
                 {
                     gitOperations.PushNewBranch(branchName);
                 }
@@ -132,6 +131,11 @@ public class NewStackCommandHandler(
         if (branchAction is BranchAction.Create)
         {
             outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+
+            if (!inputs.Push)
+            {
+                outputProvider.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+            }
         }
         else if (branchAction is BranchAction.Add)
         {

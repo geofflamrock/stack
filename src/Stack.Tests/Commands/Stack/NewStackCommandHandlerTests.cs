@@ -12,7 +12,7 @@ namespace Stack.Tests.Commands.Stack;
 public class NewStackCommandHandlerTests
 {
     [Fact]
-    public async Task WithANewBranch_AndSwitchingToTheBranch_TheStackIsCreated_AndTheBranchIsPushedToTheRemote_AndTheCurrentBranchIsChanged()
+    public async Task WithANewBranch_AndSwitchingToTheBranch_TheStackIsCreated_DoesNotPushToRemote_AndTheCurrentBranchIsChanged()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -52,7 +52,7 @@ public class NewStackCommandHandlerTests
         });
 
         gitOperations.GetCurrentBranch().Should().Be(newBranch);
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
     }
 
     [Fact]
@@ -442,7 +442,7 @@ public class NewStackCommandHandlerTests
     }
 
     [Fact]
-    public async Task WithANewBranch_AndNotPushingTheBranchToTheRemote_TheStackIsCreatedAndTheBranchDoesNotExistOnTheRemote()
+    public async Task WithANewBranch_AndPushingTheBranchToTheRemote_TheStackIsCreatedAndTheBranchExistsOnTheRemote()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -481,6 +481,6 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
     }
 }
