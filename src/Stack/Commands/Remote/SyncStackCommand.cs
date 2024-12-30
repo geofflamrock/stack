@@ -79,6 +79,8 @@ public class SyncStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
+        FetchChanges();
+
         var status = StackStatusHelpers.GetStackStatus(
             stack,
             currentBranch,
@@ -94,8 +96,6 @@ public class SyncStackCommandHandler(
         if (inputs.NoConfirm || inputProvider.Confirm(Questions.ConfirmSyncStack))
         {
             outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
-
-            FetchChanges();
 
             PullChanges(stack);
 
@@ -115,8 +115,10 @@ public class SyncStackCommandHandler(
 
     private void FetchChanges()
     {
-        outputProvider.Information("Fetching changes from remote repository");
-        gitOperations.Fetch(true);
+        outputProvider.Status("Fetching changes from remote repository", () =>
+        {
+            gitOperations.Fetch(true);
+        });
     }
 
     private void PullChanges(Config.Stack stack)
