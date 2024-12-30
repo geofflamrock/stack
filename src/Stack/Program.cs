@@ -28,7 +28,7 @@ app.Configure(configure =>
         });
 
     // Remote commands
-    configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pull changes from the remote server for a stack.");
+    configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pulls changes from the remote repository for a stack.");
     configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Pushes changes to the remote repository for a stack.");
 
     // GitHub commands

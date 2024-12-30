@@ -141,7 +141,7 @@ OPTIONS:
 
 ### `stack status`
 
-Shows the status of a stack, including commits compared to other branches and the status of any associated pull requests.
+Shows the status of a stack, including commits compared to other branches and optionally the status of any associated pull requests.
 
 ```shell
 USAGE:
@@ -154,6 +154,7 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -n, --name           The name of the stack to show the status of
         --all            Show status of all stacks
+        --full           Show full status including pull requests
 ```
 
 ### `stack delete`
@@ -277,6 +278,25 @@ OPTIONS:
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to add
     -f, --force          Force removing the branch without prompting
+```
+
+## Remote commands
+
+### `stack pull`
+
+```shell
+Pulls changes from the remote repository for a stack.
+
+USAGE:
+    stack pull [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run        Show what would happen without making any changes
+    -n, --name           The name of the stack to pull changes from the remote for
 ```
 
 ## GitHub commands
