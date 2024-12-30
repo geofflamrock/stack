@@ -29,7 +29,7 @@ app.Configure(configure =>
 
     // Remote commands
     configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pull changes from the remote server for a stack.");
-    configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Push changes to the remote server for a stack.");
+    configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Pushes changes to the remote repository for a stack.");
 
     // GitHub commands
     configure.AddBranch(CommandNames.Pr, pr =>
