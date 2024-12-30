@@ -24,6 +24,11 @@ public class NewStackCommandSettings : CommandSettingsBase
     [Description("The name of the branch to create within the stack.")]
     [CommandOption("-b|--branch")]
     public string? BranchName { get; init; }
+
+    [Description("Don't push the new branch to the remote repository.")]
+    [CommandOption("--no-push")]
+    [DefaultValue(false)]
+    public bool NoPush { get; init; }
 }
 
 public enum BranchAction
@@ -48,29 +53,16 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(
-            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName));
-
-        if (response.BranchAction is BranchAction.Create)
-        {
-            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/] with new branch [blue]{response.BranchName}[/]");
-        }
-        else if (response.BranchAction is BranchAction.Add)
-        {
-            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/] with existing branch [blue]{response.BranchName}[/]");
-        }
-        else
-        {
-            console.MarkupLine($"Stack [yellow]{response.StackName}[/] created from source branch [blue]{response.SourceBranch}[/]");
-        }
+        await handler.Handle(
+            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.NoPush));
 
         return 0;
     }
 }
 
-public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName)
+public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool NoPush)
 {
-    public static NewStackCommandInputs Empty => new(null, null, null);
+    public static NewStackCommandInputs Empty => new(null, null, null, false);
 }
 
 public record NewStackCommandResponse(string StackName, string SourceBranch, BranchAction? BranchAction, string? BranchName);
@@ -111,7 +103,11 @@ public class NewStackCommandHandler(
                 branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
                 gitOperations.CreateNewBranch(branchName, sourceBranch);
-                gitOperations.PushNewBranch(branchName);
+
+                if (!inputs.NoPush)
+                {
+                    gitOperations.PushNewBranch(branchName);
+                }
             }
             else
             {
@@ -131,6 +127,19 @@ public class NewStackCommandHandler(
         if (branchName is not null && (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmSwitchToBranch)))
         {
             gitOperations.ChangeBranch(branchName);
+        }
+
+        if (branchAction is BranchAction.Create)
+        {
+            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+        }
+        else if (branchAction is BranchAction.Add)
+        {
+            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
+        }
+        else
+        {
+            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
         }
 
         return new NewStackCommandResponse(name, sourceBranch, branchAction, branchName);

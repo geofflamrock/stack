@@ -297,6 +297,11 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches[remoteBranchName].Commits];
     }
 
+    public List<LibGit2Sharp.Branch> GetBranches()
+    {
+        return [.. LocalRepository.Branches];
+    }
+
     public void RebaseCommits(string branchName, string sourceBranchName)
     {
         var branch = LocalRepository.Branches[branchName];
