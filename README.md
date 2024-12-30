@@ -50,6 +50,8 @@ To create a stack:
 - Optionally either create a new branch from the source branch, or add an existing branch to the stack.
 - If you chose to create or add a branch you can switch to that branch to start work.
 
+By default new branches are only created locally, you can either use the `--push` option or use the `stack push` command to push the branch to the remote.
+
 ### Working within a stack
 
 Working within a stack is the same as working with Git as per normal, make your changes on the branch, commit them and push them to the remote. You likely have your own tooling and workflows for this, you can continue to use them.
@@ -64,22 +66,22 @@ Once you've done some work on the first branch within the stack, at some point y
 
 The new branch will be created from the branch at the bottom of the stack and you can then switch to the branch if you would like to in order to make more changes.
 
-### Updating a stack
+By default new branches are only created locally, you can either use the `--push` option or use the `stack push` command to push the branch to the remote.
+
+### Syncing a stack
 
 After working on a stack of branches for a while, you might need to incorporate changes that have happened to your source branch from others. To do this:
 
-- Run `stack update`
-- Select the stack you wish to update
-- Confirm the update
+- Run `stack sync`
+- Select the stack you wish to sync
+- Confirm the sync
 
 Branches in the stack will be updated by:
 
-- Fetching the latest changes from the remote for all branches in the stack, including the source branch.
-- Merging from the source branch to the first branch in the stack.
-- Pushing changes for the first branch to the remote.
-- Merging from the first branch to the second branch in the stack (if one exists).
-- Pushing changes for the second branch to the remote.
-- Repeating this until all branches are updated.
+- Fetching changes to the repository, pruning remote branches that no longer exist, the equivalent of running `git fetch --prune`.
+- Pulling changes for all branches in the stack, including the source branch, the equivalent of running `stack pull`.
+- Updating branches in order in the stack, the equivalent of running `stack update`.
+- Pushing changes for all branches in the stack, the equivalent of running `stack push`.
 
 #### Rough edges
 
