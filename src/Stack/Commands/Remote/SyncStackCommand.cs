@@ -182,7 +182,7 @@ public class SyncStackCommandHandler(
         {
             outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
-            gitOperations.PushBranches([.. branches], false, false);
+            gitOperations.PushBranches([.. branches]);
         }
     }
 }
