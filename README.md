@@ -141,7 +141,7 @@ OPTIONS:
 
 ### `stack status`
 
-Shows the status of a stack, including commits compared to other branches and the status of any associated pull requests.
+Shows the status of a stack, including commits compared to other branches and optionally the status of any associated pull requests.
 
 ```shell
 USAGE:
@@ -154,6 +154,7 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -n, --name           The name of the stack to show the status of
         --all            Show status of all stacks
+        --full           Show full status including pull requests
 ```
 
 ### `stack delete`
