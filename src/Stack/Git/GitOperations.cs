@@ -21,6 +21,7 @@ public interface IGitOperations
     void PushNewBranch(string branchName);
     void PushBranch(string branchName);
     void ChangeBranch(string branchName);
+    void Fetch(bool prune);
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
     void PushBranches(string[] branches, bool force, bool forceWithLease);
@@ -63,6 +64,11 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
     public void ChangeBranch(string branchName)
     {
         ExecuteGitCommand($"checkout {branchName}");
+    }
+
+    public void Fetch(bool prune)
+    {
+        ExecuteGitCommand($"fetch origin {(prune ? "--prune" : string.Empty)}");
     }
 
     public void FetchBranches(string[] branches)

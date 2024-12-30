@@ -30,6 +30,7 @@ app.Configure(configure =>
     // Remote commands
     configure.AddCommand<PullStackCommand>(CommandNames.Pull).WithDescription("Pulls changes from the remote repository for a stack.");
     configure.AddCommand<PushStackCommand>(CommandNames.Push).WithDescription("Pushes changes to the remote repository for a stack.");
+    configure.AddCommand<SyncStackCommand>(CommandNames.Sync).WithDescription("Syncs a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.");
 
     // GitHub commands
     configure.AddBranch(CommandNames.Pr, pr =>
