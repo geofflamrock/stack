@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Octopus.Shellfish;
 using Stack.Infrastructure;
 
@@ -10,7 +11,9 @@ public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDir
     public static GitOperationSettings Default => new(false, false, null);
 }
 
+public record Commit(string Sha, string Message);
 
+public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
 public interface IGitOperations
 {
@@ -31,6 +34,8 @@ public interface IGitOperations
     bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName);
     string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
     (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
+    (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
+    Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches);
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
@@ -137,6 +142,32 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}").Trim();
         var parts = status.Split('\t');
         return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName)
+    {
+        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count {branchName}...{sourceBranchName}").Trim();
+        var parts = status.Split('\t');
+        return (int.Parse(parts[0]), int.Parse(parts[1]));
+    }
+
+    public Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches)
+    {
+        var statuses = new Dictionary<string, GitBranchStatus>();
+
+        var gitBranchVerbose = ExecuteGitCommandAndReturnOutput("branch -vv").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var branchStatus in gitBranchVerbose)
+        {
+            var status = GitBranchStatusParser.Parse(branchStatus);
+
+            if (status is not null && branches.Contains(status.BranchName))
+            {
+                statuses.Add(status.BranchName, status);
+            }
+        }
+
+        return statuses;
     }
 
     public string GetRemoteUri()
