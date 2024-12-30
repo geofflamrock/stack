@@ -308,4 +308,48 @@ public static class StackHelpers
             }
         }
     }
+
+    public static void PullChanges(Config.Stack stack, IGitOperations gitOperations, IOutputProvider outputProvider)
+    {
+        var branchStatus = gitOperations.GetBranchStatuses([stack.SourceBranch, .. stack.Branches]);
+
+        foreach (var branch in branchStatus.Where(b => b.Value.RemoteBranchExists))
+        {
+            outputProvider.Information($"Pulling changes for {branch.Value.BranchName.Branch()} from remote");
+            gitOperations.ChangeBranch(branch.Value.BranchName);
+            gitOperations.PullBranch(branch.Value.BranchName);
+        }
+    }
+
+    public static void PushChanges(
+        Config.Stack stack,
+        int maxBatchSize,
+        IGitOperations gitOperations,
+        IOutputProvider outputProvider)
+    {
+        var branchStatus = gitOperations.GetBranchStatuses([.. stack.Branches]);
+
+        var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
+
+        foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
+        {
+            outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
+            gitOperations.PushNewBranch(branch);
+        }
+
+        var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
+
+        var branchGroupsToPush = branchesInStackWithRemote
+            .Select((b, i) => new { Index = i, Value = b })
+            .GroupBy(b => b.Index / maxBatchSize)
+            .Select(g => g.Select(b => b.Value).ToList())
+            .ToList();
+
+        foreach (var branches in branchGroupsToPush)
+        {
+            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
+
+            gitOperations.PushBranches([.. branches], false, false);
+        }
+    }
 }

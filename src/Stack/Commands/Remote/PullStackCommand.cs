@@ -62,14 +62,7 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        var branchStatus = gitOperations.GetBranchStatuses([stack.SourceBranch, .. stack.Branches]);
-
-        foreach (var branch in branchStatus.Where(b => b.Value.RemoteBranchExists))
-        {
-            outputProvider.Information($"Pulling changes for {branch.Value.BranchName.Branch()} from remote");
-            gitOperations.ChangeBranch(branch.Value.BranchName);
-            gitOperations.PullBranch(branch.Value.BranchName);
-        }
+        StackHelpers.PullChanges(stack, gitOperations, outputProvider);
 
         gitOperations.ChangeBranch(currentBranch);
     }
