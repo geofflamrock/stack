@@ -116,17 +116,12 @@ public class SyncStackCommandHandler(
 
     private void FetchChanges()
     {
-        // outputProvider.Status("Fetching changes from the remote repository...", () =>
-        // {
         outputProvider.Information("Fetching changes from remote repository");
         gitOperations.Fetch(true);
-        // });
     }
 
     private void PullChanges(Config.Stack stack)
     {
-        // outputProvider.Status("Pulling changes for the stack from the remote repository...", () =>
-        // {
         var branchStatus = gitOperations.GetBranchStatuses([stack.SourceBranch, .. stack.Branches]);
 
         foreach (var branch in branchStatus.Where(b => b.Value.RemoteBranchExists))
@@ -135,7 +130,6 @@ public class SyncStackCommandHandler(
             gitOperations.ChangeBranch(branch.Value.BranchName);
             gitOperations.PullBranch(branch.Value.BranchName);
         }
-        // });
     }
 
     private void UpdateStack(Config.Stack stack, StackStatus status)
