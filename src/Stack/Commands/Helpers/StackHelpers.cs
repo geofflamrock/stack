@@ -1,5 +1,4 @@
 using System.Text;
-using Microsoft.VisualBasic;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -22,7 +21,7 @@ public record StackStatus(Dictionary<string, BranchDetail> Branches)
     public string[] GetActiveBranches() => Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
 }
 
-public static class StackStatusHelpers
+public static class StackHelpers
 {
     public static Dictionary<Config.Stack, StackStatus> GetStackStatus(
         List<Config.Stack> stacks,
@@ -276,6 +275,37 @@ public static class StackStatusHelpers
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+        }
+    }
+
+    public static void UpdateStack(
+        Config.Stack stack,
+        StackStatus status,
+        IGitOperations gitOperations,
+        IOutputProvider outputProvider)
+    {
+        void MergeFromSourceBranch(string branch, string sourceBranchName)
+        {
+            outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+            gitOperations.ChangeBranch(branch);
+            gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
+        }
+
+        var sourceBranch = stack.SourceBranch;
+
+        foreach (var branch in stack.Branches)
+        {
+            var branchDetail = status.Branches[branch];
+
+            if (branchDetail.IsActive)
+            {
+                MergeFromSourceBranch(branch, sourceBranch);
+                sourceBranch = branch;
+            }
+            else
+            {
+                outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+            }
         }
     }
 }

@@ -75,7 +75,7 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var status = StackStatusHelpers.GetStackStatus(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             outputProvider,
@@ -100,7 +100,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackStatusHelpers.OutputStackStatus(stack, status, outputProvider);
+        StackHelpers.OutputStackStatus(stack, status, outputProvider);
 
         outputProvider.NewLine();
 
@@ -239,12 +239,12 @@ public class CreatePullRequestsCommandHandler(
             var branchDetail = status.Branches[branch];
             if (branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Closed)
             {
-                branchDisplayItems.Add(StackStatusHelpers.GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail));
+                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail));
             }
             else
             {
                 var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
-                branchDisplayItems.Add($"{StackStatusHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} *NEW* {action?.Title}{(action?.Draft == true ? " (draft)".Muted() : string.Empty)}");
+                branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} *NEW* {action?.Title}{(action?.Draft == true ? " (draft)".Muted() : string.Empty)}");
             }
             parentBranch = branch;
         }

@@ -14,10 +14,6 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
-
-    [Description("Force the update of the stack.")]
-    [CommandOption("-f|--force")]
-    public bool Force { get; init; }
 }
 
 public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
@@ -34,15 +30,15 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Force));
+        await handler.Handle(new UpdateStackCommandInputs(settings.Name));
 
         return 0;
     }
 }
 
-public record UpdateStackCommandInputs(string? Name, bool Force)
+public record UpdateStackCommandInputs(string? Name)
 {
-    public static UpdateStackCommandInputs Empty => new(null, false);
+    public static UpdateStackCommandInputs Empty => new((string?)null);
 }
 
 public record UpdateStackCommandResponse();
@@ -75,41 +71,20 @@ public class UpdateStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmUpdateStack))
+        var status = StackHelpers.GetStackStatus(
+            stack,
+            currentBranch,
+            outputProvider,
+            gitOperations,
+            gitHubOperations,
+            false);
+
+        StackHelpers.UpdateStack(stack, status, gitOperations, outputProvider);
+
+        if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
+            stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
         {
-            void MergeFromSourceBranch(string branch, string sourceBranchName)
-            {
-                outputProvider.Information($"Merging {sourceBranchName.Stack()} into {branch.Branch()}");
-
-                gitOperations.UpdateBranch(sourceBranchName);
-                gitOperations.UpdateBranch(branch);
-                gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
-                gitOperations.PushBranch(branch);
-            }
-
-            var sourceBranch = stack.SourceBranch;
-
-            foreach (var branch in stack.Branches)
-            {
-                var pullRequest = gitHubOperations.GetPullRequest(branch);
-
-                if (gitOperations.DoesRemoteBranchExist(branch) &&
-                    (pullRequest is null || pullRequest.State != GitHubPullRequestStates.Merged))
-                {
-                    MergeFromSourceBranch(branch, sourceBranch);
-                    sourceBranch = branch;
-                }
-                else
-                {
-                    outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
-                }
-            }
-
-            if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
-                stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-            {
-                gitOperations.ChangeBranch(currentBranch);
-            }
+            gitOperations.ChangeBranch(currentBranch);
         }
 
         return new UpdateStackCommandResponse();

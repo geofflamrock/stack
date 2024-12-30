@@ -79,7 +79,7 @@ public class SyncStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        var status = StackStatusHelpers.GetStackStatus(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             outputProvider,
@@ -87,7 +87,7 @@ public class SyncStackCommandHandler(
             gitHubOperations,
             true);
 
-        StackStatusHelpers.OutputStackStatus(stack, status, outputProvider);
+        StackHelpers.OutputStackStatus(stack, status, outputProvider);
 
         outputProvider.NewLine();
 
@@ -99,7 +99,7 @@ public class SyncStackCommandHandler(
 
             PullChanges(stack);
 
-            UpdateStack(stack, status);
+            StackHelpers.UpdateStack(stack, status, gitOperations, outputProvider);
 
             PushChanges(stack, inputs);
 
@@ -128,33 +128,6 @@ public class SyncStackCommandHandler(
             outputProvider.Information($"Pulling changes for {branch.Value.BranchName.Branch()} from remote");
             gitOperations.ChangeBranch(branch.Value.BranchName);
             gitOperations.PullBranch(branch.Value.BranchName);
-        }
-    }
-
-    private void UpdateStack(Config.Stack stack, StackStatus status)
-    {
-        void MergeFromSourceBranch(string branch, string sourceBranchName)
-        {
-            outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
-            gitOperations.ChangeBranch(branch);
-            gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
-        }
-
-        var sourceBranch = stack.SourceBranch;
-
-        foreach (var branch in stack.Branches)
-        {
-            var branchDetail = status.Branches[branch];
-
-            if (branchDetail.IsActive)
-            {
-                MergeFromSourceBranch(branch, sourceBranch);
-                sourceBranch = branch;
-            }
-            else
-            {
-                outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
-            }
         }
     }
 
