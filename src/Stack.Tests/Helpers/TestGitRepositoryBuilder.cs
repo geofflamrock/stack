@@ -271,7 +271,7 @@ public class TestGitRepositoryBuilder
 public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirectory RemoteDirectory, Repository LocalRepository) : IDisposable
 {
     public string RemoteUri => RemoteDirectory.DirectoryPath;
-    public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, false, LocalDirectory.DirectoryPath);
+    public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, true, LocalDirectory.DirectoryPath);
 
     public LibGit2Sharp.Commit GetTipOfBranch(string branchName)
     {
@@ -288,6 +288,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var branch = LocalRepository.Branches[branchName];
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         return LocalRepository.Branches[remoteBranchName].Tip;
+    }
+
+    public List<LibGit2Sharp.Commit> GetCommitsReachableFromRemoteBranch(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var remoteBranchName = branch.TrackedBranch.CanonicalName;
+        return [.. LocalRepository.Branches[remoteBranchName].Commits];
     }
 
     public void Dispose()

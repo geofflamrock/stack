@@ -23,6 +23,7 @@ public interface IGitOperations
     void ChangeBranch(string branchName);
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
+    void PushBranches(string[] branches);
     void UpdateBranch(string branchName);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
@@ -72,6 +73,13 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
     public void PullBranch(string branchName)
     {
         ExecuteGitCommand($"pull origin {branchName}");
+    }
+
+    public void PushBranches(string[] branches)
+    {
+        var command = $"push origin {string.Join(" ", branches)}";
+
+        ExecuteGitCommand(command, true);
     }
 
     public void UpdateBranch(string branchName)
@@ -217,7 +225,7 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         process.WaitForExit();
     }
 
-    private string ExecuteGitCommandAndReturnOutput(string command)
+    private string ExecuteGitCommandAndReturnOutput(string command, bool captureStandardError = false)
     {
         if (settings.Verbose)
             outputProvider.Debug($"git {command}");
@@ -244,10 +252,17 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
             outputProvider.Debug($"{infoBuilder}");
         }
 
-        return infoBuilder.ToString();
+        var output = infoBuilder.ToString();
+
+        if (captureStandardError)
+        {
+            output += $"{Environment.NewLine}{errorBuilder}";
+        }
+
+        return output;
     }
 
-    private void ExecuteGitCommand(string command)
+    private void ExecuteGitCommand(string command, bool captureStandardError = false)
     {
         if (settings.DryRun)
         {
@@ -256,7 +271,7 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         }
         else
         {
-            var output = ExecuteGitCommandAndReturnOutput(command);
+            var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError);
 
             if (!settings.Verbose && output.Length > 0)
             {

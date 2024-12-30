@@ -299,6 +299,24 @@ OPTIONS:
     -n, --name           The name of the stack to pull changes from the remote for
 ```
 
+### `stack push`
+
+```shell
+Pushes changes to the remote repository for a stack.
+
+USAGE:
+    stack push [OPTIONS]
+
+OPTIONS:
+    -h, --help                Prints help information
+    -v, --version             Prints version information
+        --verbose             Show verbose output
+        --working-dir         The path to the directory containing the git repository. Defaults to the current directory
+        --dry-run             Show what would happen without making any changes
+    -n, --name                The name of the stack to push changes from the remote for
+        --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
+```
+
 ## GitHub commands
 
 ### `stack pr create`
