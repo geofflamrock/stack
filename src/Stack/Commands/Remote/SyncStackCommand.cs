@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
