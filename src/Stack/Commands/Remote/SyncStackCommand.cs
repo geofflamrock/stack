@@ -81,7 +81,7 @@ public class SyncStackCommandHandler(
 
         FetchChanges();
 
-        var status = StackStatusHelpers.GetStackStatus(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             outputProvider,
@@ -89,7 +89,7 @@ public class SyncStackCommandHandler(
             gitHubOperations,
             true);
 
-        StackStatusHelpers.OutputStackStatus(stack, status, outputProvider);
+        StackHelpers.OutputStackStatus(stack, status, outputProvider);
 
         outputProvider.NewLine();
 
@@ -97,11 +97,11 @@ public class SyncStackCommandHandler(
         {
             outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            PullChanges(stack);
+            StackHelpers.PullChanges(stack, gitOperations, outputProvider);
 
-            UpdateStack(stack, status);
+            StackHelpers.UpdateStack(stack, status, gitOperations, outputProvider);
 
-            PushChanges(stack, inputs);
+            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitOperations, outputProvider);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
@@ -119,72 +119,5 @@ public class SyncStackCommandHandler(
         {
             gitOperations.Fetch(true);
         });
-    }
-
-    private void PullChanges(Config.Stack stack)
-    {
-        var branchStatus = gitOperations.GetBranchStatuses([stack.SourceBranch, .. stack.Branches]);
-
-        foreach (var branch in branchStatus.Where(b => b.Value.RemoteBranchExists))
-        {
-            outputProvider.Information($"Pulling changes for {branch.Value.BranchName.Branch()} from remote");
-            gitOperations.ChangeBranch(branch.Value.BranchName);
-            gitOperations.PullBranch(branch.Value.BranchName);
-        }
-    }
-
-    private void UpdateStack(Config.Stack stack, StackStatus status)
-    {
-        void MergeFromSourceBranch(string branch, string sourceBranchName)
-        {
-            outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
-            gitOperations.ChangeBranch(branch);
-            gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
-        }
-
-        var sourceBranch = stack.SourceBranch;
-
-        foreach (var branch in stack.Branches)
-        {
-            var branchDetail = status.Branches[branch];
-
-            if (branchDetail.IsActive)
-            {
-                MergeFromSourceBranch(branch, sourceBranch);
-                sourceBranch = branch;
-            }
-            else
-            {
-                outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
-            }
-        }
-    }
-
-    private void PushChanges(Config.Stack stack, SyncStackCommandInputs inputs)
-    {
-        var branchStatus = gitOperations.GetBranchStatuses([.. stack.Branches]);
-
-        var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
-
-        foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
-        {
-            outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
-            gitOperations.PushNewBranch(branch);
-        }
-
-        var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
-
-        var branchGroupsToPush = branchesInStackWithRemote
-            .Select((b, i) => new { Index = i, Value = b })
-            .GroupBy(b => b.Index / inputs.MaxBatchSize)
-            .Select(g => g.Select(b => b.Value).ToList())
-            .ToList();
-
-        foreach (var branches in branchGroupsToPush)
-        {
-            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
-
-            gitOperations.PushBranches([.. branches]);
-        }
     }
 }

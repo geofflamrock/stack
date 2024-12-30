@@ -1,5 +1,4 @@
 using System.Text;
-using Microsoft.VisualBasic;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -22,7 +21,7 @@ public record StackStatus(Dictionary<string, BranchDetail> Branches)
     public string[] GetActiveBranches() => Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
 }
 
-public static class StackStatusHelpers
+public static class StackHelpers
 {
     public static Dictionary<Config.Stack, StackStatus> GetStackStatus(
         List<Config.Stack> stacks,
@@ -276,6 +275,82 @@ public static class StackStatusHelpers
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+        }
+    }
+
+    public static void UpdateStack(
+        Config.Stack stack,
+        StackStatus status,
+        IGitOperations gitOperations,
+        IOutputProvider outputProvider)
+    {
+        void MergeFromSourceBranch(string branch, string sourceBranchName)
+        {
+            outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+            gitOperations.ChangeBranch(branch);
+            gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
+        }
+
+        var sourceBranch = stack.SourceBranch;
+
+        foreach (var branch in stack.Branches)
+        {
+            var branchDetail = status.Branches[branch];
+
+            if (branchDetail.IsActive)
+            {
+                MergeFromSourceBranch(branch, sourceBranch);
+                sourceBranch = branch;
+            }
+            else
+            {
+                outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+            }
+        }
+    }
+
+    public static void PullChanges(Config.Stack stack, IGitOperations gitOperations, IOutputProvider outputProvider)
+    {
+        List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
+        var branchStatus = gitOperations.GetBranchStatuses([.. allBranchesInStacks]);
+
+        foreach (var branch in allBranchesInStacks.Where(b => branchStatus[b].RemoteBranchExists))
+        {
+            outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
+            gitOperations.ChangeBranch(branch);
+            gitOperations.PullBranch(branch);
+        }
+    }
+
+    public static void PushChanges(
+        Config.Stack stack,
+        int maxBatchSize,
+        IGitOperations gitOperations,
+        IOutputProvider outputProvider)
+    {
+        var branchStatus = gitOperations.GetBranchStatuses([.. stack.Branches]);
+
+        var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
+
+        foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
+        {
+            outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
+            gitOperations.PushNewBranch(branch);
+        }
+
+        var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
+
+        var branchGroupsToPush = branchesInStackWithRemote
+            .Select((b, i) => new { Index = i, Value = b })
+            .GroupBy(b => b.Index / maxBatchSize)
+            .Select(g => g.Select(b => b.Value).ToList())
+            .ToList();
+
+        foreach (var branches in branchGroupsToPush)
+        {
+            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
+
+            gitOperations.PushBranches([.. branches]);
         }
     }
 }

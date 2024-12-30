@@ -80,7 +80,7 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackStatusHelpers.GetStackStatus(
+        var stackStatusResults = StackHelpers.GetStackStatus(
             stacksToCheckStatusFor,
             currentBranch,
             outputProvider,
@@ -93,12 +93,12 @@ public class StackStatusCommandHandler(
             outputProvider.NewLine();
         }
 
-        StackStatusHelpers.OutputStackStatus(stackStatusResults, outputProvider);
+        StackHelpers.OutputStackStatus(stackStatusResults, outputProvider);
 
         if (stacksToCheckStatusFor.Count == 1)
         {
             var (stack, status) = stackStatusResults.First();
-            StackStatusHelpers.OutputBranchAndStackCleanup(stack, status, outputProvider);
+            StackHelpers.OutputBranchAndStackCleanup(stack, status, outputProvider);
         }
 
         return new StackStatusCommandResponse(stackStatusResults);

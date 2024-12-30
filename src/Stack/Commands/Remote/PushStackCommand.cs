@@ -71,29 +71,6 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        var branchStatus = gitOperations.GetBranchStatuses([.. stack.Branches]);
-
-        var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
-
-        foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
-        {
-            outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
-            gitOperations.PushNewBranch(branch);
-        }
-
-        var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
-
-        var branchGroupsToPush = branchesInStackWithRemote
-            .Select((b, i) => new { Index = i, Value = b })
-            .GroupBy(b => b.Index / inputs.MaxBatchSize)
-            .Select(g => g.Select(b => b.Value).ToList())
-            .ToList();
-
-        foreach (var branches in branchGroupsToPush)
-        {
-            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
-
-            gitOperations.PushBranches([.. branches]);
-        }
+        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitOperations, outputProvider);
     }
 }
