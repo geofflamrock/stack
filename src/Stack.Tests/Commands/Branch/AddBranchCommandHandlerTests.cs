@@ -1,6 +1,5 @@
 using FluentAssertions;
 using NSubstitute;
-using Spectre.Console;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -8,7 +7,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 
-namespace Stack.Tests.Commands.Stack;
+namespace Stack.Tests.Commands.Branch;
 
 public class AddBranchCommandHandlerTests
 {

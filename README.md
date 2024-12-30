@@ -122,6 +122,7 @@ OPTIONS:
     -n, --name             The name of the stack. Must be unique
     -s, --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
     -b, --branch           The name of the branch to create within the stack
+        --push             Push the new branch to the remote repository
 ```
 
 ### `stack list`
@@ -243,6 +244,7 @@ OPTIONS:
         --dry-run        Show what would happen without making any changes
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to create
+        --push           Push the new branch to the remote repository
 ```
 
 ### `stack branch add`
