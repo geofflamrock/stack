@@ -170,7 +170,6 @@ public class GitOperations(IOutputProvider outputProvider, GitOperationSettings 
         var statuses = new Dictionary<string, GitBranchStatus>();
 
         var gitBranchVerbose = ExecuteGitCommandAndReturnOutput("branch -vv").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        var regex = new Regex(@"^(?<isCurrentBranch>\*)?\s*(?<branchName>\S+)\s+(?<sha>\S+)\s*(\[(?<remoteTrackingBranchName>[^:]+)?(?::\s*(?<status>(ahead\s+(?<ahead>\d+),\s*behind\s+(?<behind>\d+))|(ahead\s+(?<aheadOnly>\d+))|(behind\s+(?<behindOnly>\d+))|(gone)))?\])?\s+(?<message>.+)$");
 
         foreach (var branchStatus in gitBranchVerbose)
         {
