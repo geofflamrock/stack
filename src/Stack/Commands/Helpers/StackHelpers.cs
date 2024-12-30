@@ -311,13 +311,14 @@ public static class StackHelpers
 
     public static void PullChanges(Config.Stack stack, IGitOperations gitOperations, IOutputProvider outputProvider)
     {
-        var branchStatus = gitOperations.GetBranchStatuses([stack.SourceBranch, .. stack.Branches]);
+        List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
+        var branchStatus = gitOperations.GetBranchStatuses([.. allBranchesInStacks]);
 
-        foreach (var branch in branchStatus.Where(b => b.Value.RemoteBranchExists))
+        foreach (var branch in allBranchesInStacks.Where(b => branchStatus[b].RemoteBranchExists))
         {
-            outputProvider.Information($"Pulling changes for {branch.Value.BranchName.Branch()} from remote");
-            gitOperations.ChangeBranch(branch.Value.BranchName);
-            gitOperations.PullBranch(branch.Value.BranchName);
+            outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
+            gitOperations.ChangeBranch(branch);
+            gitOperations.PullBranch(branch);
         }
     }
 
