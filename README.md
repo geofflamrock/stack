@@ -314,8 +314,6 @@ OPTIONS:
         --working-dir         The path to the directory containing the git repository. Defaults to the current directory
         --dry-run             Show what would happen without making any changes
     -n, --name                The name of the stack to push changes from the remote for
-    -f, --force               Force the push of the stack
-        --force-with-lease    Force the push of the stack with lease
         --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
 ```
 

@@ -14,14 +14,6 @@ public class PushStackCommandSettings : DryRunCommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Force the push of the stack.")]
-    [CommandOption("-f|--force")]
-    public bool Force { get; init; }
-
-    [Description("Force the push of the stack with lease.")]
-    [CommandOption("--force-with-lease")]
-    public bool ForceWithLease { get; init; }
-
     [Description("The maximum number of branches to push changes for at once.")]
     [CommandOption("--max-batch-size")]
     [DefaultValue(5)]
@@ -41,15 +33,15 @@ public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
             new GitOperations(outputProvider, settings.GetGitOperationSettings()),
             new StackConfig());
 
-        await handler.Handle(new PushStackCommandInputs(settings.Name, settings.Force, settings.ForceWithLease, settings.MaxBatchSize));
+        await handler.Handle(new PushStackCommandInputs(settings.Name, settings.MaxBatchSize));
 
         return 0;
     }
 }
 
-public record PushStackCommandInputs(string? Name, bool Force, bool ForceWithLease, int MaxBatchSize)
+public record PushStackCommandInputs(string? Name, int MaxBatchSize)
 {
-    public static PushStackCommandInputs Default => new(null, false, false, 5);
+    public static PushStackCommandInputs Default => new(null, 5);
 }
 
 public class PushStackCommandHandler(
@@ -101,7 +93,7 @@ public class PushStackCommandHandler(
         {
             outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
-            gitOperations.PushBranches([.. branches], inputs.Force, inputs.ForceWithLease);
+            gitOperations.PushBranches([.. branches]);
         }
     }
 }
