@@ -107,11 +107,18 @@ public static class StackStatusHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitOperations gitOperations,
-        IGitHubOperations gitHubOperations)
+        IGitHubOperations gitHubOperations,
+        bool includePullRequestStatus = true)
     {
-        var statues = GetStackStatus([stack], currentBranch, outputProvider, gitOperations, gitHubOperations);
+        var statuses = GetStackStatus(
+            [stack],
+            currentBranch,
+            outputProvider,
+            gitOperations,
+            gitHubOperations,
+            includePullRequestStatus);
 
-        return statues[stack];
+        return statuses[stack];
     }
 
     public static void OutputStackStatus(

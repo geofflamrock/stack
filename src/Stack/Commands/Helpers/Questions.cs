@@ -11,6 +11,7 @@ public static class Questions
     public const string BranchName = "Branch name:";
     public const string SelectSourceBranch = "Select a branch to start your stack from:";
     public const string ConfirmUpdateStack = "Are you sure you want to update this stack?";
+    public const string ConfirmSyncStack = "Are you sure you want to sync this stack with the remote repository?";
     public const string ConfirmDeleteStack = "Are you sure you want to delete this stack?";
     public const string ConfirmDeleteBranches = "Are you sure you want to delete these local branches?";
     public const string ConfirmRemoveBranch = "Are you sure you want to remove this branch from the stack?";
