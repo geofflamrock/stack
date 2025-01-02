@@ -58,9 +58,9 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
         };
         response.Statuses.Should().BeEquivalentTo(
             new Dictionary<Config.Stack, StackStatus>
@@ -118,9 +118,9 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -181,14 +181,14 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
         };
         var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch3, new BranchDetail { Status = new BranchStatus(true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch3, new BranchDetail { Status = new BranchStatus(true, true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -251,14 +251,14 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
         };
         var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch3, new BranchDetail { Status = new BranchStatus(true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch3, new BranchDetail { Status = new BranchStatus(true, true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -354,9 +354,9 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, false, false, 0, 0, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())) } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, 11, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, false, false, false, 0, 0, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())) } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, true, 11, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -411,9 +411,9 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(false, false, false, 0, 0, 0, 0, null) } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(false, false, false, false, 0, 0, 0, 0, null) } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, true, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
@@ -468,9 +468,9 @@ public class StackStatusCommandHandlerTests
         // Assert
         var expectedBranchDetails = new Dictionary<string, BranchDetail>
         {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
+            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
+            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
+            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
         };
         response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
         {
