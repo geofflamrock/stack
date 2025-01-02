@@ -29,8 +29,8 @@ public class CreatePullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -87,8 +87,8 @@ public class CreatePullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -161,8 +161,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -235,8 +235,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -293,8 +293,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -346,8 +346,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -386,8 +386,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -460,8 +460,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -515,8 +515,8 @@ A custom description
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, fileOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))

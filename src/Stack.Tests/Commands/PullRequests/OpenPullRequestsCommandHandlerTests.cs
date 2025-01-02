@@ -29,8 +29,8 @@ public class OpenPullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -80,8 +80,8 @@ public class OpenPullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -128,8 +128,8 @@ public class OpenPullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -174,8 +174,8 @@ public class OpenPullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -219,8 +219,8 @@ public class OpenPullRequestsCommandHandlerTests
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

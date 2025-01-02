@@ -24,7 +24,7 @@ public class StackSwitchCommand : AsyncCommand<StackSwitchCommandSettings>
 
         var handler = new StackSwitchCommandHandler(
             new ConsoleInputProvider(console),
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackSwitchCommandInputs(settings.Branch));
@@ -39,7 +39,7 @@ public record StackSwitchCommandResponse();
 
 public class StackSwitchCommandHandler(
     IInputProvider inputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task<StackSwitchCommandResponse> Handle(StackSwitchCommandInputs inputs)
@@ -47,8 +47,8 @@ public class StackSwitchCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -59,10 +59,10 @@ public class StackSwitchCommandHandler(
                 .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.Branches]))
                 .ToArray());
 
-        if (inputs.Branch is not null && !gitOperations.DoesLocalBranchExist(branchSelection))
+        if (inputs.Branch is not null && !gitClient.DoesLocalBranchExist(branchSelection))
             throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");
 
-        gitOperations.ChangeBranch(branchSelection);
+        gitClient.ChangeBranch(branchSelection);
 
         return new();
     }

@@ -26,10 +26,10 @@ public class StackSwitchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(sourceBranch);
+        gitClient.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [
@@ -44,7 +44,7 @@ public class StackSwitchCommandHandlerTests
         await handler.Handle(new StackSwitchCommandInputs(null));
 
         // Assert
-        gitOperations.GetCurrentBranch().Should().Be(branchToSwitchTo);
+        gitClient.GetCurrentBranch().Should().Be(branchToSwitchTo);
     }
 
     [Fact]
@@ -62,10 +62,10 @@ public class StackSwitchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(sourceBranch);
+        gitClient.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [
@@ -78,7 +78,7 @@ public class StackSwitchCommandHandlerTests
         await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
 
         // Assert
-        gitOperations.GetCurrentBranch().Should().Be(branchToSwitchTo);
+        gitClient.GetCurrentBranch().Should().Be(branchToSwitchTo);
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
@@ -97,10 +97,10 @@ public class StackSwitchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new StackSwitchCommandHandler(inputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(sourceBranch);
+        gitClient.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>(
         [

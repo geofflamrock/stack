@@ -39,7 +39,7 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
         var handler = new NewBranchCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Force, settings.Push));
@@ -58,16 +58,16 @@ public record NewBranchCommandResponse();
 public class NewBranchCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task<NewBranchCommandResponse> Handle(NewBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
-        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
+        var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
         var stacks = stackConfig.Load();
 
@@ -95,14 +95,14 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
         }
 
-        if (gitOperations.DoesLocalBranchExist(branchName))
+        if (gitClient.DoesLocalBranchExist(branchName))
         {
             throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
         }
 
         outputProvider.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
 
-        gitOperations.CreateNewBranch(branchName, sourceBranch);
+        gitClient.CreateNewBranch(branchName, sourceBranch);
 
         stack.Branches.Add(branchName);
 
@@ -110,7 +110,7 @@ public class NewBranchCommandHandler(
 
         if (inputs.Push)
         {
-            gitOperations.PushNewBranch(branchName);
+            gitClient.PushNewBranch(branchName);
         }
 
         outputProvider.Information($"Branch {branchName.Branch()} created.");
@@ -122,7 +122,7 @@ public class NewBranchCommandHandler(
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
         {
-            gitOperations.ChangeBranch(branchName);
+            gitClient.ChangeBranch(branchName);
         }
 
         return new NewBranchCommandResponse();

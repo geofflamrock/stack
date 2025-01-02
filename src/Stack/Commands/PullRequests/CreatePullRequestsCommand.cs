@@ -25,7 +25,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
         var handler = new CreatePullRequestsCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new FileOperations(),
             new StackConfig());
@@ -46,7 +46,7 @@ public record CreatePullRequestsCommandResponse();
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IFileOperations fileOperations,
     IStackConfig stackConfig)
@@ -57,7 +57,7 @@ public class CreatePullRequestsCommandHandler(
 
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -67,7 +67,7 @@ public class CreatePullRequestsCommandHandler(
             return new CreatePullRequestsCommandResponse();
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
         var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
@@ -79,7 +79,7 @@ public class CreatePullRequestsCommandHandler(
             stack,
             currentBranch,
             outputProvider,
-            gitOperations,
+            gitClient,
             gitHubOperations);
 
         var sourceBranch = stack.SourceBranch;
@@ -108,7 +108,7 @@ public class CreatePullRequestsCommandHandler(
         {
             if (inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(pullRequestCreateActions.Count)))
             {
-                GetPullRequestInformation(inputProvider, outputProvider, gitOperations, fileOperations, pullRequestCreateActions);
+                GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, pullRequestCreateActions);
 
                 outputProvider.NewLine();
 
@@ -257,14 +257,14 @@ public class CreatePullRequestsCommandHandler(
     private static void GetPullRequestInformation(
         IInputProvider inputProvider,
         IOutputProvider outputProvider,
-        IGitOperations gitOperations,
+        IGitClient gitClient,
         IFileOperations fileOperations,
         List<GitHubPullRequestCreateAction> pullRequestCreateActions)
     {
         var pullRequestTemplateFileNames = new List<string>(["PULL_REQUEST_TEMPLATE.md", "pull_request_template.md"]);
 
         var pullRequestTemplatePath = pullRequestTemplateFileNames
-            .Select(fileName => Path.Join(gitOperations.GetRootOfRepository(), ".github", fileName))
+            .Select(fileName => Path.Join(gitClient.GetRootOfRepository(), ".github", fileName))
             .FirstOrDefault(fileOperations.Exists);
 
         if (pullRequestTemplatePath is not null)
@@ -285,7 +285,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (inputProvider.Confirm(Questions.EditPullRequestBody))
             {
-                gitOperations.OpenFileInEditorAndWaitForClose(action.BodyFilePath);
+                gitClient.OpenFileInEditorAndWaitForClose(action.BodyFilePath);
             }
 
             action.Draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);

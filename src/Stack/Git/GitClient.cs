@@ -1,21 +1,20 @@
 using System.Diagnostics;
 using System.Text;
-using System.Text.RegularExpressions;
 using Octopus.Shellfish;
 using Stack.Infrastructure;
 
 namespace Stack.Git;
 
-public record GitOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitClientSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
-    public static GitOperationSettings Default => new(false, false, null);
+    public static GitClientSettings Default => new(false, false, null);
 }
 
 public record Commit(string Sha, string Message);
 
 public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
-public interface IGitOperations
+public interface IGitClient
 {
     void CreateNewBranch(string branchName, string sourceBranch);
     void PushNewBranch(string branchName);
@@ -44,7 +43,7 @@ public interface IGitOperations
     void OpenFileInEditorAndWaitForClose(string path);
 }
 
-public class GitOperations(IOutputProvider outputProvider, GitOperationSettings settings) : IGitOperations
+public class GitClient(IOutputProvider outputProvider, GitClientSettings settings) : IGitClient
 {
     public void CreateNewBranch(string branchName, string sourceBranch)
     {

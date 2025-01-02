@@ -31,7 +31,7 @@ public class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
         var handler = new AddBranchCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));
@@ -50,16 +50,16 @@ public record AddBranchCommandResponse();
 public class AddBranchCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task<AddBranchCommandResponse> Handle(AddBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
-        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
+        var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
         var stacks = stackConfig.Load();
 
@@ -86,7 +86,7 @@ public class AddBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
         }
 
-        if (!gitOperations.DoesLocalBranchExist(branchName))
+        if (!gitClient.DoesLocalBranchExist(branchName))
         {
             throw new InvalidOperationException($"Branch '{branchName}' does not exist locally.");
         }

@@ -25,7 +25,7 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
         var handler = new OpenPullRequestsCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -45,7 +45,7 @@ public record OpenPullRequestsCommandResponse();
 public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -54,7 +54,7 @@ public class OpenPullRequestsCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -64,7 +64,7 @@ public class OpenPullRequestsCommandHandler(
             return new OpenPullRequestsCommandResponse();
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
         var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)

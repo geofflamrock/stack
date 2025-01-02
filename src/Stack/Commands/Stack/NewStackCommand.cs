@@ -49,7 +49,7 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
         var handler = new NewStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(
@@ -69,7 +69,7 @@ public record NewStackCommandResponse(string StackName, string SourceBranch, Bra
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task<NewStackCommandResponse> Handle(NewStackCommandInputs inputs)
@@ -78,12 +78,12 @@ public class NewStackCommandHandler(
 
         var name = inputProvider.Text(outputProvider, Questions.StackName, inputs.Name);
 
-        var branches = gitOperations.GetLocalBranchesOrderedByMostRecentCommitterDate();
+        var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
         var sourceBranch = inputProvider.Select(outputProvider, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
 
         var stacks = stackConfig.Load();
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
         var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
@@ -101,11 +101,11 @@ public class NewStackCommandHandler(
             {
                 branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
-                gitOperations.CreateNewBranch(branchName, sourceBranch);
+                gitClient.CreateNewBranch(branchName, sourceBranch);
 
                 if (inputs.Push)
                 {
-                    gitOperations.PushNewBranch(branchName);
+                    gitClient.PushNewBranch(branchName);
                 }
             }
             else
@@ -125,7 +125,7 @@ public class NewStackCommandHandler(
 
         if (branchName is not null && (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmSwitchToBranch)))
         {
-            gitOperations.ChangeBranch(branchName);
+            gitClient.ChangeBranch(branchName);
         }
 
         if (branchAction is BranchAction.Create)

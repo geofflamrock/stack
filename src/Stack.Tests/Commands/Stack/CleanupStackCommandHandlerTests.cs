@@ -27,9 +27,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -47,7 +47,7 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.GetBranchesThatExistLocally([branchToCleanup, branchToKeep]).Should().BeEquivalentTo([branchToKeep]);
+        gitClient.GetBranchesThatExistLocally([branchToCleanup, branchToKeep]).Should().BeEquivalentTo([branchToKeep]);
     }
 
     [Fact]
@@ -66,9 +66,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -84,7 +84,7 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.GetBranchesThatExistLocally([branchToKeep, anotherBranchToKeep]).Should().BeEquivalentTo([branchToKeep, anotherBranchToKeep]);
+        gitClient.GetBranchesThatExistLocally([branchToKeep, anotherBranchToKeep]).Should().BeEquivalentTo([branchToKeep, anotherBranchToKeep]);
     }
 
     [Fact]
@@ -103,9 +103,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -121,7 +121,7 @@ public class CleanupStackCommandHandlerTests
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
         // Assert
-        gitOperations.GetBranchesThatExistLocally([branchToKeep, branchToCleanup]).Should().BeEquivalentTo([branchToKeep, branchToCleanup]);
+        gitClient.GetBranchesThatExistLocally([branchToKeep, branchToCleanup]).Should().BeEquivalentTo([branchToKeep, branchToCleanup]);
     }
 
     [Fact]
@@ -140,9 +140,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -176,9 +176,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -212,9 +212,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -249,9 +249,9 @@ public class CleanupStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitOperations, gitHubOperations, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

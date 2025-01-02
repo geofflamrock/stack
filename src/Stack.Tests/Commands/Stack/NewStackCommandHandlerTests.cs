@@ -24,9 +24,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -51,7 +51,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(newBranch);
+        gitClient.GetCurrentBranch().Should().Be(newBranch);
         repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
     }
 
@@ -69,9 +69,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -96,7 +96,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(existingBranch);
+        gitClient.GetCurrentBranch().Should().Be(existingBranch);
     }
 
     [Fact]
@@ -113,11 +113,11 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(existingBranch);
+        gitClient.ChangeBranch(existingBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -140,7 +140,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(existingBranch);
+        gitClient.GetCurrentBranch().Should().Be(existingBranch);
     }
 
     [Fact]
@@ -156,11 +156,11 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(sourceBranch);
+        gitClient.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -186,7 +186,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(sourceBranch);
+        gitClient.GetCurrentBranch().Should().Be(sourceBranch);
     }
 
     [Fact]
@@ -203,11 +203,11 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
-        gitOperations.ChangeBranch(sourceBranch);
+        gitClient.ChangeBranch(sourceBranch);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -232,7 +232,7 @@ public class NewStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(sourceBranch);
+        gitClient.GetCurrentBranch().Should().Be(sourceBranch);
     }
 
     [Fact]
@@ -247,9 +247,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -287,9 +287,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -328,9 +328,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -373,9 +373,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -411,9 +411,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -438,7 +438,7 @@ public class NewStackCommandHandlerTests
             new("A stack with multiple words", repo.RemoteUri, sourceBranch, [newBranch])
         });
 
-        gitOperations.GetCurrentBranch().Should().Be(newBranch);
+        gitClient.GetCurrentBranch().Should().Be(newBranch);
     }
 
     [Fact]
@@ -454,9 +454,9 @@ public class NewStackCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);

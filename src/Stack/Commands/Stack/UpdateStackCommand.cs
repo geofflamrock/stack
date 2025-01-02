@@ -26,7 +26,7 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
         var handler = new UpdateStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -46,7 +46,7 @@ public record UpdateStackCommandResponse();
 public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -55,7 +55,7 @@ public class UpdateStackCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -64,7 +64,7 @@ public class UpdateStackCommandHandler(
             return new UpdateStackCommandResponse();
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
 
@@ -75,16 +75,16 @@ public class UpdateStackCommandHandler(
             stack,
             currentBranch,
             outputProvider,
-            gitOperations,
+            gitClient,
             gitHubOperations,
             false);
 
-        StackHelpers.UpdateStack(stack, status, gitOperations, outputProvider);
+        StackHelpers.UpdateStack(stack, status, gitClient, outputProvider);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
         {
-            gitOperations.ChangeBranch(currentBranch);
+            gitClient.ChangeBranch(currentBranch);
         }
 
         return new UpdateStackCommandResponse();
