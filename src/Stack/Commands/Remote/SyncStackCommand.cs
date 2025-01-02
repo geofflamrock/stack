@@ -34,7 +34,7 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
         var handler = new SyncStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -54,7 +54,7 @@ public record SyncStackCommandResponse();
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -63,7 +63,7 @@ public class SyncStackCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -72,7 +72,7 @@ public class SyncStackCommandHandler(
             return new SyncStackCommandResponse();
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
 
@@ -85,7 +85,7 @@ public class SyncStackCommandHandler(
             stack,
             currentBranch,
             outputProvider,
-            gitOperations,
+            gitClient,
             gitHubOperations,
             true);
 
@@ -97,16 +97,16 @@ public class SyncStackCommandHandler(
         {
             outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            StackHelpers.PullChanges(stack, gitOperations, outputProvider);
+            StackHelpers.PullChanges(stack, gitClient, outputProvider);
 
-            StackHelpers.UpdateStack(stack, status, gitOperations, outputProvider);
+            StackHelpers.UpdateStack(stack, status, gitClient, outputProvider);
 
-            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitOperations, outputProvider);
+            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitClient, outputProvider);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
-                gitOperations.ChangeBranch(currentBranch);
+                gitClient.ChangeBranch(currentBranch);
             }
         }
 
@@ -117,7 +117,7 @@ public class SyncStackCommandHandler(
     {
         outputProvider.Status("Fetching changes from remote repository", () =>
         {
-            gitOperations.Fetch(true);
+            gitClient.Fetch(true);
         });
     }
 }

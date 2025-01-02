@@ -16,12 +16,12 @@ public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         await Task.CompletedTask;
         var console = AnsiConsole.Console;
         var outputProvider = new ConsoleOutputProvider(console);
-        var gitOperations = new GitOperations(outputProvider, settings.GetGitOperationSettings());
+        var gitClient = new GitClient(outputProvider, settings.GetGitClientSettings());
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
 
         if (remoteUri is null)
         {

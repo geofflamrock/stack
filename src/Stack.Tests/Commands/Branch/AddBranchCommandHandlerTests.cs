@@ -27,8 +27,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -70,8 +70,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -113,8 +113,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -153,8 +153,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -187,8 +187,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -230,8 +230,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -266,8 +266,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -301,8 +301,8 @@ public class AddBranchCommandHandlerTests
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var gitOperations = new GitOperations(outputProvider, repo.GitOperationSettings);
-        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitOperations, stackConfig);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new AddBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

@@ -33,7 +33,7 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
         var handler = new StackStatusCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -49,7 +49,7 @@ public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> S
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -58,9 +58,9 @@ public class StackStatusCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksToCheckStatusFor = new List<Config.Stack>();
 
@@ -84,7 +84,7 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor,
             currentBranch,
             outputProvider,
-            gitOperations,
+            gitClient,
             gitHubOperations,
             inputs.Full);
 

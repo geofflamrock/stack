@@ -32,7 +32,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
         var handler = new DeleteStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -55,7 +55,7 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -64,8 +64,8 @@ public class DeleteStackCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -78,7 +78,7 @@ public class DeleteStackCommandHandler(
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
-            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
+            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitClient, gitHubOperations);
 
             if (branchesNeedingCleanup.Length > 0)
             {
@@ -87,7 +87,7 @@ public class DeleteStackCommandHandler(
 
                 if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
-                    CleanupStackCommandHandler.CleanupBranches(gitOperations, outputProvider, branchesNeedingCleanup);
+                    CleanupStackCommandHandler.CleanupBranches(gitClient, outputProvider, branchesNeedingCleanup);
                 }
             }
 

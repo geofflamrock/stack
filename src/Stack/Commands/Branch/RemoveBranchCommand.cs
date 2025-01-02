@@ -35,7 +35,7 @@ public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
         var handler = new RemoveBranchCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Force));
@@ -54,7 +54,7 @@ public record RemoveBranchCommandResponse();
 public class RemoveBranchCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task<RemoveBranchCommandResponse> Handle(RemoveBranchCommandInputs inputs)
@@ -62,8 +62,8 @@ public class RemoveBranchCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
         var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);

@@ -271,7 +271,7 @@ public class TestGitRepositoryBuilder
 public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirectory RemoteDirectory, Repository LocalRepository) : IDisposable
 {
     public string RemoteUri => RemoteDirectory.DirectoryPath;
-    public GitOperationSettings GitOperationSettings => new GitOperationSettings(false, true, LocalDirectory.DirectoryPath);
+    public GitClientSettings GitClientSettings => new GitClientSettings(false, true, LocalDirectory.DirectoryPath);
 
     public LibGit2Sharp.Commit GetTipOfBranch(string branchName)
     {

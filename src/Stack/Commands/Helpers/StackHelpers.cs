@@ -27,7 +27,7 @@ public static class StackHelpers
         List<Config.Stack> stacks,
         string currentBranch,
         IOutputProvider outputProvider,
-        IGitOperations gitOperations,
+        IGitClient gitClient,
         IGitHubOperations gitHubOperations,
         bool includePullRequestStatus = true)
     {
@@ -40,7 +40,7 @@ public static class StackHelpers
 
         var allBranchesInStacks = stacks.SelectMany(s => new List<string>([s.SourceBranch]).Concat(s.Branches)).Distinct().ToArray();
 
-        var branchStatuses = gitOperations.GetBranchStatuses(allBranchesInStacks);
+        var branchStatuses = gitClient.GetBranchStatuses(allBranchesInStacks);
 
         foreach (var (stack, status) in stacksToCheckStatusFor)
         {
@@ -60,7 +60,7 @@ public static class StackHelpers
 
                 if (branchStatus is not null)
                 {
-                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitOperations.CompareBranches(branch, parentBranch) : (0, 0);
+                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branch, parentBranch) : (0, 0);
 
                     status.Branches[branch].Status = new BranchStatus(true, branchStatus.RemoteBranchExists, branchStatus.IsCurrentBranch, aheadOfParent, behindParent, branchStatus.Ahead, branchStatus.Behind, branchStatus.Tip);
 
@@ -105,7 +105,7 @@ public static class StackHelpers
         Config.Stack stack,
         string currentBranch,
         IOutputProvider outputProvider,
-        IGitOperations gitOperations,
+        IGitClient gitClient,
         IGitHubOperations gitHubOperations,
         bool includePullRequestStatus = true)
     {
@@ -113,7 +113,7 @@ public static class StackHelpers
             [stack],
             currentBranch,
             outputProvider,
-            gitOperations,
+            gitClient,
             gitHubOperations,
             includePullRequestStatus);
 
@@ -281,14 +281,14 @@ public static class StackHelpers
     public static void UpdateStack(
         Config.Stack stack,
         StackStatus status,
-        IGitOperations gitOperations,
+        IGitClient gitClient,
         IOutputProvider outputProvider)
     {
         void MergeFromSourceBranch(string branch, string sourceBranchName)
         {
             outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
-            gitOperations.ChangeBranch(branch);
-            gitOperations.MergeFromLocalSourceBranch(sourceBranchName);
+            gitClient.ChangeBranch(branch);
+            gitClient.MergeFromLocalSourceBranch(sourceBranchName);
         }
 
         var sourceBranch = stack.SourceBranch;
@@ -309,33 +309,33 @@ public static class StackHelpers
         }
     }
 
-    public static void PullChanges(Config.Stack stack, IGitOperations gitOperations, IOutputProvider outputProvider)
+    public static void PullChanges(Config.Stack stack, IGitClient gitClient, IOutputProvider outputProvider)
     {
         List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
-        var branchStatus = gitOperations.GetBranchStatuses([.. allBranchesInStacks]);
+        var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
         foreach (var branch in allBranchesInStacks.Where(b => branchStatus[b].RemoteBranchExists))
         {
             outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
-            gitOperations.ChangeBranch(branch);
-            gitOperations.PullBranch(branch);
+            gitClient.ChangeBranch(branch);
+            gitClient.PullBranch(branch);
         }
     }
 
     public static void PushChanges(
         Config.Stack stack,
         int maxBatchSize,
-        IGitOperations gitOperations,
+        IGitClient gitClient,
         IOutputProvider outputProvider)
     {
-        var branchStatus = gitOperations.GetBranchStatuses([.. stack.Branches]);
+        var branchStatus = gitClient.GetBranchStatuses([.. stack.Branches]);
 
         var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
 
         foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
         {
             outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
-            gitOperations.PushNewBranch(branch);
+            gitClient.PushNewBranch(branch);
         }
 
         var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
@@ -350,7 +350,7 @@ public static class StackHelpers
         {
             outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
-            gitOperations.PushBranches([.. branches]);
+            gitClient.PushBranches([.. branches]);
         }
     }
 }

@@ -25,7 +25,7 @@ public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
         var handler = new PullStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Name));
@@ -38,7 +38,7 @@ public record PullStackCommandInputs(string? Name);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IStackConfig stackConfig)
 {
     public async Task Handle(PullStackCommandInputs inputs)
@@ -46,7 +46,7 @@ public class PullStackCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
+        var remoteUri = gitClient.GetRemoteUri();
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
@@ -55,15 +55,15 @@ public class PullStackCommandHandler(
             return;
         }
 
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        StackHelpers.PullChanges(stack, gitOperations, outputProvider);
+        StackHelpers.PullChanges(stack, gitClient, outputProvider);
 
-        gitOperations.ChangeBranch(currentBranch);
+        gitClient.ChangeBranch(currentBranch);
     }
 }

@@ -32,7 +32,7 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
         var handler = new CleanupStackCommandHandler(
             new ConsoleInputProvider(console),
             outputProvider,
-            new GitOperations(outputProvider, settings.GetGitOperationSettings()),
+            new GitClient(outputProvider, settings.GetGitClientSettings()),
             new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
             new StackConfig());
 
@@ -52,7 +52,7 @@ public record CleanupStackCommandResponse(string? CleanedUpStackName);
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
-    IGitOperations gitOperations,
+    IGitClient gitClient,
     IGitHubOperations gitHubOperations,
     IStackConfig stackConfig)
 {
@@ -61,8 +61,8 @@ public class CleanupStackCommandHandler(
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
 
-        var remoteUri = gitOperations.GetRemoteUri();
-        var currentBranch = gitOperations.GetCurrentBranch();
+        var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
@@ -73,10 +73,10 @@ public class CleanupStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
         }
 
-        var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
+        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
+        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
 
-        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitOperations, gitHubOperations);
+        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitClient, gitHubOperations);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -91,16 +91,16 @@ public class CleanupStackCommandHandler(
 
         if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
-            CleanupBranches(gitOperations, outputProvider, branchesToCleanUp);
+            CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
 
             outputProvider.Information($"Stack {stack.Name.Stack()} cleaned up");
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitOperations gitOperations, IGitHubOperations gitHubOperations)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitClient gitClient, IGitHubOperations gitHubOperations)
     {
-        var branchesInTheStackThatExistLocally = gitOperations.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitOperations.GetBranchesThatExistInRemote([.. stack.Branches]);
+        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
+        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
 
         var branchesThatCanBeCleanedUp = branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToList();
         var branchesThatAreLocalAndInRemote = branchesInTheStackThatExistLocally.Intersect(branchesInTheStackThatExistInTheRemote);
@@ -128,12 +128,12 @@ public class CleanupStackCommandHandler(
         }
     }
 
-    public static void CleanupBranches(IGitOperations gitOperations, IOutputProvider outputProvider, string[] branches)
+    public static void CleanupBranches(IGitClient gitClient, IOutputProvider outputProvider, string[] branches)
     {
         foreach (var branch in branches)
         {
             outputProvider.Information($"Deleting local branch {branch.Branch()}");
-            gitOperations.DeleteLocalBranch(branch);
+            gitClient.DeleteLocalBranch(branch);
         }
     }
 }
