@@ -98,7 +98,7 @@ public class StackStatusCommandHandler(
         if (stacksToCheckStatusFor.Count == 1)
         {
             var (stack, status) = stackStatusResults.First();
-            StackHelpers.OutputBranchAndStackCleanup(stack, status, outputProvider);
+            StackHelpers.OutputBranchAndStackActions(stack, status, outputProvider);
         }
 
         return new StackStatusCommandResponse(stackStatusResults);
