@@ -15,21 +15,21 @@
   "labels": [
     {
       "name": "major",
-      "changelogTitle": "💥 Breaking Change",
+      "changelogTitle": "💥 Breaking Changes",
       "description": "Increment the major version when merged",
       "releaseType": "major",
       "color": "#C5000B"
     },
     {
       "name": "minor",
-      "changelogTitle": "🚀 New Feature",
+      "changelogTitle": "🚀 New Features and Improvements",
       "description": "Increment the minor version when merged",
       "releaseType": "minor",
       "color": "#F1A60E"
     },
     {
       "name": "patch",
-      "changelogTitle": "🐛 Bug Fix",
+      "changelogTitle": "🐛 Bug Fixes",
       "description": "Increment the patch version when merged",
       "releaseType": "patch",
       "color": "#870048"
