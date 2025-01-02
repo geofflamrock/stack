@@ -34,8 +34,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -73,8 +73,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -110,8 +110,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -120,7 +120,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        gitHubOperations.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
+        gitHubClient.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null));
@@ -151,8 +151,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -191,8 +191,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -228,8 +228,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
@@ -273,8 +273,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, stackConfig);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stacks = new List<Config.Stack>([stack1]);

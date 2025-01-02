@@ -16,5 +16,5 @@ public class CommandSettingsBase : CommandSettings
     public string? WorkingDirectory { get; init; }
 
     public virtual GitClientSettings GetGitClientSettings() => new(false, Verbose, WorkingDirectory);
-    public virtual GitHubOperationSettings GetGitHubOperationSettings() => new(false, Verbose, WorkingDirectory);
+    public virtual GitHubClientSettings GetGitHubClientSettings() => new(false, Verbose, WorkingDirectory);
 }

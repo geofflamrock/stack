@@ -5,9 +5,9 @@ using Stack.Infrastructure;
 
 namespace Stack.Git;
 
-public record GitHubOperationSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitHubClientSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
 {
-    public static GitHubOperationSettings Default => new(false, false, null);
+    public static GitHubClientSettings Default => new(false, false, null);
 }
 
 public static class GitHubPullRequestStates
@@ -41,7 +41,7 @@ public static class GitHubPullRequestExtensionMethods
     }
 }
 
-public interface IGitHubOperations
+public interface IGitHubClient
 {
     GitHubPullRequest? GetPullRequest(string branch);
     GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
@@ -49,7 +49,7 @@ public interface IGitHubOperations
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
 
-public class GitHubOperations(IOutputProvider outputProvider, GitHubOperationSettings settings) : IGitHubOperations
+public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {

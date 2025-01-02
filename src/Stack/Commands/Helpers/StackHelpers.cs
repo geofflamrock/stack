@@ -38,7 +38,7 @@ public static class StackHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitClient gitClient,
-        IGitHubOperations gitHubOperations,
+        IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
@@ -110,7 +110,7 @@ public static class StackHelpers
                     {
                         foreach (var branch in stack.Branches)
                         {
-                            var pr = gitHubOperations.GetPullRequest(branch);
+                            var pr = gitHubClient.GetPullRequest(branch);
 
                             if (pr is not null)
                             {
@@ -134,7 +134,7 @@ public static class StackHelpers
         string currentBranch,
         IOutputProvider outputProvider,
         IGitClient gitClient,
-        IGitHubOperations gitHubOperations,
+        IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
     {
         var statuses = GetStackStatus(
@@ -142,7 +142,7 @@ public static class StackHelpers
             currentBranch,
             outputProvider,
             gitClient,
-            gitHubOperations,
+            gitHubClient,
             includePullRequestStatus);
 
         return statuses[stack];

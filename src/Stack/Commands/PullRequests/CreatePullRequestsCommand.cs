@@ -26,7 +26,7 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new FileOperations(),
             new StackConfig());
 
@@ -47,7 +47,7 @@ public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IFileOperations fileOperations,
     IStackConfig stackConfig)
 {
@@ -80,7 +80,7 @@ public class CreatePullRequestsCommandHandler(
             currentBranch,
             outputProvider,
             gitClient,
-            gitHubOperations);
+            gitHubClient);
 
         var sourceBranch = stack.SourceBranch;
         var pullRequestCreateActions = new List<GitHubPullRequestCreateAction>();
@@ -118,7 +118,7 @@ public class CreatePullRequestsCommandHandler(
 
                 if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
                 {
-                    var newPullRequests = CreatePullRequests(outputProvider, gitHubOperations, status, pullRequestCreateActions);
+                    var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestCreateActions);
 
                     var pullRequestsInStack = status.Branches.Values
                         .Where(branch => branch.HasPullRequest)
@@ -127,14 +127,14 @@ public class CreatePullRequestsCommandHandler(
 
                     if (pullRequestsInStack.Count > 1)
                     {
-                        UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubOperations, stackConfig, stacks, stack, pullRequestsInStack);
+                        UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
                     }
 
                     if (inputProvider.Confirm(Questions.OpenPullRequests))
                     {
                         foreach (var pullRequest in newPullRequests)
                         {
-                            gitHubOperations.OpenPullRequest(pullRequest);
+                            gitHubClient.OpenPullRequest(pullRequest);
                         }
                     }
                 }
@@ -148,7 +148,7 @@ public class CreatePullRequestsCommandHandler(
         return new CreatePullRequestsCommandResponse();
     }
 
-    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, IOutputProvider outputProvider, IGitHubOperations gitHubOperations, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
+    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, IOutputProvider outputProvider, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
     {
         var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
         var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
@@ -201,13 +201,13 @@ public class CreatePullRequestsCommandHandler(
 
             outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
 
-            gitHubOperations.EditPullRequest(pullRequest.Number, prBody);
+            gitHubClient.EditPullRequest(pullRequest.Number, prBody);
         }
     }
 
     private static List<GitHubPullRequest> CreatePullRequests(
         IOutputProvider outputProvider,
-        IGitHubOperations gitHubOperations,
+        IGitHubClient gitHubClient,
         StackStatus status,
         List<GitHubPullRequestCreateAction> pullRequestCreateActions)
     {
@@ -216,7 +216,7 @@ public class CreatePullRequestsCommandHandler(
         {
             var branchDetail = status.Branches[action.HeadBranch];
             outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
-            var pullRequest = gitHubOperations.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, action.BodyFilePath!, action.Draft);
+            var pullRequest = gitHubClient.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, action.BodyFilePath!, action.Draft);
 
             if (pullRequest is not null)
             {
