@@ -27,7 +27,7 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Name));
@@ -47,7 +47,7 @@ public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig)
 {
     public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
@@ -76,7 +76,7 @@ public class UpdateStackCommandHandler(
             currentBranch,
             outputProvider,
             gitClient,
-            gitHubOperations,
+            gitHubClient,
             false);
 
         StackHelpers.UpdateStack(stack, status, gitClient, outputProvider);

@@ -14,5 +14,5 @@ public class DryRunCommandSettingsBase : CommandSettingsBase
 
     public override GitClientSettings GetGitClientSettings() => new(DryRun, Verbose, WorkingDirectory);
 
-    public override GitHubOperationSettings GetGitHubOperationSettings() => new(DryRun, Verbose, WorkingDirectory);
+    public override GitHubClientSettings GetGitHubClientSettings() => new(DryRun, Verbose, WorkingDirectory);
 }

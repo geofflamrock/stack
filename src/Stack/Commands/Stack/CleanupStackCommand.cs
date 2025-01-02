@@ -33,7 +33,7 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Name, settings.Force));
@@ -53,7 +53,7 @@ public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig)
 {
     public async Task Handle(CleanupStackCommandInputs inputs)
@@ -76,7 +76,7 @@ public class CleanupStackCommandHandler(
         var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
 
-        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitClient, gitHubOperations);
+        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -97,7 +97,7 @@ public class CleanupStackCommandHandler(
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitClient gitClient, IGitHubOperations gitHubOperations)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
         var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
@@ -107,7 +107,7 @@ public class CleanupStackCommandHandler(
 
         foreach (var branch in branchesThatAreLocalAndInRemote)
         {
-            var pullRequest = gitHubOperations.GetPullRequest(branch);
+            var pullRequest = gitHubClient.GetPullRequest(branch);
 
             if (pullRequest is not null && pullRequest.State != GitHubPullRequestStates.Open)
             {

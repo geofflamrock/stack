@@ -26,7 +26,7 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Name));
@@ -46,7 +46,7 @@ public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig)
 {
     public async Task<OpenPullRequestsCommandResponse> Handle(OpenPullRequestsCommandInputs inputs)
@@ -76,7 +76,7 @@ public class OpenPullRequestsCommandHandler(
 
         foreach (var branch in stack.Branches)
         {
-            var existingPullRequest = gitHubOperations.GetPullRequest(branch);
+            var existingPullRequest = gitHubClient.GetPullRequest(branch);
 
             if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
             {
@@ -92,7 +92,7 @@ public class OpenPullRequestsCommandHandler(
 
         foreach (var pullRequest in pullRequestsInStack)
         {
-            gitHubOperations.OpenPullRequest(pullRequest);
+            gitHubClient.OpenPullRequest(pullRequest);
         }
 
         return new OpenPullRequestsCommandResponse();

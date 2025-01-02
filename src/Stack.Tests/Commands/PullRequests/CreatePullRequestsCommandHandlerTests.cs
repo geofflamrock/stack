@@ -24,13 +24,13 @@ public class CreatePullRequestsCommandHandlerTests
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -52,12 +52,12 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
@@ -65,8 +65,8 @@ public class CreatePullRequestsCommandHandlerTests
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubOperations.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -82,13 +82,13 @@ public class CreatePullRequestsCommandHandlerTests
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -111,20 +111,20 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(1, Arg.Any<string>()))
             .Do(ci => prForBranch1 = prForBranch1 with { Body = ci.ArgAt<string>(1) });
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(2, Arg.Any<string>()))
             .Do(ci => prForBranch2 = prForBranch2 with { Body = ci.ArgAt<string>(1) });
 
@@ -156,13 +156,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -185,18 +185,18 @@ A custom description
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations.GetPullRequest(branch1).Returns(prForBranch1);
+        gitHubClient.GetPullRequest(branch1).Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(1, Arg.Any<string>()))
             .Do(ci => prForBranch1 = prForBranch1 with { Body = ci.ArgAt<string>(1) });
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(2, Arg.Any<string>()))
             .Do(ci => prForBranch2 = prForBranch2 with { Body = ci.ArgAt<string>(1) });
 
@@ -204,8 +204,8 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.DidNotReceive().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubOperations.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.DidNotReceive().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
         var expectedStackDescription = $@"<!-- stack-pr-list -->
 A custom description
 
@@ -230,13 +230,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -258,12 +258,12 @@ A custom description
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
@@ -271,8 +271,8 @@ A custom description
         await handler.Handle(new CreatePullRequestsCommandInputs("Stack1"));
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubOperations.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -288,13 +288,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -311,12 +311,12 @@ A custom description
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
@@ -324,8 +324,8 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubOperations.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
     }
 
     [Fact]
@@ -341,13 +341,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -381,13 +381,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -410,18 +410,18 @@ A custom description
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Merged, Some.HttpsUri(), false);
-        gitHubOperations.GetPullRequest(branch1).Returns(prForBranch1);
+        gitHubClient.GetPullRequest(branch1).Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch2);
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(1, Arg.Any<string>()))
             .Do(ci => prForBranch1 = prForBranch1 with { Body = ci.ArgAt<string>(1) });
 
-        gitHubOperations
+        gitHubClient
             .When(g => g.EditPullRequest(2, Arg.Any<string>()))
             .Do(ci => prForBranch2 = prForBranch2 with { Body = ci.ArgAt<string>(1) });
 
@@ -429,8 +429,8 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.DidNotReceive().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubOperations.Received().CreatePullRequest(branch2, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.DidNotReceive().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch2, sourceBranch, "PR Title", Arg.Any<string>(), false);
         var expectedStackDescription = $@"<!-- stack-pr-list -->
 A custom description
 
@@ -455,13 +455,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -485,7 +485,7 @@ A custom description
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", "PR Template", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
             .Returns(prForBranch1);
 
@@ -493,7 +493,7 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
         fileOperations.Received().Copy(Arg.Any<string>(), Arg.Any<string>(), true);
     }
 
@@ -510,13 +510,13 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubOperations = Substitute.For<IGitHubOperations>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubOperations, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         outputProvider
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -539,12 +539,12 @@ A custom description
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), true)
             .Returns(prForBranch1);
 
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), true);
-        gitHubOperations
+        gitHubClient
             .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), true)
             .Returns(prForBranch2);
 
@@ -552,7 +552,7 @@ A custom description
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
         // Assert        
-        gitHubOperations.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), true);
-        gitHubOperations.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), true);
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), true);
+        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), true);
     }
 }

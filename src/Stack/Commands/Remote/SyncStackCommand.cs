@@ -35,7 +35,7 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(settings.Name, settings.NoConfirm, settings.MaxBatchSize));
@@ -55,7 +55,7 @@ public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig)
 {
     public async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
@@ -86,7 +86,7 @@ public class SyncStackCommandHandler(
             currentBranch,
             outputProvider,
             gitClient,
-            gitHubOperations,
+            gitHubClient,
             true);
 
         StackHelpers.OutputStackStatus(stack, status, outputProvider);

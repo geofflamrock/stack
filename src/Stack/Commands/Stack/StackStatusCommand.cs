@@ -34,7 +34,7 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new ConsoleInputProvider(console),
             outputProvider,
             new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubOperations(outputProvider, settings.GetGitHubOperationSettings()),
+            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All, settings.Full));
@@ -50,7 +50,7 @@ public class StackStatusCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
     IGitClient gitClient,
-    IGitHubOperations gitHubOperations,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig)
 {
     public async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
@@ -85,7 +85,7 @@ public class StackStatusCommandHandler(
             currentBranch,
             outputProvider,
             gitClient,
-            gitHubOperations,
+            gitHubClient,
             inputs.Full);
 
         if (stackStatusResults.Count == 1)
