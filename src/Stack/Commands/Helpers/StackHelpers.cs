@@ -356,7 +356,7 @@ public static class StackHelpers
         List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
         var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
-        foreach (var branch in allBranchesInStacks.Where(b => branchStatus[b].RemoteBranchExists))
+        foreach (var branch in allBranchesInStacks.Where(b => branchStatus.ContainsKey(b) && branchStatus[b].RemoteBranchExists))
         {
             outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
             gitClient.ChangeBranch(branch);
