@@ -18,19 +18,20 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1))
             .Build();
 
-        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var relativeFilePath = Some.Name();
+        var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var outputProvider = new TestOutputProvider(testOutputHelper);
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
-        repo.Stage(filePath);
+        repo.Stage(relativeFilePath);
         repo.Commit();
 
         gitClient.ChangeBranch(branch2);
         File.WriteAllText(filePath, Some.Name());
-        repo.Stage(filePath);
+        repo.Stage(relativeFilePath);
         repo.Commit();
 
         // Act
