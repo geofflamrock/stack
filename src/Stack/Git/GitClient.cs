@@ -14,6 +14,8 @@ public record Commit(string Sha, string Message);
 
 public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
+public class MergeConflictException : Exception;
+
 public interface IGitClient
 {
     void CreateNewBranch(string branchName, string sourceBranch);
@@ -27,6 +29,7 @@ public interface IGitClient
     void UpdateBranch(string branchName);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
+    void AbortMerge();
     string GetCurrentBranch();
     bool DoesLocalBranchExist(string branchName);
     bool DoesRemoteBranchExist(string branchName);
@@ -106,7 +109,20 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
     public void MergeFromLocalSourceBranch(string sourceBranchName)
     {
-        ExecuteGitCommand($"merge {sourceBranchName}");
+        ExecuteGitCommand($"merge {sourceBranchName}", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new MergeConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void AbortMerge()
+    {
+        ExecuteGitCommand("merge --abort");
     }
 
     public string GetCurrentBranch()
@@ -230,7 +246,10 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         process.WaitForExit();
     }
 
-    private string ExecuteGitCommandAndReturnOutput(string command, bool captureStandardError = false)
+    private string ExecuteGitCommandAndReturnOutput(
+        string command,
+        bool captureStandardError = false,
+        Func<int, Exception?>? exceptionHandler = null)
     {
         if (settings.Verbose)
             outputProvider.Debug($"git {command}");
@@ -249,6 +268,14 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         if (result != 0)
         {
             outputProvider.Error($"{errorBuilder}");
+            if (exceptionHandler != null)
+            {
+                var exception = exceptionHandler(result);
+                if (exception != null)
+                {
+                    throw exception;
+                }
+            }
             throw new Exception("Failed to execute git command.");
         }
 
@@ -267,7 +294,10 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         return output;
     }
 
-    private void ExecuteGitCommand(string command, bool captureStandardError = false)
+    private void ExecuteGitCommand(
+        string command,
+        bool captureStandardError = false,
+        Func<int, Exception?>? exceptionHandler = null)
     {
         if (settings.DryRun)
         {
@@ -276,7 +306,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         }
         else
         {
-            var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError);
+            var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
 
             if (!settings.Verbose && output.Length > 0)
             {

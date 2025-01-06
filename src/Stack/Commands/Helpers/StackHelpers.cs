@@ -324,15 +324,9 @@ public static class StackHelpers
         Config.Stack stack,
         StackStatus status,
         IGitClient gitClient,
+        IInputProvider inputProvider,
         IOutputProvider outputProvider)
     {
-        void MergeFromSourceBranch(string branch, string sourceBranchName)
-        {
-            outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
-            gitClient.ChangeBranch(branch);
-            gitClient.MergeFromLocalSourceBranch(sourceBranchName);
-        }
-
         var sourceBranch = stack.SourceBranch;
 
         foreach (var branch in stack.Branches)
@@ -341,7 +335,7 @@ public static class StackHelpers
 
             if (branchDetail.IsActive)
             {
-                MergeFromSourceBranch(branch, sourceBranch);
+                MergeFromSourceBranch(branch, sourceBranch, gitClient, inputProvider, outputProvider);
                 sourceBranch = branch;
             }
             else
@@ -395,4 +389,39 @@ public static class StackHelpers
             gitClient.PushBranches([.. branches]);
         }
     }
+
+    static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
+    {
+        outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+        gitClient.ChangeBranch(branch);
+
+        try
+        {
+            gitClient.MergeFromLocalSourceBranch(sourceBranchName);
+        }
+        catch (MergeConflictException)
+        {
+            var action = inputProvider.Select(
+                Questions.ContinueOrAbortMerge,
+                [MergeConflictAction.Continue, MergeConflictAction.Abort],
+                a => a switch
+                {
+                    MergeConflictAction.Continue => "Continue",
+                    MergeConflictAction.Abort => "Abort",
+                    _ => throw new InvalidOperationException("Invalid merge conflict action.")
+                }); ;
+
+            if (action == MergeConflictAction.Abort)
+            {
+                gitClient.AbortMerge();
+                throw new Exception("Merge aborted due to conflicts.");
+            }
+        }
+    }
+}
+
+public enum MergeConflictAction
+{
+    Abort,
+    Continue
 }
