@@ -79,7 +79,7 @@ public class UpdateStackCommandHandler(
             gitHubClient,
             false);
 
-        StackHelpers.UpdateStack(stack, status, gitClient, outputProvider);
+        StackHelpers.UpdateStack(stack, status, gitClient, inputProvider, outputProvider);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

@@ -99,7 +99,7 @@ public class SyncStackCommandHandler(
 
             StackHelpers.PullChanges(stack, gitClient, outputProvider);
 
-            StackHelpers.UpdateStack(stack, status, gitClient, outputProvider);
+            StackHelpers.UpdateStack(stack, status, gitClient, inputProvider, outputProvider);
 
             StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitClient, outputProvider);
 
