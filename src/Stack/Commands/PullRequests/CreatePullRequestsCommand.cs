@@ -280,6 +280,9 @@ public class CreatePullRequestsCommandHandler(
 
             action.Title = inputProvider.Text(Questions.PullRequestTitle);
             action.BodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
+
+            fileOperations.Create(action.BodyFilePath);
+
             if (pullRequestTemplatePath is not null)
                 fileOperations.Copy(pullRequestTemplatePath, action.BodyFilePath, true);
 
