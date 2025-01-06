@@ -39,7 +39,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
 
         inputProvider
             .Select(
-                Arg.Any<string>(),
+                Questions.ContinueOrAbortMerge,
                 Arg.Any<MergeConflictAction[]>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Continue);
@@ -96,7 +96,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
 
         inputProvider
             .Select(
-                Arg.Any<string>(),
+                Questions.ContinueOrAbortMerge,
                 Arg.Any<MergeConflictAction[]>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Abort);

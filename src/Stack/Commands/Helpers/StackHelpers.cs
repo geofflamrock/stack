@@ -402,7 +402,7 @@ public static class StackHelpers
         catch (MergeConflictException)
         {
             var action = inputProvider.Select(
-                "Merge conflict detected. Please resolve the conflicts, commit any changes if required and select an option below.",
+                Questions.ContinueOrAbortMerge,
                 [MergeConflictAction.Continue, MergeConflictAction.Abort],
                 a => a switch
                 {
