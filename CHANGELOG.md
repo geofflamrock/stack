@@ -1,3 +1,39 @@
+# v0.7.0 (Sun Jan 05 2025)
+
+#### 🚀 New Features and Improvements
+
+- Changes `stack update` command to operate on local branches [#167](https://github.com/geofflamrock/stack/pull/167) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds `stack sync` command [#166](https://github.com/geofflamrock/stack/pull/166) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds `--push` option when creating new branches [#165](https://github.com/geofflamrock/stack/pull/165) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds `stack push` command [#164](https://github.com/geofflamrock/stack/pull/164) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds `stack pull` command [#160](https://github.com/geofflamrock/stack/pull/160) ([@geofflamrock](https://github.com/geofflamrock))
+- Show local status by default in `stack status` command [#159](https://github.com/geofflamrock/stack/pull/159) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fixes
+
+- Fixes issue with pulling branch that doesn't exist locally [#174](https://github.com/geofflamrock/stack/pull/174) ([@geofflamrock](https://github.com/geofflamrock))
+- Improve status of untracked branches [#170](https://github.com/geofflamrock/stack/pull/170) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🔩 Dependency Updates
+
+- Bump coverlet.collector from 6.0.2 to 6.0.3 in /src [#169](https://github.com/geofflamrock/stack/pull/169) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### 🏠 Internal
+
+- Rename `IGitHubOperations` to `IGitHubClient` [#172](https://github.com/geofflamrock/stack/pull/172) ([@geofflamrock](https://github.com/geofflamrock))
+- Rename `IGitOperations` to `IGitClient` [#171](https://github.com/geofflamrock/stack/pull/171) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🤖 Automation
+
+- Improve release note category names [#173](https://github.com/geofflamrock/stack/pull/173) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 2
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.6.1 (Fri Dec 27 2024)
 
 #### 🐛 Bug Fix
