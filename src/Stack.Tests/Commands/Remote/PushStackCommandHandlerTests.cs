@@ -93,7 +93,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new PushStackCommandInputs("Stack1", 5));
+        await handler.Handle(new PushStackCommandInputs("Stack1", 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);
@@ -139,7 +139,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new PushStackCommandInputs(invalidStackName, 5)))
+        await handler.Invoking(async h => await h.Handle(new PushStackCommandInputs(invalidStackName, 5, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -224,7 +224,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new PushStackCommandInputs(null, 1));
+        await handler.Handle(new PushStackCommandInputs(null, 1, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);

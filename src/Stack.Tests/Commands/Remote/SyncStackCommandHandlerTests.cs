@@ -47,7 +47,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5));
+        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -88,7 +88,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs("Stack1", false, 5));
+        await handler.Handle(new SyncStackCommandInputs("Stack1", false, 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -130,7 +130,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, true, 5));
+        await handler.Handle(new SyncStackCommandInputs(null, true, 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -171,7 +171,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new SyncStackCommandInputs(invalidStackName, false, 5)))
+        await handler.Invoking(async h => await h.Handle(new SyncStackCommandInputs(invalidStackName, false, 5, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -212,7 +212,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5));
+        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -253,7 +253,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5));
+        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);

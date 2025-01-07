@@ -39,7 +39,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var merge = () => gitClient.MergeFromLocalSourceBranch(branch2);
 
         // Assert
-        merge.Should().Throw<MergeConflictException>();
+        merge.Should().Throw<ConflictException>();
     }
 
     [Fact]

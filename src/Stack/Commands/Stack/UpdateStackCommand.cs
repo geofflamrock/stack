@@ -14,6 +14,10 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("Use rebase instead of merge when updating the stack.")]
+    [CommandOption("--rebase")]
+    public bool Rebase { get; init; }
 }
 
 public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
@@ -30,15 +34,15 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new UpdateStackCommandInputs(settings.Name));
+        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Rebase));
 
         return 0;
     }
 }
 
-public record UpdateStackCommandInputs(string? Name)
+public record UpdateStackCommandInputs(string? Name, bool Rebase)
 {
-    public static UpdateStackCommandInputs Empty => new((string?)null);
+    public static UpdateStackCommandInputs Empty => new(null, false);
 }
 
 public record UpdateStackCommandResponse();
@@ -79,7 +83,13 @@ public class UpdateStackCommandHandler(
             gitHubClient,
             false);
 
-        StackHelpers.UpdateStack(stack, status, gitClient, inputProvider, outputProvider);
+        StackHelpers.UpdateStack(
+            stack,
+            status,
+            inputs.Rebase ? UpdateStrategy.Rebase : UpdateStrategy.Merge,
+            gitClient,
+            inputProvider,
+            outputProvider);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
