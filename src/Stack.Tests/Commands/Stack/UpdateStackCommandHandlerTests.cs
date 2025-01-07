@@ -290,4 +290,46 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }
+
+    [Fact]
+    public async Task WhenUpdatingUsingRebase_AllBranchesInStackAreUpdated()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch2).PushToRemote(), 1)
+            .Build();
+
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
+        stackConfig.Load().Returns(stacks);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, true));
+
+        // Assert
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
+    }
 }
