@@ -45,7 +45,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -84,7 +84,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
@@ -123,7 +123,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitHubClient.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
@@ -160,7 +160,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs("Stack1", false));
+        await handler.Handle(new UpdateStackCommandInputs("Stack1", false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -201,7 +201,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false)))
+        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -242,7 +242,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -281,7 +281,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
