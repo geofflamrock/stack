@@ -299,7 +299,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, true));
+        await handler.Handle(new SyncStackCommandInputs(null, false, 5, true, false));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
