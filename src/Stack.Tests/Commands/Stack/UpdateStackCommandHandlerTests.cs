@@ -331,5 +331,6 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
+        repo.GetAheadBehind(branch2).Should().Be((20, 12));
     }
 }

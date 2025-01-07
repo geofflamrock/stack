@@ -151,6 +151,7 @@ public class TestGitRepositoryBuilder
 {
     List<Action<BranchBuilder>> branchBuilders = [];
     List<Action<CommitBuilder>> commitBuilders = [];
+    Dictionary<string, string> config = new();
 
     public TestGitRepositoryBuilder WithBranch(string branch)
     {
@@ -222,6 +223,12 @@ public class TestGitRepositoryBuilder
         return this;
     }
 
+    public TestGitRepositoryBuilder WithConfig(string key, string value)
+    {
+        config[key] = value;
+        return this;
+    }
+
     public TestGitRepository Build()
     {
         var remote = Path.Join(Path.GetTempPath(), Guid.NewGuid().ToString("N"), ".git");
@@ -254,6 +261,11 @@ public class TestGitRepositoryBuilder
             var builder = new CommitBuilder();
             commitBuilder(builder);
             builder.Build(localRepo);
+        }
+
+        foreach (var (key, value) in config)
+        {
+            localRepo.Config.Add(key, value);
         }
 
         return new TestGitRepository(localDirectory, remoteDirectory, localRepo);
@@ -320,6 +332,14 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var sourceBranch = LocalRepository.Branches[sourceBranchName];
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         LocalRepository.Rebase.Start(branch, LocalRepository.Branches[remoteBranchName], sourceBranch, new Identity(Some.Name(), Some.Email()), new RebaseOptions());
+    }
+
+    public (int Ahead, int Behind) GetAheadBehind(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var remoteBranchName = branch.TrackedBranch.CanonicalName;
+        var historyDivergence = LocalRepository.ObjectDatabase.CalculateHistoryDivergence(branch.Tip, LocalRepository.Branches[remoteBranchName].Tip);
+        return (historyDivergence.AheadBy ?? 0, historyDivergence.BehindBy ?? 0);
     }
 
     public void Dispose()
