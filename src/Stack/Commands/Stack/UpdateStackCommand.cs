@@ -9,7 +9,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class UpdateStackCommandSettings : DryRunCommandSettingsBase
+public class UpdateStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]

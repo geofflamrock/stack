@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class OpenPullRequestsCommandSettings : DryRunCommandSettingsBase
+public class OpenPullRequestsCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to open PRs for.")]
     [CommandOption("-n|--name")]

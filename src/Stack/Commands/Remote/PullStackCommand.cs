@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class PullStackCommandSettings : DryRunCommandSettingsBase
+public class PullStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to pull changes from the remote for.")]
     [CommandOption("-n|--name")]

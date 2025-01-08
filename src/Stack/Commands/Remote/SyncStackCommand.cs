@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class SyncStackCommandSettings : DryRunCommandSettingsBase
+public class SyncStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to update.")]
     [CommandOption("-n|--name")]
