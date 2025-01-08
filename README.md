@@ -48,9 +48,10 @@ To create a stack:
 - Give your stack a name.
 - Select a branch to start your stack from.
 - Optionally either create a new branch from the source branch, or add an existing branch to the stack.
+- Optionally push a new branch to the remote repository.
 - If you chose to create or add a branch you can switch to that branch to start work.
 
-By default new branches are only created locally, you can either use the `--push` option or use the `stack push` command to push the branch to the remote.
+If a new branch was not pushed to the remote, you can use the `stack push` command to push the branch to the remote.
 
 ### Working within a stack
 
@@ -156,7 +157,6 @@ OPTIONS:
     -n, --name             The name of the stack. Must be unique
     -s, --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
     -b, --branch           The name of the branch to create within the stack
-        --push             Push the new branch to the remote repository
 ```
 
 ### `stack list`
@@ -274,7 +274,6 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to create
-        --push           Push the new branch to the remote repository
 ```
 
 ### `stack branch add`
