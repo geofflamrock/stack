@@ -206,7 +206,6 @@ OPTIONS:
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -n, --name           The name of the stack to delete
-    -f, --force          Force cleanup and delete the stack without prompting
 ```
 
 ## Branch commands
@@ -225,7 +224,6 @@ OPTIONS:
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -n, --name           The name of the stack to update
-    -f, --force          Force the update of the stack
         --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge          Use merge when updating the stack. Overrides any setting in Git configuration
 ```
@@ -260,7 +258,6 @@ OPTIONS:
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -n, --name           The name of the stack to cleanup
-    -f, --force          Cleanup the stack without prompting
 ```
 
 ### `stack branch new`
@@ -310,7 +307,6 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to add
-    -f, --force          Force removing the branch without prompting
 ```
 
 ## Remote commands
@@ -366,7 +362,6 @@ OPTIONS:
         --verbose           Show verbose output
         --working-dir       The path to the directory containing the git repository. Defaults to the current directory
     -n, --name              The name of the stack to update
-    -y, --yes               Don't ask for confirmation before syncing the stack
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
         --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
