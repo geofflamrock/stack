@@ -51,12 +51,14 @@ public class StackSwitchCommandHandler(
         var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var allBranchesInStacks = stacksForRemote.SelectMany(s => s.Branches).Distinct().ToArray();
+        var branchesThatExistLocally = gitClient.GetBranchesThatExistLocally(allBranchesInStacks);
 
         var branchSelection = inputs.Branch ?? inputProvider.SelectGrouped(
             Questions.SelectBranch,
             stacksForRemote
                 .OrderByCurrentStackThenByName(currentBranch)
-                .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.Branches]))
+                .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.Branches.Where(b => branchesThatExistLocally.Contains(b))]))
                 .ToArray());
 
         if (inputs.Branch is not null && !gitClient.DoesLocalBranchExist(branchSelection))
