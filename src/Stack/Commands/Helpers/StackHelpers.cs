@@ -320,15 +320,50 @@ public static class StackHelpers
         }
     }
 
+    public static UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient)
+    {
+        var strategyConfigValue = gitClient.GetConfigValue("stack.update.strategy");
+
+        if (strategyConfigValue is not null)
+        {
+            if (Enum.TryParse<UpdateStrategy>(strategyConfigValue, true, out var configuredStrategy))
+            {
+                return configuredStrategy;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid value '{strategyConfigValue}' for 'stack.update.strategy'.");
+            }
+        }
+
+        return null;
+    }
+
     public static void UpdateStack(
         Config.Stack stack,
         StackStatus status,
-        UpdateStrategy? updateStrategy,
+        UpdateStrategy? specificUpdateStrategy,
         IGitClient gitClient,
         IInputProvider inputProvider,
         IOutputProvider outputProvider)
     {
-        if (updateStrategy == UpdateStrategy.Rebase)
+        var strategy = UpdateStrategy.Merge;
+
+        if (specificUpdateStrategy is not null)
+        {
+            strategy = specificUpdateStrategy.Value;
+        }
+        else
+        {
+            var strategyFromConfig = GetUpdateStrategyConfigValue(gitClient);
+
+            if (strategyFromConfig is not null)
+            {
+                strategy = strategyFromConfig.Value;
+            }
+        }
+
+        if (strategy == UpdateStrategy.Rebase)
         {
             UpdateStackUsingRebase(stack, status, gitClient, inputProvider, outputProvider);
         }

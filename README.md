@@ -87,9 +87,18 @@ Branches in the stack will be updated by:
 
 There are two strategies that can be used to update branches in a stack.
 
+The Git configuration key `stack.update.strategy` can be used to control the default update strategy on a global or per-repository basis.
+
+The `merge` update strategy is used by default if no configuration is supplied.
+
 #### Merge
 
-The default strategy is to merge each branch in the stack into the one directly below it, starting with the source branch.
+When using the merge update strategy, each branch in the stack is merged into the one directly below it, starting with the source branch.
+
+To use the merge strategy, either:
+
+- Supply the `--merge` option to the `sync` or `update` command.
+- Configure `stack.update.strategy` to be `merge` in Git configuration using `git config stack.update.strategy merge`.
 
 **Rough edges**
 
@@ -99,7 +108,14 @@ If you merge a pull request using "Squash and merge" then you might find that th
 
 #### Rebase
 
-Each branch in the stack can be rebased on it's parent branch by using the `--rebase` option in the `sync` and `update` commands. To push changes to the remote after rebasing you'll need to use the `--force-with-lease` option.
+When using the rebase update strategy, each branch in the stack is rebased on it's parent branch.
+
+To use the rebase strategy, either:
+
+- Supply the `--rebase` option to the `sync` or `update` command.
+- Configure `stack.update.strategy` to be `rebase` in Git configuration using `git config stack.update.strategy rebase`.
+
+To push changes to the remote after rebasing you'll need to use the `--force-with-lease` option.
 
 **Rough edges**
 
@@ -211,7 +227,8 @@ OPTIONS:
         --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to update
     -f, --force          Force the update of the stack
-    --rebase             Use rebase instead of merge when updating the stack
+        --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
+        --merge          Use merge when updating the stack. Overrides any setting in Git configuration
 ```
 
 ### `stack switch`
@@ -359,7 +376,8 @@ OPTIONS:
     -n, --name              The name of the stack to update
     -y, --yes               Don't ask for confirmation before syncing the stack
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
-        --rebase            Use rebase instead of merge when updating the stack
+        --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
+        --merge             Use merge when updating the stack. Overrides any setting in Git configuration
 ```
 
 ## GitHub commands

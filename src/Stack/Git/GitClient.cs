@@ -47,6 +47,7 @@ public interface IGitClient
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
     void OpenFileInEditorAndWaitForClose(string path);
+    string? GetConfigValue(string key);
 }
 
 public class GitClient(IOutputProvider outputProvider, GitClientSettings settings) : IGitClient
@@ -252,6 +253,21 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         return ExecuteGitCommandAndReturnOutput("rev-parse --show-toplevel").Trim();
     }
 
+    public string? GetConfigValue(string key)
+    {
+        var configValue = ExecuteGitCommandAndReturnOutput($"config --get {key}", false, exitCode =>
+        {
+            if (exitCode == 1)
+            {
+                return null;
+            }
+
+            return new Exception("Failed to get config value.");
+        })?.Trim();
+
+        return string.IsNullOrEmpty(configValue) ? null : configValue;
+    }
+
     public void OpenFileInEditorAndWaitForClose(string path)
     {
         var editor = GetConfiguredEditor();
@@ -314,7 +330,10 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
                     throw exception;
                 }
             }
-            throw new Exception("Failed to execute git command.");
+            else
+            {
+                throw new Exception("Failed to execute git command.");
+            }
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)

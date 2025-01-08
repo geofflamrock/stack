@@ -15,9 +15,13 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Use rebase instead of merge when updating the stack.")]
+    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--rebase")]
-    public bool Rebase { get; init; }
+    public bool? Rebase { get; init; }
+
+    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
+    [CommandOption("--merge")]
+    public bool? Merge { get; init; }
 }
 
 public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
@@ -34,15 +38,15 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Rebase));
+        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Rebase, settings.Merge));
 
         return 0;
     }
 }
 
-public record UpdateStackCommandInputs(string? Name, bool Rebase)
+public record UpdateStackCommandInputs(string? Name, bool? Rebase, bool? Merge)
 {
-    public static UpdateStackCommandInputs Empty => new(null, false);
+    public static UpdateStackCommandInputs Empty => new(null, null, null);
 }
 
 public record UpdateStackCommandResponse();
@@ -57,6 +61,10 @@ public class UpdateStackCommandHandler(
     public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
+
+        if (inputs.Rebase == true && inputs.Merge == true)
+            throw new InvalidOperationException("Cannot specify both rebase and merge.");
+
         var stacks = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
@@ -86,7 +94,7 @@ public class UpdateStackCommandHandler(
         StackHelpers.UpdateStack(
             stack,
             status,
-            inputs.Rebase ? UpdateStrategy.Rebase : UpdateStrategy.Merge,
+            inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
             gitClient,
             inputProvider,
             outputProvider);

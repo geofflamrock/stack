@@ -23,9 +23,13 @@ public class SyncStackCommandSettings : DryRunCommandSettingsBase
     [DefaultValue(5)]
     public int MaxBatchSize { get; init; } = 5;
 
-    [Description("Use rebase instead of merge when updating the stack.")]
+    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--rebase")]
-    public bool Rebase { get; init; }
+    public bool? Rebase { get; init; }
+
+    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
+    [CommandOption("--merge")]
+    public bool? Merge { get; init; }
 }
 
 public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
@@ -46,7 +50,8 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
             settings.Name,
             settings.NoConfirm,
             settings.MaxBatchSize,
-            settings.Rebase));
+            settings.Rebase,
+            settings.Merge));
 
         return 0;
     }
@@ -56,9 +61,10 @@ public record SyncStackCommandInputs(
     string? Name,
     bool NoConfirm,
     int MaxBatchSize,
-    bool Rebase)
+    bool? Rebase,
+    bool? Merge)
 {
-    public static SyncStackCommandInputs Empty => new(null, false, 5, false);
+    public static SyncStackCommandInputs Empty => new(null, false, 5, null, null);
 }
 
 public record SyncStackCommandResponse();
@@ -73,6 +79,10 @@ public class SyncStackCommandHandler(
     public async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
     {
         await Task.CompletedTask;
+
+        if (inputs.Rebase == true && inputs.Merge == true)
+            throw new InvalidOperationException("Cannot specify both rebase and merge.");
+
         var stacks = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
@@ -114,12 +124,14 @@ public class SyncStackCommandHandler(
             StackHelpers.UpdateStack(
                 stack,
                 status,
-                inputs.Rebase ? UpdateStrategy.Rebase : UpdateStrategy.Merge,
+                inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
                 gitClient,
                 inputProvider,
                 outputProvider);
 
-            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.Rebase, gitClient, outputProvider);
+            var forceWithLease = inputs.Rebase == true || StackHelpers.GetUpdateStrategyConfigValue(gitClient) == UpdateStrategy.Rebase;
+
+            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, outputProvider);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
