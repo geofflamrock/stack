@@ -338,6 +338,7 @@ OPTIONS:
         --dry-run             Show what would happen without making any changes
     -n, --name                The name of the stack to push changes from the remote for
         --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
+        --force-with-lease    Force push changes with lease
 ```
 
 ### `stack sync`
