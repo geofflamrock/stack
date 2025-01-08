@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class CreatePullRequestsCommandSettings : DryRunCommandSettingsBase
+public class CreatePullRequestsCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to create pull requests for.")]
     [CommandOption("-n|--name")]

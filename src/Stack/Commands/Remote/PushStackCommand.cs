@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class PushStackCommandSettings : DryRunCommandSettingsBase
+public class PushStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to push changes from the remote for.")]
     [CommandOption("-n|--name")]

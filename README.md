@@ -224,7 +224,6 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to update
     -f, --force          Force the update of the stack
         --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
@@ -260,7 +259,6 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to cleanup
     -f, --force          Cleanup the stack without prompting
 ```
@@ -277,7 +275,6 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to create
         --push           Push the new branch to the remote repository
@@ -295,7 +292,6 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to add
 ```
@@ -312,7 +308,6 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to add
     -f, --force          Force removing the branch without prompting
@@ -334,7 +329,6 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to pull changes from the remote for
 ```
 
@@ -352,7 +346,6 @@ OPTIONS:
     -v, --version             Prints version information
         --verbose             Show verbose output
         --working-dir         The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run             Show what would happen without making any changes
     -n, --name                The name of the stack to push changes from the remote for
         --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
         --force-with-lease    Force push changes with lease
@@ -372,7 +365,6 @@ OPTIONS:
     -v, --version           Prints version information
         --verbose           Show verbose output
         --working-dir       The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run           Show what would happen without making any changes
     -n, --name              The name of the stack to update
     -y, --yes               Don't ask for confirmation before syncing the stack
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
@@ -394,7 +386,6 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to create pull requests for
 ```
 
@@ -410,7 +401,6 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to open PRs for
 ```
 

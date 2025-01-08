@@ -9,7 +9,7 @@ using Stack.Commands.Helpers;
 
 namespace Stack.Commands;
 
-public class CleanupStackCommandSettings : DryRunCommandSettingsBase
+public class CleanupStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to cleanup.")]
     [CommandOption("-n|--name")]

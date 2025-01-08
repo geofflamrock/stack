@@ -5,9 +5,9 @@ using Stack.Infrastructure;
 
 namespace Stack.Git;
 
-public record GitClientSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitClientSettings(bool Verbose, string? WorkingDirectory)
 {
-    public static GitClientSettings Default => new(false, false, null);
+    public static GitClientSettings Default => new(false, null);
 }
 
 public record Commit(string Sha, string Message);
@@ -356,23 +356,15 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         bool captureStandardError = false,
         Func<int, Exception?>? exceptionHandler = null)
     {
-        if (settings.DryRun)
-        {
-            if (settings.Verbose)
-                outputProvider.Debug($"git {command}");
-        }
-        else
-        {
-            var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
+        var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
 
-            if (!settings.Verbose && output.Length > 0)
-            {
-                // We want to write the output of commands that perform
-                // changes to the Git repository as the output might be important.
-                // In verbose mode we would have already written the output
-                // of the command so don't write it again.
-                outputProvider.Debug($"{output}");
-            }
+        if (!settings.Verbose && output.Length > 0)
+        {
+            // We want to write the output of commands that perform
+            // changes to the Git repository as the output might be important.
+            // In verbose mode we would have already written the output
+            // of the command so don't write it again.
+            outputProvider.Debug($"{output}");
         }
     }
 

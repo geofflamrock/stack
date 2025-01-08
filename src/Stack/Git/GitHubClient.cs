@@ -5,9 +5,9 @@ using Stack.Infrastructure;
 
 namespace Stack.Git;
 
-public record GitHubClientSettings(bool DryRun, bool Verbose, string? WorkingDirectory)
+public record GitHubClientSettings(bool Verbose, string? WorkingDirectory)
 {
-    public static GitHubClientSettings Default => new(false, false, null);
+    public static GitHubClientSettings Default => new(false, null);
 }
 
 public static class GitHubPullRequestStates
@@ -44,7 +44,7 @@ public static class GitHubPullRequestExtensionMethods
 public interface IGitHubClient
 {
     GitHubPullRequest? GetPullRequest(string branch);
-    GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
+    GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
@@ -60,7 +60,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest? CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
+    public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
     {
         var command = $"pr create --title \"{Sanitize(title)}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
 
@@ -71,12 +71,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
 
         ExecuteGitHubCommand(command);
 
-        if (settings.DryRun)
-        {
-            return null;
-        }
-
-        return GetPullRequest(headBranch);
+        return GetPullRequest(headBranch) ?? throw new Exception("Failed to create pull request.");
     }
 
     public void EditPullRequest(int number, string body)
@@ -124,10 +119,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         if (settings.Verbose)
             outputProvider.Debug($"gh {command}");
 
-        if (!settings.DryRun)
-        {
-            ExecuteGitHubCommandInternal(command);
-        }
+        ExecuteGitHubCommandInternal(command);
     }
 
     private void ExecuteGitHubCommandInternal(string command)

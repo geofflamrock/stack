@@ -8,7 +8,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class NewBranchCommandSettings : DryRunCommandSettingsBase
+public class NewBranchCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to create the branch in.")]
     [CommandOption("-s|--stack")]

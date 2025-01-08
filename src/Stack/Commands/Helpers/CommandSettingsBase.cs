@@ -15,6 +15,6 @@ public class CommandSettingsBase : CommandSettings
     [CommandOption("--working-dir")]
     public string? WorkingDirectory { get; init; }
 
-    public virtual GitClientSettings GetGitClientSettings() => new(false, Verbose, WorkingDirectory);
-    public virtual GitHubClientSettings GetGitHubClientSettings() => new(false, Verbose, WorkingDirectory);
+    public virtual GitClientSettings GetGitClientSettings() => new(Verbose, WorkingDirectory);
+    public virtual GitHubClientSettings GetGitHubClientSettings() => new(Verbose, WorkingDirectory);
 }
