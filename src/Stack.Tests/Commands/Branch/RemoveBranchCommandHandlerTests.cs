@@ -43,7 +43,7 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
+        await handler.Handle(new RemoveBranchCommandInputs(null, null));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -84,7 +84,7 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs("Stack1", null, false));
+        await handler.Handle(new RemoveBranchCommandInputs("Stack1", null));
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
@@ -121,7 +121,7 @@ public class RemoveBranchCommandHandlerTests
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(invalidStackName, null, false)))
+        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(invalidStackName, null)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -158,7 +158,7 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, branchToRemove, false));
+        await handler.Handle(new RemoveBranchCommandInputs(null, branchToRemove));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -197,91 +197,10 @@ public class RemoveBranchCommandHandlerTests
 
         // Act and assert
         var invalidBranchName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(null, invalidBranchName, false)))
+        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(null, invalidBranchName)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{invalidBranchName}' not found in stack 'Stack1'.");
-    }
-
-    [Fact]
-    public async Task WhenForceProvided_DoesNotAskForConfirmation_RemovesBranchFromStack()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branchToRemove = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(branchToRemove)
-            .Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-
-        // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, true));
-
-        // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack1", repo.RemoteUri, sourceBranch, []),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch);
-    }
-
-    [Fact]
-    public async Task WhenAllInputsProvided_DoesNotAskForAnything_RemovesBranchFromStack()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branchToRemove = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(branchToRemove)
-            .Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToRemove]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        // Act
-        await handler.Handle(new RemoveBranchCommandInputs("Stack1", branchToRemove, true));
-
-        // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack1", repo.RemoteUri, sourceBranch, []),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-        inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
     [Fact]
@@ -314,7 +233,7 @@ public class RemoveBranchCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, false));
+        await handler.Handle(new RemoveBranchCommandInputs(null, null));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>

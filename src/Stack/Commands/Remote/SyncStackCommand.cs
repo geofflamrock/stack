@@ -14,10 +14,6 @@ public class SyncStackCommandSettings : CommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Don't ask for confirmation before syncing the stack.")]
-    [CommandOption("-y|--yes")]
-    public bool NoConfirm { get; init; }
-
     [Description("The maximum number of branches to push changes for at once.")]
     [CommandOption("--max-batch-size")]
     [DefaultValue(5)]
@@ -48,7 +44,6 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
 
         await handler.Handle(new SyncStackCommandInputs(
             settings.Name,
-            settings.NoConfirm,
             settings.MaxBatchSize,
             settings.Rebase,
             settings.Merge));
@@ -59,12 +54,11 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
 
 public record SyncStackCommandInputs(
     string? Name,
-    bool NoConfirm,
     int MaxBatchSize,
     bool? Rebase,
     bool? Merge)
 {
-    public static SyncStackCommandInputs Empty => new(null, false, 5, null, null);
+    public static SyncStackCommandInputs Empty => new(null, 5, null, null);
 }
 
 public record SyncStackCommandResponse();
@@ -115,7 +109,7 @@ public class SyncStackCommandHandler(
 
         outputProvider.NewLine();
 
-        if (inputs.NoConfirm || inputProvider.Confirm(Questions.ConfirmSyncStack))
+        if (inputProvider.Confirm(Questions.ConfirmSyncStack))
         {
             outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 

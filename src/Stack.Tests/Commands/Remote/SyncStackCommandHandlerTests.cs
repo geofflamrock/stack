@@ -47,7 +47,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false, false));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, false, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -88,54 +88,12 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs("Stack1", false, 5, false, false));
+        await handler.Handle(new SyncStackCommandInputs("Stack1", 5, false, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfRemoteSourceBranch);
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-    }
-
-    [Fact]
-    public async Task WhenNoConfirmIsProvided_DoesNotAskForConfirmation()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branch1 = Some.BranchName();
-        var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
-            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
-            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
-            .WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(sourceBranch, 5, b => b.PushToRemote())
-            .Build();
-
-        var tipOfRemoteSourceBranch = repo.GetTipOfRemoteBranch(sourceBranch);
-        repo.GetCommitsReachableFromBranch(sourceBranch).Should().NotContain(tipOfRemoteSourceBranch);
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
-
-        gitClient.ChangeBranch(branch1);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-
-        // Act
-        await handler.Handle(new SyncStackCommandInputs(null, true, 5, false, false));
-
-        // Assert
-        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
-        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfRemoteSourceBranch);
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmSyncStack);
     }
 
     [Fact]
@@ -171,7 +129,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new SyncStackCommandInputs(invalidStackName, false, 5, false, false)))
+        await handler.Invoking(async h => await h.Handle(new SyncStackCommandInputs(invalidStackName, 5, false, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -212,7 +170,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false, false));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, false, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -253,7 +211,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false, false));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, false, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
@@ -300,7 +258,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, true, false));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, true, false));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -347,7 +305,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, false, true));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, false, true));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -395,7 +353,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, null, null));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, null, null));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -443,7 +401,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, null, null));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, null, null));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -491,7 +449,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, true, null));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, true, null));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -539,7 +497,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
-        await handler.Handle(new SyncStackCommandInputs(null, false, 5, null, true));
+        await handler.Handle(new SyncStackCommandInputs(null, 5, null, true));
 
         // Assert
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
@@ -562,7 +520,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         await handler
-            .Invoking(h => h.Handle(new SyncStackCommandInputs(null, false, 5, true, true)))
+            .Invoking(h => h.Handle(new SyncStackCommandInputs(null, 5, true, true)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Cannot specify both rebase and merge.");
     }

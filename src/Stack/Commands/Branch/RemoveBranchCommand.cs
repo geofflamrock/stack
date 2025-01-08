@@ -17,10 +17,6 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to add.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
-
-    [Description("Force removing the branch without prompting.")]
-    [CommandOption("-f|--force")]
-    public bool Force { get; init; }
 }
 
 public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
@@ -38,15 +34,15 @@ public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
             new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Force));
+        await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));
 
         return 0;
     }
 }
 
-public record RemoveBranchCommandInputs(string? StackName, string? BranchName, bool Force)
+public record RemoveBranchCommandInputs(string? StackName, string? BranchName)
 {
-    public static RemoveBranchCommandInputs Empty => new(null, null, false);
+    public static RemoveBranchCommandInputs Empty => new(null, null);
 }
 
 public record RemoveBranchCommandResponse();
@@ -80,7 +76,7 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
+        if (inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {
             stack.Branches.Remove(branchName);
             stackConfig.Save(stacks);

@@ -14,10 +14,6 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     [Description("The name of the stack to delete.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
-
-    [Description("Force cleanup and delete the stack without prompting.")]
-    [CommandOption("-f|--force")]
-    public bool Force { get; init; }
 }
 
 public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
@@ -36,7 +32,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name, settings.Force));
+        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name));
 
         if (response.DeletedStackName is not null)
             console.MarkupLine($"Stack {response.DeletedStackName.Stack()} deleted");
@@ -45,9 +41,9 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
     }
 }
 
-public record DeleteStackCommandInputs(string? Name, bool Force)
+public record DeleteStackCommandInputs(string? Name)
 {
-    public static DeleteStackCommandInputs Empty => new(null, false);
+    public static DeleteStackCommandInputs Empty => new((string?)null);
 }
 
 public record DeleteStackCommandResponse(string? DeletedStackName);
@@ -76,16 +72,15 @@ public class DeleteStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteStack))
+        if (inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
             var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {
-                if (!inputs.Force)
-                    CleanupStackCommandHandler.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
+                CleanupStackCommandHandler.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
 
-                if (inputs.Force || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+                if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
                     CleanupStackCommandHandler.CleanupBranches(gitClient, outputProvider, branchesNeedingCleanup);
                 }

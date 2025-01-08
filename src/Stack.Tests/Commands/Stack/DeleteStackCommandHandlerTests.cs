@@ -115,7 +115,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
+        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1"));
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));
@@ -125,82 +125,6 @@ public class DeleteStackCommandHandlerTests
         });
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-    }
-
-    [Fact]
-    public async Task WhenForceIsProvided_DoesNotAskForConfirmation_AndDeletesStack()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, []),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-
-        // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs(null, true));
-
-        // Assert
-        response.Should().Be(new DeleteStackCommandResponse("Stack1"));
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack);
-    }
-
-    [Fact]
-    public async Task WhenNameAndForceAreProvided_DoesNotAskForAnyInput_AndDeletesStack()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, []),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", true));
-
-        // Assert
-        response.Should().Be(new DeleteStackCommandResponse("Stack1"));
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-
-        inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
     [Fact]
@@ -231,7 +155,7 @@ public class DeleteStackCommandHandlerTests
 
         // Act and assert
         await handler
-            .Invoking(h => h.Handle(new DeleteStackCommandInputs(Some.Name(), false)))
+            .Invoking(h => h.Handle(new DeleteStackCommandInputs(Some.Name())))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -309,7 +233,7 @@ public class DeleteStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
         // Act
-        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
+        var response = await handler.Handle(new DeleteStackCommandInputs("Stack1"));
 
         // Assert
         response.Should().Be(new DeleteStackCommandResponse("Stack1"));

@@ -154,46 +154,10 @@ public class CleanupStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
-        await handler.Handle(new CleanupStackCommandInputs("Stack1", false));
+        await handler.Handle(new CleanupStackCommandInputs("Stack1"));
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
-    }
-
-    [Fact]
-    public async Task WhenForceIsProvided_ItIsNotAskedFor()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branchToCleanup = Some.BranchName();
-        var branchToKeep = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branchToCleanup, false)
-            .WithBranch(branchToKeep, true)
-            .Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-
-        // Act
-        await handler.Handle(new CleanupStackCommandInputs(null, true));
-
-        // Assert
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteBranches);
     }
 
     [Fact]
@@ -227,7 +191,7 @@ public class CleanupStackCommandHandlerTests
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new CleanupStackCommandInputs(invalidStackName, false)))
+        await handler.Invoking(async h => await h.Handle(new CleanupStackCommandInputs(invalidStackName)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -262,7 +226,7 @@ public class CleanupStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
-        await handler.Handle(new CleanupStackCommandInputs(null, true));
+        await handler.Handle(new CleanupStackCommandInputs(null));
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
