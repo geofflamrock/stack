@@ -68,7 +68,7 @@ The new branch will be created from the branch at the bottom of the stack and yo
 
 By default new branches are only created locally, you can either use the `--push` option or use the `stack push` command to push the branch to the remote.
 
-### Syncing a stack
+### Syncing a stack with the remote repository
 
 After working on a stack of branches for a while, you might need to incorporate changes that have happened to your source branch from others. To do this:
 
@@ -83,11 +83,27 @@ Branches in the stack will be updated by:
 - Updating branches in order in the stack, the equivalent of running `stack update`.
 - Pushing changes for all branches in the stack, the equivalent of running `stack push`.
 
-#### Rough edges
+### Update strategies
 
-Updating a stack, particularly if it has a number of branches in it, can result in lots of merge commits. I'm exploring whether there are any improvements that can be made here for merging. I'd also like to support updating via a rebase as well in the future.
+There are two strategies that can be used to update branches in a stack.
 
-If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This is a bit of a pain, I'm exploring whether there are any improvements that can be made here, perhaps by first merging into the just-merged local branch instead of ignoring it.
+#### Merge
+
+The default strategy is to merge each branch in the stack into the one directly below it, starting with the source branch.
+
+**Rough edges**
+
+Updating a stack using merge, particularly if it has a number of branches in it, can result in lots of merge commits.
+
+If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain.
+
+#### Rebase
+
+Each branch in the stack can be rebased on it's parent branch by using the `--rebase` option in the `sync` and `update` commands. To push changes to the remote after rebasing you'll need to use the `--force-with-lease` option.
+
+**Rough edges**
+
+If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain, however for each commit that existed on the branch that was merged if you select to take the new single commit that now exists generally it isn't too bad.
 
 ### Creating pull requests for the stack
 
@@ -181,7 +197,7 @@ OPTIONS:
 
 ### `stack update`
 
-Updates the branches for a stack by merging each branch.
+Updates the branches for a stack by either merging or rebasing each branch.
 
 ```shell
 USAGE:
@@ -195,6 +211,7 @@ OPTIONS:
         --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to update
     -f, --force          Force the update of the stack
+    --rebase             Use rebase instead of merge when updating the stack
 ```
 
 ### `stack switch`
@@ -341,6 +358,7 @@ OPTIONS:
     -n, --name              The name of the stack to update
     -y, --yes               Don't ask for confirmation before syncing the stack
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
+        --rebase            Use rebase instead of merge when updating the stack
 ```
 
 ## GitHub commands
