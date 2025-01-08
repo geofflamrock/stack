@@ -15,11 +15,11 @@ public class UpdateStackCommandSettings : DryRunCommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Use rebase when updating the stack.")]
+    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--rebase")]
     public bool? Rebase { get; init; }
 
-    [Description("Use merge when updating the stack.")]
+    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--merge")]
     public bool? Merge { get; init; }
 }

@@ -23,11 +23,11 @@ public class SyncStackCommandSettings : DryRunCommandSettingsBase
     [DefaultValue(5)]
     public int MaxBatchSize { get; init; } = 5;
 
-    [Description("Use rebase when updating the stack.")]
+    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--rebase")]
     public bool? Rebase { get; init; }
 
-    [Description("Use merge when updating the stack.")]
+    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--merge")]
     public bool? Merge { get; init; }
 }
