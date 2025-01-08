@@ -1,3 +1,26 @@
+# v0.8.0 (Wed Jan 08 2025)
+
+#### 🚀 New Features and Improvements
+
+- Replace `--push` option with asking whether to push to remote [#186](https://github.com/geofflamrock/stack/pull/186) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes `--force` option [#185](https://github.com/geofflamrock/stack/pull/185) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes `--dry-run` option [#182](https://github.com/geofflamrock/stack/pull/182) ([@geofflamrock](https://github.com/geofflamrock))
+- Add support for selecting merge or rebase using git config [#179](https://github.com/geofflamrock/stack/pull/179) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds support for rebase during update and sync [#178](https://github.com/geofflamrock/stack/pull/178) ([@geofflamrock](https://github.com/geofflamrock))
+- Improves merge conflict handling [#177](https://github.com/geofflamrock/stack/pull/177) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fixes
+
+- Fixes showing delete example when all branches can be cleaned up [#184](https://github.com/geofflamrock/stack/pull/184) ([@geofflamrock](https://github.com/geofflamrock))
+- Don't show deleted branches in `switch` command [#180](https://github.com/geofflamrock/stack/pull/180) ([@geofflamrock](https://github.com/geofflamrock))
+- Fixes issue with creating PR when no template exists in the repo [#175](https://github.com/geofflamrock/stack/pull/175) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.7.0 (Sun Jan 05 2025)
 
 #### 🚀 New Features and Improvements
