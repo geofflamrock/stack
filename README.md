@@ -227,8 +227,8 @@ OPTIONS:
         --dry-run        Show what would happen without making any changes
     -n, --name           The name of the stack to update
     -f, --force          Force the update of the stack
-    --rebase             Use rebase when updating the stack. Overrides any setting in Git configuration
-    --merge              Use merge when updating the stack. Overrides any setting in Git configuration
+        --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
+        --merge          Use merge when updating the stack. Overrides any setting in Git configuration
 ```
 
 ### `stack switch`
