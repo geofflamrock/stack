@@ -93,7 +93,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new PushStackCommandInputs("Stack1", 5));
+        await handler.Handle(new PushStackCommandInputs("Stack1", 5, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);
@@ -139,7 +139,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new PushStackCommandInputs(invalidStackName, 5)))
+        await handler.Invoking(async h => await h.Handle(new PushStackCommandInputs(invalidStackName, 5, false)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -224,7 +224,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new PushStackCommandInputs(null, 1));
+        await handler.Handle(new PushStackCommandInputs(null, 1, false));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);
@@ -268,6 +268,50 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act
         await handler.Handle(PushStackCommandInputs.Default);
+
+        // Assert
+        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);
+        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfBranch2);
+    }
+
+    [Fact]
+    public async Task WhenUsingForceWithLease_ChangesAreForcePushedToTheRemote()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(branch1, 3, false)
+            .WithNumberOfEmptyCommits(branch2, 2, false)
+            .Build();
+
+        repo.RebaseCommits(branch1, sourceBranch);
+        repo.RebaseCommits(branch2, branch1);
+
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+        var tipOfBranch2 = repo.GetTipOfBranch(branch2);
+
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new PushStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+
+        gitClient.ChangeBranch(branch1);
+
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
+        var stacks = new List<Config.Stack>([stack1, stack2]);
+        stackConfig.Load().Returns(stacks);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+
+        // Act
+        await handler.Handle(new PushStackCommandInputs(null, 5, true));
 
         // Assert
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfBranch1);

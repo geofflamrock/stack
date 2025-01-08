@@ -323,6 +323,24 @@ public static class StackHelpers
     public static void UpdateStack(
         Config.Stack stack,
         StackStatus status,
+        UpdateStrategy? updateStrategy,
+        IGitClient gitClient,
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider)
+    {
+        if (updateStrategy == UpdateStrategy.Rebase)
+        {
+            UpdateStackUsingRebase(stack, status, gitClient, inputProvider, outputProvider);
+        }
+        else
+        {
+            UpdateStackUsingMerge(stack, status, gitClient, inputProvider, outputProvider);
+        }
+    }
+
+    public static void UpdateStackUsingMerge(
+        Config.Stack stack,
+        StackStatus status,
         IGitClient gitClient,
         IInputProvider inputProvider,
         IOutputProvider outputProvider)
@@ -361,6 +379,7 @@ public static class StackHelpers
     public static void PushChanges(
         Config.Stack stack,
         int maxBatchSize,
+        bool forceWithLease,
         IGitClient gitClient,
         IOutputProvider outputProvider)
     {
@@ -386,7 +405,7 @@ public static class StackHelpers
         {
             outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
-            gitClient.PushBranches([.. branches]);
+            gitClient.PushBranches([.. branches], forceWithLease);
         }
     }
 
@@ -399,7 +418,7 @@ public static class StackHelpers
         {
             gitClient.MergeFromLocalSourceBranch(sourceBranchName);
         }
-        catch (MergeConflictException)
+        catch (ConflictException)
         {
             var action = inputProvider.Select(
                 Questions.ContinueOrAbortMerge,
@@ -418,10 +437,113 @@ public static class StackHelpers
             }
         }
     }
+
+    static void UpdateStackUsingRebase(
+        Config.Stack stack,
+        StackStatus status,
+        IGitClient gitClient,
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider)
+    {
+        //
+        // When rebasing the stack, we'll use `git rebase --update-refs` from the
+        // lowest branch in the stack to pick up changes throughout all branches in the stack.
+        // Because there could be changes in any branch in the stack that aren't in the ones
+        // below it, we'll repeat this all the way from the bottom to the top of the stack.        
+        //
+        // For example if we have a stack like this:
+        // main -> feature1 -> feature2 -> feature3
+        // 
+        // We'll rebase feature3 onto feature2, then feature3 onto feature1, and finally feature3 onto main.
+        //
+        string? branchToRebaseFrom = null;
+
+        foreach (var branch in stack.Branches)
+        {
+            var branchDetail = status.Branches[branch];
+
+            if (branchDetail.IsActive)
+            {
+                branchToRebaseFrom = branch;
+            }
+        }
+
+        if (branchToRebaseFrom is null)
+        {
+            outputProvider.Warning("No active branches found in the stack.");
+            return;
+        }
+
+        var branchesToRebaseOnto = new List<string>(stack.Branches);
+        branchesToRebaseOnto.Reverse();
+        branchesToRebaseOnto.Remove(branchToRebaseFrom);
+        branchesToRebaseOnto.Add(stack.SourceBranch);
+
+        foreach (var branchToRebaseOnto in branchesToRebaseOnto)
+        {
+            var branchDetail = status.Branches[branchToRebaseOnto];
+
+            if (branchDetail.IsActive)
+            {
+                RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, outputProvider);
+            }
+        }
+    }
+
+    static void RebaseFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
+    {
+        outputProvider.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
+        gitClient.ChangeBranch(branch);
+
+        void HandleConflicts()
+        {
+            var action = inputProvider.Select(
+                Questions.ContinueOrAbortRebase,
+                [MergeConflictAction.Continue, MergeConflictAction.Abort],
+                a => a switch
+                {
+                    MergeConflictAction.Continue => "Continue",
+                    MergeConflictAction.Abort => "Abort",
+                    _ => throw new InvalidOperationException("Invalid rebase conflict action.")
+                });
+
+            if (action == MergeConflictAction.Abort)
+            {
+                gitClient.AbortMerge();
+                throw new Exception("Rebase aborted due to conflicts.");
+            }
+            else if (action == MergeConflictAction.Continue)
+            {
+                try
+                {
+                    gitClient.ContinueRebase();
+                }
+                catch (ConflictException)
+                {
+                    HandleConflicts();
+                }
+            }
+        }
+
+        try
+        {
+            gitClient.RebaseFromLocalSourceBranch(sourceBranchName);
+        }
+        catch (ConflictException)
+        {
+            HandleConflicts();
+        }
+    }
 }
 
 public enum MergeConflictAction
 {
     Abort,
     Continue
+}
+
+public enum UpdateStrategy
+{
+    Merge,
+    Rebase
 }

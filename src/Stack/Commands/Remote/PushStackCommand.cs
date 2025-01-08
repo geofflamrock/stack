@@ -18,6 +18,10 @@ public class PushStackCommandSettings : DryRunCommandSettingsBase
     [CommandOption("--max-batch-size")]
     [DefaultValue(5)]
     public int MaxBatchSize { get; init; } = 5;
+
+    [Description("Force push changes with lease.")]
+    [CommandOption("--force-with-lease")]
+    public bool ForceWithLease { get; init; }
 }
 
 public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
@@ -33,15 +37,18 @@ public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
             new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new PushStackCommandInputs(settings.Name, settings.MaxBatchSize));
+        await handler.Handle(new PushStackCommandInputs(
+            settings.Name,
+            settings.MaxBatchSize,
+            settings.ForceWithLease));
 
         return 0;
     }
 }
 
-public record PushStackCommandInputs(string? Name, int MaxBatchSize)
+public record PushStackCommandInputs(string? Name, int MaxBatchSize, bool ForceWithLease)
 {
-    public static PushStackCommandInputs Default => new(null, 5);
+    public static PushStackCommandInputs Default => new(null, 5, false);
 }
 
 public class PushStackCommandHandler(
@@ -71,6 +78,6 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
 
-        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitClient, outputProvider);
+        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, outputProvider);
     }
 }

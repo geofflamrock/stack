@@ -14,7 +14,7 @@ public record Commit(string Sha, string Message);
 
 public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
 
-public class MergeConflictException : Exception;
+public class ConflictException : Exception;
 
 public interface IGitClient
 {
@@ -25,11 +25,14 @@ public interface IGitClient
     void Fetch(bool prune);
     void FetchBranches(string[] branches);
     void PullBranch(string branchName);
-    void PushBranches(string[] branches);
+    void PushBranches(string[] branches, bool forceWithLease);
     void UpdateBranch(string branchName);
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
+    void RebaseFromLocalSourceBranch(string sourceBranchName);
     void AbortMerge();
+    void AbortRebase();
+    void ContinueRebase();
     string GetCurrentBranch();
     bool DoesLocalBranchExist(string branchName);
     bool DoesRemoteBranchExist(string branchName);
@@ -83,9 +86,13 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         ExecuteGitCommand($"pull origin {branchName}");
     }
 
-    public void PushBranches(string[] branches)
+    public void PushBranches(string[] branches, bool forceWithLease)
     {
         var command = $"push origin {string.Join(" ", branches)}";
+        if (forceWithLease)
+        {
+            command += " --force-with-lease";
+        }
 
         ExecuteGitCommand(command, true);
     }
@@ -113,7 +120,20 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         {
             if (exitCode > 0)
             {
-                return new MergeConflictException();
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void RebaseFromLocalSourceBranch(string sourceBranchName)
+    {
+        ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
             }
 
             return null;
@@ -123,6 +143,24 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
     public void AbortMerge()
     {
         ExecuteGitCommand("merge --abort");
+    }
+
+    public void AbortRebase()
+    {
+        ExecuteGitCommand("rebase --abort");
+    }
+
+    public void ContinueRebase()
+    {
+        ExecuteGitCommand($"rebase --continue", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
     }
 
     public string GetCurrentBranch()

@@ -46,12 +46,13 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
 
         gitClient
             .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
-            .Throws(new MergeConflictException());
+            .Throws(new ConflictException());
 
         // Act
         StackHelpers.UpdateStack(
             stack,
             stackStatus,
+            UpdateStrategy.Merge,
             gitClient,
             inputProvider,
             outputProvider
@@ -92,7 +93,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
 
         gitClient
             .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
-            .Throws(new MergeConflictException());
+            .Throws(new ConflictException());
 
         inputProvider
             .Select(
@@ -105,6 +106,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         var updateAction = () => StackHelpers.UpdateStack(
             stack,
             stackStatus,
+            UpdateStrategy.Merge,
             gitClient,
             inputProvider,
             outputProvider

@@ -22,6 +22,10 @@ public class SyncStackCommandSettings : DryRunCommandSettingsBase
     [CommandOption("--max-batch-size")]
     [DefaultValue(5)]
     public int MaxBatchSize { get; init; } = 5;
+
+    [Description("Use rebase instead of merge when updating the stack.")]
+    [CommandOption("--rebase")]
+    public bool Rebase { get; init; }
 }
 
 public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
@@ -38,15 +42,23 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new SyncStackCommandInputs(settings.Name, settings.NoConfirm, settings.MaxBatchSize));
+        await handler.Handle(new SyncStackCommandInputs(
+            settings.Name,
+            settings.NoConfirm,
+            settings.MaxBatchSize,
+            settings.Rebase));
 
         return 0;
     }
 }
 
-public record SyncStackCommandInputs(string? Name, bool NoConfirm, int MaxBatchSize)
+public record SyncStackCommandInputs(
+    string? Name,
+    bool NoConfirm,
+    int MaxBatchSize,
+    bool Rebase)
 {
-    public static SyncStackCommandInputs Empty => new(null, false, 5);
+    public static SyncStackCommandInputs Empty => new(null, false, 5, false);
 }
 
 public record SyncStackCommandResponse();
@@ -99,9 +111,15 @@ public class SyncStackCommandHandler(
 
             StackHelpers.PullChanges(stack, gitClient, outputProvider);
 
-            StackHelpers.UpdateStack(stack, status, gitClient, inputProvider, outputProvider);
+            StackHelpers.UpdateStack(
+                stack,
+                status,
+                inputs.Rebase ? UpdateStrategy.Rebase : UpdateStrategy.Merge,
+                gitClient,
+                inputProvider,
+                outputProvider);
 
-            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, gitClient, outputProvider);
+            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.Rebase, gitClient, outputProvider);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
