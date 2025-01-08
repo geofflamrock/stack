@@ -279,44 +279,48 @@ public static class StackHelpers
         StackStatus status,
         IOutputProvider outputProvider)
     {
-        if (status.Branches.Values.All(branch => branch.CouldBeCleanedUp))
+        var statusOfBranchesInStack = status.Branches
+            .Where(b => stack.Branches.Contains(b.Key))
+            .Select(b => b.Value).ToList();
+
+        if (statusOfBranchesInStack.All(branch => branch.CouldBeCleanedUp))
         {
-            outputProvider.NewLine();
             outputProvider.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
-        }
-        else if (status.Branches.Values.Any(branch => branch.CouldBeCleanedUp))
-        {
             outputProvider.NewLine();
+        }
+        else if (statusOfBranchesInStack.Any(branch => branch.CouldBeCleanedUp))
+        {
             outputProvider.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack cleanup --name \"{stack.Name}\"".Example()} to clean up local branches.");
-        }
-        else if (status.Branches.Values.All(branch => !branch.Status.ExistsLocally))
-        {
             outputProvider.NewLine();
+        }
+        else if (statusOfBranchesInStack.All(branch => !branch.Status.ExistsLocally))
+        {
             outputProvider.Information("No branches exist locally. This stack might be able to be deleted.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
+            outputProvider.NewLine();
         }
 
-        if (status.Branches.Values.Any(branch =>
+        if (statusOfBranchesInStack.Any(branch =>
                 branch.Status.ExistsLocally &&
                 (!branch.Status.HasRemoteTrackingBranch || branch.Status.ExistsInRemote && branch.Status.AheadOfRemote > 0)))
         {
-            outputProvider.NewLine();
             outputProvider.Information("There are changes in local branches that have not been pushed to the remote repository.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack push --name \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
+            outputProvider.NewLine();
         }
 
-        if (status.Branches.Values.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.BehindParent > 0))
+        if (statusOfBranchesInStack.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.BehindParent > 0))
         {
-            outputProvider.NewLine();
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
             outputProvider.NewLine();
             outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+            outputProvider.NewLine();
         }
     }
 
