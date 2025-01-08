@@ -24,10 +24,6 @@ public class NewStackCommandSettings : CommandSettingsBase
     [Description("The name of the branch to create within the stack.")]
     [CommandOption("-b|--branch")]
     public string? BranchName { get; init; }
-
-    [Description("Push the new branch to the remote repository.")]
-    [CommandOption("--push")]
-    public bool Push { get; init; }
 }
 
 public enum BranchAction
@@ -53,15 +49,15 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(
-            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.Push));
+            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName));
 
         return 0;
     }
 }
 
-public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool Push)
+public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName)
 {
-    public static NewStackCommandInputs Empty => new(null, null, null, false);
+    public static NewStackCommandInputs Empty => new(null, null, null);
 }
 
 public record NewStackCommandResponse(string StackName, string SourceBranch, BranchAction? BranchAction, string? BranchName);
@@ -103,7 +99,7 @@ public class NewStackCommandHandler(
 
                 gitClient.CreateNewBranch(branchName, sourceBranch);
 
-                if (inputs.Push || inputProvider.Confirm(Questions.ConfirmPushBranch))
+                if (inputProvider.Confirm(Questions.ConfirmPushBranch))
                 {
                     gitClient.PushNewBranch(branchName);
                 }

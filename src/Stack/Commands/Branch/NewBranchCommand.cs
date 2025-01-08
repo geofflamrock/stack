@@ -17,10 +17,6 @@ public class NewBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to create.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
-
-    [Description("Push the new branch to the remote repository.")]
-    [CommandOption("--push")]
-    public bool Push { get; init; }
 }
 
 public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
@@ -38,15 +34,15 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
             new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Push));
+        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
 
         return 0;
     }
 }
 
-public record NewBranchCommandInputs(string? StackName, string? BranchName, bool Push)
+public record NewBranchCommandInputs(string? StackName, string? BranchName)
 {
-    public static NewBranchCommandInputs Empty => new(null, null, false);
+    public static NewBranchCommandInputs Empty => new(null, null);
 }
 
 public record NewBranchCommandResponse();
@@ -106,7 +102,7 @@ public class NewBranchCommandHandler(
 
         outputProvider.Information($"Branch {branchName.Branch()} created.");
 
-        if (inputs.Push || inputProvider.Confirm(Questions.ConfirmPushBranch))
+        if (inputProvider.Confirm(Questions.ConfirmPushBranch))
         {
             gitClient.PushNewBranch(branchName);
         }
