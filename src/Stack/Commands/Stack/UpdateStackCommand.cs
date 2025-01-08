@@ -61,6 +61,10 @@ public class UpdateStackCommandHandler(
     public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
+
+        if (inputs.Rebase == true && inputs.Merge == true)
+            throw new InvalidOperationException("Cannot specify both rebase and merge.");
+
         var stacks = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();

@@ -548,4 +548,22 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteBranch1); // The merge should retain the tip of the branch
     }
+
+    [Fact]
+    public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
+    {
+        // Arrange
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+
+        // Act and assert
+        await handler
+            .Invoking(h => h.Handle(new SyncStackCommandInputs(null, false, 5, true, true)))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Cannot specify both rebase and merge.");
+    }
 }

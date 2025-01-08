@@ -509,4 +509,22 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
         repo.GetAheadBehind(branch2).Should().Be((20, 12));
     }
+
+    [Fact]
+    public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
+    {
+        // Arrange
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+
+        // Act and assert
+        await handler
+            .Invoking(h => h.Handle(new UpdateStackCommandInputs(null, true, true)))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Cannot specify both rebase and merge.");
+    }
 }
