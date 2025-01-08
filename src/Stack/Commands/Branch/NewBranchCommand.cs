@@ -104,14 +104,13 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stacks);
 
-        if (inputs.Push)
+        outputProvider.Information($"Branch {branchName.Branch()} created.");
+
+        if (inputs.Push || inputProvider.Confirm(Questions.ConfirmPushBranch))
         {
             gitClient.PushNewBranch(branchName);
         }
-
-        outputProvider.Information($"Branch {branchName.Branch()} created.");
-
-        if (!inputs.Push)
+        else
         {
             outputProvider.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
         }

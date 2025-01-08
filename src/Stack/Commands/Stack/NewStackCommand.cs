@@ -103,9 +103,13 @@ public class NewStackCommandHandler(
 
                 gitClient.CreateNewBranch(branchName, sourceBranch);
 
-                if (inputs.Push)
+                if (inputs.Push || inputProvider.Confirm(Questions.ConfirmPushBranch))
                 {
                     gitClient.PushNewBranch(branchName);
+                }
+                else
+                {
+                    outputProvider.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
                 }
             }
             else
@@ -131,11 +135,6 @@ public class NewStackCommandHandler(
         if (branchAction is BranchAction.Create)
         {
             outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
-
-            if (!inputs.Push)
-            {
-                outputProvider.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
-            }
         }
         else if (branchAction is BranchAction.Add)
         {
