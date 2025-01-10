@@ -1,3 +1,15 @@
+# v0.8.1 (Fri Jan 10 2025)
+
+#### 🐛 Bug Fixes
+
+- Escape markup in status command [#189](https://github.com/geofflamrock/stack/pull/189) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.8.0 (Wed Jan 08 2025)
 
 #### 🚀 New Features and Improvements
