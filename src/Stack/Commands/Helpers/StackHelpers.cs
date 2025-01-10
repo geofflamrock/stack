@@ -268,7 +268,7 @@ public static class StackHelpers
 
         if (branchDetail.Status.Tip is not null)
         {
-            branchNameBuilder.Append($"   {branchDetail.Status.Tip.Sha[..7]} {branchDetail.Status.Tip.Message}");
+            branchNameBuilder.Append($"   {branchDetail.Status.Tip.Sha[..7]} {Markup.Escape(branchDetail.Status.Tip.Message)}");
         }
 
         return branchNameBuilder.ToString();

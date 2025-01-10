@@ -37,7 +37,7 @@ public static class GitHubPullRequestExtensionMethods
 
     public static string GetPullRequestDisplay(this GitHubPullRequest pullRequest)
     {
-        return $"[{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {pullRequest.Title}[/]";
+        return $"[{pullRequest.GetPullRequestColor()} link={pullRequest.Url}]#{pullRequest.Number}: {Markup.Escape(pullRequest.Title)}[/]";
     }
 }
 
