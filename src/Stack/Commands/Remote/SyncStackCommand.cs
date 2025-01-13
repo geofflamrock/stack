@@ -10,9 +10,9 @@ namespace Stack.Commands;
 
 public class SyncStackCommandSettings : CommandSettingsBase
 {
-    [Description("The name of the stack to update.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [Description("The name of the stack to sync with the remote.")]
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 
     [Description("The maximum number of branches to push changes for at once.")]
     [CommandOption("--max-batch-size")]
@@ -43,7 +43,7 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(
-            settings.Name,
+            settings.Stack,
             settings.MaxBatchSize,
             settings.Rebase,
             settings.Merge));
@@ -53,7 +53,7 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
 }
 
 public record SyncStackCommandInputs(
-    string? Name,
+    string? Stack,
     int MaxBatchSize,
     bool? Rebase,
     bool? Merge)
@@ -90,10 +90,10 @@ public class SyncStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
-            throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         FetchChanges();
 

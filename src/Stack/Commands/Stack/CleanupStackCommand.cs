@@ -12,8 +12,8 @@ namespace Stack.Commands;
 public class CleanupStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to cleanup.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 }
 
 public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
@@ -32,13 +32,13 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new CleanupStackCommandInputs(settings.Name));
+        await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
 
         return 0;
     }
 }
 
-public record CleanupStackCommandInputs(string? Name)
+public record CleanupStackCommandInputs(string? Stack)
 {
     public static CleanupStackCommandInputs Empty => new((string?)null);
 }
@@ -62,11 +62,11 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
-            throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
         var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);

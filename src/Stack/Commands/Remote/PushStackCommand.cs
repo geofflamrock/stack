@@ -11,8 +11,8 @@ namespace Stack.Commands;
 public class PushStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to push changes from the remote for.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 
     [Description("The maximum number of branches to push changes for at once.")]
     [CommandOption("--max-batch-size")]
@@ -38,7 +38,7 @@ public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(new PushStackCommandInputs(
-            settings.Name,
+            settings.Stack,
             settings.MaxBatchSize,
             settings.ForceWithLease));
 
@@ -46,7 +46,7 @@ public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
     }
 }
 
-public record PushStackCommandInputs(string? Name, int MaxBatchSize, bool ForceWithLease)
+public record PushStackCommandInputs(string? Stack, int MaxBatchSize, bool ForceWithLease)
 {
     public static PushStackCommandInputs Default => new(null, 5, false);
 }
@@ -73,10 +73,10 @@ public class PushStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
-            throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, outputProvider);
     }

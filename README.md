@@ -155,7 +155,7 @@ OPTIONS:
         --verbose          Show verbose output
         --working-dir      The path to the directory containing the git repository. Defaults to the current directory
     -n, --name             The name of the stack. Must be unique
-    -s, --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
+        --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
     -b, --branch           The name of the branch to create within the stack
 ```
 
@@ -187,7 +187,7 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to show the status of
+    -s, --stack          The name of the stack to show the status of
         --all            Show status of all stacks
         --full           Show full status including pull requests
 ```
@@ -205,7 +205,7 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to delete
+    -s, --stack          The name of the stack to delete
 ```
 
 ## Branch commands
@@ -223,7 +223,7 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to update
+    -s, --stack          The name of the stack to update
         --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge          Use merge when updating the stack. Overrides any setting in Git configuration
 ```
@@ -257,7 +257,7 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to cleanup
+    -s, --stack          The name of the stack to cleanup
 ```
 
 ### `stack branch new`
@@ -324,7 +324,7 @@ OPTIONS:
     -v, --version        Prints version information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to pull changes from the remote for
+    -s, --stack          The name of the stack to pull changes from the remote for
 ```
 
 ### `stack push`
@@ -341,7 +341,7 @@ OPTIONS:
     -v, --version             Prints version information
         --verbose             Show verbose output
         --working-dir         The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name                The name of the stack to push changes from the remote for
+    -s, --stack               The name of the stack to push changes from the remote for
         --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
         --force-with-lease    Force push changes with lease
 ```
@@ -360,7 +360,7 @@ OPTIONS:
     -v, --version           Prints version information
         --verbose           Show verbose output
         --working-dir       The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name              The name of the stack to update
+    -s, --stack             The name of the stack to update
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
         --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
@@ -380,7 +380,7 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to create pull requests for
+    -s, --stack          The name of the stack to create pull requests for
 ```
 
 ### `stack pr open`
@@ -395,7 +395,7 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name           The name of the stack to open PRs for
+    -s, --stack          The name of the stack to open PRs for
 ```
 
 ## Advanced commands

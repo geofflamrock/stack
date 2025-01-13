@@ -11,8 +11,8 @@ namespace Stack.Commands;
 public class OpenPullRequestsCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to open PRs for.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 }
 
 public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSettings>
@@ -29,13 +29,13 @@ public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSetti
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new OpenPullRequestsCommandInputs(settings.Name));
+        await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));
 
         return 0;
     }
 }
 
-public record OpenPullRequestsCommandInputs(string? StackName)
+public record OpenPullRequestsCommandInputs(string? Stack)
 {
     public static OpenPullRequestsCommandInputs Empty => new((string?)null);
 }
@@ -65,11 +65,11 @@ public class OpenPullRequestsCommandHandler(
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
-            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
         var pullRequestsInStack = new List<GitHubPullRequest>();
