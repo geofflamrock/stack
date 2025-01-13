@@ -360,7 +360,7 @@ OPTIONS:
     -v, --version           Prints version information
         --verbose           Show verbose output
         --working-dir       The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack             The name of the stack to update
+    -s, --stack             The name of the stack to sync with the remote
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
         --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
