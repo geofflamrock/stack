@@ -1,3 +1,15 @@
+# v0.9.0 (Mon Jan 13 2025)
+
+#### 🚀 New Features and Improvements
+
+- Make options to select a stack consistent [#192](https://github.com/geofflamrock/stack/pull/192) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.8.1 (Fri Jan 10 2025)
 
 #### 🐛 Bug Fixes
