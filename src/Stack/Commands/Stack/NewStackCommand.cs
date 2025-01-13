@@ -18,7 +18,7 @@ public class NewStackCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 
     [Description("The source branch to use for the new branch. Defaults to the default branch for the repository.")]
-    [CommandOption("-s|--source-branch")]
+    [CommandOption("--source-branch")]
     public string? SourceBranch { get; init; }
 
     [Description("The name of the branch to create within the stack.")]

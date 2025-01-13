@@ -12,8 +12,8 @@ namespace Stack.Commands;
 public class UpdateStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to update.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 
     [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--rebase")]
@@ -38,13 +38,13 @@ public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new UpdateStackCommandInputs(settings.Name, settings.Rebase, settings.Merge));
+        await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));
 
         return 0;
     }
 }
 
-public record UpdateStackCommandInputs(string? Name, bool? Rebase, bool? Merge)
+public record UpdateStackCommandInputs(string? Stack, bool? Rebase, bool? Merge)
 {
     public static UpdateStackCommandInputs Empty => new(null, null, null);
 }
@@ -78,10 +78,10 @@ public class UpdateStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
-            throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         var status = StackHelpers.GetStackStatus(
             stack,

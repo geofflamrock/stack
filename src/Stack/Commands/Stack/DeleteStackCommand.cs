@@ -12,8 +12,8 @@ namespace Stack.Commands;
 public class DeleteStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to delete.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 }
 
 public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
@@ -32,7 +32,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Name));
+        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Stack));
 
         if (response.DeletedStackName is not null)
             console.MarkupLine($"Stack {response.DeletedStackName.Stack()} deleted");
@@ -41,7 +41,7 @@ public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
     }
 }
 
-public record DeleteStackCommandInputs(string? Name)
+public record DeleteStackCommandInputs(string? Stack)
 {
     public static DeleteStackCommandInputs Empty => new((string?)null);
 }
@@ -65,7 +65,7 @@ public class DeleteStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {

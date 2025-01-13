@@ -11,8 +11,8 @@ namespace Stack.Commands;
 public class StackStatusCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to show the status of.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 
     [Description("Show status of all stacks.")]
     [CommandOption("--all")]
@@ -37,13 +37,13 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new StackStatusCommandInputs(settings.Name, settings.All, settings.Full));
+        await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
 
         return 0;
     }
 }
 
-public record StackStatusCommandInputs(string? Name, bool All, bool Full);
+public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
 public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
 
 public class StackStatusCommandHandler(
@@ -70,11 +70,11 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+            var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
             if (stack is null)
             {
-                throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+                throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
             }
 
             stacksToCheckStatusFor.Add(stack);

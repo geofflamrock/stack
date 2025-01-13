@@ -11,8 +11,8 @@ namespace Stack.Commands;
 public class CreatePullRequestsCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to create pull requests for.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 }
 
 public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandSettings>
@@ -30,13 +30,13 @@ public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandS
             new FileOperations(),
             new StackConfig());
 
-        await handler.Handle(new CreatePullRequestsCommandInputs(settings.Name));
+        await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
 
         return 0;
     }
 }
 
-public record CreatePullRequestsCommandInputs(string? StackName)
+public record CreatePullRequestsCommandInputs(string? Stack)
 {
     public static CreatePullRequestsCommandInputs Empty => new((string?)null);
 }
@@ -68,11 +68,11 @@ public class CreatePullRequestsCommandHandler(
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
-            throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
         var status = StackHelpers.GetStackStatus(

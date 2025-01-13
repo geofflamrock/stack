@@ -11,8 +11,8 @@ namespace Stack.Commands;
 public class PullStackCommandSettings : CommandSettingsBase
 {
     [Description("The name of the stack to pull changes from the remote for.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
+    [CommandOption("-s|--stack")]
+    public string? Stack { get; init; }
 }
 
 public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
@@ -28,13 +28,13 @@ public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
             new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new PullStackCommandInputs(settings.Name));
+        await handler.Handle(new PullStackCommandInputs(settings.Stack));
 
         return 0;
     }
 }
 
-public record PullStackCommandInputs(string? Name);
+public record PullStackCommandInputs(string? Stack);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
     IOutputProvider outputProvider,
@@ -57,10 +57,10 @@ public class PullStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Name, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
-            throw new InvalidOperationException($"Stack '{inputs.Name}' not found.");
+            throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         StackHelpers.PullChanges(stack, gitClient, outputProvider);
 
