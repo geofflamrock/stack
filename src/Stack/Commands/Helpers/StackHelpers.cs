@@ -319,7 +319,9 @@ public static class StackHelpers
         {
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack.");
+            outputProvider.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack locally.");
+            outputProvider.NewLine();
+            outputProvider.Information($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} to sync the stack with the remote repository.");
             outputProvider.NewLine();
         }
     }
