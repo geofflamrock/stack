@@ -287,21 +287,21 @@ public static class StackHelpers
         {
             outputProvider.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
+            outputProvider.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
             outputProvider.NewLine();
         }
         else if (statusOfBranchesInStack.Any(branch => branch.CouldBeCleanedUp))
         {
             outputProvider.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack cleanup --name \"{stack.Name}\"".Example()} to clean up local branches.");
+            outputProvider.Information($"Run {$"stack cleanup --stack \"{stack.Name}\"".Example()} to clean up local branches.");
             outputProvider.NewLine();
         }
         else if (statusOfBranchesInStack.All(branch => !branch.Status.ExistsLocally))
         {
             outputProvider.Information("No branches exist locally. This stack might be able to be deleted.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack delete --name \"{stack.Name}\"".Example()} to delete the stack.");
+            outputProvider.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack.");
             outputProvider.NewLine();
         }
 
@@ -311,7 +311,7 @@ public static class StackHelpers
         {
             outputProvider.Information("There are changes in local branches that have not been pushed to the remote repository.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack push --name \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
+            outputProvider.Information($"Run {$"stack push --stack \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
             outputProvider.NewLine();
         }
 
@@ -319,7 +319,7 @@ public static class StackHelpers
         {
             outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
             outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack update --name \"{stack.Name}\"".Example()} to update the stack.");
+            outputProvider.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack.");
             outputProvider.NewLine();
         }
     }
