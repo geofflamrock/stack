@@ -69,10 +69,7 @@ public class CleanupStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
-
-        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
+        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -90,25 +87,12 @@ public class CleanupStackCommandHandler(
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitClient gitClient, IGitHubClient gitHubClient)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IOutputProvider outputProvider, IGitClient gitClient, IGitHubClient gitHubClient)
     {
-        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
+        var currentBranch = gitClient.GetCurrentBranch();
+        var stackStatus = StackHelpers.GetStackStatus(stack, currentBranch, outputProvider, gitClient, gitHubClient, true);
 
-        var branchesThatCanBeCleanedUp = branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToList();
-        var branchesThatAreLocalAndInRemote = branchesInTheStackThatExistLocally.Intersect(branchesInTheStackThatExistInTheRemote);
-
-        foreach (var branch in branchesThatAreLocalAndInRemote)
-        {
-            var pullRequest = gitHubClient.GetPullRequest(branch);
-
-            if (pullRequest is not null && pullRequest.State != GitHubPullRequestStates.Open)
-            {
-                branchesThatCanBeCleanedUp.Add(branch);
-            }
-        }
-
-        return branchesThatCanBeCleanedUp.ToArray();
+        return stackStatus.Branches.Where(b => b.Value.CouldBeCleanedUp).Select(b => b.Key).ToArray();
     }
 
     public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)

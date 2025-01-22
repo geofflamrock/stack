@@ -342,6 +342,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return (historyDivergence.AheadBy ?? 0, historyDivergence.BehindBy ?? 0);
     }
 
+    public void DeleteRemoteTrackingBranch(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var remoteBranchName = branch.TrackedBranch.CanonicalName;
+        LocalRepository.Branches.Remove(remoteBranchName);
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);

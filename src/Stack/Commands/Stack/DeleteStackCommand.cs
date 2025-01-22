@@ -74,7 +74,7 @@ public class DeleteStackCommandHandler(
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
-            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
+            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {
