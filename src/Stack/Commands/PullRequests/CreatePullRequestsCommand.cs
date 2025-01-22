@@ -83,7 +83,7 @@ public class CreatePullRequestsCommandHandler(
             gitHubClient);
 
         var sourceBranch = stack.SourceBranch;
-        var pullRequestCreateActions = new List<GitHubPullRequestCreateAction>();
+        var pullRequestCreateActions = new List<PullRequestCreateAction>();
 
         foreach (var branch in stack.Branches)
         {
@@ -93,7 +93,7 @@ public class CreatePullRequestsCommandHandler(
             {
                 if (!branchDetail.HasPullRequest)
                 {
-                    pullRequestCreateActions.Add(new GitHubPullRequestCreateAction(branch, sourceBranch));
+                    pullRequestCreateActions.Add(new PullRequestCreateAction(branch, sourceBranch));
                 }
 
                 sourceBranch = branch;
@@ -106,19 +106,34 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestCreateActions.Count > 0)
         {
-            if (inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(pullRequestCreateActions.Count)))
+            var selectedPullRequestActions = inputProvider.MultiSelect(
+                Questions.SelectPullRequestsToCreate,
+                pullRequestCreateActions.ToArray(),
+                action => $"{action.Branch} -> {action.BaseBranch}")
+                .ToList();
+
+            outputProvider.Information("Select branches to create pull requests for:");
+
+            foreach (var action in selectedPullRequestActions)
             {
-                GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, pullRequestCreateActions);
+                outputProvider.Information($"  {action.Branch} -> {action.BaseBranch}");
+            }
+
+            outputProvider.NewLine();
+
+            if (inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests))
+            {
+                var pullRequestInformation = GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, selectedPullRequestActions);
 
                 outputProvider.NewLine();
 
-                OutputUpdatedStackStatus(outputProvider, stack, status, pullRequestCreateActions);
+                OutputUpdatedStackStatus(outputProvider, stack, status, pullRequestInformation);
 
                 outputProvider.NewLine();
 
                 if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
                 {
-                    var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestCreateActions);
+                    var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestInformation);
 
                     var pullRequestsInStack = status.Branches.Values
                         .Where(branch => branch.HasPullRequest)
@@ -209,7 +224,7 @@ public class CreatePullRequestsCommandHandler(
         IOutputProvider outputProvider,
         IGitHubClient gitHubClient,
         StackStatus status,
-        List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+        List<PullRequestInformation> pullRequestCreateActions)
     {
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
@@ -229,7 +244,7 @@ public class CreatePullRequestsCommandHandler(
         return pullRequests;
     }
 
-    private static void OutputUpdatedStackStatus(IOutputProvider outputProvider, Config.Stack stack, StackStatus status, List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+    private static void OutputUpdatedStackStatus(IOutputProvider outputProvider, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestCreateActions)
     {
         var branchDisplayItems = new List<string>();
         var parentBranch = stack.SourceBranch;
@@ -244,7 +259,14 @@ public class CreatePullRequestsCommandHandler(
             else
             {
                 var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
-                branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} *NEW* {action?.Title}{(action?.Draft == true ? " (draft)".Muted() : string.Empty)}");
+                if (action is not null)
+                {
+                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
+                }
+                else
+                {
+                    branchDisplayItems.Add(StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail));
+                }
             }
             parentBranch = branch;
         }
@@ -254,13 +276,14 @@ public class CreatePullRequestsCommandHandler(
             [.. branchDisplayItems]);
     }
 
-    private static void GetPullRequestInformation(
+    private static List<PullRequestInformation> GetPullRequestInformation(
         IInputProvider inputProvider,
         IOutputProvider outputProvider,
         IGitClient gitClient,
         IFileOperations fileOperations,
-        List<GitHubPullRequestCreateAction> pullRequestCreateActions)
+        List<PullRequestCreateAction> pullRequestCreateActions)
     {
+        var pullRequestActions = new List<PullRequestInformation>();
         var pullRequestTemplateFileNames = new List<string>(["PULL_REQUEST_TEMPLATE.md", "pull_request_template.md"]);
 
         var pullRequestTemplatePath = pullRequestTemplateFileNames
@@ -275,30 +298,32 @@ public class CreatePullRequestsCommandHandler(
         foreach (var action in pullRequestCreateActions)
         {
             outputProvider.NewLine();
-            var pullRequestHeader = $"New pull request from {action.HeadBranch.Branch()} -> {action.BaseBranch.Branch()}";
+            var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
             outputProvider.Rule(pullRequestHeader);
 
-            action.Title = inputProvider.Text(Questions.PullRequestTitle);
-            action.BodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
 
-            fileOperations.Create(action.BodyFilePath);
+            var title = inputProvider.Text(Questions.PullRequestTitle);
+            var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
+
+            fileOperations.Create(bodyFilePath);
 
             if (pullRequestTemplatePath is not null)
-                fileOperations.Copy(pullRequestTemplatePath, action.BodyFilePath, true);
+                fileOperations.Copy(pullRequestTemplatePath, bodyFilePath, true);
 
             if (inputProvider.Confirm(Questions.EditPullRequestBody))
             {
-                gitClient.OpenFileInEditorAndWaitForClose(action.BodyFilePath);
+                gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
-            action.Draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
+            var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
+
+            pullRequestActions.Add(new PullRequestInformation(action.Branch, action.BaseBranch, title, bodyFilePath, draft));
         }
+
+        return pullRequestActions;
     }
 
-    record GitHubPullRequestCreateAction(string HeadBranch, string BaseBranch)
-    {
-        public string? Title { get; set; }
-        public string? BodyFilePath { get; set; }
-        public bool Draft { get; set; }
-    }
+    record PullRequestInformation(string HeadBranch, string BaseBranch, string Title, string BodyFilePath, bool Draft);
+
+    public record PullRequestCreateAction(string Branch, string BaseBranch);
 }

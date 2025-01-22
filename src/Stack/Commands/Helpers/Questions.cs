@@ -18,7 +18,8 @@ public static class Questions
     public const string AddOrCreateBranch = "Add or create a branch:";
     public const string ConfirmSwitchToBranch = "Do you want to switch to the new branch?";
     public const string ConfirmPushBranch = "Do you want to push the new branch to the remote repository?";
-    public static string ConfirmStartCreatePullRequests(int numberOfBranchesWithoutPullRequests) => $"There {"are".ToQuantity(numberOfBranchesWithoutPullRequests, ShowQuantityAs.None)} {"branch".ToQuantity(numberOfBranchesWithoutPullRequests)} to create pull requests for. Do you want to continue?";
+    public const string ConfirmStartCreatePullRequests = "Do you want to create pull requests for these branches?";
+    public const string SelectPullRequestsToCreate = "Select branches to create pull requests for:";
     public const string ConfirmCreatePullRequests = "Are you sure you want to create pull requests for branches in this stack?";
     public const string PullRequestTitle = "Title:";
     public const string PullRequestStackDescription = "Stack description for pull request:";

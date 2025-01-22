@@ -6,6 +6,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using static Stack.Commands.CreatePullRequestsCommandHandler;
 
 namespace Stack.Tests.Commands.PullRequests;
 
@@ -47,7 +48,10 @@ public class CreatePullRequestsCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -105,7 +109,10 @@ public class CreatePullRequestsCommandHandlerTests
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -179,7 +186,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -253,7 +263,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -306,7 +319,10 @@ A custom description
         ]);
         stackConfig.Load().Returns(stacks);
 
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -404,7 +420,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch2, sourceBranch)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -480,7 +499,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -535,7 +557,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(1)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -589,7 +614,10 @@ A custom description
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests(2)).Returns(true);
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
