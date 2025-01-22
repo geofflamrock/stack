@@ -1,3 +1,20 @@
+# v0.9.0 (Wed Jan 22 2025)
+
+#### 🚀 New Features and Improvements
+
+- Make options to select a stack consistent [#192](https://github.com/geofflamrock/stack/pull/192) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fixes
+
+- Don't cleanup local branch that hasn't been pushed to remote [#201](https://github.com/geofflamrock/stack/pull/201) ([@geofflamrock](https://github.com/geofflamrock))
+- Fixes examples in `stack status` command to show `--stack` option [#197](https://github.com/geofflamrock/stack/pull/197) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.8.1 (Fri Jan 10 2025)
 
 #### 🐛 Bug Fixes
