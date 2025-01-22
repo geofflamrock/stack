@@ -161,7 +161,7 @@ public class DeleteStackCommandHandlerTests
     }
 
     [Fact]
-    public async Task WhenThereAreLocalBranchesThatAreNotInTheRemote_AsksToCleanup_AndDeletesThemBeforeDeletingStack()
+    public async Task WhenThereAreLocalBranchesThatAreDeletedInTheRemote_AsksToCleanup_AndDeletesThemBeforeDeletingStack()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -169,9 +169,11 @@ public class DeleteStackCommandHandlerTests
         var branchToKeep = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(sourceBranch, true)
-            .WithBranch(branchToCleanup, false)
+            .WithBranch(branchToCleanup, true)
             .WithBranch(branchToKeep, true)
             .Build();
+
+        repo.DeleteRemoteTrackingBranch(branchToCleanup);
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -204,7 +206,7 @@ public class DeleteStackCommandHandlerTests
         {
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
-        gitClient.GetBranchesThatExistLocally([branchToCleanup, branchToKeep]).Should().BeEquivalentTo([branchToKeep]);
+        repo.GetBranches().Should().NotContain(b => b.FriendlyName == branchToCleanup);
     }
 
     [Fact]

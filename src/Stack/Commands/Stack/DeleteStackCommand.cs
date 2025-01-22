@@ -74,15 +74,15 @@ public class DeleteStackCommandHandler(
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
-            var branchesNeedingCleanup = CleanupStackCommandHandler.GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
+            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {
-                CleanupStackCommandHandler.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
+                StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
 
                 if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
-                    CleanupStackCommandHandler.CleanupBranches(gitClient, outputProvider, branchesNeedingCleanup);
+                    StackHelpers.CleanupBranches(gitClient, outputProvider, branchesNeedingCleanup);
                 }
             }
 

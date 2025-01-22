@@ -450,6 +450,33 @@ public static class StackHelpers
         }
     }
 
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IOutputProvider outputProvider, IGitClient gitClient, IGitHubClient gitHubClient)
+    {
+        var currentBranch = gitClient.GetCurrentBranch();
+        var stackStatus = GetStackStatus(stack, currentBranch, outputProvider, gitClient, gitHubClient, true);
+
+        return [.. stackStatus.Branches.Where(b => b.Value.CouldBeCleanedUp).Select(b => b.Key)];
+    }
+
+    public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
+    {
+        outputProvider.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
+
+        foreach (var branch in branches)
+        {
+            outputProvider.Information($"  {branch.Branch()}");
+        }
+    }
+
+    public static void CleanupBranches(IGitClient gitClient, IOutputProvider outputProvider, string[] branches)
+    {
+        foreach (var branch in branches)
+        {
+            outputProvider.Information($"Deleting local branch {branch.Branch()}");
+            gitClient.DeleteLocalBranch(branch);
+        }
+    }
+
     static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
     {
         outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");

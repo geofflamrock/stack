@@ -69,10 +69,7 @@ public class CleanupStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
-
-        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, gitClient, gitHubClient);
+        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -80,53 +77,13 @@ public class CleanupStackCommandHandler(
             return;
         }
 
-        OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
+        StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
-            CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
+            StackHelpers.CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
 
             outputProvider.Information($"Stack {stack.Name.Stack()} cleaned up");
-        }
-    }
-
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IGitClient gitClient, IGitHubClient gitHubClient)
-    {
-        var branchesInTheStackThatExistLocally = gitClient.GetBranchesThatExistLocally([.. stack.Branches]);
-        var branchesInTheStackThatExistInTheRemote = gitClient.GetBranchesThatExistInRemote([.. stack.Branches]);
-
-        var branchesThatCanBeCleanedUp = branchesInTheStackThatExistLocally.Except(branchesInTheStackThatExistInTheRemote).ToList();
-        var branchesThatAreLocalAndInRemote = branchesInTheStackThatExistLocally.Intersect(branchesInTheStackThatExistInTheRemote);
-
-        foreach (var branch in branchesThatAreLocalAndInRemote)
-        {
-            var pullRequest = gitHubClient.GetPullRequest(branch);
-
-            if (pullRequest is not null && pullRequest.State != GitHubPullRequestStates.Open)
-            {
-                branchesThatCanBeCleanedUp.Add(branch);
-            }
-        }
-
-        return branchesThatCanBeCleanedUp.ToArray();
-    }
-
-    public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
-    {
-        outputProvider.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
-
-        foreach (var branch in branches)
-        {
-            outputProvider.Information($"  {branch.Branch()}");
-        }
-    }
-
-    public static void CleanupBranches(IGitClient gitClient, IOutputProvider outputProvider, string[] branches)
-    {
-        foreach (var branch in branches)
-        {
-            outputProvider.Information($"Deleting local branch {branch.Branch()}");
-            gitClient.DeleteLocalBranch(branch);
         }
     }
 }
