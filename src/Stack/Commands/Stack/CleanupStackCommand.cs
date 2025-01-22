@@ -69,7 +69,7 @@ public class CleanupStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var branchesToCleanUp = GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
+        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {
@@ -77,40 +77,13 @@ public class CleanupStackCommandHandler(
             return;
         }
 
-        OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
+        StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
-            CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
+            StackHelpers.CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
 
             outputProvider.Information($"Stack {stack.Name.Stack()} cleaned up");
-        }
-    }
-
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IOutputProvider outputProvider, IGitClient gitClient, IGitHubClient gitHubClient)
-    {
-        var currentBranch = gitClient.GetCurrentBranch();
-        var stackStatus = StackHelpers.GetStackStatus(stack, currentBranch, outputProvider, gitClient, gitHubClient, true);
-
-        return stackStatus.Branches.Where(b => b.Value.CouldBeCleanedUp).Select(b => b.Key).ToArray();
-    }
-
-    public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
-    {
-        outputProvider.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
-
-        foreach (var branch in branches)
-        {
-            outputProvider.Information($"  {branch.Branch()}");
-        }
-    }
-
-    public static void CleanupBranches(IGitClient gitClient, IOutputProvider outputProvider, string[] branches)
-    {
-        foreach (var branch in branches)
-        {
-            outputProvider.Information($"Deleting local branch {branch.Branch()}");
-            gitClient.DeleteLocalBranch(branch);
         }
     }
 }
