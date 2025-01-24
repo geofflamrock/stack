@@ -6,6 +6,7 @@ public interface IFileOperations
     void Copy(string sourceFileName, string destFileName, bool overwrite);
     bool Exists(string path);
     string GetTempPath();
+    void InsertText(string path, int index, string contents);
 }
 
 public class FileOperations : IFileOperations
@@ -28,5 +29,12 @@ public class FileOperations : IFileOperations
     public string GetTempPath()
     {
         return Path.GetTempPath();
+    }
+
+    public void InsertText(string path, int index, string contents)
+    {
+        var lines = File.ReadAllLines(path).ToList();
+        lines.Insert(index, contents);
+        File.WriteAllLines(path, lines);
     }
 }

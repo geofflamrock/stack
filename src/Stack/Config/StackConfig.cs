@@ -4,6 +4,13 @@ using Humanizer;
 
 namespace Stack.Config;
 
+public static class StackConstants
+{
+    public const string StackMarkerText = "stack-pr-list";
+    public const string StackMarkerStart = $"<!-- {StackMarkerText} -->";
+    public const string StackMarkerEnd = $"<!-- /{StackMarkerText} -->";
+}
+
 public class Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches)
 {
     public string Name { get; private set; } = Name;
