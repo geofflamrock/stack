@@ -121,36 +121,33 @@ public class CreatePullRequestsCommandHandler(
 
             outputProvider.NewLine();
 
-            if (inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests))
+            var pullRequestInformation = GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, selectedPullRequestActions);
+
+            outputProvider.NewLine();
+
+            OutputUpdatedStackStatus(outputProvider, stack, status, pullRequestInformation);
+
+            outputProvider.NewLine();
+
+            if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
             {
-                var pullRequestInformation = GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, selectedPullRequestActions);
+                var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestInformation);
 
-                outputProvider.NewLine();
+                var pullRequestsInStack = status.Branches.Values
+                    .Where(branch => branch.HasPullRequest)
+                    .Select(branch => branch.PullRequest!)
+                    .ToList();
 
-                OutputUpdatedStackStatus(outputProvider, stack, status, pullRequestInformation);
-
-                outputProvider.NewLine();
-
-                if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
+                if (pullRequestsInStack.Count > 1)
                 {
-                    var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestInformation);
+                    UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
+                }
 
-                    var pullRequestsInStack = status.Branches.Values
-                        .Where(branch => branch.HasPullRequest)
-                        .Select(branch => branch.PullRequest!)
-                        .ToList();
-
-                    if (pullRequestsInStack.Count > 1)
+                if (inputProvider.Confirm(Questions.OpenPullRequests))
+                {
+                    foreach (var pullRequest in newPullRequests)
                     {
-                        UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
-                    }
-
-                    if (inputProvider.Confirm(Questions.OpenPullRequests))
-                    {
-                        foreach (var pullRequest in newPullRequests)
-                        {
-                            gitHubClient.OpenPullRequest(pullRequest);
-                        }
+                        gitHubClient.OpenPullRequest(pullRequest);
                     }
                 }
             }

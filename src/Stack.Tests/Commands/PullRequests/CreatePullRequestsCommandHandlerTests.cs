@@ -51,7 +51,6 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -112,7 +111,6 @@ public class CreatePullRequestsCommandHandlerTests
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -189,7 +187,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -266,7 +263,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -322,7 +318,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -423,7 +418,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch2, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -502,7 +496,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -560,7 +553,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
 
@@ -617,7 +609,6 @@ A custom description
         inputProvider
             .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmStartCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
@@ -638,5 +629,60 @@ A custom description
         // Assert        
         gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), true);
         gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), true);
+    }
+
+    [Fact]
+    public async Task WhenOnlySelectingSomeBranchesToCreatePullRequestsFor_OnlyThosePullRequestsAreCreated()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branch1, true)
+            .WithBranch(branch2, true)
+            .Build();
+
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var fileOperations = Substitute.For<IFileOperations>();
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+
+        outputProvider
+            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
+            .Do(ci => ci.ArgAt<Action>(1)());
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+
+        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        gitHubClient
+            .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
+            .Returns(prForBranch1);
+
+        // Act
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+
+        // Assert        
+        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
+        gitHubClient.DidNotReceive().CreatePullRequest(branch2, branch1, Arg.Any<string>(), Arg.Any<string>(), false);
     }
 }
