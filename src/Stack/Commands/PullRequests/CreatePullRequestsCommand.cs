@@ -173,14 +173,11 @@ public class CreatePullRequestsCommandHandler(
 
         // Edit each PR and add to the top of the description
         // the details of each PR in the stack
-        var stackMarkerStart = "<!-- stack-pr-list -->";
-        var stackMarkerEnd = "<!-- /stack-pr-list -->";
-
         var prList = pullRequestsInStack
             .Select(pr => $"- {pr.Url}")
             .ToList();
         var prListMarkdown = string.Join(Environment.NewLine, prList);
-        var prBodyMarkdown = $"{stackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{stackMarkerEnd}";
+        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{StackConstants.StackMarkerEnd}";
 
         foreach (var pullRequest in pullRequestsInStack)
         {
@@ -188,32 +185,18 @@ public class CreatePullRequestsCommandHandler(
             // and replace it with the updated PR list
             var prBody = pullRequest.Body;
 
-            var prListStart = prBody.IndexOf(stackMarkerStart, StringComparison.OrdinalIgnoreCase);
-            var prListEnd = prBody.IndexOf(stackMarkerEnd, StringComparison.OrdinalIgnoreCase);
+            var prListStart = prBody.IndexOf(StackConstants.StackMarkerStart, StringComparison.OrdinalIgnoreCase);
+            var prListEnd = prBody.IndexOf(StackConstants.StackMarkerEnd, StringComparison.OrdinalIgnoreCase);
 
             if (prListStart >= 0 && prListEnd >= 0)
             {
-                prBody = prBody.Remove(prListStart, prListEnd - prListStart + stackMarkerEnd.Length);
-            }
-
-            if (prListStart == -1)
-            {
-                prListStart = 0;
-            }
-
-            if (prBody.Length > 0 && prListStart == 0)
-            {
-                // Add some newlines so that the PR list is separated from the rest of the PR body
-                prBody = prBody.Insert(prListStart, prBodyMarkdown + "\n\n");
-            }
-            else
-            {
+                prBody = prBody.Remove(prListStart, prListEnd - prListStart + StackConstants.StackMarkerEnd.Length);
                 prBody = prBody.Insert(prListStart, prBodyMarkdown);
+
+                outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
+
+                gitHubClient.EditPullRequest(pullRequest.Number, prBody);
             }
-
-            outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
-
-            gitHubClient.EditPullRequest(pullRequest.Number, prBody);
         }
     }
 
@@ -298,7 +281,6 @@ public class CreatePullRequestsCommandHandler(
             var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
             outputProvider.Rule(pullRequestHeader);
 
-
             var title = inputProvider.Text(Questions.PullRequestTitle);
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
 
@@ -306,6 +288,13 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequestTemplatePath is not null)
                 fileOperations.Copy(pullRequestTemplatePath, bodyFilePath, true);
+
+            // Add the stack pr list markers to the body
+            fileOperations.InsertText(bodyFilePath, 0, $@"{StackConstants.StackMarkerStart}
+            
+<!-- The contents of the section between the {StackConstants.StackMarkerText} markers will be replaced with the list of pull requests in the stack. Move this section around as you would like or delete it to not include the list of pull requests.  -->
+
+{StackConstants.StackMarkerEnd}");
 
             if (inputProvider.Confirm(Questions.EditPullRequestBody))
             {
