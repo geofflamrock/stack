@@ -25,11 +25,11 @@ public class CreatePullRequestsCommandHandlerTests
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        var gitHubClient = new TestGitHubRepositoryBuilder().Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var fileOperations = Substitute.For<IFileOperations>();
+        var fileOperations = new FileOperations();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
@@ -53,23 +53,29 @@ public class CreatePullRequestsCommandHandlerTests
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
-
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubClient
-            .CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false)
-            .Returns(prForBranch1);
-
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubClient
-            .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
-            .Returns(prForBranch2);
+        inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
-        // Assert        
-        gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
+        // Assert
+        var expectedPrBody = $@"{StackConstants.StackMarkerStart}
+A custom description
+
+{string.Join(Environment.NewLine, gitHubClient.PullRequests.Values.Select(pr => $"- {pr.Url}"))}
+{StackConstants.StackMarkerEnd}";
+
+        var expectedPullRequests = new Dictionary<string, GitHubPullRequest>
+        {
+            [branch1] = new GitHubPullRequest(1, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false),
+            [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
+        };
+
+
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
+            opt => opt.Excluding(member =>
+                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
+        ));
     }
 
     [Fact]
@@ -161,11 +167,14 @@ A custom description
             .WithBranch(branch2, true)
             .Build();
 
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        var gitHubClient = new TestGitHubRepositoryBuilder()
+            .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} {StackConstants.StackMarkerEnd}"))
+            .Build();
+
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
         var outputProvider = Substitute.For<IOutputProvider>();
-        var fileOperations = Substitute.For<IFileOperations>();
+        var fileOperations = new FileOperations();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
@@ -190,38 +199,18 @@ A custom description
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
-
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubClient.GetPullRequest(branch1).Returns(prForBranch1);
-
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
-        gitHubClient
-            .CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false)
-            .Returns(prForBranch2);
-
-        gitHubClient
-            .When(g => g.EditPullRequest(1, Arg.Any<string>()))
-            .Do(ci => prForBranch1 = prForBranch1 with { Body = ci.ArgAt<string>(1) });
-
-        gitHubClient
-            .When(g => g.EditPullRequest(2, Arg.Any<string>()))
-            .Do(ci => prForBranch2 = prForBranch2 with { Body = ci.ArgAt<string>(1) });
-
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
 
-        // Assert        
-        gitHubClient.DidNotReceive().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
-        gitHubClient.Received().CreatePullRequest(branch2, branch1, "PR Title", Arg.Any<string>(), false);
-        var expectedStackDescription = $@"<!-- stack-pr-list -->
+        // Assert
+        var pullRequestUrls = gitHubClient.PullRequests.Values.Select(pr => $"- {pr.Url}").ToArray();
+        var expectedStackDescription = $@"{StackConstants.StackMarkerStart}
 A custom description
 
-- {prForBranch1.Url}
-- {prForBranch2.Url}
-<!-- /stack-pr-list -->";
+{string.Join(Environment.NewLine, pullRequestUrls)}
+{StackConstants.StackMarkerEnd}";
 
-        prForBranch1.Body.Should().Be(expectedStackDescription);
-        prForBranch2.Body.Should().Be(expectedStackDescription);
+        gitHubClient.PullRequests.Should().AllSatisfy(pr => pr.Value.Body.Should().Be(expectedStackDescription));
     }
 
     [Fact]
@@ -684,5 +673,119 @@ A custom description
         // Assert        
         gitHubClient.Received().CreatePullRequest(branch1, sourceBranch, "PR Title", Arg.Any<string>(), false);
         gitHubClient.DidNotReceive().CreatePullRequest(branch2, branch1, Arg.Any<string>(), Arg.Any<string>(), false);
+    }
+}
+
+public class TestGitHubPullRequestBuilder
+{
+    int _number = Some.Int();
+    string _title = Some.Name();
+    string _body = Some.Name();
+    string _state = GitHubPullRequestStates.Open;
+    Uri _url = Some.HttpsUri();
+    bool _draft = false;
+
+    public TestGitHubPullRequestBuilder WithNumber(int number)
+    {
+        _number = number;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder WithTitle(string title)
+    {
+        _title = title;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder WithBody(string body)
+    {
+        _body = body;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder Merged()
+    {
+        _state = GitHubPullRequestStates.Merged;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder Open()
+    {
+        _state = GitHubPullRequestStates.Open;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder Closed()
+    {
+        _state = GitHubPullRequestStates.Closed;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder WithUrl(Uri url)
+    {
+        _url = url;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder AsDraft()
+    {
+        _draft = true;
+        return this;
+    }
+
+    public GitHubPullRequest Build()
+    {
+        return new GitHubPullRequest(_number, _title, _body, _state, _url, _draft);
+    }
+}
+
+public class TestGitHubRepositoryBuilder
+{
+    readonly Dictionary<string, GitHubPullRequest> _pullRequests = new();
+
+    public TestGitHubRepositoryBuilder WithPullRequest(string branch, Action<TestGitHubPullRequestBuilder> pullRequestBuilder)
+    {
+        var builder = new TestGitHubPullRequestBuilder();
+        pullRequestBuilder(builder);
+        _pullRequests.Add(branch, builder.Build());
+        return this;
+    }
+
+    public TestGitHubRepository Build()
+    {
+        return new TestGitHubRepository(_pullRequests);
+    }
+}
+
+public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequests) : IGitHubClient
+{
+    public Dictionary<string, GitHubPullRequest> PullRequests { get; } = PullRequests;
+
+    public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
+    {
+        var prBody = File.ReadAllText(bodyFilePath).Trim();
+        var pr = new GitHubPullRequest(PullRequests.Count + 1, title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft);
+        PullRequests.Add(headBranch, pr);
+        return pr;
+    }
+
+    public void EditPullRequest(int number, string body)
+    {
+        if (!PullRequests.Any(pr => pr.Value.Number == number))
+        {
+            throw new InvalidOperationException("Pull request not found.");
+        }
+
+        var pr = PullRequests.First(p => p.Value.Number == number);
+        PullRequests[pr.Key] = pr.Value with { Body = body };
+    }
+
+    public GitHubPullRequest? GetPullRequest(string branch)
+    {
+        return PullRequests.GetValueOrDefault(branch);
+    }
+
+    public void OpenPullRequest(GitHubPullRequest pullRequest)
+    {
     }
 }
