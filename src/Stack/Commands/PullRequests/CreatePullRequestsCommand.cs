@@ -292,7 +292,7 @@ public class CreatePullRequestsCommandHandler(
             // Add the stack pr list markers to the body
             fileOperations.InsertText(bodyFilePath, 0, $@"{StackConstants.StackMarkerStart}
             
-<!-- The contents of the section between the {StackConstants.StackMarkerText} markers will be replaced with the list of pull requests in the stack. Move this section around as you would like or delete it to not include the list of pull requests.  -->
+{StackConstants.StackMarkerDescription}
 
 {StackConstants.StackMarkerEnd}");
 

@@ -9,6 +9,7 @@ public static class StackConstants
     public const string StackMarkerText = "stack-pr-list";
     public const string StackMarkerStart = $"<!-- {StackMarkerText} -->";
     public const string StackMarkerEnd = $"<!-- /{StackMarkerText} -->";
+    public const string StackMarkerDescription = $"<!-- The contents of the section between the {StackConstants.StackMarkerText} markers will be replaced with the list of pull requests in the stack. Move this section around as you would like or delete it to not include the list of pull requests.  -->";
 }
 
 public class Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches)
