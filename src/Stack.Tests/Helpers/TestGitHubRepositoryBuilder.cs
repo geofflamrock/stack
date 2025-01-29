@@ -29,12 +29,6 @@ public class TestGitHubPullRequestBuilder
     Uri _url = Some.HttpsUri();
     bool _draft = false;
 
-    public TestGitHubPullRequestBuilder WithNumber(int number)
-    {
-        _number = number;
-        return this;
-    }
-
     public TestGitHubPullRequestBuilder WithTitle(string title)
     {
         _title = title;
@@ -50,30 +44,6 @@ public class TestGitHubPullRequestBuilder
     public TestGitHubPullRequestBuilder Merged()
     {
         _state = GitHubPullRequestStates.Merged;
-        return this;
-    }
-
-    public TestGitHubPullRequestBuilder Open()
-    {
-        _state = GitHubPullRequestStates.Open;
-        return this;
-    }
-
-    public TestGitHubPullRequestBuilder Closed()
-    {
-        _state = GitHubPullRequestStates.Closed;
-        return this;
-    }
-
-    public TestGitHubPullRequestBuilder WithUrl(Uri url)
-    {
-        _url = url;
-        return this;
-    }
-
-    public TestGitHubPullRequestBuilder AsDraft()
-    {
-        _draft = true;
         return this;
     }
 
