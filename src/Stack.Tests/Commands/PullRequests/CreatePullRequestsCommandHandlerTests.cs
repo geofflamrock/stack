@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentAssertions.Equivalency;
 using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
@@ -6,11 +7,12 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
 
 namespace Stack.Tests.Commands.PullRequests;
 
-public class CreatePullRequestsCommandHandlerTests
+public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenNoPullRequestsExistForAStackWithMultipleBranches_CreatesPullRequestForEachBranchTargetingTheCorrectParentBranch()
@@ -71,10 +73,14 @@ A custom description
             [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
+    }
+
+    private static EquivalencyAssertionOptions<Dictionary<string, GitHubPullRequest>> ExcludeUnimportantPullRequestProperties(EquivalencyAssertionOptions<Dictionary<string, GitHubPullRequest>> opt)
+    {
+        return opt.Excluding(member =>
+            member.DeclaringType == typeof(GitHubPullRequest) &&
+            (member.Name.Equals(nameof(GitHubPullRequest.Url)) || member.Name.Equals(nameof(GitHubPullRequest.Number))));
     }
 
     [Fact]
@@ -152,14 +158,10 @@ A custom description
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
-
-        outputProvider
-            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
-            .Do(ci => ci.ArgAt<Action>(1)());
 
         var stacks = new List<Config.Stack>(
         [
@@ -252,10 +254,7 @@ A custom description
             [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 
     [Fact]
@@ -312,10 +311,7 @@ A custom description
             [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 
     [Fact]
@@ -422,10 +418,7 @@ A custom description
             [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 
     [Fact]
@@ -491,10 +484,7 @@ This is the PR template";
             [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 
     [Fact]
@@ -554,10 +544,7 @@ This is the PR template";
             [branch1] = new GitHubPullRequest(1, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 
     [Fact]
@@ -667,10 +654,7 @@ This is the PR template";
             [branch1] = new GitHubPullRequest(1, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false)
         };
 
-        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests,
-            opt => opt.Excluding(member =>
-                member.DeclaringType == typeof(GitHubPullRequest) && member.Name.Equals(nameof(GitHubPullRequest.Url))
-        ));
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
     }
 }
 
@@ -762,7 +746,7 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
     public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
     {
         var prBody = File.ReadAllText(bodyFilePath).Trim();
-        var pr = new GitHubPullRequest(PullRequests.Count + 1, title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft);
+        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft);
         PullRequests.Add(headBranch, pr);
         return pr;
     }
