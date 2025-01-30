@@ -4,6 +4,9 @@ updates:
     directory: "/src" # Need to specify the sub-directory to make sure projects are picked up
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: FluentAssertions
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
