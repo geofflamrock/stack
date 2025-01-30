@@ -97,7 +97,7 @@ public class SetPullRequestDescriptionCommandHandler(
             return new SetPullRequestDescriptionCommandResponse();
         }
 
-        StackHelpers.GetAndUpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
+        StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
         StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
 
         return new SetPullRequestDescriptionCommandResponse();

@@ -512,7 +512,7 @@ public static class StackHelpers
         }
     }
 
-    public static void GetAndUpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack)
+    public static void UpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack)
     {
         var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
         var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);

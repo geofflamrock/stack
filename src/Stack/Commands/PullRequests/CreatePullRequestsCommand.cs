@@ -164,7 +164,7 @@ public class CreatePullRequestsCommandHandler(
     {
         if (stack.PullRequestDescription is null)
         {
-            StackHelpers.GetAndUpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
+            StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
         }
 
         StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
