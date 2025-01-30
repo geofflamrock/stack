@@ -38,6 +38,7 @@ app.Configure(configure =>
             pr.SetDescription("Manages pull requests for a stack.");
             pr.AddCommand<CreatePullRequestsCommand>(CommandNames.Create).WithDescription("Creates pull requests for a stack.");
             pr.AddCommand<OpenPullRequestsCommand>(CommandNames.Open).WithDescription("Opens pull requests for a stack in the default browser.");
+            pr.AddCommand<SetPullRequestDescriptionCommand>(CommandNames.Description).WithDescription("Sets the pull request description for the stack and applies it all pull requests.");
         });
 
     // Advanced commands
