@@ -162,42 +162,12 @@ public class CreatePullRequestsCommandHandler(
 
     private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, IOutputProvider outputProvider, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
     {
-        var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
-        var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
-
-        if (stackDescription != stack.PullRequestDescription)
+        if (stack.PullRequestDescription is null)
         {
-            stack.SetPullRequestDescription(stackDescription);
-            stackConfig.Save(stacks);
+            StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
         }
 
-        // Edit each PR and add to the top of the description
-        // the details of each PR in the stack
-        var prList = pullRequestsInStack
-            .Select(pr => $"- {pr.Url}")
-            .ToList();
-        var prListMarkdown = string.Join(Environment.NewLine, prList);
-        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{StackConstants.StackMarkerEnd}";
-
-        foreach (var pullRequest in pullRequestsInStack)
-        {
-            // Find the existing part of the PR body that has the PR list
-            // and replace it with the updated PR list
-            var prBody = pullRequest.Body;
-
-            var prListStart = prBody.IndexOf(StackConstants.StackMarkerStart, StringComparison.OrdinalIgnoreCase);
-            var prListEnd = prBody.IndexOf(StackConstants.StackMarkerEnd, StringComparison.OrdinalIgnoreCase);
-
-            if (prListStart >= 0 && prListEnd >= 0)
-            {
-                prBody = prBody.Remove(prListStart, prListEnd - prListStart + StackConstants.StackMarkerEnd.Length);
-                prBody = prBody.Insert(prListStart, prBodyMarkdown);
-
-                outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
-
-                gitHubClient.EditPullRequest(pullRequest.Number, prBody);
-            }
-        }
+        StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
     }
 
     private static List<GitHubPullRequest> CreatePullRequests(

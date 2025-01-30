@@ -477,6 +477,53 @@ public static class StackHelpers
         }
     }
 
+    public static void UpdateStackDescriptionInPullRequests(
+        IOutputProvider outputProvider,
+        IGitHubClient gitHubClient,
+        Config.Stack stack,
+        List<GitHubPullRequest> pullRequestsInStack)
+    {
+        // Edit each PR and add to the top of the description
+        // the details of each PR in the stack
+        var prList = pullRequestsInStack
+            .Select(pr => $"- {pr.Url}")
+            .ToList();
+        var prListMarkdown = string.Join(Environment.NewLine, prList);
+        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{StackConstants.StackMarkerEnd}";
+
+        foreach (var pullRequest in pullRequestsInStack)
+        {
+            // Find the existing part of the PR body that has the PR list
+            // and replace it with the updated PR list
+            var prBody = pullRequest.Body;
+
+            var prListStart = prBody.IndexOf(StackConstants.StackMarkerStart, StringComparison.OrdinalIgnoreCase);
+            var prListEnd = prBody.IndexOf(StackConstants.StackMarkerEnd, StringComparison.OrdinalIgnoreCase);
+
+            if (prListStart >= 0 && prListEnd >= 0)
+            {
+                prBody = prBody.Remove(prListStart, prListEnd - prListStart + StackConstants.StackMarkerEnd.Length);
+                prBody = prBody.Insert(prListStart, prBodyMarkdown);
+
+                outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
+
+                gitHubClient.EditPullRequest(pullRequest.Number, prBody);
+            }
+        }
+    }
+
+    public static void UpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack)
+    {
+        var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
+        var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
+
+        if (stackDescription != stack.PullRequestDescription)
+        {
+            stack.SetPullRequestDescription(stackDescription);
+            stackConfig.Save(stacks);
+        }
+    }
+
     static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
     {
         outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");

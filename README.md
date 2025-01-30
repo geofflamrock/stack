@@ -398,6 +398,21 @@ OPTIONS:
     -s, --stack          The name of the stack to open PRs for
 ```
 
+### `stack pr description`
+
+Sets the pull request description for the stack and applies it all pull requests.
+
+```shell
+USAGE:
+    stack pr description [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+    -s, --stack          The name of the stack to open PRs for
+```
+
 ## Advanced commands
 
 ### `stack config`
