@@ -624,7 +624,7 @@ public static class StackHelpers
 
             if (action == MergeConflictAction.Abort)
             {
-                gitClient.AbortMerge();
+                gitClient.AbortRebase();
                 throw new Exception("Rebase aborted due to conflicts.");
             }
             else if (action == MergeConflictAction.Continue)
