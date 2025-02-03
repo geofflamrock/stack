@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using Octopus.Shellfish;
+using Spectre.Console;
 using Stack.Infrastructure;
 
 namespace Stack.Git;
@@ -321,7 +322,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
         if (result != 0)
         {
-            outputProvider.Error($"{errorBuilder}");
+            outputProvider.Error(Markup.Escape(errorBuilder.ToString()));
             if (exceptionHandler != null)
             {
                 var exception = exceptionHandler(result);
@@ -338,7 +339,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            outputProvider.Debug($"{infoBuilder}");
+            outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
         }
 
         var output = infoBuilder.ToString();
@@ -364,7 +365,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
             // changes to the Git repository as the output might be important.
             // In verbose mode we would have already written the output
             // of the command so don't write it again.
-            outputProvider.Debug($"{output}");
+            outputProvider.Debug(Markup.Escape(output));
         }
     }
 

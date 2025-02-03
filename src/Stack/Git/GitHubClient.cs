@@ -17,7 +17,12 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft);
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft, GitHubLabel[] Labels)
+{
+    public string[] LabelNames => [.. Labels.Select(l => l.Name)];
+}
+
+public record GitHubLabel(string Name);
 
 public static class GitHubPullRequestExtensionMethods
 {
@@ -47,13 +52,16 @@ public interface IGitHubClient
     GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
+    string[] GetLabels();
+    void RemovePullRequestLabels(int number, string[] labels);
+    void AddPullRequestLabels(int number, string[] labels);
 }
 
 public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft --head {branch} --state all");
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,labels --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
@@ -84,6 +92,31 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         ExecuteGitHubCommand($"pr view {pullRequest.Number} --web");
     }
 
+    public string[] GetLabels()
+    {
+        var output = ExecuteGitHubCommandAndReturnOutput($"label list --limit {int.MaxValue} --json name");
+        var labels = System.Text.Json.JsonSerializer.Deserialize<List<GitHubLabel>>(output,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+
+        return [.. labels.Select(l => l.Name)];
+    }
+
+    public void RemovePullRequestLabels(int number, string[] labels)
+    {
+        foreach (var label in labels)
+        {
+            ExecuteGitHubCommand($"pr edit {number} --remove-label \"{Sanitize(label)}\"");
+        }
+    }
+
+    public void AddPullRequestLabels(int number, string[] labels)
+    {
+        foreach (var label in labels)
+        {
+            ExecuteGitHubCommand($"pr edit {number} --add-label \"{Sanitize(label)}\"");
+        }
+    }
+
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
@@ -102,13 +135,13 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
 
         if (result != 0)
         {
-            outputProvider.Error($"{errorBuilder}");
+            outputProvider.Error(Markup.Escape(errorBuilder.ToString()));
             throw new Exception("Failed to execute gh command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            outputProvider.Debug($"{infoBuilder}");
+            outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
         }
 
         return infoBuilder.ToString();
@@ -144,7 +177,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         {
             if (infoBuilder.Length > 0)
             {
-                outputProvider.Debug($"{infoBuilder}");
+                outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
             }
         }
     }

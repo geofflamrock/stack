@@ -22,9 +22,17 @@ public class Stack(string Name, string RemoteUri, string SourceBranch, List<stri
     [JsonInclude]
     public string? PullRequestDescription { get; private set; }
 
+    [JsonInclude]
+    public string[]? Labels { get; private set; }
+
     public void SetPullRequestDescription(string description)
     {
         this.PullRequestDescription = description;
+    }
+
+    public void SetLabels(string[] labels)
+    {
+        this.Labels = labels;
     }
 
     public string GetDefaultBranchName()

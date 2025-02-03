@@ -38,6 +38,22 @@ public static class InputProviderExtensionMethods
         return selection;
     }
 
+    public static string[] MultiSelect(
+        this IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        string prompt,
+        string[] choices,
+        bool required,
+        string[]? presetValues = null,
+        string[]? selectedValues = null)
+    {
+        var selection = presetValues ?? inputProvider.MultiSelect(prompt, choices, required, selectedValues);
+
+        outputProvider.Information($"{prompt} {string.Join(", ", selection)}");
+
+        return [.. selection];
+    }
+
     public static Config.Stack? SelectStack(
         this IInputProvider inputProvider,
         IOutputProvider outputProvider,

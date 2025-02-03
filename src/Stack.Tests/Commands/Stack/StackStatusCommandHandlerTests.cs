@@ -46,7 +46,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch1)
@@ -106,7 +106,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch1)
@@ -169,7 +169,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch1)
@@ -239,7 +239,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch1)
@@ -342,7 +342,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch2)
@@ -399,7 +399,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch2)
@@ -456,7 +456,7 @@ public class StackStatusCommandHandlerTests
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
-        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
 
         gitHubClient
             .GetPullRequest(branch1)

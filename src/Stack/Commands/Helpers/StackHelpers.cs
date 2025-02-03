@@ -524,6 +524,76 @@ public static class StackHelpers
         }
     }
 
+    public static bool UpdateStackPullRequestLabels(
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        IGitHubClient gitHubClient,
+        IStackConfig stackConfig,
+        List<Config.Stack> stacks,
+        Config.Stack stack,
+        string[]? labels = null)
+    {
+        var repoLabels = gitHubClient.GetLabels();
+
+        if (repoLabels.Length == 0)
+        {
+            return false;
+        }
+
+        var selectedLabels = inputProvider.MultiSelect(outputProvider, Questions.PullRequestLabels, repoLabels, false, labels, stack.Labels);
+        var existingLabels = stack.Labels ?? [];
+
+        if (!selectedLabels.Order().SequenceEqual(existingLabels.Order()))
+        {
+            stack.SetLabels([.. selectedLabels]);
+            stackConfig.Save(stacks);
+            return true;
+        }
+
+        return false;
+    }
+
+    public static void UpdateLabelsInPullRequests(
+        IOutputProvider outputProvider,
+        IGitHubClient gitHubClient,
+        Config.Stack stack,
+        List<GitHubPullRequest> pullRequestsInStack)
+    {
+        // Apply the labels to each PR in the stack
+        var stackLabels = stack.Labels ?? [];
+        foreach (var pullRequest in pullRequestsInStack)
+        {
+            // Nothing to do if the labels are already correct
+            if (pullRequest.LabelNames.Order().SequenceEqual(stackLabels.Order()))
+            {
+                continue;
+            }
+
+            var labelsToRemoveFromPullRequest = pullRequest.LabelNames.Where(l => !stackLabels.Contains(l)).ToArray();
+            var labelsToAddToPullRequest = stackLabels.Where(l => !pullRequest.LabelNames.Contains(l)).ToArray();
+
+            if (labelsToRemoveFromPullRequest.Length == 0 && labelsToAddToPullRequest.Length == 0)
+            {
+                outputProvider.Debug($"No labels to add or remove from pull request {pullRequest.GetPullRequestDisplay()}");
+                continue;
+            }
+
+            if (labelsToRemoveFromPullRequest.Length > 0)
+            {
+                outputProvider.Information($"Removing labels from pull request {pullRequest.GetPullRequestDisplay()}: {string.Join(", ", labelsToRemoveFromPullRequest)}");
+
+                gitHubClient.RemovePullRequestLabels(pullRequest.Number, labelsToRemoveFromPullRequest);
+            }
+
+            if (labelsToAddToPullRequest.Length > 0)
+            {
+                outputProvider.Information($"Adding labels to pull request {pullRequest.GetPullRequestDisplay()}: {string.Join(", ", labelsToAddToPullRequest)}");
+
+                gitHubClient.AddPullRequestLabels(pullRequest.Number, labelsToAddToPullRequest);
+            }
+        }
+    }
+
     static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
     {
         outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");

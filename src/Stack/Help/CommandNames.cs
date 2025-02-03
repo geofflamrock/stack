@@ -16,6 +16,7 @@ public static class CommandNames
     public const string Create = "create";
     public const string Open = "open";
     public const string Description = "description";
+    public const string Label = "label";
     public const string Remove = "remove";
     public const string Pull = "pull";
     public const string Push = "push";

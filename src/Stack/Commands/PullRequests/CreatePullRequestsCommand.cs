@@ -109,6 +109,8 @@ public class CreatePullRequestsCommandHandler(
             var selectedPullRequestActions = inputProvider.MultiSelect(
                 Questions.SelectPullRequestsToCreate,
                 pullRequestCreateActions.ToArray(),
+                true,
+                null,
                 action => $"{action.Branch} -> {action.BaseBranch}")
                 .ToList();
 
@@ -143,6 +145,8 @@ public class CreatePullRequestsCommandHandler(
                     UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
                 }
 
+                UpdatePullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
+
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
                 {
                     foreach (var pullRequest in newPullRequests)
@@ -168,6 +172,23 @@ public class CreatePullRequestsCommandHandler(
         }
 
         StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
+    }
+
+    private static void UpdatePullRequestLabels(
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        IGitHubClient gitHubClient,
+        IStackConfig stackConfig,
+        List<Config.Stack> stacks,
+        Config.Stack stack,
+        List<GitHubPullRequest> pullRequestsInStack)
+    {
+        if (stack.Labels is null)
+        {
+            StackHelpers.UpdateStackPullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack);
+        }
+
+        StackHelpers.UpdateLabelsInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
     }
 
     private static List<GitHubPullRequest> CreatePullRequests(
