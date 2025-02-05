@@ -123,7 +123,19 @@ public class CreatePullRequestsCommandHandler(
 
             outputProvider.NewLine();
 
-            var pullRequestInformation = GetPullRequestInformation(inputProvider, outputProvider, gitClient, fileOperations, selectedPullRequestActions);
+            if (stack.Labels is null)
+            {
+                StackHelpers.UpdateStackPullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack);
+            }
+
+            var pullRequestInformation = GetPullRequestInformation(
+                inputProvider,
+                outputProvider,
+                gitClient,
+                gitHubClient,
+                fileOperations,
+                stack,
+                selectedPullRequestActions);
 
             outputProvider.NewLine();
 
@@ -145,7 +157,7 @@ public class CreatePullRequestsCommandHandler(
                     UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
                 }
 
-                UpdatePullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
+                // UpdatePullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
 
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
                 {
@@ -174,23 +186,6 @@ public class CreatePullRequestsCommandHandler(
         StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
     }
 
-    private static void UpdatePullRequestLabels(
-        IInputProvider inputProvider,
-        IOutputProvider outputProvider,
-        IGitHubClient gitHubClient,
-        IStackConfig stackConfig,
-        List<Config.Stack> stacks,
-        Config.Stack stack,
-        List<GitHubPullRequest> pullRequestsInStack)
-    {
-        if (stack.Labels is null)
-        {
-            StackHelpers.UpdateStackPullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack);
-        }
-
-        StackHelpers.UpdateLabelsInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
-    }
-
     private static List<GitHubPullRequest> CreatePullRequests(
         IOutputProvider outputProvider,
         IGitHubClient gitHubClient,
@@ -202,7 +197,13 @@ public class CreatePullRequestsCommandHandler(
         {
             var branchDetail = status.Branches[action.HeadBranch];
             outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
-            var pullRequest = gitHubClient.CreatePullRequest(action.HeadBranch, action.BaseBranch, action.Title!, action.BodyFilePath!, action.Draft);
+            var pullRequest = gitHubClient.CreatePullRequest(
+                action.HeadBranch,
+                action.BaseBranch,
+                action.Title!,
+                action.BodyFilePath!,
+                action.Labels,
+                action.Draft);
 
             if (pullRequest is not null)
             {
@@ -251,7 +252,9 @@ public class CreatePullRequestsCommandHandler(
         IInputProvider inputProvider,
         IOutputProvider outputProvider,
         IGitClient gitClient,
+        IGitHubClient gitHubClient,
         IFileOperations fileOperations,
+        Config.Stack stack,
         List<PullRequestCreateAction> pullRequestCreateActions)
     {
         var pullRequestActions = new List<PullRequestInformation>();
@@ -265,6 +268,8 @@ public class CreatePullRequestsCommandHandler(
         {
             outputProvider.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
         }
+
+        var gitHubLabels = gitHubClient.GetLabels();
 
         foreach (var action in pullRequestCreateActions)
         {
@@ -292,15 +297,33 @@ public class CreatePullRequestsCommandHandler(
                 gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
+            var labels = inputProvider.MultiSelect(
+                Questions.PullRequestLabels,
+                gitHubLabels,
+                false,
+                stack.Labels);
+
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
 
-            pullRequestActions.Add(new PullRequestInformation(action.Branch, action.BaseBranch, title, bodyFilePath, draft));
+            pullRequestActions.Add(new PullRequestInformation(
+                action.Branch,
+                action.BaseBranch,
+                title,
+                bodyFilePath,
+                [.. labels],
+                draft));
         }
 
         return pullRequestActions;
     }
 
-    record PullRequestInformation(string HeadBranch, string BaseBranch, string Title, string BodyFilePath, bool Draft);
+    record PullRequestInformation(
+        string HeadBranch,
+        string BaseBranch,
+        string Title,
+        string BodyFilePath,
+        string[] Labels,
+        bool Draft);
 
     public record PullRequestCreateAction(string Branch, string BaseBranch);
 }

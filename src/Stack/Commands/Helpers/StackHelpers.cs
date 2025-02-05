@@ -540,12 +540,12 @@ public static class StackHelpers
             return false;
         }
 
-        var selectedLabels = inputProvider.MultiSelect(outputProvider, Questions.PullRequestLabels, repoLabels, false, labels, stack.Labels);
+        var selectedLabels = inputProvider.MultiSelect(outputProvider, Questions.PullRequestStackLabels, repoLabels, false, labels, stack.Labels);
         var existingLabels = stack.Labels ?? [];
 
         if (!selectedLabels.Order().SequenceEqual(existingLabels.Order()))
         {
-            stack.SetLabels([.. selectedLabels]);
+            stack.SetPullRequestLabels([.. selectedLabels]);
             stackConfig.Save(stacks);
             return true;
         }

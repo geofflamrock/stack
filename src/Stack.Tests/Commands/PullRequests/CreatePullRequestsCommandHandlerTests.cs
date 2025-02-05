@@ -701,7 +701,7 @@ A custom description
         var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        stack1.SetLabels(["label1", "label2"]);
+        stack1.SetPullRequestLabels(["label1", "label2"]);
 
         var stacks = new List<Config.Stack>(
         [
@@ -720,6 +720,7 @@ A custom description
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
+        inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<Func<string, string>>()).Returns(new List<string>(["label1", "label2"]).ToArray());
 
         // Act
         await handler.Handle(CreatePullRequestsCommandInputs.Empty);
@@ -740,7 +741,7 @@ A custom description
         };
 
         gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
-        inputProvider.DidNotReceive().MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), true, null, Arg.Any<Func<string, string>>());
+        inputProvider.DidNotReceive().MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), true, null, Arg.Any<Func<string, string>>());
     }
 
     [Fact]
@@ -786,6 +787,7 @@ A custom description
         inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
         inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
+        inputProvider.MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<Func<string, string>>()).Returns(new List<string>(["label1", "label2"]).ToArray());
         inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>(), Arg.Any<Func<string, string>>()).Returns(new List<string>(["label1", "label2"]).ToArray());
 
         // Act

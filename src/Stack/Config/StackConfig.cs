@@ -30,7 +30,7 @@ public class Stack(string Name, string RemoteUri, string SourceBranch, List<stri
         this.PullRequestDescription = description;
     }
 
-    public void SetLabels(string[] labels)
+    public void SetPullRequestLabels(string[] labels)
     {
         this.Labels = labels;
     }

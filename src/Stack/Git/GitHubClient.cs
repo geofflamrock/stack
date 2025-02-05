@@ -49,7 +49,13 @@ public static class GitHubPullRequestExtensionMethods
 public interface IGitHubClient
 {
     GitHubPullRequest? GetPullRequest(string branch);
-    GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
+    GitHubPullRequest CreatePullRequest(
+        string headBranch,
+        string baseBranch,
+        string title,
+        string bodyFilePath,
+        string[] labels,
+        bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
     string[] GetLabels();
@@ -68,13 +74,24 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
+    public GitHubPullRequest CreatePullRequest(
+        string headBranch,
+        string baseBranch,
+        string title,
+        string bodyFilePath,
+        string[] labels,
+        bool draft)
     {
         var command = $"pr create --title \"{Sanitize(title)}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
 
         if (draft)
         {
             command += " --draft";
+        }
+
+        if (labels.Length > 0)
+        {
+            command += " --label " + string.Join(',', labels.Select(l => Sanitize(l)));
         }
 
         ExecuteGitHubCommand(command);

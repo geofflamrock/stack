@@ -48,7 +48,7 @@ public class SetPullRequestLabelsCommandHandlerTests(ITestOutputHelper testOutpu
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
+        inputProvider.MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
 
         // Act
         await handler.Handle(SetPullRequestLabelsCommandInputs.Empty);
@@ -92,7 +92,7 @@ public class SetPullRequestLabelsCommandHandlerTests(ITestOutputHelper testOutpu
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
+        inputProvider.MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
 
         // Act
         await handler.Handle(SetPullRequestLabelsCommandInputs.Empty);
@@ -171,7 +171,7 @@ public class SetPullRequestLabelsCommandHandlerTests(ITestOutputHelper testOutpu
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
+        inputProvider.MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
 
         // Act
         await handler.Handle(SetPullRequestLabelsCommandInputs.Empty);
@@ -215,7 +215,7 @@ public class SetPullRequestLabelsCommandHandlerTests(ITestOutputHelper testOutpu
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
-        inputProvider.MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
+        inputProvider.MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>()).Returns(["label1", "label2"]);
 
         // Act
         await handler.Handle(new SetPullRequestLabelsCommandInputs("Stack1", null));
@@ -266,6 +266,6 @@ public class SetPullRequestLabelsCommandHandlerTests(ITestOutputHelper testOutpu
 
         // Assert
         gitHubClient.PullRequests.Should().AllSatisfy(pr => pr.Value.LabelNames.Should().BeEquivalentTo(["label1", "label2"]));
-        inputProvider.DidNotReceive().MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>());
+        inputProvider.DidNotReceive().MultiSelect(Questions.PullRequestStackLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<string[]>());
     }
 }

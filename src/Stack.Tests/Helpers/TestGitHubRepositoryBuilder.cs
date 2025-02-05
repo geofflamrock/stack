@@ -66,10 +66,16 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
     public Dictionary<string, GitHubPullRequest> PullRequests { get; } = PullRequests;
     public string[] Labels { get; } = Labels;
 
-    public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
+    public GitHubPullRequest CreatePullRequest(
+        string headBranch,
+        string baseBranch,
+        string title,
+        string bodyFilePath,
+        string[] labels,
+        bool draft)
     {
         var prBody = File.ReadAllText(bodyFilePath).Trim();
-        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft, []);
+        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft, [.. labels.Select(l => new GitHubLabel(l))]);
         PullRequests.Add(headBranch, pr);
         return pr;
     }
