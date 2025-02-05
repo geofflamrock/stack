@@ -17,7 +17,9 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft);
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft, GitHubLabel[] Labels);
+
+public record GitHubLabel(string Name);
 
 public static class GitHubPullRequestExtensionMethods
 {
@@ -44,29 +46,47 @@ public static class GitHubPullRequestExtensionMethods
 public interface IGitHubClient
 {
     GitHubPullRequest? GetPullRequest(string branch);
-    GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft);
+    GitHubPullRequest CreatePullRequest(
+        string headBranch,
+        string baseBranch,
+        string title,
+        string bodyFilePath,
+        string[] labels,
+        bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
+    string[] GetLabels();
 }
 
 public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft --head {branch} --state all");
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,labels --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
         return pullRequests.FirstOrDefault();
     }
 
-    public GitHubPullRequest CreatePullRequest(string headBranch, string baseBranch, string title, string bodyFilePath, bool draft)
+    public GitHubPullRequest CreatePullRequest(
+        string headBranch,
+        string baseBranch,
+        string title,
+        string bodyFilePath,
+        string[] labels,
+        bool draft)
     {
         var command = $"pr create --title \"{Sanitize(title)}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
 
         if (draft)
         {
             command += " --draft";
+        }
+
+        if (labels.Length > 0)
+        {
+            command += " --label " + string.Join(',', labels.Select(l => Sanitize(l)));
         }
 
         ExecuteGitHubCommand(command);
@@ -82,6 +102,15 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
     public void OpenPullRequest(GitHubPullRequest pullRequest)
     {
         ExecuteGitHubCommand($"pr view {pullRequest.Number} --web");
+    }
+
+    public string[] GetLabels()
+    {
+        var output = ExecuteGitHubCommandAndReturnOutput($"label list --limit {int.MaxValue} --json name");
+        var labels = System.Text.Json.JsonSerializer.Deserialize<List<GitHubLabel>>(output,
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+
+        return [.. labels.Select(l => l.Name)];
     }
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)
@@ -102,13 +131,13 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
 
         if (result != 0)
         {
-            outputProvider.Error($"{errorBuilder}");
+            outputProvider.Error(Markup.Escape(errorBuilder.ToString()));
             throw new Exception("Failed to execute gh command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            outputProvider.Debug($"{infoBuilder}");
+            outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
         }
 
         return infoBuilder.ToString();
@@ -144,7 +173,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
         {
             if (infoBuilder.Length > 0)
             {
-                outputProvider.Debug($"{infoBuilder}");
+                outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
             }
         }
     }

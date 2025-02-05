@@ -44,12 +44,12 @@ public class OpenPullRequestsCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch1)
             .Returns(prForBranch1);
 
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch2)
             .Returns(prForBranch2);
@@ -95,12 +95,12 @@ public class OpenPullRequestsCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch1)
             .Returns(prForBranch1);
 
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Closed, Some.HttpsUri(), false);
+        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Closed, Some.HttpsUri(), false, []);
 
         // Act
         await handler.Handle(OpenPullRequestsCommandInputs.Empty);
@@ -138,12 +138,12 @@ public class OpenPullRequestsCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch1)
             .Returns(prForBranch1);
 
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch2)
             .Returns(prForBranch2);
@@ -183,12 +183,12 @@ public class OpenPullRequestsCommandHandlerTests
         ]);
         stackConfig.Load().Returns(stacks);
 
-        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch1)
             .Returns(prForBranch1);
 
-        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
+        var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []);
         gitHubClient
             .GetPullRequest(branch2)
             .Returns(prForBranch2);

@@ -10,7 +10,7 @@ public interface IInputProvider
     string Select(string prompt, string[] choices);
     T Select<T>(string prompt, T[] choices, Func<T, string>? converter = null) where T : notnull;
     T SelectGrouped<T>(string prompt, ChoiceGroup<T>[] choices, Func<T, string>? converter = null) where T : notnull;
-    IEnumerable<T> MultiSelect<T>(string prompt, T[] choices, Func<T, string>? converter = null) where T : notnull;
+    IEnumerable<T> MultiSelect<T>(string prompt, T[] choices, bool required, Func<T, string>? converter = null) where T : notnull;
     bool Confirm(string prompt, bool defaultValue = true);
 }
 
@@ -68,14 +68,14 @@ public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
         return console.Prompt(select);
     }
 
-    public IEnumerable<T> MultiSelect<T>(string prompt, T[] choices, Func<T, string>? converter = null)
+    public IEnumerable<T> MultiSelect<T>(string prompt, T[] choices, bool required, Func<T, string>? converter = null)
         where T : notnull
     {
         var select = new MultiSelectionPrompt<T>()
             .Title(prompt)
             .PageSize(10)
             .AddChoices(choices)
-            .Required()
+            .Required(required)
             .UseConverter(converter);
 
         return console.Prompt(select);
