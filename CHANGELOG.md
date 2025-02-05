@@ -1,3 +1,29 @@
+# v0.9.0 (Wed Feb 05 2025)
+
+#### 🚀 New Features and Improvements
+
+- Adds support for applying labels when creating pull requests [#210](https://github.com/geofflamrock/stack/pull/210) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds command to set pull request description [#204](https://github.com/geofflamrock/stack/pull/204) ([@geofflamrock](https://github.com/geofflamrock))
+- Improve way that stack PR list is handled in pull request body [#203](https://github.com/geofflamrock/stack/pull/203) ([@geofflamrock](https://github.com/geofflamrock))
+- Support selecting branches to create pull requests for [#202](https://github.com/geofflamrock/stack/pull/202) ([@geofflamrock](https://github.com/geofflamrock))
+- Make options to select a stack consistent [#192](https://github.com/geofflamrock/stack/pull/192) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fixes
+
+- Fix issue where wrong abort call is made during rebase [#209](https://github.com/geofflamrock/stack/pull/209) ([@geofflamrock](https://github.com/geofflamrock))
+- Don't cleanup local branch that hasn't been pushed to remote [#201](https://github.com/geofflamrock/stack/pull/201) ([@geofflamrock](https://github.com/geofflamrock))
+- Fixes examples in `stack status` command to show `--stack` option [#197](https://github.com/geofflamrock/stack/pull/197) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🤖 Automation
+
+- Ignore major version updates to FluentAssertions [#205](https://github.com/geofflamrock/stack/pull/205) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.8.1 (Fri Jan 10 2025)
 
 #### 🐛 Bug Fixes
