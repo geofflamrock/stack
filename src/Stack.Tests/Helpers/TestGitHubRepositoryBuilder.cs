@@ -104,26 +104,4 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
     {
         return Labels;
     }
-
-    public void RemovePullRequestLabels(int number, string[] labels)
-    {
-        if (!PullRequests.Any(pr => pr.Value.Number == number))
-        {
-            throw new InvalidOperationException("Pull request not found.");
-        }
-
-        var pr = PullRequests.First(p => p.Value.Number == number);
-        PullRequests[pr.Key] = pr.Value with { Labels = [.. pr.Value.Labels.Where(l => !labels.Contains(l.Name))] };
-    }
-
-    public void AddPullRequestLabels(int number, string[] labels)
-    {
-        if (!PullRequests.Any(pr => pr.Value.Number == number))
-        {
-            throw new InvalidOperationException("Pull request not found.");
-        }
-
-        var pr = PullRequests.First(p => p.Value.Number == number);
-        PullRequests[pr.Key] = pr.Value with { Labels = [.. pr.Value.Labels.Concat(labels.Select(l => new GitHubLabel(l)))] };
-    }
 }

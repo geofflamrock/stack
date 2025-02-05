@@ -110,7 +110,6 @@ public class CreatePullRequestsCommandHandler(
                 Questions.SelectPullRequestsToCreate,
                 pullRequestCreateActions.ToArray(),
                 true,
-                null,
                 action => $"{action.Branch} -> {action.BaseBranch}")
                 .ToList();
 

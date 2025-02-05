@@ -17,10 +17,7 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft, GitHubLabel[] Labels)
-{
-    public string[] LabelNames => [.. Labels.Select(l => l.Name)];
-}
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft, GitHubLabel[] Labels);
 
 public record GitHubLabel(string Name);
 

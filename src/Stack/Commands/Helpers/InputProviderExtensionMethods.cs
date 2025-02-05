@@ -44,10 +44,9 @@ public static class InputProviderExtensionMethods
         string prompt,
         string[] choices,
         bool required,
-        string[]? presetValues = null,
-        string[]? selectedValues = null)
+        string[]? presetValues = null)
     {
-        var selection = presetValues ?? inputProvider.MultiSelect(prompt, choices, required, selectedValues);
+        var selection = presetValues ?? inputProvider.MultiSelect(prompt, choices, required);
 
         outputProvider.Information($"{prompt} {string.Join(", ", selection)}");
 
