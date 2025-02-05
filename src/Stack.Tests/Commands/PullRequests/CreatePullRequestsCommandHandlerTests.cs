@@ -680,6 +680,69 @@ A custom description
     }
 
     [Fact]
+    public async Task WhenNoLabelsExistInTheRepo_DoesNotAskForLabels_AndNoLabelsAreAppliedToCreatedPullRequests()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(branch1, true)
+            .WithBranch(branch2, true)
+            .Build();
+
+        var gitHubClient = new TestGitHubRepositoryBuilder().Build();
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var fileOperations = new FileOperations();
+        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+
+        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
+
+        var stacks = new List<Config.Stack>(
+        [
+            stack1,
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
+
+        // Act
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+
+        // Assert
+        var expectedPrBody = $@"{StackConstants.StackMarkerStart}
+A custom description
+
+{string.Join(Environment.NewLine, gitHubClient.PullRequests.Values.Select(pr => $"- {pr.Url}"))}
+{StackConstants.StackMarkerEnd}";
+
+        var expectedLabels = new List<string>(["label1", "label2"]).Select(l => new GitHubLabel(l)).ToArray();
+
+        var expectedPullRequests = new Dictionary<string, GitHubPullRequest>
+        {
+            [branch1] = new GitHubPullRequest(1, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false, []),
+            [branch2] = new GitHubPullRequest(2, "PR Title", expectedPrBody, GitHubPullRequestStates.Open, Some.HttpsUri(), false, [])
+        };
+
+        gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
+        inputProvider.DidNotReceive().MultiSelect(Questions.PullRequestLabels, Arg.Any<string[]>(), Arg.Any<bool>(), Arg.Any<Func<string, string>>());
+    }
+
+    [Fact]
     public async Task WhenLabelsExistInTheRepo_AsksForLabels_AndAppliesToCreatedPullRequests()
     {
         // Arrange

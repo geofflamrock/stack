@@ -128,7 +128,6 @@ public class CreatePullRequestsCommandHandler(
                 gitClient,
                 gitHubClient,
                 fileOperations,
-                stack,
                 selectedPullRequestActions);
 
             outputProvider.NewLine();
@@ -246,7 +245,6 @@ public class CreatePullRequestsCommandHandler(
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         IFileOperations fileOperations,
-        Config.Stack stack,
         List<PullRequestCreateAction> pullRequestCreateActions)
     {
         var pullRequestActions = new List<PullRequestInformation>();
@@ -289,11 +287,16 @@ public class CreatePullRequestsCommandHandler(
                 gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
-            var labels = inputProvider.MultiSelect(
-                outputProvider,
-                Questions.PullRequestLabels,
-                gitHubLabels,
-                false);
+            string[] labels = [];
+
+            if (gitHubLabels.Length > 0)
+            {
+                labels = inputProvider.MultiSelect(
+                    outputProvider,
+                    Questions.PullRequestLabels,
+                    gitHubLabels,
+                    false);
+            }
 
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
 
