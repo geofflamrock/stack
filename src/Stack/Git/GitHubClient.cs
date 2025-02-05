@@ -59,8 +59,6 @@ public interface IGitHubClient
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
     string[] GetLabels();
-    void RemovePullRequestLabels(int number, string[] labels);
-    void AddPullRequestLabels(int number, string[] labels);
 }
 
 public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings settings) : IGitHubClient
@@ -116,22 +114,6 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
         return [.. labels.Select(l => l.Name)];
-    }
-
-    public void RemovePullRequestLabels(int number, string[] labels)
-    {
-        foreach (var label in labels)
-        {
-            ExecuteGitHubCommand($"pr edit {number} --remove-label \"{Sanitize(label)}\"");
-        }
-    }
-
-    public void AddPullRequestLabels(int number, string[] labels)
-    {
-        foreach (var label in labels)
-        {
-            ExecuteGitHubCommand($"pr edit {number} --add-label \"{Sanitize(label)}\"");
-        }
     }
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)

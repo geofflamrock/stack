@@ -123,11 +123,6 @@ public class CreatePullRequestsCommandHandler(
 
             outputProvider.NewLine();
 
-            if (stack.Labels is null)
-            {
-                StackHelpers.UpdateStackPullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack);
-            }
-
             var pullRequestInformation = GetPullRequestInformation(
                 inputProvider,
                 outputProvider,
@@ -231,7 +226,7 @@ public class CreatePullRequestsCommandHandler(
                 var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
                 if (action is not null)
                 {
-                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
+                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}{(action.Labels.Length > 0 ? Markup.Escape($" [{string.Join(", ", action.Labels)}]").Muted() : string.Empty)}");
                 }
                 else
                 {
@@ -295,17 +290,11 @@ public class CreatePullRequestsCommandHandler(
                 gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
-            var gitHubLabelsSortedWithStackLabelsFirst = stack.Labels is not null
-                ? [.. gitHubLabels.OrderBy(l => l == stack.Labels[0] ? 0 : 1)]
-                : gitHubLabels;
-
             var labels = inputProvider.MultiSelect(
                 outputProvider,
                 Questions.PullRequestLabels,
-                gitHubLabelsSortedWithStackLabelsFirst,
-                false,
-                null,
-                stack.Labels);
+                gitHubLabels,
+                false);
 
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
 

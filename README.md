@@ -413,22 +413,6 @@ OPTIONS:
     -s, --stack          The name of the stack to open PRs for
 ```
 
-### `stack pr label`
-
-Sets the pull request labels for the stack and applies it all pull requests.
-
-```shell
-USAGE:
-    stack pr label [OPTIONS]
-
-OPTIONS:
-    -h, --help              Prints help information
-        --verbose           Show verbose output
-        --working-dir       The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack             The name of the stack to label PRs for
-    -l, --label <VALUES>    Labels to apply to the PRs. Can be provided multiple times
-```
-
 ## Advanced commands
 
 ### `stack config`
