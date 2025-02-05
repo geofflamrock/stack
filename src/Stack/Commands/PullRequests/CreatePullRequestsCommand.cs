@@ -157,8 +157,6 @@ public class CreatePullRequestsCommandHandler(
                     UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
                 }
 
-                // UpdatePullRequestLabels(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
-
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
                 {
                     foreach (var pullRequest in newPullRequests)
@@ -297,10 +295,16 @@ public class CreatePullRequestsCommandHandler(
                 gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
+            var gitHubLabelsSortedWithStackLabelsFirst = stack.Labels is not null
+                ? [.. gitHubLabels.OrderBy(l => l == stack.Labels[0] ? 0 : 1)]
+                : gitHubLabels;
+
             var labels = inputProvider.MultiSelect(
+                outputProvider,
                 Questions.PullRequestLabels,
-                gitHubLabels,
+                gitHubLabelsSortedWithStackLabelsFirst,
                 false,
+                null,
                 stack.Labels);
 
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
