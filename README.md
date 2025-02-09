@@ -1,16 +1,23 @@
 # stack
 
-A tool to help manage multiple Git branches and pull requests that stack on top of each other.
+A tool to help manage multiple Git branches and pull requests that build on top of each other.
 
-## What is this thing?
+When you are working on a change to your software, breaking down and shipping your work in smaller, iterative chunks using separate branches and pull requests that build on each other brings a number of benefits:
 
-When working on a large new feature for your application, it can be helpful to break your work into small chunks in separate branches. This makes it easier to get each part reviewed by your team in a pull request and merged in. Each part of this work will likely need to build on the last part.
+- It's easier to understand and reason about a smaller set of changes.
+- Getting someone to review your changes is easier if they are smaller and well contained. You are also more likely to get a high quality review that could catch issues compared to a massive pull request with a large number of changes which will often get skimmed.
+- Integration into long-lived branches such as `main` is easier and less prone to unintended issues.
+- It's easier to revert or fix if there is an issue.
+- Iterating on a change promotes getting feedback early and adjusting if you need to as you understand and complete the work.
 
-Managing multiple branches and pull requests that all build together into a set of work can be a difficult task, particularly over time whilst you need to wait for reviews and your `main` branch has moved forward, or you need to incorporate feedback to your work.
+This approach is not without it's tradeoffs though:
 
-This tool can help you to manage multiple branches that form together into a `stack`.
+- It can be hard to get the overall context or scope of a change across multiple branches and pull requests.
+- Keeping branches up to date with the latest changes in `main` is difficult, time-consuming and can easily be done incorrectly, leading to needing to untangle a mess of conflicts.
+- Getting reviews from other team members or other teams can take time.
+- Incorporating feedback from reviews across branches is difficult.
 
-See [stacking.dev](https://www.stacking.dev/) for a longer description of the problem this tool is aiming to help you solve.
+This is where `stack` comes in: It lets you manage multiple branches that form together into a stack, along with their associated pull requests, helping you to overcome the tradeoffs and gain the benefits of small, iterative changes.
 
 **Note: This project is under active development and is likely to have rough edges, bugs and missing things. Until it reaches `v1.0.0` it also might change at any time.**
 
@@ -21,11 +28,11 @@ See [stacking.dev](https://www.stacking.dev/) for a longer description of the pr
 In order to use `stack` you'll need the following:
 
 - The `git` CLI installed, added to your path and configured to access your repository.
-- The `gh` CLI installed, added to your path and authenticated if you want to use some of the GitHub integration points.
+- (optional) The `gh` CLI installed, added to your path and authenticated if you want to use some of the GitHub integration points.
 
 ### Installing `stack`
 
-To install stack download the relevant binary for your OS from the latest GitHub release, unarchive it and (optionally) add `stack` to your path.
+To install stack download the relevant binary for your OS from the [latest GitHub release](https://github.com/geofflamrock/stack/releases), unarchive it and (optionally) add `stack` to your path.
 
 Run `stack` to get a list of the available commands.
 
@@ -64,10 +71,11 @@ Once you've done some work on the first branch within the stack, at some point y
 - Run `stack branch new`.
 - Select the stack to create the branch in.
 - Give the branch a name.
+- Optionally push a new branch to the remote repository.
 
 The new branch will be created from the branch at the bottom of the stack and you can then switch to the branch if you would like to in order to make more changes.
 
-By default new branches are only created locally, you can either use the `--push` option or use the `stack push` command to push the branch to the remote.
+If a new branch was not pushed to the remote, you can use the `stack push` command to push the branch to the remote.
 
 ### Syncing a stack with the remote repository
 
