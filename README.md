@@ -1,4 +1,4 @@
-# stack
+# stack <!-- omit from toc -->
 
 A tool to help manage multiple Git branches and pull requests that build on top of each other.
 
@@ -21,16 +21,28 @@ This is where `stack` comes in: It lets you manage multiple branches that form t
 
 **Note: This project is under active development and is likely to have rough edges, bugs and missing things. Until it reaches `v1.0.0` it also might change at any time.**
 
+## Contents <!-- omit from toc -->
+
+- [Getting started](#getting-started)
+- [How does it work?](#how-does-it-work)
+  - [Creating a stack](#creating-a-stack)
+  - [Working within a stack](#working-within-a-stack)
+  - [Adding a new branch](#adding-a-new-branch)
+  - [Incorporating changes from the remote repository](#incorporating-changes-from-the-remote-repository)
+    - [Specifying an update strategy](#specifying-an-update-strategy)
+  - [Creating pull requests](#creating-pull-requests)
+- [Commands](#commands)
+
 ## Getting started
 
-### Prerequisites
+### Prerequisites <!-- omit from toc -->
 
 In order to use `stack` you'll need the following:
 
 - The `git` CLI installed, added to your path and configured to access your repository.
 - (optional) The `gh` CLI installed, added to your path and authenticated if you want to use some of the GitHub integration points.
 
-### Installing `stack`
+### Installing `stack` <!-- omit from toc -->
 
 To install stack download the relevant binary for your OS from the [latest GitHub release](https://github.com/geofflamrock/stack/releases), unarchive it and (optionally) add `stack` to your path.
 
@@ -64,7 +76,7 @@ If a new branch was not pushed to the remote, you can use the `stack push` comma
 
 Working within a stack is the same as working with Git as per normal, make your changes on the branch, commit them and push them to the remote. You likely have your own tooling and workflows for this, you can continue to use them.
 
-### Adding a new branch to the stack
+### Adding a new branch
 
 Once you've done some work on the first branch within the stack, at some point you'll likely want a second branch. To do this:
 
@@ -77,7 +89,7 @@ The new branch will be created from the branch at the bottom of the stack and yo
 
 If a new branch was not pushed to the remote, you can use the `stack push` command to push the branch to the remote.
 
-### Syncing a stack with the remote repository
+### Incorporating changes from the remote repository
 
 After working on a stack of branches for a while, you might need to incorporate changes that have happened to your source branch from others. To do this:
 
@@ -92,7 +104,7 @@ Branches in the stack will be updated by:
 - Updating branches in order in the stack, the equivalent of running `stack update`.
 - Pushing changes for all branches in the stack, the equivalent of running `stack push`.
 
-### Update strategies
+#### Specifying an update strategy
 
 There are two strategies that can be used to update branches in a stack.
 
@@ -100,7 +112,7 @@ The Git configuration key `stack.update.strategy` can be used to control the def
 
 The `merge` update strategy is used by default if no configuration is supplied.
 
-#### Merge
+##### Merge <!-- omit from toc -->
 
 When using the merge update strategy, each branch in the stack is merged into the one directly below it, starting with the source branch.
 
@@ -115,7 +127,7 @@ Updating a stack using merge, particularly if it has a number of branches in it,
 
 If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain.
 
-#### Rebase
+##### Rebase <!-- omit from toc -->
 
 When using the rebase update strategy, each branch in the stack is rebased on it's parent branch.
 
@@ -130,7 +142,7 @@ To push changes to the remote after rebasing you'll need to use the `--force-wit
 
 If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain, however for each commit that existed on the branch that was merged if you select to take the new single commit that now exists generally it isn't too bad.
 
-### Creating pull requests for the stack
+### Creating pull requests
 
 When you've made your changes you can create a set of pull requests that build off each other. This requires that you have the `gh` CLI installed on your path and authenticated (run `gh auth login`).
 
@@ -147,9 +159,11 @@ You can then open each pull request if the stack if you want to view them.
 
 `stack pr create` can be run multiple times, if there are new branches in the stack that don't have an associated pull request these will be created and the description updated on each pull request.
 
-## Stack commands
+## Commands
 
-### `stack new`
+### Stack commands <!-- omit from toc -->
+
+#### `stack new` <!-- omit from toc -->
 
 Creates a new stack.
 
@@ -167,7 +181,7 @@ OPTIONS:
     -b, --branch           The name of the branch to create within the stack
 ```
 
-### `stack list`
+#### `stack list` <!-- omit from toc -->
 
 Lists stacks for the current repository.
 
@@ -182,7 +196,7 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
 ```
 
-### `stack status`
+#### `stack status` <!-- omit from toc -->
 
 Shows the status of a stack, including commits compared to other branches and optionally the status of any associated pull requests.
 
@@ -200,7 +214,7 @@ OPTIONS:
         --full           Show full status including pull requests
 ```
 
-### `stack delete`
+#### `stack delete` <!-- omit from toc -->
 
 Deletes a stack. If there are local branches which no longer exist on the remote or the associated pull request is no longer open these can be deleted as part of the command.
 
@@ -216,9 +230,9 @@ OPTIONS:
     -s, --stack          The name of the stack to delete
 ```
 
-## Branch commands
+### Branch commands <!-- omit from toc -->
 
-### `stack update`
+#### `stack update` <!-- omit from toc -->
 
 Updates the branches for a stack by either merging or rebasing each branch.
 
@@ -236,7 +250,7 @@ OPTIONS:
         --merge          Use merge when updating the stack. Overrides any setting in Git configuration
 ```
 
-### `stack switch`
+#### `stack switch` <!-- omit from toc -->
 
 Switches to a different branch in the current stack or another stack.
 
@@ -252,7 +266,7 @@ OPTIONS:
     -b, --branch         The name of the branch to switch to
 ```
 
-### `stack cleanup`
+#### `stack cleanup` <!-- omit from toc -->
 
 Cleans up local branches in a stack which no longer exist on the remote or where the associated pull request is no longer open.
 
@@ -268,7 +282,7 @@ OPTIONS:
     -s, --stack          The name of the stack to cleanup
 ```
 
-### `stack branch new`
+#### `stack branch new` <!-- omit from toc -->
 
 Creates a new branch from the last branch in the stack and adds it.
 
@@ -284,7 +298,7 @@ OPTIONS:
     -n, --name           The name of the branch to create
 ```
 
-### `stack branch add`
+#### `stack branch add` <!-- omit from toc -->
 
 Adds an existing branch to the end of the stack.
 
@@ -300,7 +314,7 @@ OPTIONS:
     -n, --name           The name of the branch to add
 ```
 
-### `stack branch remove`
+#### `stack branch remove` <!-- omit from toc -->
 
 Removes a branch from a stack.
 
@@ -316,9 +330,9 @@ OPTIONS:
     -n, --name           The name of the branch to add
 ```
 
-## Remote commands
+### Remote commands <!-- omit from toc -->
 
-### `stack pull`
+#### `stack pull` <!-- omit from toc -->
 
 Pulls changes from the remote repository for a stack.
 
@@ -335,7 +349,7 @@ OPTIONS:
     -s, --stack          The name of the stack to pull changes from the remote for
 ```
 
-### `stack push`
+#### `stack push` <!-- omit from toc -->
 
 Pushes changes to the remote repository for a stack.
 
@@ -354,7 +368,7 @@ OPTIONS:
         --force-with-lease    Force push changes with lease
 ```
 
-### `stack sync`
+#### `stack sync` <!-- omit from toc -->
 
 Syncs a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.
 
@@ -374,9 +388,9 @@ OPTIONS:
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
 ```
 
-## GitHub commands
+### GitHub commands <!-- omit from toc -->
 
-### `stack pr create`
+#### `stack pr create` <!-- omit from toc -->
 
 Creates and/or updates pull requests for each branch in a stack.
 
@@ -391,7 +405,7 @@ OPTIONS:
     -s, --stack          The name of the stack to create pull requests for
 ```
 
-### `stack pr open`
+#### `stack pr open` <!-- omit from toc -->
 
 Opens pull requests for a stack in the default browser.
 
@@ -406,7 +420,7 @@ OPTIONS:
     -s, --stack          The name of the stack to open PRs for
 ```
 
-### `stack pr description`
+#### `stack pr description` <!-- omit from toc -->
 
 Sets the pull request description for the stack and applies it all pull requests.
 
@@ -421,9 +435,9 @@ OPTIONS:
     -s, --stack          The name of the stack to open PRs for
 ```
 
-## Advanced commands
+### Advanced commands <!-- omit from toc -->
 
-### `stack config`
+#### `stack config` <!-- omit from toc -->
 
 Opens the configuration file in the default editor.
 
