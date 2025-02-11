@@ -1,3 +1,20 @@
+# v0.9.1 (Tue Feb 11 2025)
+
+#### 🐛 Bug Fixes
+
+- Improve error handling of push failures when creating new branches [#214](https://github.com/geofflamrock/stack/pull/214) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 📝 Documentation
+
+- Add table of contents to readme [#212](https://github.com/geofflamrock/stack/pull/212) ([@geofflamrock](https://github.com/geofflamrock))
+- Improve introduction in readme [#211](https://github.com/geofflamrock/stack/pull/211) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.9.0 (Wed Feb 05 2025)
 
 #### 🚀 New Features and Improvements
