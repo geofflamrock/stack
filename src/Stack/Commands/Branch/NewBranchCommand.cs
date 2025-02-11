@@ -104,7 +104,14 @@ public class NewBranchCommandHandler(
 
         if (inputProvider.Confirm(Questions.ConfirmPushBranch))
         {
-            gitClient.PushNewBranch(branchName);
+            try
+            {
+                gitClient.PushNewBranch(branchName);
+            }
+            catch (Exception)
+            {
+                outputProvider.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            }
         }
         else
         {

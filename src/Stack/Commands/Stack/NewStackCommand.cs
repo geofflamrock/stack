@@ -105,9 +105,9 @@ public class NewStackCommandHandler(
                     {
                         gitClient.PushNewBranch(branchName);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        outputProvider.Warning($"Failed to push branch {branchName.Branch()} to remote repository. {ex.Message}. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                        outputProvider.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
                     }
                 }
                 else

@@ -415,4 +415,53 @@ public class NewBranchCommandHandlerTests
         gitClient.GetCurrentBranch().Should().NotBe(newBranch);
         repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
     }
+
+    [Fact]
+    public async Task WhenPushToTheRemoteFails_StillCreatesTheBranchLocallyAndAddsItToTheStack()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var anotherBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(anotherBranch)
+            .Build();
+
+        var stackConfig = Substitute.For<IStackConfig>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var outputProvider = Substitute.For<IOutputProvider>();
+        var gitClient = Substitute.ForPartsOf<GitClient>(outputProvider, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+
+        gitClient
+            .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))
+            .Throw(new Exception("Failed to push branch"));
+
+        var stacks = new List<Config.Stack>(
+        [
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        ]);
+        stackConfig.Load().Returns(stacks);
+        stackConfig
+            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
+            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Confirm(Questions.ConfirmPushBranch).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
+
+        // Act
+        await handler.Handle(new NewBranchCommandInputs(null, null));
+
+        // Assert
+        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, newBranch]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        });
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
+    }
 }
