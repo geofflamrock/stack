@@ -58,7 +58,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         ExecuteGitCommand($"branch {branchName} {sourceBranch}");
     }
 
-    public void PushNewBranch(string branchName)
+    public virtual void PushNewBranch(string branchName)
     {
         ExecuteGitCommand($"push -u origin {branchName}");
     }

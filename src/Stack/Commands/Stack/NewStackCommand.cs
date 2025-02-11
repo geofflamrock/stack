@@ -101,7 +101,14 @@ public class NewStackCommandHandler(
 
                 if (inputProvider.Confirm(Questions.ConfirmPushBranch))
                 {
-                    gitClient.PushNewBranch(branchName);
+                    try
+                    {
+                        gitClient.PushNewBranch(branchName);
+                    }
+                    catch (Exception ex)
+                    {
+                        outputProvider.Warning($"Failed to push branch {branchName.Branch()} to remote repository. {ex.Message}. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                    }
                 }
                 else
                 {
