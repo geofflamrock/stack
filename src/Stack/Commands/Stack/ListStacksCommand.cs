@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Text.Json;
 using Humanizer;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -7,7 +9,12 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class ListStacksCommandSettings : CommandSettingsBase;
+public class ListStacksCommandSettings : CommandSettingsBase
+{
+    [Description("Output the list of stacks in JSON format.")]
+    [CommandOption("--json")]
+    public bool Json { get; init; }
+}
 
 public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 {
@@ -34,6 +41,12 @@ public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
         if (stacksForRemote.Count == 0)
         {
             console.WriteLine("No stacks found for current repository.");
+            return 0;
+        }
+
+        if (settings.Json)
+        {
+            console.WriteLine(JsonSerializer.Serialize(stacksForRemote));
             return 0;
         }
 
