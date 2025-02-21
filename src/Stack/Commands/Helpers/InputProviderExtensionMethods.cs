@@ -58,7 +58,8 @@ public static class InputProviderExtensionMethods
         IOutputProvider outputProvider,
         string? name,
         List<Config.Stack> stacks,
-        string currentBranch)
+        string currentBranch,
+        bool outputResult = true)
     {
         var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
         var stackSelection =
@@ -67,7 +68,7 @@ public static class InputProviderExtensionMethods
             inputProvider.Select(Questions.SelectStack, stackNames);
         var stack = stacks.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
-        if (stack is not null)
+        if (stack is not null && outputResult)
         {
             outputProvider.Information($"{Questions.SelectStack} {stack.Name}");
         }

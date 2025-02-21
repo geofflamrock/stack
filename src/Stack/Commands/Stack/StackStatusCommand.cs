@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
@@ -21,6 +22,10 @@ public class StackStatusCommandSettings : CommandSettingsBase
     [Description("Show full status including pull requests.")]
     [CommandOption("--full")]
     public bool Full { get; init; }
+
+    [Description("Output the status of stacks in JSON format.")]
+    [CommandOption("--json")]
+    public bool Json { get; init; }
 }
 
 public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
@@ -37,13 +42,13 @@ public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
+        await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full, settings.Json));
 
         return 0;
     }
 }
 
-public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
+public record StackStatusCommandInputs(string? Stack, bool All, bool Full, bool Json = false);
 public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
 
 public class StackStatusCommandHandler(
@@ -70,7 +75,7 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+            var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch, !inputs.Json);
 
             if (stack is null)
             {
@@ -88,6 +93,13 @@ public class StackStatusCommandHandler(
             gitHubClient,
             inputs.Full);
 
+        if (inputs.Json)
+        {
+            StackStatusOutput[] stackStatusOutput = [.. stackStatusResults.Select(kvp => new StackStatusOutput(kvp.Key.Name, kvp.Key.SourceBranch, [.. kvp.Key.Branches], kvp.Value))];
+            outputProvider.Information(Markup.Escape(JsonSerializer.Serialize(stackStatusOutput, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
+            return new StackStatusCommandResponse(stackStatusResults);
+        }
+
         if (stackStatusResults.Count == 1)
         {
             outputProvider.NewLine();
@@ -103,4 +115,7 @@ public class StackStatusCommandHandler(
 
         return new StackStatusCommandResponse(stackStatusResults);
     }
+
+
+    record StackStatusOutput(string Name, string SourceBranch, string[] Branches, StackStatus Status);
 }

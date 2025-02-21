@@ -46,7 +46,7 @@ public class ListStacksCommand : AsyncCommand<ListStacksCommandSettings>
 
         if (settings.Json)
         {
-            console.WriteLine(JsonSerializer.Serialize(stacksForRemote));
+            console.WriteLine(JsonSerializer.Serialize(stacksForRemote, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
             return 0;
         }
 
