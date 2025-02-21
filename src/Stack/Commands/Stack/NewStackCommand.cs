@@ -27,7 +27,7 @@ public class NewStackCommandSettings : CommandSettingsBase
 
     [Description("Confirm all prompts")]
     [CommandOption("--yes")]
-    public bool Yes { get; init; }
+    public bool Confirm { get; init; }
 }
 
 public enum BranchAction
@@ -55,13 +55,13 @@ public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(
-            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.Yes));
+            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName, settings.Confirm));
 
         return 0;
     }
 }
 
-public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool Yes = false)
+public record NewStackCommandInputs(string? Name, string? SourceBranch, string? BranchName, bool Confirm = false)
 {
     public static NewStackCommandInputs Empty => new(null, null, null, false);
 }
@@ -94,7 +94,7 @@ public class NewStackCommandHandler(
         {
             branchAction = branches.Contains(inputs.BranchName) ? BranchAction.Add : BranchAction.Create;
         }
-        else if (!inputs.Yes && inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch))
+        else if (!inputs.Confirm && inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch))
         {
             branchAction = inputProvider.Select(
                 Questions.AddOrCreateBranch,
@@ -110,7 +110,7 @@ public class NewStackCommandHandler(
 
             gitClient.CreateNewBranch(branchName, sourceBranch);
 
-            if (inputs.Yes || inputProvider.Confirm(Questions.ConfirmPushBranch))
+            if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmPushBranch))
             {
                 try
                 {
@@ -140,7 +140,7 @@ public class NewStackCommandHandler(
 
         stackConfig.Save(stacks);
 
-        if (branchName is not null && (inputs.Yes
+        if (branchName is not null && (inputs.Confirm
             || inputs.BranchName is not null
             || inputProvider.Confirm(Questions.ConfirmSwitchToBranch)))
         {

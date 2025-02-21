@@ -14,6 +14,10 @@ public class CleanupStackCommandSettings : CommandSettingsBase
     [Description("The name of the stack to cleanup.")]
     [CommandOption("-s|--stack")]
     public string? Stack { get; init; }
+
+    [Description("Confirm all prompts")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
@@ -32,15 +36,15 @@ public class CleanupStackCommand : AsyncCommand<CleanupStackCommandSettings>
             new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
+        await handler.Handle(new CleanupStackCommandInputs(settings.Stack, settings.Confirm));
 
         return 0;
     }
 }
 
-public record CleanupStackCommandInputs(string? Stack)
+public record CleanupStackCommandInputs(string? Stack, bool Confirm = false)
 {
-    public static CleanupStackCommandInputs Empty => new((string?)null);
+    public static CleanupStackCommandInputs Empty => new(null, false);
 }
 
 public record CleanupStackCommandResponse(string? CleanedUpStackName);
@@ -79,7 +83,7 @@ public class CleanupStackCommandHandler(
 
         StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
 
-        if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
             StackHelpers.CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
 

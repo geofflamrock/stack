@@ -17,6 +17,10 @@ public class NewBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to create.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("Confirm all prompts")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
@@ -34,15 +38,15 @@ public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
             new GitClient(outputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
+        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Confirm));
 
         return 0;
     }
 }
 
-public record NewBranchCommandInputs(string? StackName, string? BranchName)
+public record NewBranchCommandInputs(string? StackName, string? BranchName, bool Confirm = false)
 {
-    public static NewBranchCommandInputs Empty => new(null, null);
+    public static NewBranchCommandInputs Empty => new(null, null, false);
 }
 
 public record NewBranchCommandResponse();
@@ -102,7 +106,7 @@ public class NewBranchCommandHandler(
 
         outputProvider.Information($"Branch {branchName.Branch()} created.");
 
-        if (inputProvider.Confirm(Questions.ConfirmPushBranch))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmPushBranch))
         {
             try
             {
@@ -118,7 +122,7 @@ public class NewBranchCommandHandler(
             outputProvider.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
         }
 
-        if (inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
         {
             gitClient.ChangeBranch(branchName);
         }
