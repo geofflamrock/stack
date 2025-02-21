@@ -91,7 +91,8 @@ public class StackStatusCommandHandler(
             outputProvider,
             gitClient,
             gitHubClient,
-            inputs.Full);
+            inputs.Full,
+            !inputs.Json);
 
         if (inputs.Json)
         {

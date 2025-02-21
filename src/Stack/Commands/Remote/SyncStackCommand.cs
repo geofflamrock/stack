@@ -26,6 +26,10 @@ public class SyncStackCommandSettings : CommandSettingsBase
     [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
     [CommandOption("--merge")]
     public bool? Merge { get; init; }
+
+    [Description("Confirm all prompts")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
@@ -46,7 +50,8 @@ public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
             settings.Stack,
             settings.MaxBatchSize,
             settings.Rebase,
-            settings.Merge));
+            settings.Merge,
+            settings.Confirm));
 
         return 0;
     }
@@ -56,9 +61,10 @@ public record SyncStackCommandInputs(
     string? Stack,
     int MaxBatchSize,
     bool? Rebase,
-    bool? Merge)
+    bool? Merge,
+    bool Confirm = false)
 {
-    public static SyncStackCommandInputs Empty => new(null, 5, null, null);
+    public static SyncStackCommandInputs Empty => new(null, 5, null, null, false);
 }
 
 public record SyncStackCommandResponse();
@@ -109,7 +115,7 @@ public class SyncStackCommandHandler(
 
         outputProvider.NewLine();
 
-        if (inputProvider.Confirm(Questions.ConfirmSyncStack))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmSyncStack))
         {
             outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 

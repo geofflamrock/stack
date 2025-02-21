@@ -39,7 +39,8 @@ public static class StackHelpers
         IOutputProvider outputProvider,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
-        bool includePullRequestStatus = true)
+        bool includePullRequestStatus = true,
+        bool outputProgress = true)
     {
         var stacksToCheckStatusFor = new Dictionary<Config.Stack, StackStatus>();
 
@@ -102,7 +103,7 @@ public static class StackHelpers
 
         if (includePullRequestStatus)
         {
-            outputProvider.Status("Checking status of GitHub pull requests...", () =>
+            void GetPullRequestStatus()
             {
                 foreach (var (stack, status) in stacksToCheckStatusFor)
                 {
@@ -123,7 +124,20 @@ public static class StackHelpers
                         outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
                     }
                 }
-            });
+            }
+
+            if (outputProgress)
+            {
+                // TODO: Find a better way to do this
+                outputProvider.Status("Checking status of GitHub pull requests...", () =>
+                {
+                    GetPullRequestStatus();
+                });
+            }
+            else
+            {
+                GetPullRequestStatus();
+            }
         }
 
         return stacksToCheckStatusFor;
