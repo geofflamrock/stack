@@ -2,11 +2,9 @@ using System.Text.RegularExpressions;
 
 namespace Stack.Git;
 
-public static class GitBranchStatusParser
+public static partial class GitBranchStatusParser
 {
-    static Regex regex = new(
-        @"^(?<isCurrentBranch>\*)?\s*(?<branchName>\S+)\s+(?<sha>\S+)\s*(\[(?<remoteTrackingBranchName>[^:]+)?(?::\s*(?<status>(ahead\s+(?<ahead>\d+),\s*behind\s+(?<behind>\d+))|(ahead\s+(?<aheadOnly>\d+))|(behind\s+(?<behindOnly>\d+))|(gone)))?\])?\s+(?<message>.+)$",
-        RegexOptions.Compiled);
+    static Regex regex = ParseGitBranchStatusRegex();
 
     public static GitBranchStatus? Parse(string branchStatus)
     {
@@ -28,4 +26,7 @@ public static class GitBranchStatusParser
 
         return null;
     }
+
+    [GeneratedRegex(@"^(?<isCurrentBranch>\*)?\s*(?<branchName>\S+)\s+(?<sha>\S+)\s*(\[(?<remoteTrackingBranchName>[^:]+)?(?::\s*(?<status>(ahead\s+(?<ahead>\d+),\s*behind\s+(?<behind>\d+))|(ahead\s+(?<aheadOnly>\d+))|(behind\s+(?<behindOnly>\d+))|(gone)))?\])?\s+(?<message>.+)$", RegexOptions.Compiled)]
+    private static partial Regex ParseGitBranchStatusRegex();
 }

@@ -85,36 +85,47 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackHelpers.GetStackStatus(
-            stacksToCheckStatusFor,
-            currentBranch,
-            outputProvider,
+        var stackDetails = StackHelpers.GetStackDetails(
+            [.. stacksToCheckStatusFor],
             gitClient,
             gitHubClient,
-            inputs.Full,
-            !inputs.Json);
+            inputs.Full);
 
         if (inputs.Json)
         {
-            StackStatusOutput[] stackStatusOutput = [.. stackStatusResults.Select(kvp => new StackStatusOutput(kvp.Key.Name, kvp.Key.SourceBranch, [.. kvp.Key.Branches], kvp.Value))];
-            outputProvider.Information(Markup.Escape(JsonSerializer.Serialize(stackStatusOutput, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
-            return new StackStatusCommandResponse(stackStatusResults);
+            outputProvider.Information(Markup.Escape(JsonSerializer.Serialize(stackDetails, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
         }
 
-        if (stackStatusResults.Count == 1)
-        {
-            outputProvider.NewLine();
-        }
+        // var stackStatusResults = StackHelpers.GetStackStatus(
+        //     stacksToCheckStatusFor,
+        //     currentBranch,
+        //     outputProvider,
+        //     gitClient,
+        //     gitHubClient,
+        //     inputs.Full,
+        //     !inputs.Json);
 
-        StackHelpers.OutputStackStatus(stackStatusResults, outputProvider);
+        // if (inputs.Json)
+        // {
+        //     StackStatusOutput[] stackStatusOutput = [.. stackStatusResults.Select(kvp => new StackStatusOutput(kvp.Key.Name, kvp.Key.SourceBranch, [.. kvp.Key.Branches], kvp.Value))];
+        //     outputProvider.Information(Markup.Escape(JsonSerializer.Serialize(stackStatusOutput, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
+        //     return new StackStatusCommandResponse(stackStatusResults);
+        // }
 
-        if (stacksToCheckStatusFor.Count == 1)
-        {
-            var (stack, status) = stackStatusResults.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, outputProvider);
-        }
+        // if (stackStatusResults.Count == 1)
+        // {
+        //     outputProvider.NewLine();
+        // }
 
-        return new StackStatusCommandResponse(stackStatusResults);
+        // StackHelpers.OutputStackStatus(stackStatusResults, outputProvider);
+
+        // if (stacksToCheckStatusFor.Count == 1)
+        // {
+        //     var (stack, status) = stackStatusResults.First();
+        //     StackHelpers.OutputBranchAndStackActions(stack, status, outputProvider);
+        // }
+
+        return new StackStatusCommandResponse(new Dictionary<Config.Stack, StackStatus>());
     }
 
 
