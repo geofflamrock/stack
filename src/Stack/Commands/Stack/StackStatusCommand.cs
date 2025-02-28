@@ -95,6 +95,10 @@ public class StackStatusCommandHandler(
         {
             outputProvider.Information(Markup.Escape(JsonSerializer.Serialize(stackDetails, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })));
         }
+        else
+        {
+            StackHelpers.OutputStackStatus(stackDetails, outputProvider);
+        }
 
         // var stackStatusResults = StackHelpers.GetStackStatus(
         //     stacksToCheckStatusFor,

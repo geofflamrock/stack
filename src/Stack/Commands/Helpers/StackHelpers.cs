@@ -31,11 +31,11 @@ public record StackStatus(Dictionary<string, BranchDetail> Branches)
     public string[] GetActiveBranches() => Branches.Where(b => b.Value.IsActive).Select(b => b.Key).ToArray();
 }
 
-public record StackDetail(string Name, SourceBranch SourceBranch, StackBranch[] Branches);
+public record StackDetail(string Name, Branch SourceBranch, StackBranch[] Branches);
 
 public record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, int Behind);
 
-public record SourceBranch(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch);
+public record Branch(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch);
 
 public record StackBranch(
     string Name,
@@ -43,9 +43,9 @@ public record StackBranch(
     Commit? Tip,
     RemoteTrackingBranchStatus? RemoteTrackingBranch,
     GitHubPullRequest? PullRequest,
-    ParentBranchStatus? Parent);
+    ParentBranchStatus? Parent) : Branch(Name, Exists, Tip, RemoteTrackingBranch);
 
-public record ParentBranchStatus(int Ahead, int Behind);
+public record ParentBranchStatus(Branch Parent, int Ahead, int Behind);
 
 public static class StackHelpers
 {
@@ -77,7 +77,7 @@ public static class StackHelpers
 
         branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus);
 
-        var sourceBranch = new SourceBranch(
+        var sourceBranch = new Branch(
             stack.SourceBranch,
             sourceBranchStatus is not null,
             sourceBranchStatus?.Tip,
@@ -90,7 +90,7 @@ public static class StackHelpers
 
         var stackBranches = new List<StackBranch>();
 
-        var parentBranch = stack.SourceBranch;
+        var parentBranch = sourceBranch;
 
         foreach (var branch in stack.Branches)
         {
@@ -114,31 +114,33 @@ public static class StackHelpers
                     );
                 }
 
-                var (aheadOfParent, behindParent) = gitClient.CompareBranches(branch, parentBranch);
+                var (aheadOfParent, behindParent) = gitClient.CompareBranches(branch, parentBranch.Name);
 
-                parentBranchStatus = new ParentBranchStatus(aheadOfParent, behindParent);
+                parentBranchStatus = new ParentBranchStatus(parentBranch, aheadOfParent, behindParent);
 
                 if (includePullRequestStatus)
                 {
                     pullRequest = gitHubClient.GetPullRequest(branch);
                 }
-
-                // Consider a branch as a parent if it either doesn't have
-                // a remote tracking branch at all (local only) or it has a remote
-                // tracking branch and it still exists.
-                if (branchStatus.RemoteTrackingBranchName is null || branchStatus.RemoteBranchExists)
-                {
-                    parentBranch = branch;
-                }
             }
 
-            stackBranches.Add(new StackBranch(
+            var stackBranch = new StackBranch(
                 branch,
                 branchStatus is not null,
                 tip,
                 remoteTrackingBranch,
                 pullRequest,
-                parentBranchStatus));
+                parentBranchStatus);
+
+            stackBranches.Add(stackBranch);
+
+            // Consider a branch as a parent if it either doesn't have
+            // a remote tracking branch at all (local only) or it has a remote
+            // tracking branch and it still exists.
+            if (branchStatus is not null && (branchStatus.RemoteTrackingBranchName is null || branchStatus.RemoteBranchExists))
+            {
+                parentBranch = stackBranch;
+            }
         }
 
         return new StackDetail(stack.Name, sourceBranch, [.. stackBranches]);
@@ -452,6 +454,163 @@ public static class StackHelpers
             outputProvider.Information($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} to sync the stack with the remote repository.");
             outputProvider.NewLine();
         }
+    }
+
+    public static void OutputStackStatus(
+        StackDetail[] stackDetails,
+        IOutputProvider outputProvider)
+    {
+        foreach (var stackDetail in stackDetails)
+        {
+            OutputStackStatus(stackDetail, outputProvider);
+            outputProvider.NewLine();
+        }
+    }
+
+    public static void OutputStackStatus(
+        StackDetail stackDetail,
+        IOutputProvider outputProvider)
+    {
+        var header = GetBranchNameOutput(stackDetail.SourceBranch);
+
+        var items = new List<string>();
+
+        foreach (var branch in stackDetail.Branches)
+        {
+            items.Add(GetBranchAndPullRequestStatusOutput(branch));
+        }
+
+        outputProvider.Information(stackDetail.Name.Stack());
+        outputProvider.Tree(header, [.. items]);
+    }
+
+    public static string GetBranchAndPullRequestStatusOutput(StackBranch branch)
+    {
+        var branchNameBuilder = new StringBuilder();
+        branchNameBuilder.Append(GetStackBranchOutput(branch));
+
+        if (branch.PullRequest is not null)
+        {
+            branchNameBuilder.Append($"   {branch.PullRequest.GetPullRequestDisplay()}");
+        }
+
+        return branchNameBuilder.ToString();
+    }
+
+    public static string GetBranchNameOutput(Branch branch)
+    {
+        var branchNameBuilder = new StringBuilder();
+
+        var branchName = branch.Name;
+        Color? color = branch.Exists ? null : Color.Grey;
+        Decoration? decoration = branch.Exists ? null : Decoration.Strikethrough;
+
+        if (color is not null && decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration} {color}]{branchName}[/]");
+        }
+        else if (color is not null)
+        {
+            branchNameBuilder.Append($"[{color}]{branchName}[/]");
+        }
+        else if (decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration}]{branchName}[/]");
+        }
+        else
+        {
+            branchNameBuilder.Append(branchName);
+        }
+
+        if (branch.RemoteTrackingBranch is not null)
+        {
+            if (branch.RemoteTrackingBranch.Exists)
+            {
+                if (branch.RemoteTrackingBranch.Ahead > 0 || branch.RemoteTrackingBranch.Behind > 0)
+                {
+                    branchNameBuilder.Append($" {branch.RemoteTrackingBranch.Behind}{Emoji.Known.DownArrow}{branch.RemoteTrackingBranch.Ahead}{Emoji.Known.UpArrow}");
+                }
+            }
+        }
+
+        return branchNameBuilder.ToString();
+    }
+
+    public static string GetStackBranchOutput(StackBranch branch)
+    {
+        var branchNameBuilder = new StringBuilder();
+
+        var branchName = branch.Name;
+        Color? color = branch.Exists ? null : Color.Grey;
+        Decoration? decoration = branch.Exists ? null : Decoration.Strikethrough;
+
+        if (color is not null && decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration} {color}]{branchName}[/]");
+        }
+        else if (color is not null)
+        {
+            branchNameBuilder.Append($"[{color}]{branchName}[/]");
+        }
+        else if (decoration is not null)
+        {
+            branchNameBuilder.Append($"[{decoration}]{branchName}[/]");
+        }
+        else
+        {
+            branchNameBuilder.Append(branchName);
+        }
+
+        if (!branch.Exists)
+        {
+            return branchNameBuilder.ToString();
+        }
+
+        if (branch.PullRequest is not null && branch.PullRequest.State == GitHubPullRequestStates.Merged)
+        {
+            branchNameBuilder.Append(" (pull request merged)".Muted());
+        }
+        else if (branch.RemoteTrackingBranch is not null)
+        {
+            if (branch.RemoteTrackingBranch.Exists)
+            {
+                if (branch.RemoteTrackingBranch.Ahead > 0 || branch.RemoteTrackingBranch.Behind > 0)
+                {
+                    branchNameBuilder.Append($" {branch.RemoteTrackingBranch.Behind}{Emoji.Known.DownArrow}{branch.RemoteTrackingBranch.Ahead}{Emoji.Known.UpArrow}");
+                }
+            }
+            else
+            {
+                branchNameBuilder.Append(" (remote branch deleted)".Muted());
+            }
+        }
+        else
+        {
+            branchNameBuilder.Append(" (no remote tracking branch)".Muted());
+        }
+
+        if (branch.Parent is not null)
+        {
+            if (branch.Parent.Ahead > 0 && branch.Parent.Behind > 0)
+            {
+                branchNameBuilder.Append($" ({branch.Parent.Ahead} ahead, {branch.Parent.Behind} behind {branch.Parent.Parent.Name})".Muted());
+            }
+            else if (branch.Parent.Ahead > 0)
+            {
+                branchNameBuilder.Append($" ({branch.Parent.Ahead} ahead of {branch.Parent.Parent.Name})".Muted());
+            }
+            else if (branch.Parent.Behind > 0)
+            {
+                branchNameBuilder.Append($" ({branch.Parent.Behind} behind {branch.Parent.Parent.Name})".Muted());
+            }
+        }
+
+        if (branch.Tip is not null)
+        {
+            branchNameBuilder.Append($"   {branch.Tip.Sha[..7]} {Markup.Escape(branch.Tip.Message)}");
+        }
+
+        return branchNameBuilder.ToString();
     }
 
     public static UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient)
