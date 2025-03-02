@@ -15,7 +15,7 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CreatePullRequestsCommand : CommandBase<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand : CommandWithHandler<CreatePullRequestsCommandSettings, CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
@@ -31,6 +31,15 @@ public class CreatePullRequestsCommand : CommandBase<CreatePullRequestsCommandSe
 
         return 0;
     }
+
+    protected override CreatePullRequestsCommandInputs CreateInputs(CreatePullRequestsCommandSettings settings) => new(settings.Stack);
+    protected override CommandHandlerBase<CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse> CreateHandler(CreatePullRequestsCommandSettings settings) => new CreatePullRequestsCommandHandler(
+        InputProvider,
+        OutputProvider,
+        new GitClient(OutputProvider, settings.GetGitClientSettings()),
+        new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+        new FileOperations(),
+        new StackConfig());
 }
 
 public record CreatePullRequestsCommandInputs(string? Stack)
@@ -47,8 +56,9 @@ public class CreatePullRequestsCommandHandler(
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
     IStackConfig stackConfig)
+    : CommandHandlerBase<CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse>
 {
-    public async Task<CreatePullRequestsCommandResponse> Handle(CreatePullRequestsCommandInputs inputs)
+    public override async Task<CreatePullRequestsCommandResponse> Handle(CreatePullRequestsCommandInputs inputs)
     {
         await Task.CompletedTask;
 

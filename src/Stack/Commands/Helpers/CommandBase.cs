@@ -24,3 +24,50 @@ public abstract class CommandBase<T> : AsyncCommand<T> where T : CommandSettings
 
     public abstract override Task<int> ExecuteAsync(CommandContext context, T settings);
 }
+
+public abstract class CommandWithHandler<TSettings, TInput, TResponse> : CommandBase<TSettings>
+    where TSettings : CommandSettingsBase
+    where TInput : notnull
+    where TResponse : notnull
+{
+    public override async Task<int> ExecuteAsync(CommandContext context, TSettings settings)
+    {
+        var inputs = CreateInputs(settings);
+        var handler = CreateHandler(settings);
+
+        var response = await handler.Handle(inputs);
+
+        var formatter = CreateFormatter(settings);
+
+        Console.WriteLine(formatter.Format(response));
+
+        return 0;
+    }
+
+    protected abstract CommandHandlerBase<TInput, TResponse> CreateHandler(TSettings settings);
+
+    protected abstract TInput CreateInputs(TSettings settings);
+
+    protected virtual IOutputFormatter<TResponse> CreateFormatter(TSettings settings)
+    {
+        return new DefaultOutputFormatter<TResponse>();
+    }
+}
+
+public class DefaultOutputFormatter<T> : IOutputFormatter<T> where T : notnull
+{
+    public string Format(T response) => response.ToString();
+}
+
+public abstract class CommandHandlerBase<TInput, TResponse>
+    where TInput : notnull
+    where TResponse : notnull
+{
+    public abstract Task<TResponse> Handle(TInput inputs);
+}
+
+public interface IOutputFormatter<T> where T : notnull
+{
+    string Format(T response);
+}
+
