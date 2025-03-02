@@ -23,18 +23,15 @@ public class StackStatusCommandSettings : CommandSettingsBase
     public bool Full { get; init; }
 }
 
-public class StackStatusCommand : AsyncCommand<StackStatusCommandSettings>
+public class StackStatusCommand : CommandBase<StackStatusCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new StackStatusCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));

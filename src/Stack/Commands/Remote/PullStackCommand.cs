@@ -15,17 +15,14 @@ public class PullStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
+public class PullStackCommand : CommandBase<PullStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, PullStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new PullStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));

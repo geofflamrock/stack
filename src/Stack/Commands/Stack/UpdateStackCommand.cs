@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using Humanizer;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -24,18 +23,15 @@ public class UpdateStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class UpdateStackCommand : AsyncCommand<UpdateStackCommandSettings>
+public class UpdateStackCommand : CommandBase<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new UpdateStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));

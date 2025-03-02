@@ -19,19 +19,14 @@ public class NewBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
+public class NewBranchCommand : CommandBase<NewBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new NewBranchCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));

@@ -28,18 +28,15 @@ public class SyncStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class SyncStackCommand : AsyncCommand<SyncStackCommandSettings>
+public class SyncStackCommand : CommandBase<SyncStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SyncStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new SyncStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(

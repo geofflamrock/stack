@@ -15,18 +15,15 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand : CommandBase<CreatePullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new CreatePullRequestsCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new FileOperations(),
             new StackConfig());
 

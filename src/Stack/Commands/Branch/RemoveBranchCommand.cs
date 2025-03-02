@@ -19,19 +19,14 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
+public class RemoveBranchCommand : CommandBase<RemoveBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, RemoveBranchCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new RemoveBranchCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));

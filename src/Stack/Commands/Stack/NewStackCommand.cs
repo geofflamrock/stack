@@ -35,17 +35,14 @@ public enum BranchAction
     Create
 }
 
-public class NewStackCommand : AsyncCommand<NewStackCommandSettings>
+public class NewStackCommand : CommandBase<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new NewStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(

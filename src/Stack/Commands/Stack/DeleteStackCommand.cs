@@ -16,26 +16,21 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
+public class DeleteStackCommand : CommandBase<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new DeleteStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Stack));
 
         if (response.DeletedStackName is not null)
-            console.MarkupLine($"Stack {response.DeletedStackName.Stack()} deleted");
+            OutputProvider.Information($"Stack {response.DeletedStackName.Stack()} deleted");
 
         return 0;
     }

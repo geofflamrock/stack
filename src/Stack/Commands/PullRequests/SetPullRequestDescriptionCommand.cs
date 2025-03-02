@@ -15,18 +15,15 @@ public class SetPullRequestDescriptionCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class SetPullRequestDescriptionCommand : AsyncCommand<SetPullRequestDescriptionCommandSettings>
+public class SetPullRequestDescriptionCommand : CommandBase<SetPullRequestDescriptionCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SetPullRequestDescriptionCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new SetPullRequestDescriptionCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            OutputProvider,
+            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
