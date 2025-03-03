@@ -20,9 +20,9 @@ public class CreatePullRequestsCommand : CommandWithHandler<CreatePullRequestsCo
     protected override CreatePullRequestsCommandInputs CreateInputs(CreatePullRequestsCommandSettings settings) => new(settings.Stack);
     protected override CommandHandlerBase<CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse> CreateHandler(CreatePullRequestsCommandSettings settings) => new CreatePullRequestsCommandHandler(
         InputProvider,
-        OutputProvider,
-        new GitClient(OutputProvider, settings.GetGitClientSettings()),
-        new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+        Logger,
+        new GitClient(Logger, settings.GetGitClientSettings()),
+        new GitHubClient(Logger, settings.GetGitHubClientSettings()),
         new FileOperations(),
         new StackConfig());
 }

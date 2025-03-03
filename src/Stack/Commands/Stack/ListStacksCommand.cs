@@ -14,7 +14,7 @@ public class ListStacksCommand : CommandWithHandler<ListStacksCommandSettings, L
     protected override ListStacksCommandInputs CreateInputs(ListStacksCommandSettings settings) => new();
 
     protected override CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse> CreateHandler(ListStacksCommandSettings settings)
-        => new ListStacksCommandHandler(new StackConfig(), new GitClient(OutputProvider, settings.GetGitClientSettings()));
+        => new ListStacksCommandHandler(new StackConfig(), new GitClient(Logger, settings.GetGitClientSettings()));
 
     protected override void FormatOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
     {

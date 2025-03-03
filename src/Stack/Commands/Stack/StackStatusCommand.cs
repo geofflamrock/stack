@@ -39,12 +39,12 @@ public class StackStatusCommand : CommandWithHandler<StackStatusCommandSettings,
 
     protected override void FormatOutput(StackStatusCommandSettings settings, StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.Statuses, OutputProvider);
+        StackHelpers.OutputStackStatus(response.Statuses, Logger);
 
         if (response.Statuses.Count == 1)
         {
             var (stack, status) = response.Statuses.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, OutputProvider);
+            StackHelpers.OutputBranchAndStackActions(stack, status, Logger);
         }
     }
 }
