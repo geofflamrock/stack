@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Infrastructure;
@@ -56,7 +57,14 @@ public abstract class CommandWithHandler<TSettings, TInput, TResponse> : Command
 
 public class DefaultOutputFormatter<T> : IOutputFormatter<T> where T : notnull
 {
-    public string Format(T response) => response.ToString();
+    public string Format(T response) => string.Empty;
+}
+
+public class JsonOutputFormatter<T> : IOutputFormatter<T> where T : notnull
+{
+    readonly JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    public string Format(T response) => JsonSerializer.Serialize(response, options);
 }
 
 public abstract class CommandHandlerBase<TInput, TResponse>

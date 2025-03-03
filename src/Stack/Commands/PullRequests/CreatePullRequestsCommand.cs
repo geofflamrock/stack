@@ -17,21 +17,6 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
 
 public class CreatePullRequestsCommand : CommandWithHandler<CreatePullRequestsCommandSettings, CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
-    {
-        var handler = new CreatePullRequestsCommandHandler(
-            InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
-            new FileOperations(),
-            new StackConfig());
-
-        await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
-
-        return 0;
-    }
-
     protected override CreatePullRequestsCommandInputs CreateInputs(CreatePullRequestsCommandSettings settings) => new(settings.Stack);
     protected override CommandHandlerBase<CreatePullRequestsCommandInputs, CreatePullRequestsCommandResponse> CreateHandler(CreatePullRequestsCommandSettings settings) => new CreatePullRequestsCommandHandler(
         InputProvider,
