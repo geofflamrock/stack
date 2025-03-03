@@ -30,8 +30,8 @@ public class PushStackCommand : CommandBase<PushStackCommandSettings>
     {
         var handler = new PushStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PushStackCommandInputs(

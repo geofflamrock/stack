@@ -22,15 +22,15 @@ public class DeleteStackCommand : CommandBase<DeleteStackCommandSettings>
     {
         var handler = new DeleteStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Stack));
 
         if (response.DeletedStackName is not null)
-            Logger.Information($"Stack {response.DeletedStackName.Stack()} deleted");
+            StdErrLogger.Information($"Stack {response.DeletedStackName.Stack()} deleted");
 
         return 0;
     }

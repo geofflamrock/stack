@@ -21,7 +21,7 @@ public class StackSwitchCommand : CommandBase<StackSwitchCommandSettings>
     {
         var handler = new StackSwitchCommandHandler(
             InputProvider,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackSwitchCommandInputs(settings.Branch));

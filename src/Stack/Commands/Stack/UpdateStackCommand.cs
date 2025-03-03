@@ -29,9 +29,9 @@ public class UpdateStackCommand : CommandBase<UpdateStackCommandSettings>
     {
         var handler = new UpdateStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));

@@ -41,8 +41,8 @@ public class NewStackCommand : CommandBase<NewStackCommandSettings>
     {
         var handler = new NewStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(

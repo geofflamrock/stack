@@ -25,8 +25,8 @@ public class NewBranchCommand : CommandBase<NewBranchCommandSettings>
     {
         var handler = new NewBranchCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));

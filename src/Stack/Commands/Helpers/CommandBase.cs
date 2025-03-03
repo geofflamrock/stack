@@ -7,20 +7,29 @@ namespace Stack.Commands;
 
 public abstract class CommandBase<T> : AsyncCommand<T> where T : CommandSettingsBase
 {
-    protected IAnsiConsole Console;
-    protected ILogger Logger;
+    protected IAnsiConsole StdOut;
+    protected IAnsiConsole StdErr;
+    protected ILogger StdOutLogger;
+    protected ILogger StdErrLogger;
     protected IInputProvider InputProvider;
 
     public CommandBase()
     {
-        Console = AnsiConsole.Create(new AnsiConsoleSettings
+        StdOut = AnsiConsole.Create(new AnsiConsoleSettings
         {
             Ansi = AnsiSupport.Detect,
             ColorSystem = ColorSystemSupport.Detect,
-            Out = new AnsiConsoleOutput(System.Console.Error),
+            Out = new AnsiConsoleOutput(Console.Out),
         });
-        Logger = new ConsoleLogger(Console);
-        InputProvider = new ConsoleInputProvider(Console);
+        StdErr = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.Detect,
+            ColorSystem = ColorSystemSupport.Detect,
+            Out = new AnsiConsoleOutput(Console.Error),
+        });
+        StdOutLogger = new ConsoleLogger(StdOut);
+        StdErrLogger = new ConsoleLogger(StdErr);
+        InputProvider = new ConsoleInputProvider(StdErr);
     }
 
     public abstract override Task<int> ExecuteAsync(CommandContext context, T settings);
@@ -37,7 +46,7 @@ public abstract class CommandWithHandler<TSettings, TInput, TResponse> : Command
         var handler = CreateHandler(settings);
 
         var response = await handler.Handle(inputs);
-        FormatOutput(settings, response);
+        WriteOutput(settings, response);
 
         return 0;
     }
@@ -51,11 +60,10 @@ public abstract class CommandWithHandler<TSettings, TInput, TResponse> : Command
         return new DefaultOutputFormatter<TResponse>();
     }
 
-    protected virtual void FormatOutput(TSettings settings, TResponse response)
+    protected virtual void WriteOutput(TSettings settings, TResponse response)
     {
         var formatter = CreateFormatter(settings);
-
-        Console.WriteLine(formatter.Format(response));
+        StdOut.WriteLine(formatter.Format(response));
     }
 }
 

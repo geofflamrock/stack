@@ -25,8 +25,8 @@ public class RemoveBranchCommand : CommandBase<RemoveBranchCommandSettings>
     {
         var handler = new RemoveBranchCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));

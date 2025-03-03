@@ -14,19 +14,19 @@ public class ListStacksCommand : CommandWithHandler<ListStacksCommandSettings, L
     protected override ListStacksCommandInputs CreateInputs(ListStacksCommandSettings settings) => new();
 
     protected override CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse> CreateHandler(ListStacksCommandSettings settings)
-        => new ListStacksCommandHandler(new StackConfig(), new GitClient(Logger, settings.GetGitClientSettings()));
+        => new ListStacksCommandHandler(new StackConfig(), new GitClient(StdErrLogger, settings.GetGitClientSettings()));
 
-    protected override void FormatOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
+    protected override void WriteOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
     {
         if (response.Stacks.Count == 0)
         {
-            Console.WriteLine("No stacks found for current repository.");
+            StdErr.WriteLine("No stacks found for current repository.");
             return;
         }
 
         foreach (var stack in response.Stacks)
         {
-            Console.MarkupLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
+            StdErr.MarkupLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
         }
     }
 }

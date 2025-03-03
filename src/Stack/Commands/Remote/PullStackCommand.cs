@@ -21,8 +21,8 @@ public class PullStackCommand : CommandBase<PullStackCommandSettings>
     {
         var handler = new PullStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));

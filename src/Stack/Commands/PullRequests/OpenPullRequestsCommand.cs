@@ -21,9 +21,9 @@ public class OpenPullRequestsCommand : CommandBase<OpenPullRequestsCommandSettin
     {
         var handler = new OpenPullRequestsCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));

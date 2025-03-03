@@ -25,8 +25,8 @@ public class AddBranchCommand : CommandBase<AddBranchCommandSettings>
     {
         var handler = new AddBranchCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));

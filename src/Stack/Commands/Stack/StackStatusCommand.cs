@@ -32,19 +32,19 @@ public class StackStatusCommand : CommandWithHandler<StackStatusCommandSettings,
     protected override CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse> CreateHandler(StackStatusCommandSettings settings)
         => new StackStatusCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-    protected override void FormatOutput(StackStatusCommandSettings settings, StackStatusCommandResponse response)
+    protected override void WriteOutput(StackStatusCommandSettings settings, StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.Statuses, Logger);
+        StackHelpers.OutputStackStatus(response.Statuses, StdOutLogger);
 
         if (response.Statuses.Count == 1)
         {
             var (stack, status) = response.Statuses.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, Logger);
+            StackHelpers.OutputBranchAndStackActions(stack, status, StdOutLogger);
         }
     }
 }
