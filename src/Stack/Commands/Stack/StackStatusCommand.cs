@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -23,20 +24,28 @@ public class StackStatusCommandSettings : CommandSettingsBase
     public bool Full { get; init; }
 }
 
-public class StackStatusCommand : CommandBase<StackStatusCommandSettings>
+public class StackStatusCommand : CommandWithHandler<StackStatusCommandSettings, StackStatusCommandInputs, StackStatusCommandResponse>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, StackStatusCommandSettings settings)
-    {
-        var handler = new StackStatusCommandHandler(
+    protected override StackStatusCommandInputs CreateInputs(StackStatusCommandSettings settings)
+        => new(settings.Stack, settings.All, settings.Full);
+
+    protected override CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse> CreateHandler(StackStatusCommandSettings settings)
+        => new StackStatusCommandHandler(
             InputProvider,
             Logger,
             new GitClient(Logger, settings.GetGitClientSettings()),
             new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
+    protected override void FormatOutput(StackStatusCommandSettings settings, StackStatusCommandResponse response)
+    {
+        StackHelpers.OutputStackStatus(response.Statuses, OutputProvider);
 
-        return 0;
+        if (response.Statuses.Count == 1)
+        {
+            var (stack, status) = response.Statuses.First();
+            StackHelpers.OutputBranchAndStackActions(stack, status, OutputProvider);
+        }
     }
 }
 
@@ -49,8 +58,9 @@ public class StackStatusCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse>
 {
-    public async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
+    public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -84,19 +94,6 @@ public class StackStatusCommandHandler(
             gitClient,
             gitHubClient,
             inputs.Full);
-
-        if (stackStatusResults.Count == 1)
-        {
-            logger.NewLine();
-        }
-
-        StackHelpers.OutputStackStatus(stackStatusResults, logger);
-
-        if (stacksToCheckStatusFor.Count == 1)
-        {
-            var (stack, status) = stackStatusResults.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, logger);
-        }
 
         return new StackStatusCommandResponse(stackStatusResults);
     }

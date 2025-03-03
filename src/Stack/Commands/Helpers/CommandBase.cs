@@ -37,10 +37,7 @@ public abstract class CommandWithHandler<TSettings, TInput, TResponse> : Command
         var handler = CreateHandler(settings);
 
         var response = await handler.Handle(inputs);
-
-        var formatter = CreateFormatter(settings);
-
-        Console.WriteLine(formatter.Format(response));
+        FormatOutput(settings, response);
 
         return 0;
     }
@@ -52,6 +49,13 @@ public abstract class CommandWithHandler<TSettings, TInput, TResponse> : Command
     protected virtual IOutputFormatter<TResponse> CreateFormatter(TSettings settings)
     {
         return new DefaultOutputFormatter<TResponse>();
+    }
+
+    protected virtual void FormatOutput(TSettings settings, TResponse response)
+    {
+        var formatter = CreateFormatter(settings);
+
+        Console.WriteLine(formatter.Format(response));
     }
 }
 
