@@ -29,9 +29,9 @@ public class StackStatusCommand : CommandBase<StackStatusCommandSettings>
     {
         var handler = new StackStatusCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
@@ -45,7 +45,7 @@ public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> S
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -67,7 +67,7 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+            var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
             if (stack is null)
             {
@@ -80,22 +80,22 @@ public class StackStatusCommandHandler(
         var stackStatusResults = StackHelpers.GetStackStatus(
             stacksToCheckStatusFor,
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient,
             inputs.Full);
 
         if (stackStatusResults.Count == 1)
         {
-            outputProvider.NewLine();
+            logger.NewLine();
         }
 
-        StackHelpers.OutputStackStatus(stackStatusResults, outputProvider);
+        StackHelpers.OutputStackStatus(stackStatusResults, logger);
 
         if (stacksToCheckStatusFor.Count == 1)
         {
             var (stack, status) = stackStatusResults.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, outputProvider);
+            StackHelpers.OutputBranchAndStackActions(stack, status, logger);
         }
 
         return new StackStatusCommandResponse(stackStatusResults);

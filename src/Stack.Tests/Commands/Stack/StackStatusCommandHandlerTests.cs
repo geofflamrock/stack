@@ -31,10 +31,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -42,7 +42,7 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -91,10 +91,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -102,7 +102,7 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -155,17 +155,17 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -224,10 +224,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
@@ -235,7 +235,7 @@ public class StackStatusCommandHandlerTests
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -289,10 +289,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [aBranch, aSecondBranch]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [aThirdBranch]);
@@ -327,10 +327,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
@@ -338,7 +338,7 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -384,10 +384,10 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
@@ -395,7 +395,7 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 
@@ -443,16 +443,16 @@ public class StackStatusCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stacks = new List<Config.Stack>([stack1]);
         stackConfig.Load().Returns(stacks);
 
-        outputProvider
+        logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
             .Do(ci => ci.ArgAt<Action>(1)());
 

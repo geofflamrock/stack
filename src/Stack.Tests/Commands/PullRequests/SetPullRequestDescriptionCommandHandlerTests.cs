@@ -31,9 +31,9 @@ public class SetPullRequestDescriptionCommandHandlerTests(ITestOutputHelper test
             .Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -79,9 +79,9 @@ A custom description
             .Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -126,9 +126,9 @@ A custom description
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -164,9 +164,9 @@ A custom description
             .Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -212,9 +212,9 @@ A custom description
             .Build();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

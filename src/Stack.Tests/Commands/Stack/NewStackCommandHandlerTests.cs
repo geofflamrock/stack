@@ -23,9 +23,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -68,9 +68,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -112,9 +112,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient.ChangeBranch(existingBranch);
 
@@ -154,9 +154,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
 
@@ -201,9 +201,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
 
@@ -244,9 +244,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -283,9 +283,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -323,9 +323,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -367,9 +367,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -410,9 +410,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>();
         stackConfig.Load().Returns(stacks);
@@ -453,9 +453,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = Substitute.ForPartsOf<GitClient>(outputProvider, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient
             .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))

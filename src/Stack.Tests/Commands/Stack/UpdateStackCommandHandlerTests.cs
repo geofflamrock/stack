@@ -32,10 +32,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -71,10 +71,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -108,10 +108,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -149,10 +149,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -189,10 +189,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -226,10 +226,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
@@ -271,10 +271,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stacks = new List<Config.Stack>([stack1]);
@@ -309,10 +309,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -353,10 +353,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -397,10 +397,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -441,10 +441,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -485,10 +485,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
@@ -516,10 +516,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         // Act and assert
         await handler

@@ -7,7 +7,7 @@ namespace Stack.Commands;
 public abstract class CommandBase<T> : AsyncCommand<T> where T : CommandSettingsBase
 {
     protected IAnsiConsole Console;
-    protected IOutputProvider OutputProvider;
+    protected ILogger Logger;
     protected IInputProvider InputProvider;
 
     public CommandBase()
@@ -18,7 +18,7 @@ public abstract class CommandBase<T> : AsyncCommand<T> where T : CommandSettings
             ColorSystem = ColorSystemSupport.Detect,
             Out = new AnsiConsoleOutput(System.Console.Error),
         });
-        OutputProvider = new ConsoleOutputProvider(Console);
+        Logger = new ConsoleLogger(Console);
         InputProvider = new ConsoleInputProvider(Console);
     }
 

@@ -41,8 +41,8 @@ public class NewStackCommand : CommandBase<NewStackCommandSettings>
     {
         var handler = new NewStackCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(
@@ -61,7 +61,7 @@ public record NewStackCommandResponse(string StackName, string SourceBranch, Bra
 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -69,11 +69,11 @@ public class NewStackCommandHandler(
     {
         await Task.CompletedTask;
 
-        var name = inputProvider.Text(outputProvider, Questions.StackName, inputs.Name);
+        var name = inputProvider.Text(logger, Questions.StackName, inputs.Name);
 
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var sourceBranch = inputProvider.Select(outputProvider, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
+        var sourceBranch = inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
 
         var stacks = stackConfig.Load();
         var remoteUri = gitClient.GetRemoteUri();
@@ -88,11 +88,11 @@ public class NewStackCommandHandler(
                 [BranchAction.Create, BranchAction.Add],
                 action => action.Humanize());
 
-            outputProvider.Information($"{Questions.AddOrCreateBranch} {branchAction.Humanize()}");
+            logger.Information($"{Questions.AddOrCreateBranch} {branchAction.Humanize()}");
 
             if (branchAction == BranchAction.Create)
             {
-                branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
+                branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
                 gitClient.CreateNewBranch(branchName, sourceBranch);
 
@@ -104,17 +104,17 @@ public class NewStackCommandHandler(
                     }
                     catch (Exception)
                     {
-                        outputProvider.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                        logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
                     }
                 }
                 else
                 {
-                    outputProvider.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                    logger.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
                 }
             }
             else
             {
-                branchName = inputProvider.SelectBranch(outputProvider, null, branches);
+                branchName = inputProvider.SelectBranch(logger, null, branches);
             }
         }
 
@@ -134,15 +134,15 @@ public class NewStackCommandHandler(
 
         if (branchAction is BranchAction.Create)
         {
-            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
         }
         else if (branchAction is BranchAction.Add)
         {
-            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
+            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
         }
         else
         {
-            outputProvider.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
+            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
         }
 
         return new NewStackCommandResponse(name, sourceBranch, branchAction, branchName);

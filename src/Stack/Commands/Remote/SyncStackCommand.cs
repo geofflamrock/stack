@@ -34,9 +34,9 @@ public class SyncStackCommand : CommandBase<SyncStackCommandSettings>
     {
         var handler = new SyncStackCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(
@@ -62,7 +62,7 @@ public record SyncStackCommandResponse();
 
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -87,7 +87,7 @@ public class SyncStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
@@ -97,20 +97,20 @@ public class SyncStackCommandHandler(
         var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(stack, status, outputProvider);
+        StackHelpers.OutputStackStatus(stack, status, logger);
 
-        outputProvider.NewLine();
+        logger.NewLine();
 
         if (inputProvider.Confirm(Questions.ConfirmSyncStack))
         {
-            outputProvider.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
+            logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            StackHelpers.PullChanges(stack, gitClient, outputProvider);
+            StackHelpers.PullChanges(stack, gitClient, logger);
 
             StackHelpers.UpdateStack(
                 stack,
@@ -118,11 +118,11 @@ public class SyncStackCommandHandler(
                 inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
                 gitClient,
                 inputProvider,
-                outputProvider);
+                logger);
 
             var forceWithLease = inputs.Rebase == true || StackHelpers.GetUpdateStrategyConfigValue(gitClient) == UpdateStrategy.Rebase;
 
-            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, outputProvider);
+            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
@@ -136,7 +136,7 @@ public class SyncStackCommandHandler(
 
     private void FetchChanges()
     {
-        outputProvider.Status("Fetching changes from remote repository", () =>
+        logger.Status("Fetching changes from remote repository", () =>
         {
             gitClient.Fetch(true);
         });

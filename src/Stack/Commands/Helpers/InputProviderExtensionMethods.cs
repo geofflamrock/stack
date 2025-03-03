@@ -9,14 +9,14 @@ public static class InputProviderExtensionMethods
 {
     public static string Text(
         this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         string prompt,
         string? presetValue,
         string? defaultValue = null)
     {
         if (presetValue is not null)
         {
-            outputProvider.Information($"{prompt} {presetValue}");
+            logger.Information($"{prompt} {presetValue}");
 
             return presetValue;
         }
@@ -26,21 +26,21 @@ public static class InputProviderExtensionMethods
 
     public static string Select(
         this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         string prompt,
         string? presetValue,
         string[] choices)
     {
         var selection = presetValue ?? inputProvider.Select(prompt, choices);
 
-        outputProvider.Information($"{prompt} {selection}");
+        logger.Information($"{prompt} {selection}");
 
         return selection;
     }
 
     public static string[] MultiSelect(
         this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         string prompt,
         string[] choices,
         bool required,
@@ -48,14 +48,14 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValues ?? inputProvider.MultiSelect(prompt, choices, required);
 
-        outputProvider.Information($"{prompt} {string.Join(", ", selection)}");
+        logger.Information($"{prompt} {string.Join(", ", selection)}");
 
         return [.. selection];
     }
 
     public static Config.Stack? SelectStack(
         this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         string? name,
         List<Config.Stack> stacks,
         string currentBranch)
@@ -69,7 +69,7 @@ public static class InputProviderExtensionMethods
 
         if (stack is not null)
         {
-            outputProvider.Information($"{Questions.SelectStack} {stack.Name}");
+            logger.Information($"{Questions.SelectStack} {stack.Name}");
         }
 
         return stack;
@@ -77,11 +77,11 @@ public static class InputProviderExtensionMethods
 
     public static string SelectBranch(
         this IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         string? name,
         string[] branches)
     {
-        return inputProvider.Select(outputProvider, Questions.SelectBranch, name, branches);
+        return inputProvider.Select(logger, Questions.SelectBranch, name, branches);
     }
 }
 

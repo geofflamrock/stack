@@ -21,8 +21,8 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var relativeFilePath = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -53,8 +53,8 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1))
             .Build();
 
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
 
         var relativeFilePath1 = Some.Name();
         var filePath1 = Path.Join(repo.LocalDirectoryPath, relativeFilePath1);

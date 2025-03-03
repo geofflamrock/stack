@@ -25,8 +25,8 @@ public class StackSwitchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
@@ -61,8 +61,8 @@ public class StackSwitchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
@@ -96,8 +96,8 @@ public class StackSwitchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);

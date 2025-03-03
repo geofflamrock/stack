@@ -31,10 +31,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -73,10 +73,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -115,10 +115,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -153,10 +153,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
@@ -197,10 +197,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -242,10 +242,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -289,10 +289,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -337,10 +337,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -385,10 +385,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -433,10 +433,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -481,10 +481,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
 
@@ -513,10 +513,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new SyncStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         // Act and assert
         await handler

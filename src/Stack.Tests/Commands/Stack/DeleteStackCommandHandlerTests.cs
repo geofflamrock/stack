@@ -20,10 +20,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -58,10 +58,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -97,10 +97,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -136,10 +136,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -177,10 +177,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -218,10 +218,10 @@ public class DeleteStackCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new DeleteStackCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

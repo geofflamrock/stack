@@ -17,7 +17,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
 
-        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var inputProvider = Substitute.For<IInputProvider>();
 
@@ -55,7 +55,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             UpdateStrategy.Merge,
             gitClient,
             inputProvider,
-            outputProvider
+            logger
         );
 
         // Assert
@@ -73,7 +73,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
-        var outputProvider = new TestOutputProvider(testOutputHelper);
+        var logger = new TestLogger(testOutputHelper);
 
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
         var branchDetail1 = new BranchDetail
@@ -109,7 +109,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             UpdateStrategy.Merge,
             gitClient,
             inputProvider,
-            outputProvider
+            logger
         );
 
         // Assert

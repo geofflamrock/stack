@@ -14,7 +14,7 @@ public class ListStacksCommand : CommandBase<ListStacksCommandSettings>
     public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
     {
         await Task.CompletedTask;
-        var gitClient = new GitClient(OutputProvider, settings.GetGitClientSettings());
+        var gitClient = new GitClient(Logger, settings.GetGitClientSettings());
         var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
@@ -23,7 +23,7 @@ public class ListStacksCommand : CommandBase<ListStacksCommandSettings>
 
         if (remoteUri is null)
         {
-            OutputProvider.Information("No stacks found for current repository.");
+            Logger.Information("No stacks found for current repository.");
             return 0;
         }
 
@@ -31,13 +31,13 @@ public class ListStacksCommand : CommandBase<ListStacksCommandSettings>
 
         if (stacksForRemote.Count == 0)
         {
-            OutputProvider.Information("No stacks found for current repository.");
+            Logger.Information("No stacks found for current repository.");
             return 0;
         }
 
         foreach (var stack in stacksForRemote)
         {
-            OutputProvider.Information($"[yellow]{stack.Name}[/] [grey]({stack.SourceBranch})[/] {"branch".ToQuantity(stack.Branches.Count)}");
+            Logger.Information($"[yellow]{stack.Name}[/] [grey]({stack.SourceBranch})[/] {"branch".ToQuantity(stack.Branches.Count)}");
         }
 
         return 0;

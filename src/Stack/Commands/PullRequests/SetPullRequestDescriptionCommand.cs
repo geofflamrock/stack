@@ -21,9 +21,9 @@ public class SetPullRequestDescriptionCommand : CommandBase<SetPullRequestDescri
     {
         var handler = new SetPullRequestDescriptionCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
@@ -41,7 +41,7 @@ public record SetPullRequestDescriptionCommandResponse();
 
 public class SetPullRequestDescriptionCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -57,12 +57,12 @@ public class SetPullRequestDescriptionCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return new SetPullRequestDescriptionCommandResponse();
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -72,7 +72,7 @@ public class SetPullRequestDescriptionCommandHandler(
         var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient,
             true);
@@ -90,12 +90,12 @@ public class SetPullRequestDescriptionCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            outputProvider.Information($"No pull requests found for stack {stack.Name.Branch()}");
+            logger.Information($"No pull requests found for stack {stack.Name.Branch()}");
             return new SetPullRequestDescriptionCommandResponse();
         }
 
         StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
-        StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
+        StackHelpers.UpdateStackDescriptionInPullRequests(logger, gitHubClient, stack, pullRequestsInStack);
 
         return new SetPullRequestDescriptionCommandResponse();
     }

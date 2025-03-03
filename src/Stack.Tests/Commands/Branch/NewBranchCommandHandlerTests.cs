@@ -25,9 +25,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -71,9 +71,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -115,9 +115,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -157,9 +157,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -197,9 +197,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -230,9 +230,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -271,9 +271,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -306,9 +306,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -340,9 +340,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -384,9 +384,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -430,9 +430,9 @@ public class NewBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = Substitute.ForPartsOf<GitClient>(outputProvider, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient
             .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))

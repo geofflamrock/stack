@@ -29,9 +29,9 @@ public class UpdateStackCommand : CommandBase<UpdateStackCommandSettings>
     {
         var handler = new UpdateStackCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));
@@ -49,7 +49,7 @@ public record UpdateStackCommandResponse();
 
 public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -74,7 +74,7 @@ public class UpdateStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
@@ -82,7 +82,7 @@ public class UpdateStackCommandHandler(
         var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient,
             false);
@@ -93,7 +93,7 @@ public class UpdateStackCommandHandler(
             inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
             gitClient,
             inputProvider,
-            outputProvider);
+            logger);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

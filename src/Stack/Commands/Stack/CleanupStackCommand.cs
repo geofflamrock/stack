@@ -22,9 +22,9 @@ public class CleanupStackCommand : CommandBase<CleanupStackCommandSettings>
     {
         var handler = new CleanupStackCommandHandler(
             InputProvider,
-            OutputProvider,
-            new GitClient(OutputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(OutputProvider, settings.GetGitHubClientSettings()),
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
@@ -42,7 +42,7 @@ public record CleanupStackCommandResponse(string? CleanedUpStackName);
 
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -57,28 +57,28 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
+        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {
-            outputProvider.Information("No branches to clean up");
+            logger.Information("No branches to clean up");
             return;
         }
 
-        StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesToCleanUp);
+        StackHelpers.OutputBranchesNeedingCleanup(logger, branchesToCleanUp);
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
-            StackHelpers.CleanupBranches(gitClient, outputProvider, branchesToCleanUp);
+            StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
 
-            outputProvider.Information($"Stack {stack.Name.Stack()} cleaned up");
+            logger.Information($"Stack {stack.Name.Stack()} cleaned up");
         }
     }
 }

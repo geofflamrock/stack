@@ -51,7 +51,7 @@ public interface IGitClient
     string? GetConfigValue(string key);
 }
 
-public class GitClient(IOutputProvider outputProvider, GitClientSettings settings) : IGitClient
+public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
 {
     public void CreateNewBranch(string branchName, string sourceBranch)
     {
@@ -274,7 +274,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         var editor = GetConfiguredEditor();
         if (string.IsNullOrWhiteSpace(editor))
         {
-            outputProvider.Error("No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.");
+            logger.Error("No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.");
             return;
         }
 
@@ -294,7 +294,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
         if (process == null)
         {
-            outputProvider.Error("Failed to start editor process.");
+            logger.Error("Failed to start editor process.");
             return;
         }
 
@@ -307,7 +307,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
         Func<int, Exception?>? exceptionHandler = null)
     {
         if (settings.Verbose)
-            outputProvider.Debug($"git {command}");
+            logger.Debug($"git {command}");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -322,7 +322,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
         if (result != 0)
         {
-            outputProvider.Error(Markup.Escape(errorBuilder.ToString()));
+            logger.Error(Markup.Escape(errorBuilder.ToString()));
             if (exceptionHandler != null)
             {
                 var exception = exceptionHandler(result);
@@ -339,7 +339,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
+            logger.Debug(Markup.Escape(infoBuilder.ToString()));
         }
 
         var output = infoBuilder.ToString();
@@ -365,7 +365,7 @@ public class GitClient(IOutputProvider outputProvider, GitClientSettings setting
             // changes to the Git repository as the output might be important.
             // In verbose mode we would have already written the output
             // of the command so don't write it again.
-            outputProvider.Debug(Markup.Escape(output));
+            logger.Debug(Markup.Escape(output));
         }
     }
 
