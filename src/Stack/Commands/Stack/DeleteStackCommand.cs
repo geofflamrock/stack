@@ -49,8 +49,9 @@ public class DeleteStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<DeleteStackCommandInputs, DeleteStackCommandResponse>
 {
-    public async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
+    public override async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

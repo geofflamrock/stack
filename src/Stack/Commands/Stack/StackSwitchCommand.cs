@@ -38,8 +38,9 @@ public class StackSwitchCommandHandler(
     IInputProvider inputProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<StackSwitchCommandInputs, StackSwitchCommandResponse>
 {
-    public async Task<StackSwitchCommandResponse> Handle(StackSwitchCommandInputs inputs)
+    public override async Task<StackSwitchCommandResponse> Handle(StackSwitchCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

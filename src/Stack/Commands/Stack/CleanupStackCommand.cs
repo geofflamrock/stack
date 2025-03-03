@@ -1,6 +1,5 @@
 
 using System.ComponentModel;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
@@ -16,21 +15,16 @@ public class CleanupStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CleanupStackCommand : CommandBase<CleanupStackCommandSettings>
+public class CleanupStackCommand : CommandWithHandler<CleanupStackCommandSettings, CleanupStackCommandInputs, CleanupStackCommandResponse>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CleanupStackCommandSettings settings)
-    {
-        var handler = new CleanupStackCommandHandler(
+    protected override CleanupStackCommandInputs CreateInputs(CleanupStackCommandSettings settings) => new(settings.Stack);
+    protected override CommandHandlerBase<CleanupStackCommandInputs, CleanupStackCommandResponse> CreateHandler(CleanupStackCommandSettings settings) =>
+        new CleanupStackCommandHandler(
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
-
-        await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
-
-        return 0;
-    }
 }
 
 public record CleanupStackCommandInputs(string? Stack)
@@ -38,7 +32,7 @@ public record CleanupStackCommandInputs(string? Stack)
     public static CleanupStackCommandInputs Empty => new((string?)null);
 }
 
-public record CleanupStackCommandResponse(string? CleanedUpStackName);
+public record CleanupStackCommandResponse();
 
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
@@ -46,8 +40,9 @@ public class CleanupStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<CleanupStackCommandInputs, CleanupStackCommandResponse>
 {
-    public async Task Handle(CleanupStackCommandInputs inputs)
+    public override async Task<CleanupStackCommandResponse> Handle(CleanupStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -69,7 +64,7 @@ public class CleanupStackCommandHandler(
         if (branchesToCleanUp.Length == 0)
         {
             logger.Information("No branches to clean up");
-            return;
+            return new();
         }
 
         StackHelpers.OutputBranchesNeedingCleanup(logger, branchesToCleanUp);
@@ -77,8 +72,9 @@ public class CleanupStackCommandHandler(
         if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
-
             logger.Information($"Stack {stack.Name.Stack()} cleaned up");
         }
+
+        return new();
     }
 }

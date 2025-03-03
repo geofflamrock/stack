@@ -66,8 +66,9 @@ public class SyncStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<SyncStackCommandInputs, SyncStackCommandResponse>
 {
-    public async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
+    public override async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 

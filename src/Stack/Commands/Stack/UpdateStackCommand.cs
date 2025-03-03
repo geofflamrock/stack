@@ -53,8 +53,9 @@ public class UpdateStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<UpdateStackCommandInputs, UpdateStackCommandResponse>
 {
-    public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
+    public override async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 

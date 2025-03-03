@@ -32,13 +32,15 @@ public class PullStackCommand : CommandBase<PullStackCommandSettings>
 }
 
 public record PullStackCommandInputs(string? Stack);
+public record PullStackCommandResponse();
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<PullStackCommandInputs, PullStackCommandResponse>
 {
-    public async Task Handle(PullStackCommandInputs inputs)
+    public override async Task<PullStackCommandResponse> Handle(PullStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -49,7 +51,7 @@ public class PullStackCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return;
+            return new();
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -62,5 +64,6 @@ public class PullStackCommandHandler(
         StackHelpers.PullChanges(stack, gitClient, logger);
 
         gitClient.ChangeBranch(currentBranch);
+        return new();
     }
 }

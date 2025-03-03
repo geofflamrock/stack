@@ -47,8 +47,9 @@ public class AddBranchCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<AddBranchCommandInputs, AddBranchCommandResponse>
 {
-    public async Task<AddBranchCommandResponse> Handle(AddBranchCommandInputs inputs)
+    public override async Task<AddBranchCommandResponse> Handle(AddBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
 

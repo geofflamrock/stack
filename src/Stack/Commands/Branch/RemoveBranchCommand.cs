@@ -47,8 +47,9 @@ public class RemoveBranchCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<RemoveBranchCommandInputs, RemoveBranchCommandResponse>
 {
-    public async Task<RemoveBranchCommandResponse> Handle(RemoveBranchCommandInputs inputs)
+    public override async Task<RemoveBranchCommandResponse> Handle(RemoveBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

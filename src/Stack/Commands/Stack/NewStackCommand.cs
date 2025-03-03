@@ -64,8 +64,9 @@ public class NewStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<NewStackCommandInputs, NewStackCommandResponse>
 {
-    public async Task<NewStackCommandResponse> Handle(NewStackCommandInputs inputs)
+    public override async Task<NewStackCommandResponse> Handle(NewStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 

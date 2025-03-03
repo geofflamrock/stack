@@ -45,8 +45,9 @@ public class SetPullRequestDescriptionCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<SetPullRequestDescriptionCommandInputs, SetPullRequestDescriptionCommandResponse>
 {
-    public async Task<SetPullRequestDescriptionCommandResponse> Handle(SetPullRequestDescriptionCommandInputs inputs)
+    public override async Task<SetPullRequestDescriptionCommandResponse> Handle(SetPullRequestDescriptionCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

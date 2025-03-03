@@ -45,8 +45,9 @@ public class OpenPullRequestsCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<OpenPullRequestsCommandInputs, OpenPullRequestsCommandResponse>
 {
-    public async Task<OpenPullRequestsCommandResponse> Handle(OpenPullRequestsCommandInputs inputs)
+    public override async Task<OpenPullRequestsCommandResponse> Handle(OpenPullRequestsCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

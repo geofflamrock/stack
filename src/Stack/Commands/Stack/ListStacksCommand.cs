@@ -35,9 +35,9 @@ public record ListStacksCommandInputs;
 public record ListStacksCommandResponse(List<ListStacksCommandResponseItem> Stacks);
 public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount);
 
-public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitClient) : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
+public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitClient)
+    : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
 {
-
     public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs)
     {
         await Task.CompletedTask;

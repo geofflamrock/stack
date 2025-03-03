@@ -47,14 +47,16 @@ public record PushStackCommandInputs(string? Stack, int MaxBatchSize, bool Force
 {
     public static PushStackCommandInputs Default => new(null, 5, false);
 }
+public record PushStackCommandResponse();
 
 public class PushStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<PushStackCommandInputs, PushStackCommandResponse>
 {
-    public async Task Handle(PushStackCommandInputs inputs)
+    public override async Task<PushStackCommandResponse> Handle(PushStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -65,7 +67,7 @@ public class PushStackCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return;
+            return new();
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -76,5 +78,6 @@ public class PushStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
+        return new();
     }
 }
