@@ -94,25 +94,16 @@ public class NewBranchCommandHandler(
 
         logger.Information($"Branch {branchName.Branch()} created.");
 
-        if (inputProvider.Confirm(Questions.ConfirmPushBranch))
+        try
         {
-            try
-            {
-                gitClient.PushNewBranch(branchName);
-            }
-            catch (Exception)
-            {
-                logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
-            }
+            logger.Information($"Pushing branch {branchName.Branch()} to remote repository");
+            gitClient.PushNewBranch(branchName);
         }
-        else
+        catch (Exception)
         {
-            logger.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
         }
 
-        if (inputProvider.Confirm(Questions.ConfirmSwitchToBranch))
-        {
-            gitClient.ChangeBranch(branchName);
-        }
+        gitClient.ChangeBranch(branchName);
     }
 }

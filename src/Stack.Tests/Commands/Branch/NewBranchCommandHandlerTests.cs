@@ -12,7 +12,7 @@ namespace Stack.Tests.Commands.Branch;
 public class NewBranchCommandHandlerTests
 {
     [Fact]
-    public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_CreatesAndAddsBranchToStack_DoesNotPushToRemote_AndSwitchesToBranch()
+    public async Task WhenNoInputsProvided_AsksForStackAndBranch_CreatesAndAddsBranchToStack_PushesToRemote_AndSwitchesToBranch()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -41,11 +41,9 @@ public class NewBranchCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Confirm(Questions.ConfirmPushBranch).Returns(false);
-        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
-        await handler.Handle(NewBranchCommandInputs.Empty);
+        await handler.Handle(new NewBranchCommandInputs(null, null));
 
         // Assert
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -54,51 +52,7 @@ public class NewBranchCommandHandlerTests
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         gitClient.GetCurrentBranch().Should().Be(newBranch);
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
-    }
-
-    [Fact]
-    public async Task WhenSwitchBranchIsFalse_CreatesAndAddsBranchToStackButDoesNotSwitchToBranch()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var anotherBranch = Some.BranchName();
-        var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(anotherBranch)
-            .Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
-
-        // Act
-        await handler.Handle(NewBranchCommandInputs.Empty);
-
-        // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, newBranch]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-        gitClient.GetCurrentBranch().Should().NotBe(newBranch);
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
     }
 
     [Fact]
@@ -356,7 +310,6 @@ public class NewBranchCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("A stack with multiple words");
         inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-2").Returns(newBranch);
-        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         await handler.Handle(NewBranchCommandInputs.Empty);
@@ -368,52 +321,6 @@ public class NewBranchCommandHandlerTests
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         gitClient.GetCurrentBranch().Should().Be(newBranch);
-    }
-
-    [Fact]
-    public async Task WhenAskedWhetherToPushToTheRemote_AndTheAnswerIsYes_PushesTheNewBranch()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var anotherBranch = Some.BranchName();
-        var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(anotherBranch)
-            .Build();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Confirm(Questions.ConfirmPushBranch).Returns(true);
-        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
-
-        // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null));
-
-        // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack1", repo.RemoteUri, sourceBranch, [anotherBranch, newBranch]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-        gitClient.GetCurrentBranch().Should().NotBe(newBranch);
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
     }
 
     [Fact]
@@ -450,8 +357,6 @@ public class NewBranchCommandHandlerTests
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Confirm(Questions.ConfirmPushBranch).Returns(true);
-        inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
         await handler.Handle(new NewBranchCommandInputs(null, null));
