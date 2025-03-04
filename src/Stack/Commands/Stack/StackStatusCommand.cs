@@ -24,18 +24,19 @@ public class StackStatusCommandSettings : CommandSettingsBase
     public bool Full { get; init; }
 }
 
-public class StackStatusCommand : CommandWithHandler<StackStatusCommandSettings, StackStatusCommandInputs, StackStatusCommandResponse>
+public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, StackStatusCommandResponse>
 {
-    protected override StackStatusCommandInputs CreateInputs(StackStatusCommandSettings settings)
-        => new(settings.Stack, settings.All, settings.Full);
-
-    protected override CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse> CreateHandler(StackStatusCommandSettings settings)
-        => new StackStatusCommandHandler(
+    protected override async Task<StackStatusCommandResponse> Handle(StackStatusCommandSettings settings)
+    {
+        var handler = new StackStatusCommandHandler(
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
+
+        return await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
+    }
 
     protected override void WriteOutput(StackStatusCommandSettings settings, StackStatusCommandResponse response)
     {

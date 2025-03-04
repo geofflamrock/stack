@@ -9,12 +9,16 @@ namespace Stack.Commands;
 
 public class ListStacksCommandSettings : CommandSettingsBase;
 
-public class ListStacksCommand : CommandWithHandler<ListStacksCommandSettings, ListStacksCommandInputs, ListStacksCommandResponse>
+public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, ListStacksCommandResponse>
 {
-    protected override ListStacksCommandInputs CreateInputs(ListStacksCommandSettings settings) => new();
+    protected override async Task<ListStacksCommandResponse> Handle(ListStacksCommandSettings settings)
+    {
+        var handler = new ListStacksCommandHandler(
+            new StackConfig(),
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()));
 
-    protected override CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse> CreateHandler(ListStacksCommandSettings settings)
-        => new ListStacksCommandHandler(new StackConfig(), new GitClient(StdErrLogger, settings.GetGitClientSettings()));
+        return await handler.Handle(new ListStacksCommandInputs());
+    }
 
     protected override void WriteOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
     {

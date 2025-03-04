@@ -15,7 +15,7 @@ public class OpenPullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class OpenPullRequestsCommand : CommandBase<OpenPullRequestsCommandSettings>
+public class OpenPullRequestsCommand : Command<OpenPullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, OpenPullRequestsCommandSettings settings)
     {
@@ -37,17 +37,15 @@ public record OpenPullRequestsCommandInputs(string? Stack)
     public static OpenPullRequestsCommandInputs Empty => new((string?)null);
 }
 
-public record OpenPullRequestsCommandResponse();
-
 public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<OpenPullRequestsCommandInputs, OpenPullRequestsCommandResponse>
+    : CommandHandlerBase<OpenPullRequestsCommandInputs>
 {
-    public override async Task<OpenPullRequestsCommandResponse> Handle(OpenPullRequestsCommandInputs inputs)
+    public override async Task Handle(OpenPullRequestsCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -59,7 +57,7 @@ public class OpenPullRequestsCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return new OpenPullRequestsCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -85,14 +83,12 @@ public class OpenPullRequestsCommandHandler(
         if (pullRequestsInStack.Count == 0)
         {
             logger.Information($"No pull requests found for stack {stack.Name.Branch()}");
-            return new OpenPullRequestsCommandResponse();
+            return;
         }
 
         foreach (var pullRequest in pullRequestsInStack)
         {
             gitHubClient.OpenPullRequest(pullRequest);
         }
-
-        return new OpenPullRequestsCommandResponse();
     }
 }

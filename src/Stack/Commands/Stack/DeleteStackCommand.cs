@@ -16,7 +16,7 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class DeleteStackCommand : CommandBase<DeleteStackCommandSettings>
+public class DeleteStackCommand : Command<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {

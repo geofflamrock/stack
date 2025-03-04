@@ -19,7 +19,7 @@ public class AddBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class AddBranchCommand : CommandBase<AddBranchCommandSettings>
+public class AddBranchCommand : Command<AddBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, AddBranchCommandSettings settings)
     {
@@ -40,16 +40,14 @@ public record AddBranchCommandInputs(string? StackName, string? BranchName)
     public static AddBranchCommandInputs Empty => new(null, null);
 }
 
-public record AddBranchCommandResponse();
-
 public class AddBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<AddBranchCommandInputs, AddBranchCommandResponse>
+    : CommandHandlerBase<AddBranchCommandInputs>
 {
-    public override async Task<AddBranchCommandResponse> Handle(AddBranchCommandInputs inputs)
+    public override async Task Handle(AddBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -64,7 +62,7 @@ public class AddBranchCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return new AddBranchCommandResponse();
+            return;
         }
 
         var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
@@ -94,7 +92,5 @@ public class AddBranchCommandHandler(
         stackConfig.Save(stacks);
 
         logger.Information($"Branch added");
-
-        return new AddBranchCommandResponse();
     }
 }

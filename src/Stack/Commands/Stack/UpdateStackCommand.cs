@@ -23,7 +23,7 @@ public class UpdateStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class UpdateStackCommand : CommandBase<UpdateStackCommandSettings>
+public class UpdateStackCommand : Command<UpdateStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
     {
@@ -53,9 +53,9 @@ public class UpdateStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<UpdateStackCommandInputs, UpdateStackCommandResponse>
+    : CommandHandlerBase<UpdateStackCommandInputs>
 {
-    public override async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
+    public override async Task Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -70,7 +70,7 @@ public class UpdateStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            return new UpdateStackCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -102,6 +102,6 @@ public class UpdateStackCommandHandler(
             gitClient.ChangeBranch(currentBranch);
         }
 
-        return new UpdateStackCommandResponse();
+        return;
     }
 }

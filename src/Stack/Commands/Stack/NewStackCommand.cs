@@ -35,7 +35,7 @@ public enum BranchAction
     Create
 }
 
-public class NewStackCommand : CommandBase<NewStackCommandSettings>
+public class NewStackCommand : Command<NewStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
     {
@@ -57,16 +57,14 @@ public record NewStackCommandInputs(string? Name, string? SourceBranch, string? 
     public static NewStackCommandInputs Empty => new(null, null, null);
 }
 
-public record NewStackCommandResponse(string StackName, string SourceBranch, BranchAction? BranchAction, string? BranchName);
-
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<NewStackCommandInputs, NewStackCommandResponse>
+    : CommandHandlerBase<NewStackCommandInputs>
 {
-    public override async Task<NewStackCommandResponse> Handle(NewStackCommandInputs inputs)
+    public override async Task Handle(NewStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -145,8 +143,6 @@ public class NewStackCommandHandler(
         {
             logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
         }
-
-        return new NewStackCommandResponse(name, sourceBranch, branchAction, branchName);
     }
 }
 

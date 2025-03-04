@@ -28,7 +28,7 @@ public class SyncStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class SyncStackCommand : CommandBase<SyncStackCommandSettings>
+public class SyncStackCommand : Command<SyncStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, SyncStackCommandSettings settings)
     {
@@ -58,17 +58,15 @@ public record SyncStackCommandInputs(
     public static SyncStackCommandInputs Empty => new(null, 5, null, null);
 }
 
-public record SyncStackCommandResponse();
-
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<SyncStackCommandInputs, SyncStackCommandResponse>
+    : CommandHandlerBase<SyncStackCommandInputs>
 {
-    public override async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
+    public override async Task Handle(SyncStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -83,7 +81,7 @@ public class SyncStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            return new SyncStackCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -131,8 +129,6 @@ public class SyncStackCommandHandler(
                 gitClient.ChangeBranch(currentBranch);
             }
         }
-
-        return new SyncStackCommandResponse();
     }
 
     private void FetchChanges()

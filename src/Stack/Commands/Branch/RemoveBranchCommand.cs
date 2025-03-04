@@ -19,7 +19,7 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class RemoveBranchCommand : CommandBase<RemoveBranchCommandSettings>
+public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, RemoveBranchCommandSettings settings)
     {
@@ -40,16 +40,14 @@ public record RemoveBranchCommandInputs(string? StackName, string? BranchName)
     public static RemoveBranchCommandInputs Empty => new(null, null);
 }
 
-public record RemoveBranchCommandResponse();
-
 public class RemoveBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<RemoveBranchCommandInputs, RemoveBranchCommandResponse>
+    : CommandHandlerBase<RemoveBranchCommandInputs>
 {
-    public override async Task<RemoveBranchCommandResponse> Handle(RemoveBranchCommandInputs inputs)
+    public override async Task Handle(RemoveBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -78,11 +76,7 @@ public class RemoveBranchCommandHandler(
             stackConfig.Save(stacks);
 
             logger.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
-
-            return new RemoveBranchCommandResponse();
         }
-
-        return new RemoveBranchCommandResponse();
     }
 }
 
