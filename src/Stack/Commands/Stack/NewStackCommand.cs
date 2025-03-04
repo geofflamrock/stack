@@ -32,7 +32,10 @@ public enum BranchAction
     Add,
 
     [Description("Create a new branch")]
-    Create
+    Create,
+
+    [Description("Do not add or create a branch")]
+    None
 }
 
 public class NewStackCommand : Command<NewStackCommandSettings>
@@ -78,41 +81,39 @@ public class NewStackCommandHandler(
         string? branchName = null;
         BranchAction? branchAction = null;
 
-        if (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch))
+        if (inputs.BranchName is not null)
         {
-            branchAction = inputs.BranchName is not null ? BranchAction.Create : inputProvider.Select(
+            branchAction = branches.Contains(inputs.BranchName) ? BranchAction.Add : BranchAction.Create;
+        }
+        else
+        {
+            branchAction = inputProvider.Select(
                 Questions.AddOrCreateBranch,
-                [BranchAction.Create, BranchAction.Add],
+                [BranchAction.Create, BranchAction.Add, BranchAction.None],
                 action => action.Humanize());
 
             logger.Information($"{Questions.AddOrCreateBranch} {branchAction.Humanize()}");
+        }
 
-            if (branchAction == BranchAction.Create)
+        if (branchAction == BranchAction.Create)
+        {
+            branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
+
+            gitClient.CreateNewBranch(branchName, sourceBranch);
+
+            try
             {
-                branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
-
-                gitClient.CreateNewBranch(branchName, sourceBranch);
-
-                if (inputProvider.Confirm(Questions.ConfirmPushBranch))
-                {
-                    try
-                    {
-                        gitClient.PushNewBranch(branchName);
-                    }
-                    catch (Exception)
-                    {
-                        logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
-                    }
-                }
-                else
-                {
-                    logger.Information($"Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
-                }
+                logger.Information($"Pushing branch {branchName.Branch()} to remote repository");
+                gitClient.PushNewBranch(branchName);
             }
-            else
+            catch (Exception)
             {
-                branchName = inputProvider.SelectBranch(logger, null, branches);
+                logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
             }
+        }
+        else if (branchAction == BranchAction.Add)
+        {
+            branchName = inputs.BranchName ?? inputProvider.SelectBranch(logger, null, branches);
         }
 
         if (branchName is not null)
@@ -124,9 +125,16 @@ public class NewStackCommandHandler(
 
         stackConfig.Save(stacks);
 
-        if (branchName is not null && (inputs.BranchName is not null || inputProvider.Confirm(Questions.ConfirmSwitchToBranch)))
+        if (branchName is not null)
         {
-            gitClient.ChangeBranch(branchName);
+            try
+            {
+                gitClient.ChangeBranch(branchName);
+            }
+            catch (Exception ex)
+            {
+                logger.Warning($"An error has occurred changing to branch {branchName.Branch()}. Use {$"stack switch --branch \"{branchName}\"".Example()} to switch to the branch. Error: {ex.Message}");
+            }
         }
 
         if (branchAction is BranchAction.Create)
