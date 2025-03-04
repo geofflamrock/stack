@@ -26,7 +26,7 @@ public class StackStatusCommandSettings : CommandSettingsBase
 
 public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, StackStatusCommandResponse>
 {
-    protected override async Task<StackStatusCommandResponse> Handle(StackStatusCommandSettings settings)
+    protected override async Task<StackStatusCommandResponse> Execute(StackStatusCommandSettings settings)
     {
         var handler = new StackStatusCommandHandler(
             InputProvider,

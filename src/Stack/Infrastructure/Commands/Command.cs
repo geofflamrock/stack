@@ -31,7 +31,14 @@ public abstract class Command<T> : AsyncCommand<T> where T : CommandSettingsBase
         InputProvider = new ConsoleInputProvider(StdErr);
     }
 
-    public abstract override Task<int> ExecuteAsync(CommandContext context, T settings);
+    public override async Task<int> ExecuteAsync(CommandContext context, T settings)
+    {
+        await Execute(settings);
+
+        return 0;
+    }
+
+    protected abstract Task Execute(T settings);
 }
 
 

@@ -21,7 +21,7 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
 
 public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, RemoveBranchCommandSettings settings)
+    protected override async Task Execute(RemoveBranchCommandSettings settings)
     {
         var handler = new RemoveBranchCommandHandler(
             InputProvider,
@@ -30,8 +30,6 @@ public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));
-
-        return 0;
     }
 }
 

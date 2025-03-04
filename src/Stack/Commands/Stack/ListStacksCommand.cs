@@ -11,7 +11,7 @@ public class ListStacksCommandSettings : CommandSettingsBase;
 
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, ListStacksCommandResponse>
 {
-    protected override async Task<ListStacksCommandResponse> Handle(ListStacksCommandSettings settings)
+    protected override async Task<ListStacksCommandResponse> Execute(ListStacksCommandSettings settings)
     {
         var handler = new ListStacksCommandHandler(
             new StackConfig(),

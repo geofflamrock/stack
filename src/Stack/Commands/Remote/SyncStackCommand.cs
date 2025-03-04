@@ -30,7 +30,7 @@ public class SyncStackCommandSettings : CommandSettingsBase
 
 public class SyncStackCommand : Command<SyncStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, SyncStackCommandSettings settings)
+    protected override async Task Execute(SyncStackCommandSettings settings)
     {
         var handler = new SyncStackCommandHandler(
             InputProvider,
@@ -44,8 +44,6 @@ public class SyncStackCommand : Command<SyncStackCommandSettings>
             settings.MaxBatchSize,
             settings.Rebase,
             settings.Merge));
-
-        return 0;
     }
 }
 

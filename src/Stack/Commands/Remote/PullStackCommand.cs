@@ -17,7 +17,7 @@ public class PullStackCommandSettings : CommandSettingsBase
 
 public class PullStackCommand : Command<PullStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, PullStackCommandSettings settings)
+    protected override async Task Execute(PullStackCommandSettings settings)
     {
         var handler = new PullStackCommandHandler(
             InputProvider,
@@ -26,8 +26,6 @@ public class PullStackCommand : Command<PullStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 

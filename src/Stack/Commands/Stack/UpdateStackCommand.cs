@@ -25,7 +25,7 @@ public class UpdateStackCommandSettings : CommandSettingsBase
 
 public class UpdateStackCommand : Command<UpdateStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
+    protected override async Task Execute(UpdateStackCommandSettings settings)
     {
         var handler = new UpdateStackCommandHandler(
             InputProvider,
@@ -35,8 +35,6 @@ public class UpdateStackCommand : Command<UpdateStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));
-
-        return 0;
     }
 }
 

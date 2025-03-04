@@ -17,7 +17,7 @@ public class CleanupStackCommandSettings : CommandSettingsBase
 
 public class CleanupStackCommand : Command<CleanupStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CleanupStackCommandSettings settings)
+    protected override async Task Execute(CleanupStackCommandSettings settings)
     {
         var handler = new CleanupStackCommandHandler(
             InputProvider,
@@ -27,8 +27,6 @@ public class CleanupStackCommand : Command<CleanupStackCommandSettings>
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 

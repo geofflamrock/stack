@@ -9,13 +9,13 @@ public abstract class CommandWithOutput<TSettings, TResponse> : Command<TSetting
 {
     public override async Task<int> ExecuteAsync(CommandContext context, TSettings settings)
     {
-        var response = await Handle(settings);
+        var response = await Execute(settings);
         WriteOutput(settings, response);
 
         return 0;
     }
 
-    protected abstract Task<TResponse> Handle(TSettings settings);
+    protected override abstract Task<TResponse> Execute(TSettings settings);
 
     protected abstract void WriteOutput(TSettings settings, TResponse response);
 }

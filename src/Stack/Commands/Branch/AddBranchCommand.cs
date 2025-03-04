@@ -21,7 +21,7 @@ public class AddBranchCommandSettings : CommandSettingsBase
 
 public class AddBranchCommand : Command<AddBranchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, AddBranchCommandSettings settings)
+    protected override async Task Execute(AddBranchCommandSettings settings)
     {
         var handler = new AddBranchCommandHandler(
             InputProvider,
@@ -30,8 +30,6 @@ public class AddBranchCommand : Command<AddBranchCommandSettings>
             new StackConfig());
 
         await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));
-
-        return 0;
     }
 }
 

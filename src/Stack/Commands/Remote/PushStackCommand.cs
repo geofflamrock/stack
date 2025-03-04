@@ -26,7 +26,7 @@ public class PushStackCommandSettings : CommandSettingsBase
 
 public class PushStackCommand : Command<PushStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, PushStackCommandSettings settings)
+    protected override async Task Execute(PushStackCommandSettings settings)
     {
         var handler = new PushStackCommandHandler(
             InputProvider,
@@ -38,8 +38,6 @@ public class PushStackCommand : Command<PushStackCommandSettings>
             settings.Stack,
             settings.MaxBatchSize,
             settings.ForceWithLease));
-
-        return 0;
     }
 }
 

@@ -17,7 +17,7 @@ public class SetPullRequestDescriptionCommandSettings : CommandSettingsBase
 
 public class SetPullRequestDescriptionCommand : Command<SetPullRequestDescriptionCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, SetPullRequestDescriptionCommandSettings settings)
+    protected override async Task Execute(SetPullRequestDescriptionCommandSettings settings)
     {
         var handler = new SetPullRequestDescriptionCommandHandler(
             InputProvider,
@@ -27,8 +27,6 @@ public class SetPullRequestDescriptionCommand : Command<SetPullRequestDescriptio
             new StackConfig());
 
         await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 

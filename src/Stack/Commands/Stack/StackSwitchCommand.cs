@@ -17,7 +17,7 @@ public class StackSwitchCommandSettings : CommandSettingsBase
 
 public class StackSwitchCommand : Command<StackSwitchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
+    protected override async Task Execute(StackSwitchCommandSettings settings)
     {
         var handler = new StackSwitchCommandHandler(
             InputProvider,
@@ -25,8 +25,6 @@ public class StackSwitchCommand : Command<StackSwitchCommandSettings>
             new StackConfig());
 
         await handler.Handle(new StackSwitchCommandInputs(settings.Branch));
-
-        return 0;
     }
 }
 

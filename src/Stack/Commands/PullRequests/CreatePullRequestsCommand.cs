@@ -17,7 +17,7 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
 
 public class CreatePullRequestsCommand : Command<CreatePullRequestsCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
+    protected override async Task Execute(CreatePullRequestsCommandSettings settings)
     {
         var handler = new CreatePullRequestsCommandHandler(
             InputProvider,
@@ -28,8 +28,6 @@ public class CreatePullRequestsCommand : Command<CreatePullRequestsCommandSettin
             new StackConfig());
 
         await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 

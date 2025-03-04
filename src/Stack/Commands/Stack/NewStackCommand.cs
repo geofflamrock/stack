@@ -37,7 +37,7 @@ public enum BranchAction
 
 public class NewStackCommand : Command<NewStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, NewStackCommandSettings settings)
+    protected override async Task Execute(NewStackCommandSettings settings)
     {
         var handler = new NewStackCommandHandler(
             InputProvider,
@@ -47,8 +47,6 @@ public class NewStackCommand : Command<NewStackCommandSettings>
 
         await handler.Handle(
             new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName));
-
-        return 0;
     }
 }
 

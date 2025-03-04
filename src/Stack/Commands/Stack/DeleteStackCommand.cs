@@ -18,7 +18,7 @@ public class DeleteStackCommandSettings : CommandSettingsBase
 
 public class DeleteStackCommand : Command<DeleteStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
+    protected override async Task Execute(DeleteStackCommandSettings settings)
     {
         var handler = new DeleteStackCommandHandler(
             InputProvider,
@@ -31,8 +31,6 @@ public class DeleteStackCommand : Command<DeleteStackCommandSettings>
 
         if (response.DeletedStackName is not null)
             StdErrLogger.Information($"Stack {response.DeletedStackName.Stack()} deleted");
-
-        return 0;
     }
 }
 

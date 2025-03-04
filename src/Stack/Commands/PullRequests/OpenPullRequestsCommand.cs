@@ -17,7 +17,7 @@ public class OpenPullRequestsCommandSettings : CommandSettingsBase
 
 public class OpenPullRequestsCommand : Command<OpenPullRequestsCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, OpenPullRequestsCommandSettings settings)
+    protected override async Task Execute(OpenPullRequestsCommandSettings settings)
     {
         var handler = new OpenPullRequestsCommandHandler(
             InputProvider,
@@ -27,8 +27,6 @@ public class OpenPullRequestsCommand : Command<OpenPullRequestsCommandSettings>
             new StackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 
