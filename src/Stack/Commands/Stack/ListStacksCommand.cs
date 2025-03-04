@@ -7,7 +7,7 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class ListStacksCommandSettings : CommandSettingsBase;
+public class ListStacksCommandSettings : CommandWithOutputSettingsBase;
 
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, ListStacksCommandResponse>
 {
@@ -20,7 +20,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
         return await handler.Handle(new ListStacksCommandInputs());
     }
 
-    protected override void WriteOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
+    protected override void WriteDefaultOutput(ListStacksCommandResponse response)
     {
         if (response.Stacks.Count == 0)
         {
