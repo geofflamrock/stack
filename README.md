@@ -81,11 +81,10 @@ Once you've done some work on the first branch within the stack, at some point y
 - Run `stack branch new`.
 - Select the stack to create the branch in.
 - Give the branch a name.
-- Optionally push a new branch to the remote repository.
 
-The new branch will be created from the branch at the bottom of the stack and you can then switch to the branch if you would like to in order to make more changes.
+The new branch will be created from the branch at the bottom of the stack and the current branch will be changed so you can make more changes.
 
-If a new branch was not pushed to the remote, you can use the `stack push` command to push the branch to the remote.
+If a new branch was not able to be pushed to the remote, you can use the `stack push` command to push the branch to the remote later.
 
 ### Incorporating changes from the remote repository
 
