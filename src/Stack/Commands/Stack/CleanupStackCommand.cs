@@ -1,4 +1,3 @@
-
 using System.ComponentModel;
 using Spectre.Console.Cli;
 using Stack.Config;
@@ -13,6 +12,10 @@ public class CleanupStackCommandSettings : CommandSettingsBase
     [Description("The name of the stack to cleanup.")]
     [CommandOption("-s|--stack")]
     public string? Stack { get; init; }
+
+    [Description("Confirm the cleanup operation without prompting.")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class CleanupStackCommand : Command<CleanupStackCommandSettings>
@@ -26,13 +29,13 @@ public class CleanupStackCommand : Command<CleanupStackCommandSettings>
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
+        await handler.Handle(new CleanupStackCommandInputs(settings.Stack, settings.Confirm));
     }
 }
 
-public record CleanupStackCommandInputs(string? Stack)
+public record CleanupStackCommandInputs(string? Stack, bool Confirm)
 {
-    public static CleanupStackCommandInputs Empty => new((string?)null);
+    public static CleanupStackCommandInputs Empty => new(null, false);
 }
 
 public class CleanupStackCommandHandler(
@@ -70,7 +73,7 @@ public class CleanupStackCommandHandler(
 
         StackHelpers.OutputBranchesNeedingCleanup(logger, branchesToCleanUp);
 
-        if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
             logger.Information($"Stack {stack.Name.Stack()} cleaned up");
