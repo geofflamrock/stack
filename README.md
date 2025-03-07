@@ -327,6 +327,7 @@ OPTIONS:
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -s, --stack          The name of the stack to create the branch in
     -n, --name           The name of the branch to add
+        --yes            Confirm the removal of the branch without prompting
 ```
 
 ### Remote commands <!-- omit from toc -->

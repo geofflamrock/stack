@@ -17,7 +17,7 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
 
-    [Description("Confirm the removal of the branch.")]
+    [Description("Confirm the removal of the branch without prompting.")]
     [CommandOption("--yes")]
     public bool Confirm { get; init; }
 }
