@@ -388,6 +388,7 @@ OPTIONS:
         --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
         --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
+        --yes               Confirm the sync without prompting
 ```
 
 ### GitHub commands <!-- omit from toc -->
