@@ -15,7 +15,7 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     [CommandOption("-s|--stack")]
     public string? Stack { get; init; }
 
-    [Description("Confirm the deletion of the stack.")]
+    [Description("Confirm the deletion of the stack without prompting.")]
     [CommandOption("--yes")]
     public bool Confirm { get; init; }
 }
