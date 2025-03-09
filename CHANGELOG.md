@@ -1,3 +1,16 @@
+# v0.10.0 (Sun Mar 09 2025)
+
+#### 🚀 New Features and Improvements
+
+- Write output to `stdout` for `list` and `status` commands [#224](https://github.com/geofflamrock/stack/pull/224) ([@geofflamrock](https://github.com/geofflamrock))
+- Change logging to use `stderr` [#223](https://github.com/geofflamrock/stack/pull/223) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.9.1 (Tue Feb 11 2025)
 
 #### 🐛 Bug Fixes
