@@ -16,26 +16,21 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class DeleteStackCommand : AsyncCommand<DeleteStackCommandSettings>
+public class DeleteStackCommand : CommandBase<DeleteStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, DeleteStackCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new DeleteStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         var response = await handler.Handle(new DeleteStackCommandInputs(settings.Stack));
 
         if (response.DeletedStackName is not null)
-            console.MarkupLine($"Stack {response.DeletedStackName.Stack()} deleted");
+            Logger.Information($"Stack {response.DeletedStackName.Stack()} deleted");
 
         return 0;
     }
@@ -50,7 +45,7 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -65,7 +60,7 @@ public class DeleteStackCommandHandler(
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -74,15 +69,15 @@ public class DeleteStackCommandHandler(
 
         if (inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
-            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, outputProvider, gitClient, gitHubClient);
+            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {
-                StackHelpers.OutputBranchesNeedingCleanup(outputProvider, branchesNeedingCleanup);
+                StackHelpers.OutputBranchesNeedingCleanup(logger, branchesNeedingCleanup);
 
                 if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
-                    StackHelpers.CleanupBranches(gitClient, outputProvider, branchesNeedingCleanup);
+                    StackHelpers.CleanupBranches(gitClient, logger, branchesNeedingCleanup);
                 }
             }
 

@@ -27,10 +27,10 @@ public class OpenPullRequestsCommandHandlerTests
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -78,10 +78,10 @@ public class OpenPullRequestsCommandHandlerTests
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -126,10 +126,10 @@ public class OpenPullRequestsCommandHandlerTests
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -172,10 +172,10 @@ public class OpenPullRequestsCommandHandlerTests
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -217,10 +217,10 @@ public class OpenPullRequestsCommandHandlerTests
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
+        var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new OpenPullRequestsCommandHandler(inputProvider, outputProvider, gitClient, gitHubClient, stackConfig);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

@@ -19,19 +19,14 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class RemoveBranchCommand : AsyncCommand<RemoveBranchCommandSettings>
+public class RemoveBranchCommand : CommandBase<RemoveBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, RemoveBranchCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new RemoveBranchCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));
@@ -49,7 +44,7 @@ public record RemoveBranchCommandResponse();
 
 public class RemoveBranchCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -62,14 +57,14 @@ public class RemoveBranchCommandHandler(
         var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.SelectBranch(outputProvider, inputs.BranchName, [.. stack.Branches]);
+        var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.Branches]);
 
         if (!stack.Branches.Contains(branchName))
         {
@@ -81,7 +76,7 @@ public class RemoveBranchCommandHandler(
             stack.Branches.Remove(branchName);
             stackConfig.Save(stacks);
 
-            outputProvider.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
+            logger.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
 
             return new RemoveBranchCommandResponse();
         }

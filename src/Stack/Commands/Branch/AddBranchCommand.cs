@@ -19,19 +19,14 @@ public class AddBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class AddBranchCommand : AsyncCommand<AddBranchCommandSettings>
+public class AddBranchCommand : CommandBase<AddBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, AddBranchCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new AddBranchCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));
@@ -49,7 +44,7 @@ public record AddBranchCommandResponse();
 
 public class AddBranchCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -67,11 +62,11 @@ public class AddBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return new AddBranchCommandResponse();
         }
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -79,7 +74,7 @@ public class AddBranchCommandHandler(
         }
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
-        var branchName = inputProvider.SelectBranch(outputProvider, inputs.BranchName, branches);
+        var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, branches);
 
         if (stack.Branches.Contains(branchName))
         {
@@ -91,13 +86,13 @@ public class AddBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' does not exist locally.");
         }
 
-        outputProvider.Information($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
+        logger.Information($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
 
         stack.Branches.Add(branchName);
 
         stackConfig.Save(stacks);
 
-        outputProvider.Information($"Branch added");
+        logger.Information($"Branch added");
 
         return new AddBranchCommandResponse();
     }

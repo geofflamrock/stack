@@ -15,18 +15,15 @@ public class OpenPullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class OpenPullRequestsCommand : AsyncCommand<OpenPullRequestsCommandSettings>
+public class OpenPullRequestsCommand : CommandBase<OpenPullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, OpenPullRequestsCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new OpenPullRequestsCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));
@@ -44,7 +41,7 @@ public record OpenPullRequestsCommandResponse();
 
 public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -60,12 +57,12 @@ public class OpenPullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return new OpenPullRequestsCommandResponse();
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -86,7 +83,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            outputProvider.Information($"No pull requests found for stack {stack.Name.Branch()}");
+            logger.Information($"No pull requests found for stack {stack.Name.Branch()}");
             return new OpenPullRequestsCommandResponse();
         }
 

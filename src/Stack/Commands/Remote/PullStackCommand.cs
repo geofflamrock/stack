@@ -15,17 +15,14 @@ public class PullStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
+public class PullStackCommand : CommandBase<PullStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, PullStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new PullStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));
@@ -37,7 +34,7 @@ public class PullStackCommand : AsyncCommand<PullStackCommandSettings>
 public record PullStackCommandInputs(string? Stack);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -51,18 +48,18 @@ public class PullStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        StackHelpers.PullChanges(stack, gitClient, outputProvider);
+        StackHelpers.PullChanges(stack, gitClient, logger);
 
         gitClient.ChangeBranch(currentBranch);
     }

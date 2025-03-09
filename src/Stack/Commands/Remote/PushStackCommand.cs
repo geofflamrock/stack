@@ -24,17 +24,14 @@ public class PushStackCommandSettings : CommandSettingsBase
     public bool ForceWithLease { get; init; }
 }
 
-public class PushStackCommand : AsyncCommand<PushStackCommandSettings>
+public class PushStackCommand : CommandBase<PushStackCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, PushStackCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new PushStackCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PushStackCommandInputs(
@@ -53,7 +50,7 @@ public record PushStackCommandInputs(string? Stack, int MaxBatchSize, bool Force
 
 public class PushStackCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -67,17 +64,17 @@ public class PushStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, outputProvider);
+        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
     }
 }

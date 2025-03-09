@@ -19,19 +19,14 @@ public class NewBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class NewBranchCommand : AsyncCommand<NewBranchCommandSettings>
+public class NewBranchCommand : CommandBase<NewBranchCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
     {
-        await Task.CompletedTask;
-
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new NewBranchCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
@@ -49,7 +44,7 @@ public record NewBranchCommandResponse();
 
 public class NewBranchCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
 {
@@ -67,11 +62,11 @@ public class NewBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return new NewBranchCommandResponse();
         }
 
-        var stack = inputProvider.SelectStack(outputProvider, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -80,7 +75,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
 
-        var branchName = inputProvider.Text(outputProvider, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
+        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
         if (stack.Branches.Contains(branchName))
         {
@@ -92,7 +87,7 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
         }
 
-        outputProvider.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
+        logger.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
 
         gitClient.CreateNewBranch(branchName, sourceBranch);
 
@@ -100,7 +95,7 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stacks);
 
-        outputProvider.Information($"Branch {branchName.Branch()} created.");
+        logger.Information($"Branch {branchName.Branch()} created.");
 
         if (inputProvider.Confirm(Questions.ConfirmPushBranch))
         {
@@ -110,12 +105,12 @@ public class NewBranchCommandHandler(
             }
             catch (Exception)
             {
-                outputProvider.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+                logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
             }
         }
         else
         {
-            outputProvider.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            logger.Information($"Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
         }
 
         if (inputProvider.Confirm(Questions.ConfirmSwitchToBranch))

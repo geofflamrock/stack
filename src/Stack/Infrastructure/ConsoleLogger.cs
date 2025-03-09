@@ -2,7 +2,7 @@ using Spectre.Console;
 
 namespace Stack.Infrastructure;
 
-public interface IOutputProvider
+public interface ILogger
 {
     void Tree(string header, string[] items);
     void Status(string message, Action action);
@@ -13,12 +13,12 @@ public interface IOutputProvider
     void Rule(string message);
 }
 
-public static class OutputProviderExtensionMethods
+public static class LoggerExtensionMethods
 {
-    public static void NewLine(this IOutputProvider outputProvider) => outputProvider.Information(string.Empty);
+    public static void NewLine(this ILogger logger) => logger.Information(string.Empty);
 }
 
-public class ConsoleOutputProvider(IAnsiConsole console) : IOutputProvider
+public class ConsoleLogger(IAnsiConsole console) : ILogger
 {
     public void Status(string message, Action action) => console.Status().Start(message, (_) => action());
 

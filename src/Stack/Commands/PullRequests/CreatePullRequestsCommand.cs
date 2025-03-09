@@ -15,18 +15,15 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CreatePullRequestsCommand : AsyncCommand<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand : CommandBase<CreatePullRequestsCommandSettings>
 {
     public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
     {
-        var console = AnsiConsole.Console;
-        var outputProvider = new ConsoleOutputProvider(console);
-
         var handler = new CreatePullRequestsCommandHandler(
-            new ConsoleInputProvider(console),
-            outputProvider,
-            new GitClient(outputProvider, settings.GetGitClientSettings()),
-            new GitHubClient(outputProvider, settings.GetGitHubClientSettings()),
+            InputProvider,
+            Logger,
+            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
             new FileOperations(),
             new StackConfig());
 
@@ -45,7 +42,7 @@ public record CreatePullRequestsCommandResponse();
 
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
-    IOutputProvider outputProvider,
+    ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
@@ -63,12 +60,12 @@ public class CreatePullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            outputProvider.Information("No stacks found for current repository.");
+            logger.Information("No stacks found for current repository.");
             return new CreatePullRequestsCommandResponse();
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(outputProvider, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
         if (stack is null)
         {
@@ -78,7 +75,7 @@ public class CreatePullRequestsCommandHandler(
         var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient);
 
@@ -100,9 +97,9 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(stack, status, outputProvider);
+        StackHelpers.OutputStackStatus(stack, status, logger);
 
-        outputProvider.NewLine();
+        logger.NewLine();
 
         if (pullRequestCreateActions.Count > 0)
         {
@@ -113,32 +110,32 @@ public class CreatePullRequestsCommandHandler(
                 action => $"{action.Branch} -> {action.BaseBranch}")
                 .ToList();
 
-            outputProvider.Information("Select branches to create pull requests for:");
+            logger.Information("Select branches to create pull requests for:");
 
             foreach (var action in selectedPullRequestActions)
             {
-                outputProvider.Information($"  {action.Branch} -> {action.BaseBranch}");
+                logger.Information($"  {action.Branch} -> {action.BaseBranch}");
             }
 
-            outputProvider.NewLine();
+            logger.NewLine();
 
             var pullRequestInformation = GetPullRequestInformation(
                 inputProvider,
-                outputProvider,
+                logger,
                 gitClient,
                 gitHubClient,
                 fileOperations,
                 selectedPullRequestActions);
 
-            outputProvider.NewLine();
+            logger.NewLine();
 
-            OutputUpdatedStackStatus(outputProvider, stack, status, pullRequestInformation);
+            OutputUpdatedStackStatus(logger, stack, status, pullRequestInformation);
 
-            outputProvider.NewLine();
+            logger.NewLine();
 
             if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
             {
-                var newPullRequests = CreatePullRequests(outputProvider, gitHubClient, status, pullRequestInformation);
+                var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
                 var pullRequestsInStack = status.Branches.Values
                     .Where(branch => branch.HasPullRequest)
@@ -147,7 +144,7 @@ public class CreatePullRequestsCommandHandler(
 
                 if (pullRequestsInStack.Count > 1)
                 {
-                    UpdatePullRequestStackDescriptions(inputProvider, outputProvider, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
+                    UpdatePullRequestStackDescriptions(inputProvider, logger, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
                 }
 
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
@@ -161,24 +158,24 @@ public class CreatePullRequestsCommandHandler(
         }
         else
         {
-            outputProvider.Information("No new pull requests to create.");
+            logger.Information("No new pull requests to create.");
         }
 
         return new CreatePullRequestsCommandResponse();
     }
 
-    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, IOutputProvider outputProvider, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
+    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, ILogger logger, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
     {
         if (stack.PullRequestDescription is null)
         {
             StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
         }
 
-        StackHelpers.UpdateStackDescriptionInPullRequests(outputProvider, gitHubClient, stack, pullRequestsInStack);
+        StackHelpers.UpdateStackDescriptionInPullRequests(logger, gitHubClient, stack, pullRequestsInStack);
     }
 
     private static List<GitHubPullRequest> CreatePullRequests(
-        IOutputProvider outputProvider,
+        ILogger logger,
         IGitHubClient gitHubClient,
         StackStatus status,
         List<PullRequestInformation> pullRequestCreateActions)
@@ -187,7 +184,7 @@ public class CreatePullRequestsCommandHandler(
         foreach (var action in pullRequestCreateActions)
         {
             var branchDetail = status.Branches[action.HeadBranch];
-            outputProvider.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+            logger.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
                 action.BaseBranch,
@@ -198,7 +195,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequest is not null)
             {
-                outputProvider.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+                logger.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
                 pullRequests.Add(pullRequest);
                 branchDetail.PullRequest = pullRequest;
             }
@@ -207,7 +204,7 @@ public class CreatePullRequestsCommandHandler(
         return pullRequests;
     }
 
-    private static void OutputUpdatedStackStatus(IOutputProvider outputProvider, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestCreateActions)
+    private static void OutputUpdatedStackStatus(ILogger logger, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestCreateActions)
     {
         var branchDisplayItems = new List<string>();
         var parentBranch = stack.SourceBranch;
@@ -234,14 +231,14 @@ public class CreatePullRequestsCommandHandler(
             parentBranch = branch;
         }
 
-        outputProvider.Tree(
+        logger.Tree(
             $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}",
             [.. branchDisplayItems]);
     }
 
     private static List<PullRequestInformation> GetPullRequestInformation(
         IInputProvider inputProvider,
-        IOutputProvider outputProvider,
+        ILogger logger,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         IFileOperations fileOperations,
@@ -256,16 +253,16 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestTemplatePath is not null)
         {
-            outputProvider.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
+            logger.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
         }
 
         var gitHubLabels = gitHubClient.GetLabels();
 
         foreach (var action in pullRequestCreateActions)
         {
-            outputProvider.NewLine();
+            logger.NewLine();
             var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
-            outputProvider.Rule(pullRequestHeader);
+            logger.Rule(pullRequestHeader);
 
             var title = inputProvider.Text(Questions.PullRequestTitle);
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
@@ -292,7 +289,7 @@ public class CreatePullRequestsCommandHandler(
             if (gitHubLabels.Length > 0)
             {
                 labels = inputProvider.MultiSelect(
-                    outputProvider,
+                    logger,
                     Questions.PullRequestLabels,
                     gitHubLabels,
                     false);

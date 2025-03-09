@@ -58,7 +58,7 @@ public interface IGitHubClient
     string[] GetLabels();
 }
 
-public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings settings) : IGitHubClient
+public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
@@ -116,7 +116,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
         if (settings.Verbose)
-            outputProvider.Debug($"gh {command}");
+            logger.Debug($"gh {command}");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -131,13 +131,13 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
 
         if (result != 0)
         {
-            outputProvider.Error(Markup.Escape(errorBuilder.ToString()));
+            logger.Error(Markup.Escape(errorBuilder.ToString()));
             throw new Exception("Failed to execute gh command.");
         }
 
         if (settings.Verbose && infoBuilder.Length > 0)
         {
-            outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
+            logger.Debug(Markup.Escape(infoBuilder.ToString()));
         }
 
         return infoBuilder.ToString();
@@ -146,7 +146,7 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
     private void ExecuteGitHubCommand(string command)
     {
         if (settings.Verbose)
-            outputProvider.Debug($"gh {command}");
+            logger.Debug($"gh {command}");
 
         ExecuteGitHubCommandInternal(command);
     }
@@ -166,14 +166,14 @@ public class GitHubClient(IOutputProvider outputProvider, GitHubClientSettings s
 
         if (result != 0)
         {
-            outputProvider.Error($"{errorBuilder}");
+            logger.Error($"{errorBuilder}");
             throw new Exception("Failed to execute gh command.");
         }
         else
         {
             if (infoBuilder.Length > 0)
             {
-                outputProvider.Debug(Markup.Escape(infoBuilder.ToString()));
+                logger.Debug(Markup.Escape(infoBuilder.ToString()));
             }
         }
     }

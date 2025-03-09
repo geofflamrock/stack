@@ -3,7 +3,7 @@ using Xunit.Abstractions;
 
 namespace Stack.Tests.Helpers;
 
-public class TestOutputProvider(ITestOutputHelper testOutputHelper) : IOutputProvider
+public class TestLogger(ITestOutputHelper testOutputHelper) : ILogger
 {
     public void Debug(string message)
     {

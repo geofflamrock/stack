@@ -24,9 +24,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -66,9 +66,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -108,9 +108,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -140,9 +140,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -182,9 +182,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [
@@ -216,9 +216,9 @@ public class RemoveBranchCommandHandlerTests
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
-        var outputProvider = Substitute.For<IOutputProvider>();
-        var gitClient = new GitClient(outputProvider, repo.GitClientSettings);
-        var handler = new RemoveBranchCommandHandler(inputProvider, outputProvider, gitClient, stackConfig);
+        var logger = Substitute.For<ILogger>();
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         var stacks = new List<Config.Stack>(
         [

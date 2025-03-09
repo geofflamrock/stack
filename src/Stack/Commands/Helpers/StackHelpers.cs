@@ -36,7 +36,7 @@ public static class StackHelpers
     public static Dictionary<Config.Stack, StackStatus> GetStackStatus(
         List<Config.Stack> stacks,
         string currentBranch,
-        IOutputProvider outputProvider,
+        ILogger logger,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -102,7 +102,7 @@ public static class StackHelpers
 
         if (includePullRequestStatus)
         {
-            outputProvider.Status("Checking status of GitHub pull requests...", () =>
+            logger.Status("Checking status of GitHub pull requests...", () =>
             {
                 foreach (var (stack, status) in stacksToCheckStatusFor)
                 {
@@ -120,7 +120,7 @@ public static class StackHelpers
                     }
                     catch (Exception ex)
                     {
-                        outputProvider.Warning($"Error checking GitHub pull requests: {ex.Message}");
+                        logger.Warning($"Error checking GitHub pull requests: {ex.Message}");
                     }
                 }
             });
@@ -132,7 +132,7 @@ public static class StackHelpers
     public static StackStatus GetStackStatus(
         Config.Stack stack,
         string currentBranch,
-        IOutputProvider outputProvider,
+        ILogger logger,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -140,7 +140,7 @@ public static class StackHelpers
         var statuses = GetStackStatus(
             [stack],
             currentBranch,
-            outputProvider,
+            logger,
             gitClient,
             gitHubClient,
             includePullRequestStatus);
@@ -150,19 +150,19 @@ public static class StackHelpers
 
     public static void OutputStackStatus(
         Dictionary<Config.Stack, StackStatus> stackStatuses,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         foreach (var (stack, status) in stackStatuses)
         {
-            OutputStackStatus(stack, status, outputProvider);
-            outputProvider.NewLine();
+            OutputStackStatus(stack, status, logger);
+            logger.NewLine();
         }
     }
 
     public static void OutputStackStatus(
         Config.Stack stack,
         StackStatus status,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         var header = stack.SourceBranch.Branch();
         if (status.Branches.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
@@ -185,8 +185,8 @@ public static class StackHelpers
                 }
             }
         }
-        outputProvider.Information(stack.Name.Stack());
-        outputProvider.Tree(header, [.. items]);
+        logger.Information(stack.Name.Stack());
+        logger.Tree(header, [.. items]);
     }
 
     public static string GetBranchAndPullRequestStatusOutput(
@@ -277,7 +277,7 @@ public static class StackHelpers
     public static void OutputBranchAndStackActions(
         Config.Stack stack,
         StackStatus status,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         var statusOfBranchesInStack = status.Branches
             .Where(b => stack.Branches.Contains(b.Key))
@@ -285,44 +285,44 @@ public static class StackHelpers
 
         if (statusOfBranchesInStack.All(branch => branch.CouldBeCleanedUp))
         {
-            outputProvider.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
-            outputProvider.NewLine();
+            logger.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
+            logger.NewLine();
         }
         else if (statusOfBranchesInStack.Any(branch => branch.CouldBeCleanedUp))
         {
-            outputProvider.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack cleanup --stack \"{stack.Name}\"".Example()} to clean up local branches.");
-            outputProvider.NewLine();
+            logger.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack cleanup --stack \"{stack.Name}\"".Example()} to clean up local branches.");
+            logger.NewLine();
         }
         else if (statusOfBranchesInStack.All(branch => !branch.Status.ExistsLocally))
         {
-            outputProvider.Information("No branches exist locally. This stack might be able to be deleted.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack.");
-            outputProvider.NewLine();
+            logger.Information("No branches exist locally. This stack might be able to be deleted.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack.");
+            logger.NewLine();
         }
 
         if (statusOfBranchesInStack.Any(branch =>
                 branch.Status.ExistsLocally &&
                 (!branch.Status.HasRemoteTrackingBranch || branch.Status.ExistsInRemote && branch.Status.AheadOfRemote > 0)))
         {
-            outputProvider.Information("There are changes in local branches that have not been pushed to the remote repository.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack push --stack \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
-            outputProvider.NewLine();
+            logger.Information("There are changes in local branches that have not been pushed to the remote repository.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack push --stack \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
+            logger.NewLine();
         }
 
         if (statusOfBranchesInStack.Any(branch => branch.Status.ExistsInRemote && branch.Status.ExistsLocally && branch.Status.BehindParent > 0))
         {
-            outputProvider.Information("There are changes in source branches that have not been applied to the stack.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack locally.");
-            outputProvider.NewLine();
-            outputProvider.Information($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} to sync the stack with the remote repository.");
-            outputProvider.NewLine();
+            logger.Information("There are changes in source branches that have not been applied to the stack.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack locally.");
+            logger.NewLine();
+            logger.Information($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} to sync the stack with the remote repository.");
+            logger.NewLine();
         }
     }
 
@@ -351,7 +351,7 @@ public static class StackHelpers
         UpdateStrategy? specificUpdateStrategy,
         IGitClient gitClient,
         IInputProvider inputProvider,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         var strategy = UpdateStrategy.Merge;
 
@@ -371,11 +371,11 @@ public static class StackHelpers
 
         if (strategy == UpdateStrategy.Rebase)
         {
-            UpdateStackUsingRebase(stack, status, gitClient, inputProvider, outputProvider);
+            UpdateStackUsingRebase(stack, status, gitClient, inputProvider, logger);
         }
         else
         {
-            UpdateStackUsingMerge(stack, status, gitClient, inputProvider, outputProvider);
+            UpdateStackUsingMerge(stack, status, gitClient, inputProvider, logger);
         }
     }
 
@@ -384,7 +384,7 @@ public static class StackHelpers
         StackStatus status,
         IGitClient gitClient,
         IInputProvider inputProvider,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         var sourceBranch = stack.SourceBranch;
 
@@ -394,24 +394,24 @@ public static class StackHelpers
 
             if (branchDetail.IsActive)
             {
-                MergeFromSourceBranch(branch, sourceBranch, gitClient, inputProvider, outputProvider);
+                MergeFromSourceBranch(branch, sourceBranch, gitClient, inputProvider, logger);
                 sourceBranch = branch;
             }
             else
             {
-                outputProvider.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+                logger.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
             }
         }
     }
 
-    public static void PullChanges(Config.Stack stack, IGitClient gitClient, IOutputProvider outputProvider)
+    public static void PullChanges(Config.Stack stack, IGitClient gitClient, ILogger logger)
     {
         List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
         var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
         foreach (var branch in allBranchesInStacks.Where(b => branchStatus.ContainsKey(b) && branchStatus[b].RemoteBranchExists))
         {
-            outputProvider.Information($"Pulling changes for {branch.Branch()} from remote");
+            logger.Information($"Pulling changes for {branch.Branch()} from remote");
             gitClient.ChangeBranch(branch);
             gitClient.PullBranch(branch);
         }
@@ -422,7 +422,7 @@ public static class StackHelpers
         int maxBatchSize,
         bool forceWithLease,
         IGitClient gitClient,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         var branchStatus = gitClient.GetBranchStatuses([.. stack.Branches]);
 
@@ -430,7 +430,7 @@ public static class StackHelpers
 
         foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
         {
-            outputProvider.Information($"Pushing new branch {branch.Branch()} to remote");
+            logger.Information($"Pushing new branch {branch.Branch()} to remote");
             gitClient.PushNewBranch(branch);
         }
 
@@ -444,41 +444,41 @@ public static class StackHelpers
 
         foreach (var branches in branchGroupsToPush)
         {
-            outputProvider.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
+            logger.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
             gitClient.PushBranches([.. branches], forceWithLease);
         }
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, IOutputProvider outputProvider, IGitClient gitClient, IGitHubClient gitHubClient)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var currentBranch = gitClient.GetCurrentBranch();
-        var stackStatus = GetStackStatus(stack, currentBranch, outputProvider, gitClient, gitHubClient, true);
+        var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, true);
 
         return [.. stackStatus.Branches.Where(b => b.Value.CouldBeCleanedUp).Select(b => b.Key)];
     }
 
-    public static void OutputBranchesNeedingCleanup(IOutputProvider outputProvider, string[] branches)
+    public static void OutputBranchesNeedingCleanup(ILogger logger, string[] branches)
     {
-        outputProvider.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
+        logger.Information("The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:");
 
         foreach (var branch in branches)
         {
-            outputProvider.Information($"  {branch.Branch()}");
+            logger.Information($"  {branch.Branch()}");
         }
     }
 
-    public static void CleanupBranches(IGitClient gitClient, IOutputProvider outputProvider, string[] branches)
+    public static void CleanupBranches(IGitClient gitClient, ILogger logger, string[] branches)
     {
         foreach (var branch in branches)
         {
-            outputProvider.Information($"Deleting local branch {branch.Branch()}");
+            logger.Information($"Deleting local branch {branch.Branch()}");
             gitClient.DeleteLocalBranch(branch);
         }
     }
 
     public static void UpdateStackDescriptionInPullRequests(
-        IOutputProvider outputProvider,
+        ILogger logger,
         IGitHubClient gitHubClient,
         Config.Stack stack,
         List<GitHubPullRequest> pullRequestsInStack)
@@ -505,7 +505,7 @@ public static class StackHelpers
                 prBody = prBody.Remove(prListStart, prListEnd - prListStart + StackConstants.StackMarkerEnd.Length);
                 prBody = prBody.Insert(prListStart, prBodyMarkdown);
 
-                outputProvider.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
+                logger.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
 
                 gitHubClient.EditPullRequest(pullRequest.Number, prBody);
             }
@@ -524,9 +524,9 @@ public static class StackHelpers
         }
     }
 
-    static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
+    static void MergeFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, ILogger logger)
     {
-        outputProvider.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+        logger.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
         gitClient.ChangeBranch(branch);
 
         try
@@ -558,7 +558,7 @@ public static class StackHelpers
         StackStatus status,
         IGitClient gitClient,
         IInputProvider inputProvider,
-        IOutputProvider outputProvider)
+        ILogger logger)
     {
         //
         // When rebasing the stack, we'll use `git rebase --update-refs` from the
@@ -585,7 +585,7 @@ public static class StackHelpers
 
         if (branchToRebaseFrom is null)
         {
-            outputProvider.Warning("No active branches found in the stack.");
+            logger.Warning("No active branches found in the stack.");
             return;
         }
 
@@ -600,14 +600,14 @@ public static class StackHelpers
 
             if (branchDetail.IsActive)
             {
-                RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, outputProvider);
+                RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, logger);
             }
         }
     }
 
-    static void RebaseFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, IOutputProvider outputProvider)
+    static void RebaseFromSourceBranch(string branch, string sourceBranchName, IGitClient gitClient, IInputProvider inputProvider, ILogger logger)
     {
-        outputProvider.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
+        logger.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
         gitClient.ChangeBranch(branch);
 
         void HandleConflicts()
