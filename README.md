@@ -67,10 +67,8 @@ To create a stack:
 - Give your stack a name.
 - Select a branch to start your stack from.
 - Optionally either create a new branch from the source branch, or add an existing branch to the stack.
-- Optionally push a new branch to the remote repository.
-- If you chose to create or add a branch you can switch to that branch to start work.
 
-If a new branch was not pushed to the remote, you can use the `stack push` command to push the branch to the remote.
+If a new branch was not able to be pushed to the remote, you can use the `stack push` command to push the branch to the remote later.
 
 ### Working within a stack
 
