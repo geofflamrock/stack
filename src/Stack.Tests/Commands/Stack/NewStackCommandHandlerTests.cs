@@ -42,10 +42,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
@@ -87,10 +86,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Add, existingBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
@@ -130,10 +128,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmAddOrCreateBranch).Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
@@ -176,10 +173,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
@@ -221,10 +217,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Add, existingBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
@@ -260,10 +255,9 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs("Stack1", null, null);
 
         // Act
-        var response = await handler.Handle(inputs);
+        await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
@@ -299,10 +293,9 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs(null, sourceBranch, null);
 
         // Act
-        var response = await handler.Handle(inputs);
+        await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, null, null));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
@@ -340,10 +333,9 @@ public class NewStackCommandHandlerTests
         var inputs = new NewStackCommandInputs(null, null, newBranch);
 
         // Act
-        var response = await handler.Handle(inputs);
+        await handler.Handle(inputs);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
@@ -386,10 +378,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(true);
 
         // Act
-        var response = await handler.Handle(NewStackCommandInputs.Empty);
+        await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("A stack with multiple words", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("A stack with multiple words", repo.RemoteUri, sourceBranch, [newBranch])
@@ -429,10 +420,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
-        var response = await handler.Handle(new NewStackCommandInputs(null, null, null));
+        await handler.Handle(new NewStackCommandInputs(null, null, null));
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
@@ -476,10 +466,9 @@ public class NewStackCommandHandlerTests
         inputProvider.Confirm(Questions.ConfirmSwitchToBranch).Returns(false);
 
         // Act
-        var response = await handler.Handle(new NewStackCommandInputs(null, null, null));
+        await handler.Handle(new NewStackCommandInputs(null, null, null));
 
         // Assert
-        response.Should().BeEquivalentTo(new NewStackCommandResponse("Stack1", sourceBranch, BranchAction.Create, newBranch));
         stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])

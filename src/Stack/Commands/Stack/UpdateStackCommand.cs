@@ -23,20 +23,18 @@ public class UpdateStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class UpdateStackCommand : CommandBase<UpdateStackCommandSettings>
+public class UpdateStackCommand : Command<UpdateStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, UpdateStackCommandSettings settings)
+    protected override async Task Execute(UpdateStackCommandSettings settings)
     {
         var handler = new UpdateStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));
-
-        return 0;
     }
 }
 
@@ -53,8 +51,9 @@ public class UpdateStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<UpdateStackCommandInputs>
 {
-    public async Task<UpdateStackCommandResponse> Handle(UpdateStackCommandInputs inputs)
+    public override async Task Handle(UpdateStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -69,7 +68,7 @@ public class UpdateStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            return new UpdateStackCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -101,6 +100,6 @@ public class UpdateStackCommandHandler(
             gitClient.ChangeBranch(currentBranch);
         }
 
-        return new UpdateStackCommandResponse();
+        return;
     }
 }

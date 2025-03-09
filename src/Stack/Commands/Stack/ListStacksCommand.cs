@@ -9,13 +9,42 @@ namespace Stack.Commands;
 
 public class ListStacksCommandSettings : CommandSettingsBase;
 
-public class ListStacksCommand : CommandBase<ListStacksCommandSettings>
+public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, ListStacksCommandResponse>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, ListStacksCommandSettings settings)
+    protected override async Task<ListStacksCommandResponse> Execute(ListStacksCommandSettings settings)
+    {
+        var handler = new ListStacksCommandHandler(
+            new StackConfig(),
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()));
+
+        return await handler.Handle(new ListStacksCommandInputs());
+    }
+
+    protected override void WriteOutput(ListStacksCommandSettings settings, ListStacksCommandResponse response)
+    {
+        if (response.Stacks.Count == 0)
+        {
+            StdErr.WriteLine("No stacks found for current repository.");
+            return;
+        }
+
+        foreach (var stack in response.Stacks)
+        {
+            StdErr.MarkupLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
+        }
+    }
+}
+
+public record ListStacksCommandInputs;
+public record ListStacksCommandResponse(List<ListStacksCommandResponseItem> Stacks);
+public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount);
+
+public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitClient)
+    : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
+{
+    public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var gitClient = new GitClient(Logger, settings.GetGitClientSettings());
-        var stackConfig = new StackConfig();
 
         var stacks = stackConfig.Load();
 
@@ -23,23 +52,11 @@ public class ListStacksCommand : CommandBase<ListStacksCommandSettings>
 
         if (remoteUri is null)
         {
-            Logger.Information("No stacks found for current repository.");
-            return 0;
+            return new ListStacksCommandResponse([]);
         }
 
         var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        if (stacksForRemote.Count == 0)
-        {
-            Logger.Information("No stacks found for current repository.");
-            return 0;
-        }
-
-        foreach (var stack in stacksForRemote)
-        {
-            Logger.Information($"[yellow]{stack.Name}[/] [grey]({stack.SourceBranch})[/] {"branch".ToQuantity(stack.Branches.Count)}");
-        }
-
-        return 0;
+        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
     }
 }

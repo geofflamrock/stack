@@ -24,22 +24,20 @@ public class PushStackCommandSettings : CommandSettingsBase
     public bool ForceWithLease { get; init; }
 }
 
-public class PushStackCommand : CommandBase<PushStackCommandSettings>
+public class PushStackCommand : Command<PushStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, PushStackCommandSettings settings)
+    protected override async Task Execute(PushStackCommandSettings settings)
     {
         var handler = new PushStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PushStackCommandInputs(
             settings.Stack,
             settings.MaxBatchSize,
             settings.ForceWithLease));
-
-        return 0;
     }
 }
 
@@ -53,8 +51,9 @@ public class PushStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<PushStackCommandInputs>
 {
-    public async Task Handle(PushStackCommandInputs inputs)
+    public override async Task Handle(PushStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -76,5 +75,6 @@ public class PushStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
+        return;
     }
 }

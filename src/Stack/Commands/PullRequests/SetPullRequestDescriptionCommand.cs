@@ -15,20 +15,18 @@ public class SetPullRequestDescriptionCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class SetPullRequestDescriptionCommand : CommandBase<SetPullRequestDescriptionCommandSettings>
+public class SetPullRequestDescriptionCommand : Command<SetPullRequestDescriptionCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, SetPullRequestDescriptionCommandSettings settings)
+    protected override async Task Execute(SetPullRequestDescriptionCommandSettings settings)
     {
         var handler = new SetPullRequestDescriptionCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 
@@ -37,16 +35,15 @@ public record SetPullRequestDescriptionCommandInputs(string? Stack)
     public static SetPullRequestDescriptionCommandInputs Empty => new((string?)null);
 }
 
-public record SetPullRequestDescriptionCommandResponse();
-
 public class SetPullRequestDescriptionCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<SetPullRequestDescriptionCommandInputs>
 {
-    public async Task<SetPullRequestDescriptionCommandResponse> Handle(SetPullRequestDescriptionCommandInputs inputs)
+    public override async Task Handle(SetPullRequestDescriptionCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -58,7 +55,7 @@ public class SetPullRequestDescriptionCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return new SetPullRequestDescriptionCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -91,12 +88,10 @@ public class SetPullRequestDescriptionCommandHandler(
         if (pullRequestsInStack.Count == 0)
         {
             logger.Information($"No pull requests found for stack {stack.Name.Branch()}");
-            return new SetPullRequestDescriptionCommandResponse();
+            return;
         }
 
         StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
         StackHelpers.UpdateStackDescriptionInPullRequests(logger, gitHubClient, stack, pullRequestsInStack);
-
-        return new SetPullRequestDescriptionCommandResponse();
     }
 }

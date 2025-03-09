@@ -15,31 +15,28 @@ public class StackSwitchCommandSettings : CommandSettingsBase
     public string? Branch { get; init; }
 }
 
-public class StackSwitchCommand : CommandBase<StackSwitchCommandSettings>
+public class StackSwitchCommand : Command<StackSwitchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, StackSwitchCommandSettings settings)
+    protected override async Task Execute(StackSwitchCommandSettings settings)
     {
         var handler = new StackSwitchCommandHandler(
             InputProvider,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new StackSwitchCommandInputs(settings.Branch));
-
-        return 0;
     }
 }
 
 public record StackSwitchCommandInputs(string? Branch);
 
-public record StackSwitchCommandResponse();
-
 public class StackSwitchCommandHandler(
     IInputProvider inputProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<StackSwitchCommandInputs>
 {
-    public async Task<StackSwitchCommandResponse> Handle(StackSwitchCommandInputs inputs)
+    public override async Task Handle(StackSwitchCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -62,7 +59,5 @@ public class StackSwitchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");
 
         gitClient.ChangeBranch(branchSelection);
-
-        return new();
     }
 }

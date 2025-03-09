@@ -1,6 +1,5 @@
 
 using System.ComponentModel;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
@@ -16,20 +15,18 @@ public class CleanupStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CleanupStackCommand : CommandBase<CleanupStackCommandSettings>
+public class CleanupStackCommand : Command<CleanupStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CleanupStackCommandSettings settings)
+    protected override async Task Execute(CleanupStackCommandSettings settings)
     {
         var handler = new CleanupStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 
@@ -38,16 +35,15 @@ public record CleanupStackCommandInputs(string? Stack)
     public static CleanupStackCommandInputs Empty => new((string?)null);
 }
 
-public record CleanupStackCommandResponse(string? CleanedUpStackName);
-
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<CleanupStackCommandInputs>
 {
-    public async Task Handle(CleanupStackCommandInputs inputs)
+    public override async Task Handle(CleanupStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -77,7 +73,6 @@ public class CleanupStackCommandHandler(
         if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
-
             logger.Information($"Stack {stack.Name.Stack()} cleaned up");
         }
     }

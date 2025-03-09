@@ -15,19 +15,17 @@ public class PullStackCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class PullStackCommand : CommandBase<PullStackCommandSettings>
+public class PullStackCommand : Command<PullStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, PullStackCommandSettings settings)
+    protected override async Task Execute(PullStackCommandSettings settings)
     {
         var handler = new PullStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 
@@ -37,8 +35,9 @@ public class PullStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<PullStackCommandInputs>
 {
-    public async Task Handle(PullStackCommandInputs inputs)
+    public override async Task Handle(PullStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();

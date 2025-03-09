@@ -15,21 +15,19 @@ public class CreatePullRequestsCommandSettings : CommandSettingsBase
     public string? Stack { get; init; }
 }
 
-public class CreatePullRequestsCommand : CommandBase<CreatePullRequestsCommandSettings>
+public class CreatePullRequestsCommand : Command<CreatePullRequestsCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, CreatePullRequestsCommandSettings settings)
+    protected override async Task Execute(CreatePullRequestsCommandSettings settings)
     {
         var handler = new CreatePullRequestsCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new FileOperations(),
             new StackConfig());
 
         await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
-
-        return 0;
     }
 }
 
@@ -38,8 +36,6 @@ public record CreatePullRequestsCommandInputs(string? Stack)
     public static CreatePullRequestsCommandInputs Empty => new((string?)null);
 }
 
-public record CreatePullRequestsCommandResponse();
-
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
@@ -47,8 +43,9 @@ public class CreatePullRequestsCommandHandler(
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
     IStackConfig stackConfig)
+    : CommandHandlerBase<CreatePullRequestsCommandInputs>
 {
-    public async Task<CreatePullRequestsCommandResponse> Handle(CreatePullRequestsCommandInputs inputs)
+    public override async Task Handle(CreatePullRequestsCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -61,7 +58,7 @@ public class CreatePullRequestsCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return new CreatePullRequestsCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -160,8 +157,6 @@ public class CreatePullRequestsCommandHandler(
         {
             logger.Information("No new pull requests to create.");
         }
-
-        return new CreatePullRequestsCommandResponse();
     }
 
     private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, ILogger logger, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)

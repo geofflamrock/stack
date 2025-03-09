@@ -28,15 +28,15 @@ public class SyncStackCommandSettings : CommandSettingsBase
     public bool? Merge { get; init; }
 }
 
-public class SyncStackCommand : CommandBase<SyncStackCommandSettings>
+public class SyncStackCommand : Command<SyncStackCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, SyncStackCommandSettings settings)
+    protected override async Task Execute(SyncStackCommandSettings settings)
     {
         var handler = new SyncStackCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
-            new GitHubClient(Logger, settings.GetGitHubClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(
@@ -44,8 +44,6 @@ public class SyncStackCommand : CommandBase<SyncStackCommandSettings>
             settings.MaxBatchSize,
             settings.Rebase,
             settings.Merge));
-
-        return 0;
     }
 }
 
@@ -58,16 +56,15 @@ public record SyncStackCommandInputs(
     public static SyncStackCommandInputs Empty => new(null, 5, null, null);
 }
 
-public record SyncStackCommandResponse();
-
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<SyncStackCommandInputs>
 {
-    public async Task<SyncStackCommandResponse> Handle(SyncStackCommandInputs inputs)
+    public override async Task Handle(SyncStackCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -82,7 +79,7 @@ public class SyncStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            return new SyncStackCommandResponse();
+            return;
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
@@ -130,8 +127,6 @@ public class SyncStackCommandHandler(
                 gitClient.ChangeBranch(currentBranch);
             }
         }
-
-        return new SyncStackCommandResponse();
     }
 
     private void FetchChanges()

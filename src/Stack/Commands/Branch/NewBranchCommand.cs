@@ -19,19 +19,17 @@ public class NewBranchCommandSettings : CommandSettingsBase
     public string? Name { get; init; }
 }
 
-public class NewBranchCommand : CommandBase<NewBranchCommandSettings>
+public class NewBranchCommand : Command<NewBranchCommandSettings>
 {
-    public override async Task<int> ExecuteAsync(CommandContext context, NewBranchCommandSettings settings)
+    protected override async Task Execute(NewBranchCommandSettings settings)
     {
         var handler = new NewBranchCommandHandler(
             InputProvider,
-            Logger,
-            new GitClient(Logger, settings.GetGitClientSettings()),
+            StdErrLogger,
+            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
-
-        return 0;
     }
 }
 
@@ -40,15 +38,14 @@ public record NewBranchCommandInputs(string? StackName, string? BranchName)
     public static NewBranchCommandInputs Empty => new(null, null);
 }
 
-public record NewBranchCommandResponse();
-
 public class NewBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
+    : CommandHandlerBase<NewBranchCommandInputs>
 {
-    public async Task<NewBranchCommandResponse> Handle(NewBranchCommandInputs inputs)
+    public override async Task Handle(NewBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
 
@@ -63,7 +60,7 @@ public class NewBranchCommandHandler(
         if (stacksForRemote.Count == 0)
         {
             logger.Information("No stacks found for current repository.");
-            return new NewBranchCommandResponse();
+            return;
         }
 
         var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
@@ -117,7 +114,5 @@ public class NewBranchCommandHandler(
         {
             gitClient.ChangeBranch(branchName);
         }
-
-        return new NewBranchCommandResponse();
     }
 }
