@@ -18,7 +18,7 @@ public class CommandSettingsBase : CommandSettings
 
 public class CommandWithOutputSettingsBase : CommandSettingsBase
 {
-    [Description("Output the result as JSON.")]
+    [Description("Output results as JSON.")]
     [CommandOption("--json")]
     [DefaultValue(false)]
     public bool Json { get; init; }
