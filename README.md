@@ -280,6 +280,7 @@ OPTIONS:
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
     -s, --stack          The name of the stack to cleanup
+        --yes            Confirm the cleanup operation without prompting
 ```
 
 #### `stack branch new` <!-- omit from toc -->
