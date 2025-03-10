@@ -14,7 +14,21 @@ public class CommandSettingsBase : CommandSettings
     [Description("The path to the directory containing the git repository. Defaults to the current directory.")]
     [CommandOption("--working-dir")]
     public string? WorkingDirectory { get; init; }
+}
 
-    public virtual GitClientSettings GetGitClientSettings() => new(Verbose, WorkingDirectory);
-    public virtual GitHubClientSettings GetGitHubClientSettings() => new(Verbose, WorkingDirectory);
+public class CommandWithOutputSettingsBase : CommandSettingsBase
+{
+    [Description("Output results as JSON.")]
+    [CommandOption("--json")]
+    [DefaultValue(false)]
+    public bool Json { get; init; }
+}
+
+public static class CommandSettingsBaseExtensions
+{
+    public static GitClientSettings GetGitClientSettings(this CommandSettingsBase settings) =>
+        new(settings.Verbose, settings.WorkingDirectory);
+
+    public static GitHubClientSettings GetGitHubClientSettings(this CommandSettingsBase settings) =>
+        new(settings.Verbose, settings.WorkingDirectory);
 }
