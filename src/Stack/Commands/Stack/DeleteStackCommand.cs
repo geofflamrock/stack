@@ -14,6 +14,10 @@ public class DeleteStackCommandSettings : CommandSettingsBase
     [Description("The name of the stack to delete.")]
     [CommandOption("-s|--stack")]
     public string? Stack { get; init; }
+
+    [Description("Confirm the deletion of the stack without prompting.")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class DeleteStackCommand : Command<DeleteStackCommandSettings>
@@ -27,16 +31,13 @@ public class DeleteStackCommand : Command<DeleteStackCommandSettings>
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new StackConfig());
 
-        var response = await handler.Handle(new DeleteStackCommandInputs(settings.Stack));
-
-        if (response.DeletedStackName is not null)
-            StdErrLogger.Information($"Stack {response.DeletedStackName.Stack()} deleted");
+        await handler.Handle(new DeleteStackCommandInputs(settings.Stack, settings.Confirm));
     }
 }
 
-public record DeleteStackCommandInputs(string? Stack)
+public record DeleteStackCommandInputs(string? Stack, bool Confirm)
 {
-    public static DeleteStackCommandInputs Empty => new((string?)null);
+    public static DeleteStackCommandInputs Empty => new(null, false);
 }
 
 public record DeleteStackCommandResponse(string? DeletedStackName);
@@ -47,9 +48,9 @@ public class DeleteStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
-    : CommandHandlerBase<DeleteStackCommandInputs, DeleteStackCommandResponse>
+    : CommandHandlerBase<DeleteStackCommandInputs>
 {
-    public override async Task<DeleteStackCommandResponse> Handle(DeleteStackCommandInputs inputs)
+    public override async Task Handle(DeleteStackCommandInputs inputs)
     {
         await Task.CompletedTask;
         var stacks = stackConfig.Load();
@@ -66,7 +67,7 @@ public class DeleteStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputProvider.Confirm(Questions.ConfirmDeleteStack))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteStack))
         {
             var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
 
@@ -83,9 +84,7 @@ public class DeleteStackCommandHandler(
             stacks.Remove(stack);
             stackConfig.Save(stacks);
 
-            return new DeleteStackCommandResponse(stack.Name);
+            logger.Information($"Stack {stack.Name.Stack()} deleted");
         }
-
-        return new DeleteStackCommandResponse(null);
     }
 }
