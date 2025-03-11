@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -17,6 +16,10 @@ public class RemoveBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to add.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("Confirm the removal of the branch without prompting.")]
+    [CommandOption("--yes")]
+    public bool Confirm { get; init; }
 }
 
 public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
@@ -29,13 +32,13 @@ public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new StackConfig());
 
-        await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name));
+        await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Confirm));
     }
 }
 
-public record RemoveBranchCommandInputs(string? StackName, string? BranchName)
+public record RemoveBranchCommandInputs(string? StackName, string? BranchName, bool Confirm)
 {
-    public static RemoveBranchCommandInputs Empty => new(null, null);
+    public static RemoveBranchCommandInputs Empty => new(null, null, false);
 }
 
 public class RemoveBranchCommandHandler(
@@ -68,7 +71,7 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
-        if (inputProvider.Confirm(Questions.ConfirmRemoveBranch))
+        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {
             stack.Branches.Remove(branchName);
             stackConfig.Save(stacks);
