@@ -31,6 +31,7 @@ public interface IGitClient
     void DeleteLocalBranch(string branchName);
     void MergeFromLocalSourceBranch(string sourceBranchName);
     void RebaseFromLocalSourceBranch(string sourceBranchName);
+    void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName);
     void AbortMerge();
     void AbortRebase();
     void ContinueRebase();
@@ -132,6 +133,19 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
     public void RebaseFromLocalSourceBranch(string sourceBranchName)
     {
         ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName)
+    {
+        ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, exitCode =>
         {
             if (exitCode > 0)
             {
