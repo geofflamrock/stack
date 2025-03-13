@@ -553,7 +553,7 @@ public static class StackHelpers
         }
     }
 
-    static void UpdateStackUsingRebase(
+    public static void UpdateStackUsingRebase(
         Config.Stack stack,
         StackStatus status,
         IGitClient gitClient,
