@@ -10,6 +10,7 @@ public class BranchBuilder
     bool pushToRemote;
     string? sourceBranch;
     int numberOfEmptyCommits;
+    List<Action<CommitBuilder>> commitBuilders = [];
 
     public BranchBuilder WithName(string name)
     {
@@ -35,6 +36,12 @@ public class BranchBuilder
         return this;
     }
 
+    public BranchBuilder WithCommit(Action<CommitBuilder> commitBuilder)
+    {
+        commitBuilders.Add(commitBuilder);
+        return this;
+    }
+
     public void Build(Repository repository, string defaultBranchName)
     {
         var branchName = name ?? Some.BranchName();
@@ -45,6 +52,14 @@ public class BranchBuilder
         for (var i = 0; i < numberOfEmptyCommits; i++)
         {
             CreateEmptyCommit(repository, branch!, $"Empty commit {i + 1}");
+        }
+
+        foreach (var commitBuilder in commitBuilders)
+        {
+            var builder = new CommitBuilder();
+            builder = builder.OnBranch(r => branch!.CanonicalName);
+            commitBuilder(builder);
+            builder.Build(repository);
         }
 
         if (pushToRemote)
@@ -75,6 +90,7 @@ public class CommitBuilder
     string? committerEmail;
     bool allowEmptyCommit;
     bool pushToRemote;
+    List<(string Path, string Contents)> changes = [];
 
     public CommitBuilder OnBranch(string branch)
     {
@@ -85,6 +101,12 @@ public class CommitBuilder
     public CommitBuilder OnBranch(Func<Repository, string> getBranchName)
     {
         this.getBranchName = getBranchName;
+        return this;
+    }
+
+    public CommitBuilder WithChanges(string path, string contents)
+    {
+        changes.Add((path, contents));
         return this;
     }
 
@@ -133,6 +155,15 @@ public class CommitBuilder
         if (branch is not null)
         {
             repository.Refs.UpdateTarget("HEAD", branch.CanonicalName);
+        }
+
+        foreach (var (path, contents) in changes)
+        {
+            var fullPath = Path.Combine(repository.Info.WorkingDirectory, path);
+            var directory = Path.GetDirectoryName(fullPath);
+            Directory.CreateDirectory(directory!);
+            File.WriteAllText(fullPath, contents);
+            LibGit2Sharp.Commands.Stage(repository, path);
         }
 
         var signature = new Signature(authorName ?? Some.Name(), authorEmail ?? Some.Name(), DateTimeOffset.Now);
@@ -347,6 +378,11 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var branch = LocalRepository.Branches[branchName];
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         LocalRepository.Branches.Remove(remoteBranchName);
+    }
+
+    public void Push(string branchName)
+    {
+        LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
     }
 
     public void Dispose()

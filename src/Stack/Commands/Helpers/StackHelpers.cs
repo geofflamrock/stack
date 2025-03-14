@@ -553,7 +553,7 @@ public static class StackHelpers
         }
     }
 
-    static void UpdateStackUsingRebase(
+    public static void UpdateStackUsingRebase(
         Config.Stack stack,
         StackStatus status,
         IGitClient gitClient,
@@ -564,14 +564,32 @@ public static class StackHelpers
         // When rebasing the stack, we'll use `git rebase --update-refs` from the
         // lowest branch in the stack to pick up changes throughout all branches in the stack.
         // Because there could be changes in any branch in the stack that aren't in the ones
-        // below it, we'll repeat this all the way from the bottom to the top of the stack.        
+        // below it, we'll repeat this all the way from the bottom to the top of the stack to
+        // ensure that all changes are applied in the correct order.
         //
         // For example if we have a stack like this:
         // main -> feature1 -> feature2 -> feature3
         // 
         // We'll rebase feature3 onto feature2, then feature3 onto feature1, and finally feature3 onto main.
         //
+        // In addition to this, if the stack is in a state where one of the branches has been squash merged
+        // into the source branch, we'll want to rebase onto that branch directly using
+        // `git rebase --onto {sourceBranch} {oldParentBranch}` to ensure that the changes are 
+        // applied correctly and to try and avoid merge conflicts during the rebase.
+        // 
+        // For example if we have a stack like this:
+        // main
+        //   -> feature1 (deleted in remote): Squash merged into main
+        //   -> feature2
+        //   -> feature3
+        //  
+        // We'll rebase feature3 onto feature2 using a normal `git rebase feature2 --update-refs`, 
+        // then feature3 onto main using `git rebase --onto main feature1 --update-refs` to replay
+        // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
+        // which will include the squashed commit. 
+        //
         string? branchToRebaseFrom = null;
+        string? lowestInactiveBranchToReParentFrom = null;
 
         foreach (var branch in stack.Branches)
         {
@@ -600,7 +618,18 @@ public static class StackHelpers
 
             if (branchDetail.IsActive)
             {
-                RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, logger);
+                if (lowestInactiveBranchToReParentFrom is not null)
+                {
+                    RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto, lowestInactiveBranchToReParentFrom, gitClient, inputProvider, logger);
+                }
+                else
+                {
+                    RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, logger);
+                }
+            }
+            else if (lowestInactiveBranchToReParentFrom is null)
+            {
+                lowestInactiveBranchToReParentFrom = branchToRebaseOnto;
             }
         }
     }
@@ -610,43 +639,64 @@ public static class StackHelpers
         logger.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
         gitClient.ChangeBranch(branch);
 
-        void HandleConflicts()
-        {
-            var action = inputProvider.Select(
-                Questions.ContinueOrAbortRebase,
-                [MergeConflictAction.Continue, MergeConflictAction.Abort],
-                a => a switch
-                {
-                    MergeConflictAction.Continue => "Continue",
-                    MergeConflictAction.Abort => "Abort",
-                    _ => throw new InvalidOperationException("Invalid rebase conflict action.")
-                });
-
-            if (action == MergeConflictAction.Abort)
-            {
-                gitClient.AbortRebase();
-                throw new Exception("Rebase aborted due to conflicts.");
-            }
-            else if (action == MergeConflictAction.Continue)
-            {
-                try
-                {
-                    gitClient.ContinueRebase();
-                }
-                catch (ConflictException)
-                {
-                    HandleConflicts();
-                }
-            }
-        }
-
         try
         {
             gitClient.RebaseFromLocalSourceBranch(sourceBranchName);
         }
         catch (ConflictException)
         {
-            HandleConflicts();
+            HandleConflictsDuringRebase(gitClient, inputProvider);
+        }
+    }
+
+    static void RebaseOntoNewParent(
+        string branch,
+        string newParentBranchName,
+        string oldParentBranchName,
+        IGitClient gitClient,
+        IInputProvider inputProvider,
+        ILogger logger)
+    {
+        logger.Information($"Rebasing {branch.Branch()} onto new parent {newParentBranchName.Branch()}");
+        gitClient.ChangeBranch(branch);
+
+        try
+        {
+            gitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
+        }
+        catch (ConflictException)
+        {
+            HandleConflictsDuringRebase(gitClient, inputProvider);
+        }
+    }
+
+    static void HandleConflictsDuringRebase(IGitClient gitClient, IInputProvider inputProvider)
+    {
+        var action = inputProvider.Select(
+            Questions.ContinueOrAbortRebase,
+            [MergeConflictAction.Continue, MergeConflictAction.Abort],
+            a => a switch
+            {
+                MergeConflictAction.Continue => "Continue",
+                MergeConflictAction.Abort => "Abort",
+                _ => throw new InvalidOperationException("Invalid rebase conflict action.")
+            });
+
+        if (action == MergeConflictAction.Abort)
+        {
+            gitClient.AbortRebase();
+            throw new Exception("Rebase aborted due to conflicts.");
+        }
+        else if (action == MergeConflictAction.Continue)
+        {
+            try
+            {
+                gitClient.ContinueRebase();
+            }
+            catch (ConflictException)
+            {
+                HandleConflictsDuringRebase(gitClient, inputProvider);
+            }
         }
     }
 }
