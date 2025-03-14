@@ -1,3 +1,24 @@
+# v0.10.0 (Fri Mar 14 2025)
+
+#### 🚀 New Features and Improvements
+
+- Improve rebase after squash merge [#235](https://github.com/geofflamrock/stack/pull/235) ([@geofflamrock](https://github.com/geofflamrock))
+- Add confirm option to `sync` command [#231](https://github.com/geofflamrock/stack/pull/231) ([@geofflamrock](https://github.com/geofflamrock))
+- Add confirm option to `cleanup` command [#230](https://github.com/geofflamrock/stack/pull/230) ([@geofflamrock](https://github.com/geofflamrock))
+- Add confirm option to `delete` command [#229](https://github.com/geofflamrock/stack/pull/229) ([@geofflamrock](https://github.com/geofflamrock))
+- Add confirm option to `branch remove` command [#228](https://github.com/geofflamrock/stack/pull/228) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes confirmations from `stack branch new` command [#227](https://github.com/geofflamrock/stack/pull/227) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes confirmations from `stack new` command [#226](https://github.com/geofflamrock/stack/pull/226) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds `--json` output formatting [#225](https://github.com/geofflamrock/stack/pull/225) ([@geofflamrock](https://github.com/geofflamrock))
+- Write output to `stdout` for `list` and `status` commands [#224](https://github.com/geofflamrock/stack/pull/224) ([@geofflamrock](https://github.com/geofflamrock))
+- Change logging to use `stderr` [#223](https://github.com/geofflamrock/stack/pull/223) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.9.1 (Tue Feb 11 2025)
 
 #### 🐛 Bug Fixes
