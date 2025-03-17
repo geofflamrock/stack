@@ -75,7 +75,7 @@ public class DeleteStackCommandHandler(
             {
                 StackHelpers.OutputBranchesNeedingCleanup(logger, branchesNeedingCleanup);
 
-                if (inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+                if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
                 {
                     StackHelpers.CleanupBranches(gitClient, logger, branchesNeedingCleanup);
                 }
