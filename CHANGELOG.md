@@ -1,3 +1,15 @@
+# v0.10.1 (Mon Mar 17 2025)
+
+#### 🐛 Bug Fixes
+
+- Fixes confirmation when deleting stack in non-interactive console [#236](https://github.com/geofflamrock/stack/pull/236) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.10.0 (Fri Mar 14 2025)
 
 #### 🚀 New Features and Improvements
