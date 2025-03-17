@@ -17,9 +17,7 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft, GitHubLabel[] Labels);
-
-public record GitHubLabel(string Name);
+public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft);
 
 public static class GitHubPullRequestExtensionMethods
 {
@@ -51,18 +49,16 @@ public interface IGitHubClient
         string baseBranch,
         string title,
         string bodyFilePath,
-        string[] labels,
         bool draft);
     void EditPullRequest(int number, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
-    string[] GetLabels();
 }
 
 public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,labels --head {branch} --state all");
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 
@@ -74,7 +70,6 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
         string baseBranch,
         string title,
         string bodyFilePath,
-        string[] labels,
         bool draft)
     {
         var command = $"pr create --title \"{Sanitize(title)}\" --body-file \"{bodyFilePath}\" --base {baseBranch} --head {headBranch}";
@@ -82,11 +77,6 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
         if (draft)
         {
             command += " --draft";
-        }
-
-        if (labels.Length > 0)
-        {
-            command += " --label " + string.Join(',', labels.Select(l => Sanitize(l)));
         }
 
         ExecuteGitHubCommand(command);
@@ -102,15 +92,6 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
     public void OpenPullRequest(GitHubPullRequest pullRequest)
     {
         ExecuteGitHubCommand($"pr view {pullRequest.Number} --web");
-    }
-
-    public string[] GetLabels()
-    {
-        var output = ExecuteGitHubCommandAndReturnOutput($"label list --limit {int.MaxValue} --json name");
-        var labels = System.Text.Json.JsonSerializer.Deserialize<List<GitHubLabel>>(output,
-            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
-
-        return [.. labels.Select(l => l.Name)];
     }
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)

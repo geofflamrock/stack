@@ -5,7 +5,6 @@ namespace Stack.Tests.Helpers;
 public class TestGitHubRepositoryBuilder
 {
     readonly Dictionary<string, GitHubPullRequest> pullRequests = new();
-    readonly List<string> labels = [];
 
     public TestGitHubRepositoryBuilder WithPullRequest(string branch, Action<TestGitHubPullRequestBuilder>? pullRequestBuilder = null)
     {
@@ -15,15 +14,9 @@ public class TestGitHubRepositoryBuilder
         return this;
     }
 
-    public TestGitHubRepositoryBuilder WithLabel(string label)
-    {
-        labels.Add(label);
-        return this;
-    }
-
     public TestGitHubRepository Build()
     {
-        return new TestGitHubRepository(pullRequests, [.. labels]);
+        return new TestGitHubRepository(pullRequests);
     }
 }
 
@@ -35,7 +28,6 @@ public class TestGitHubPullRequestBuilder
     string state = GitHubPullRequestStates.Open;
     Uri url = Some.HttpsUri();
     bool draft = false;
-    string[] labels = [];
 
     public TestGitHubPullRequestBuilder WithTitle(string title)
     {
@@ -57,25 +49,23 @@ public class TestGitHubPullRequestBuilder
 
     public GitHubPullRequest Build()
     {
-        return new GitHubPullRequest(number, title, body, state, url, draft, [.. labels.Select(l => new GitHubLabel(l))]);
+        return new GitHubPullRequest(number, title, body, state, url, draft);
     }
 }
 
-public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequests, string[] Labels) : IGitHubClient
+public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequests) : IGitHubClient
 {
     public Dictionary<string, GitHubPullRequest> PullRequests { get; } = PullRequests;
-    public string[] Labels { get; } = Labels;
 
     public GitHubPullRequest CreatePullRequest(
         string headBranch,
         string baseBranch,
         string title,
         string bodyFilePath,
-        string[] labels,
         bool draft)
     {
         var prBody = File.ReadAllText(bodyFilePath).Trim();
-        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft, [.. labels.Select(l => new GitHubLabel(l))]);
+        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft);
         PullRequests.Add(headBranch, pr);
         return pr;
     }
@@ -98,10 +88,5 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)
     {
-    }
-
-    public string[] GetLabels()
-    {
-        return Labels;
     }
 }
