@@ -185,7 +185,6 @@ public class CreatePullRequestsCommandHandler(
                 action.BaseBranch,
                 action.Title!,
                 action.BodyFilePath!,
-                action.Labels,
                 action.Draft);
 
             if (pullRequest is not null)
@@ -216,7 +215,7 @@ public class CreatePullRequestsCommandHandler(
                 var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
                 if (action is not null)
                 {
-                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}{(action.Labels.Length > 0 ? Markup.Escape($" [{string.Join(", ", action.Labels)}]").Muted() : string.Empty)}");
+                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
                 }
                 else
                 {
@@ -251,8 +250,6 @@ public class CreatePullRequestsCommandHandler(
             logger.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
         }
 
-        var gitHubLabels = gitHubClient.GetLabels();
-
         foreach (var action in pullRequestCreateActions)
         {
             logger.NewLine();
@@ -279,17 +276,6 @@ public class CreatePullRequestsCommandHandler(
                 gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
             }
 
-            string[] labels = [];
-
-            if (gitHubLabels.Length > 0)
-            {
-                labels = inputProvider.MultiSelect(
-                    logger,
-                    Questions.PullRequestLabels,
-                    gitHubLabels,
-                    false);
-            }
-
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
 
             pullRequestActions.Add(new PullRequestInformation(
@@ -297,7 +283,6 @@ public class CreatePullRequestsCommandHandler(
                 action.BaseBranch,
                 title,
                 bodyFilePath,
-                [.. labels],
                 draft));
         }
 
@@ -309,7 +294,6 @@ public class CreatePullRequestsCommandHandler(
         string BaseBranch,
         string Title,
         string BodyFilePath,
-        string[] Labels,
         bool Draft);
 
     public record PullRequestCreateAction(string Branch, string BaseBranch);
