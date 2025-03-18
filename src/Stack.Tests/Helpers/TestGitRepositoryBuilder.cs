@@ -380,6 +380,11 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Branches.Remove(remoteBranchName);
     }
 
+    public void DeleteLocalBranch(string branchName)
+    {
+        LocalRepository.Branches.Remove(branchName);
+    }
+
     public void Push(string branchName)
     {
         LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
