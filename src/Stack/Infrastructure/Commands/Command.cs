@@ -20,12 +20,14 @@ public abstract class Command<T> : AsyncCommand<T> where T : CommandSettingsBase
             ColorSystem = ColorSystemSupport.Detect,
             Out = new AnsiConsoleOutput(Console.Out),
         });
+        StdOut.Profile.Width = Console.LargestWindowWidth;
         StdErr = AnsiConsole.Create(new AnsiConsoleSettings
         {
             Ansi = AnsiSupport.Detect,
             ColorSystem = ColorSystemSupport.Detect,
             Out = new AnsiConsoleOutput(Console.Error),
         });
+        StdErr.Profile.Width = Console.LargestWindowWidth;
         StdOutLogger = new ConsoleLogger(StdOut);
         StdErrLogger = new ConsoleLogger(StdErr);
         InputProvider = new ConsoleInputProvider(StdErr);
