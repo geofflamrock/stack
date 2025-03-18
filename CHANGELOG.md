@@ -1,3 +1,15 @@
+# v0.11.1 (Tue Mar 18 2025)
+
+#### 🐛 Bug Fixes
+
+- Fix issues with detecting when to re-parent during rebase [#243](https://github.com/geofflamrock/stack/pull/243) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.11.0 (Tue Mar 18 2025)
 
 #### 🚀 New Features and Improvements
