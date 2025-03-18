@@ -1,3 +1,19 @@
+# v0.11.0 (Tue Mar 18 2025)
+
+#### 🚀 New Features and Improvements
+
+- Remove applying labels on PR creation [#238](https://github.com/geofflamrock/stack/pull/238) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🐛 Bug Fixes
+
+- Fix issue where StdOut text would wrap [#242](https://github.com/geofflamrock/stack/pull/242) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.10.1 (Mon Mar 17 2025)
 
 #### 🐛 Bug Fixes
