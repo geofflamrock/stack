@@ -618,9 +618,17 @@ public static class StackHelpers
 
             if (branchDetail.IsActive)
             {
-                if (lowestInactiveBranchToReParentFrom is not null)
+                var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? status.Branches[lowestInactiveBranchToReParentFrom] : null;
+                var shouldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Status.ExistsLocally;
+
+                if (shouldRebaseOntoParent)
                 {
-                    RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto, lowestInactiveBranchToReParentFrom, gitClient, inputProvider, logger);
+                    shouldRebaseOntoParent = gitClient.IsAncestor(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
+                }
+
+                if (shouldRebaseOntoParent)
+                {
+                    RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto, lowestInactiveBranchToReParentFrom!, gitClient, inputProvider, logger);
                 }
                 else
                 {

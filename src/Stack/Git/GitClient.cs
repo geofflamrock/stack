@@ -50,6 +50,7 @@ public interface IGitClient
     string GetRootOfRepository();
     void OpenFileInEditorAndWaitForClose(string path);
     string? GetConfigValue(string key);
+    bool IsAncestor(string ancestor, string descendant);
 }
 
 public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
@@ -281,6 +282,19 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         })?.Trim();
 
         return string.IsNullOrEmpty(configValue) ? null : configValue;
+    }
+
+    public bool IsAncestor(string ancestor, string descendant)
+    {
+        var isAncestor = false;
+
+        ExecuteGitCommand($"merge-base --is-ancestor {ancestor} {descendant}", false, exitCode =>
+        {
+            isAncestor = exitCode == 0;
+            return null;
+        });
+
+        return isAncestor;
     }
 
     public void OpenFileInEditorAndWaitForClose(string path)
