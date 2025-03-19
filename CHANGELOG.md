@@ -1,3 +1,15 @@
+# v0.11.2 (Wed Mar 19 2025)
+
+#### 🐛 Bug Fixes
+
+- Revert fix to issue where StdOut text would wrap [#245](https://github.com/geofflamrock/stack/pull/245) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.11.1 (Tue Mar 18 2025)
 
 #### 🐛 Bug Fixes
