@@ -1,3 +1,15 @@
+# v0.11.3 (Wed Mar 19 2025)
+
+#### 🐛 Bug Fixes
+
+- Write stdout using `Console.Out` instead `AnsiConsole` [#247](https://github.com/geofflamrock/stack/pull/247) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.11.2 (Wed Mar 19 2025)
 
 #### 🐛 Bug Fixes
