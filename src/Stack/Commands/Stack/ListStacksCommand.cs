@@ -24,7 +24,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
     {
         if (response.Stacks.Count == 0)
         {
-            StdOut.WriteLine("No stacks found for current repository.");
+            StdErr.WriteLine("No stacks found for current repository.");
             return;
         }
 
