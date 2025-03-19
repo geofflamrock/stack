@@ -24,13 +24,13 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
     {
         if (response.Stacks.Count == 0)
         {
-            StdErr.WriteLine("No stacks found for current repository.");
+            StdOut.WriteLine("No stacks found for current repository.");
             return;
         }
 
         foreach (var stack in response.Stacks)
         {
-            StdErr.MarkupLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
+            StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
         }
     }
 }
