@@ -30,7 +30,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
 
         foreach (var stack in response.Stacks)
         {
-            StdErr.MarkupLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
+            StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
         }
     }
 }
