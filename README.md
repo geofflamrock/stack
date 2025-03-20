@@ -192,6 +192,7 @@ OPTIONS:
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
         --json           Output results as JSON
+        --pretty         Format JSON output with indentation for better readability (use with --json)
 ```
 
 #### `stack status` <!-- omit from toc -->
@@ -211,6 +212,7 @@ OPTIONS:
         --all            Show status of all stacks
         --full           Show full status including pull requests
         --json           Output results as JSON
+        --pretty         Format JSON output with indentation for better readability (use with --json)
 ```
 
 #### `stack delete` <!-- omit from toc -->
