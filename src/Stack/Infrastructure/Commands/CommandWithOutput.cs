@@ -8,11 +8,6 @@ public abstract class CommandWithOutput<TSettings, TResponse> : Command<TSetting
     where TSettings : CommandWithOutputSettingsBase
     where TResponse : notnull
 {
-    readonly JsonSerializerOptions jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     public override async Task<int> ExecuteAsync(CommandContext context, TSettings settings)
     {
         var response = await Execute(settings);
@@ -27,7 +22,7 @@ public abstract class CommandWithOutput<TSettings, TResponse> : Command<TSetting
 
     protected virtual void WriteJsonOutput(TResponse response, JsonSerializerOptions options)
     {
-        var json = JsonSerializer.Serialize(response, jsonSerializerOptions);
+        var json = JsonSerializer.Serialize(response, options);
         StdOut.WriteLine(json);
     }
 
@@ -35,7 +30,13 @@ public abstract class CommandWithOutput<TSettings, TResponse> : Command<TSetting
     {
         if (settings.Json)
         {
-            WriteJsonOutput(response, jsonSerializerOptions);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = settings.Pretty
+            };
+
+            WriteJsonOutput(response, options);
         }
         else
         {

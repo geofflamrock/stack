@@ -22,6 +22,11 @@ public class CommandWithOutputSettingsBase : CommandSettingsBase
     [CommandOption("--json")]
     [DefaultValue(false)]
     public bool Json { get; init; }
+
+    [Description("Format JSON output with indentation for better readability.")]
+    [CommandOption("--pretty")]
+    [DefaultValue(false)]
+    public bool Pretty { get; init; }
 }
 
 public static class CommandSettingsBaseExtensions
