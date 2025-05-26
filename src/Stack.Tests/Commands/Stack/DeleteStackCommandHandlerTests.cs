@@ -16,7 +16,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -34,6 +34,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
@@ -71,6 +72,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(false);
@@ -91,7 +93,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -109,6 +111,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
@@ -189,6 +192,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
@@ -210,7 +214,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -227,6 +231,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
 
@@ -244,7 +249,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -262,6 +267,7 @@ public class DeleteStackCommandHandlerTests
         stackConfig
             .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
             .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 

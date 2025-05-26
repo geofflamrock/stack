@@ -79,22 +79,20 @@ public class CreatePullRequestsCommandHandler(
         var sourceBranch = stack.SourceBranch;
         var pullRequestCreateActions = new List<PullRequestCreateAction>();
 
-        foreach (var branch in stack.Branches)
+        foreach (var branch in status.Branches)
         {
-            var branchDetail = status.Branches[branch];
-
-            if (branchDetail.IsActive)
+            if (branch.IsActive)
             {
-                if (!branchDetail.HasPullRequest)
+                if (!branch.HasPullRequest)
                 {
-                    pullRequestCreateActions.Add(new PullRequestCreateAction(branch, sourceBranch));
+                    pullRequestCreateActions.Add(new PullRequestCreateAction(branch.Name, sourceBranch));
                 }
 
-                sourceBranch = branch;
+                sourceBranch = branch.Name;
             }
         }
 
-        StackHelpers.OutputStackStatus(stack, status, logger);
+        StackHelpers.OutputStackStatus(status, logger);
 
         logger.NewLine();
 
@@ -134,7 +132,15 @@ public class CreatePullRequestsCommandHandler(
             {
                 var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
-                var pullRequestsInStack = status.Branches.Values
+                // Re-get the status to pick up PRs
+                status = StackHelpers.GetStackStatus(
+                    stack,
+                    currentBranch,
+                    logger,
+                    gitClient,
+                    gitHubClient);
+
+                var pullRequestsInStack = status.Branches
                     .Where(branch => branch.HasPullRequest)
                     .Select(branch => branch.PullRequest!)
                     .ToList();
@@ -178,7 +184,7 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            var branchDetail = status.Branches[action.HeadBranch];
+            var branchDetail = status.Branches.First(b => b.Name == action.HeadBranch);
             logger.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
@@ -191,7 +197,6 @@ public class CreatePullRequestsCommandHandler(
             {
                 logger.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
                 pullRequests.Add(pullRequest);
-                branchDetail.PullRequest = pullRequest;
             }
         }
 
@@ -201,28 +206,25 @@ public class CreatePullRequestsCommandHandler(
     private static void OutputUpdatedStackStatus(ILogger logger, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestCreateActions)
     {
         var branchDisplayItems = new List<string>();
-        var parentBranch = stack.SourceBranch;
 
-        foreach (var branch in stack.Branches)
+        foreach (var branch in status.Branches)
         {
-            var branchDetail = status.Branches[branch];
-            if (branchDetail.PullRequest is not null && branchDetail.PullRequest.State != GitHubPullRequestStates.Closed)
+            if (branch.PullRequest is not null && branch.PullRequest.State != GitHubPullRequestStates.Closed)
             {
-                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestStatusOutput(branch, parentBranch, branchDetail));
+                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestStatusOutput(branch));
             }
             else
             {
-                var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch);
+                var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch.Name);
                 if (action is not null)
                 {
-                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
+                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
                 }
                 else
                 {
-                    branchDisplayItems.Add(StackHelpers.GetBranchStatusOutput(branch, parentBranch, branchDetail));
+                    branchDisplayItems.Add(StackHelpers.GetBranchStatusOutput(branch));
                 }
             }
-            parentBranch = branch;
         }
 
         logger.Tree(

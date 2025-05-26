@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Text.Json;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -25,6 +24,61 @@ public class StackStatusCommandSettings : CommandWithOutputSettingsBase
     public bool Full { get; init; }
 }
 
+public record StackStatusCommandJsonOutput
+(
+    string Name,
+    StackStatusCommandJsonOutputBranch SourceBranch,
+    List<StackStatusCommandJsonOutputBranchDetail> Branches
+);
+
+public record StackStatusCommandJsonOutputBranch
+(
+    string Name,
+    bool Exists,
+    StackStatusCommandJsonOutputCommit? Tip,
+    StackStatusCommandJsonOutputRemoteTrackingBranchStatus? RemoteTrackingBranch
+);
+
+public record StackStatusCommandJsonOutputBranchDetail
+(
+    string Name,
+    bool Exists,
+    StackStatusCommandJsonOutputCommit? Tip,
+    StackStatusCommandJsonOutputRemoteTrackingBranchStatus? RemoteTrackingBranch,
+    StackStatusCommandJsonOutputGitHubPullRequest? PullRequest,
+    StackStatusCommandJsonOutputParentBranchStatus? Parent
+) : StackStatusCommandJsonOutputBranch(Name, Exists, Tip, RemoteTrackingBranch);
+
+public record StackStatusCommandJsonOutputRemoteTrackingBranchStatus
+(
+    string Name,
+    bool Exists,
+    int Ahead,
+    int Behind
+);
+
+public record StackStatusCommandJsonOutputCommit
+(
+    string Sha,
+    string Message
+);
+
+public record StackStatusCommandJsonOutputGitHubPullRequest
+(
+    int Number,
+    string Title,
+    string State,
+    Uri Url,
+    bool IsDraft
+);
+
+public record StackStatusCommandJsonOutputParentBranchStatus
+(
+    StackStatusCommandJsonOutputBranch Branch,
+    int Ahead,
+    int Behind
+);
+
 public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, StackStatusCommandResponse>
 {
     protected override async Task<StackStatusCommandResponse> Execute(StackStatusCommandSettings settings)
@@ -41,99 +95,76 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.Statuses, StdOutLogger);
+        StackHelpers.OutputStackStatus(response.Stacks, StdOutLogger);
 
-        if (response.Statuses.Count == 1)
+        if (response.Stacks.Count == 1)
         {
-            var (stack, status) = response.Statuses.First();
-            StackHelpers.OutputBranchAndStackActions(stack, status, StdOutLogger);
+            var stack = response.Stacks.First();
+            StackHelpers.OutputBranchAndStackActions(stack, StdOutLogger);
         }
     }
 
     protected override void WriteJsonOutput(StackStatusCommandResponse response, JsonSerializerOptions options)
     {
-        var stackDetails = new List<StackDetail>();
-
-        foreach (var (stack, status) in response.Statuses)
-        {
-            status.Branches.TryGetValue(stack.SourceBranch, out var sourceBranchStatus);
-
-            if (sourceBranchStatus is not null)
-            {
-                var sourceBranch = new Branch(
-                    stack.SourceBranch,
-                    sourceBranchStatus.Status.ExistsLocally,
-                    sourceBranchStatus.Status.Tip,
-                    sourceBranchStatus.Status.HasRemoteTrackingBranch ?
-                        new RemoteTrackingBranchStatus(
-                            $"origin/{stack.SourceBranch}",
-                            sourceBranchStatus.Status.ExistsInRemote,
-                            sourceBranchStatus.Status.AheadOfRemote,
-                            sourceBranchStatus.Status.BehindRemote) : null);
-
-                var branches = new List<BranchDetail>();
-                var parentBranch = sourceBranch;
-
-                foreach (var branch in stack.Branches)
-                {
-                    status.Branches.TryGetValue(branch, out var branchStatus);
-
-                    if (branchStatus is not null)
-                    {
-                        var pullRequest = branchStatus.PullRequest;
-                        var remoteTrackingBranch = branchStatus.Status.HasRemoteTrackingBranch ?
-                            new RemoteTrackingBranchStatus(
-                                $"origin/{branch}",
-                                branchStatus.Status.ExistsInRemote,
-                                branchStatus.Status.AheadOfRemote,
-                                branchStatus.Status.BehindRemote) : null;
-
-                        var parentBranchStatus = new ParentBranchStatus(parentBranch, branchStatus.Status.AheadOfParent, branchStatus.Status.BehindParent);
-
-                        var branchDetail = new BranchDetail(
-                            branch,
-                            branchStatus.Status.ExistsLocally,
-                            branchStatus.Status.Tip,
-                            remoteTrackingBranch,
-                            pullRequest,
-                            parentBranchStatus);
-
-                        branches.Add(branchDetail);
-
-                        if (branchStatus.IsActive)
-                        {
-                            parentBranch = branchDetail;
-                        }
-                    }
-                }
-
-                stackDetails.Add(new StackDetail(stack.Name, sourceBranch, [.. branches]));
-            }
-        }
-
-        var json = JsonSerializer.Serialize(stackDetails, options);
+        var output = response.Stacks.Select(MapToJsonOutput).ToList();
+        var json = JsonSerializer.Serialize(output, options);
         StdOut.WriteLine(json);
+    }
+
+    private static StackStatusCommandJsonOutput MapToJsonOutput(StackStatus stack)
+    {
+        return new StackStatusCommandJsonOutput(
+            stack.Name,
+            MapBranch(stack.SourceBranch),
+            stack.Branches.Select(MapBranchDetail).ToList()
+        );
+    }
+
+    private static StackStatusCommandJsonOutputBranch MapBranch(Branch branch)
+    {
+        return new StackStatusCommandJsonOutputBranch(
+            branch.Name,
+            branch.Exists,
+            branch.Tip is null ? null : new StackStatusCommandJsonOutputCommit(branch.Tip.Sha, branch.Tip.Message),
+            branch.RemoteTrackingBranch is null ? null : new StackStatusCommandJsonOutputRemoteTrackingBranchStatus(
+                branch.RemoteTrackingBranch.Name,
+                branch.RemoteTrackingBranch.Exists,
+                branch.RemoteTrackingBranch.Ahead,
+                branch.RemoteTrackingBranch.Behind
+            )
+        );
+    }
+
+    private static StackStatusCommandJsonOutputBranchDetail MapBranchDetail(BranchDetail branch)
+    {
+        return new StackStatusCommandJsonOutputBranchDetail(
+            branch.Name,
+            branch.Exists,
+            branch.Tip is null ? null : new StackStatusCommandJsonOutputCommit(branch.Tip.Sha, branch.Tip.Message),
+            branch.RemoteTrackingBranch is null ? null : new StackStatusCommandJsonOutputRemoteTrackingBranchStatus(
+                branch.RemoteTrackingBranch.Name,
+                branch.RemoteTrackingBranch.Exists,
+                branch.RemoteTrackingBranch.Ahead,
+                branch.RemoteTrackingBranch.Behind
+            ),
+            branch.PullRequest is null ? null : new StackStatusCommandJsonOutputGitHubPullRequest(
+                branch.PullRequest.Number,
+                branch.PullRequest.Title,
+                branch.PullRequest.State,
+                branch.PullRequest.Url,
+                branch.PullRequest.IsDraft
+            ),
+            branch.Parent is null ? null : new StackStatusCommandJsonOutputParentBranchStatus(
+                MapBranch(branch.Parent.Branch),
+                branch.Parent.Ahead,
+                branch.Parent.Behind
+            )
+        );
     }
 }
 
-record StackDetail(string Name, Branch SourceBranch, BranchDetail[] Branches);
-
-record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, int Behind);
-
-record Branch(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch);
-
-record BranchDetail(
-    string Name,
-    bool Exists,
-    Commit? Tip,
-    RemoteTrackingBranchStatus? RemoteTrackingBranch,
-    GitHubPullRequest? PullRequest,
-    ParentBranchStatus? Parent) : Branch(Name, Exists, Tip, RemoteTrackingBranch);
-
-record ParentBranchStatus(Branch Branch, int Ahead, int Behind);
-
 public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
-public record StackStatusCommandResponse(Dictionary<Config.Stack, StackStatus> Statuses);
+public record StackStatusCommandResponse(List<StackStatus> Stacks);
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,

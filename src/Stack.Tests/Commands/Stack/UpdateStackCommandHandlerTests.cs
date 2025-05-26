@@ -45,7 +45,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -160,7 +160,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs("Stack1", false, false));
+        await handler.Handle(new UpdateStackCommandInputs("Stack1", false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -242,7 +242,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
@@ -281,7 +281,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Load().Returns(stacks);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
