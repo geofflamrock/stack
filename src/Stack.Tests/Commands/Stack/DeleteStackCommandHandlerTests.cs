@@ -16,7 +16,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -91,7 +91,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -210,7 +210,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -244,7 +244,7 @@ public class DeleteStackCommandHandlerTests
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder().Build();
+        using var repo = new TestGitRepositoryBuilder().WithBranch(sourceBranch).Build();
 
         var stackConfig = Substitute.For<IStackConfig>();
         var inputProvider = Substitute.For<IInputProvider>();

@@ -97,7 +97,7 @@ public class SyncStackCommandHandler(
 
         FetchChanges();
 
-        var status = StackHelpers.GetStackStatus(
+        var status = StackHelpers.GetStackStatusNew(
             stack,
             currentBranch,
             logger,
@@ -105,7 +105,7 @@ public class SyncStackCommandHandler(
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(stack, status, logger);
+        StackHelpers.OutputStackStatus(status, logger);
 
         logger.NewLine();
 

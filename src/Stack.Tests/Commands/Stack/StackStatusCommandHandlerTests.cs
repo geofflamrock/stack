@@ -42,33 +42,30 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        logger
-            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
-            .Do(ci => ci.ArgAt<Action>(1)());
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
-        gitHubClient
-            .GetPullRequest(branch1)
-            .Returns(pr);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
 
         // Act
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedBranchDetails = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
-        };
-        response.Statuses.Should().BeEquivalentTo(
-            new Dictionary<Config.Stack, StackStatus>
-            {
-                {
-                    stack1, new(expectedBranchDetails)
-                }
-            });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 10, 5));
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            null, new ParentBranchStatus(expectedBranch1, 1, 0));
+
+        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
     [Fact]
@@ -102,32 +99,32 @@ public class StackStatusCommandHandlerTests
         stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        logger
-            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
-            .Do(ci => ci.ArgAt<Action>(1)());
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
-        gitHubClient
-            .GetPullRequest(branch1)
-            .Returns(pr);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
 
         // Act
         var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false, true));
 
         // Assert
-        var expectedBranchDetails = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetails)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 10, 5));
+
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            null, new ParentBranchStatus(expectedBranch1, 1, 0));
+
+        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
 
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
@@ -179,26 +176,30 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
-        var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
-        };
-        var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch3, new BranchDetail { Status = new BranchStatus(true, true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetailsForStack1)
-            },
-            {
-                stack2, new(expectedBranchDetailsForStack2)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 10, 5));
+
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            null, new ParentBranchStatus(expectedBranch1, 1, 0));
+
+        var expectedStackDetail1 = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+
+        var expectedBranch3 = new BranchDetail(branch3, true,
+            new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch3}", true, 0, 0),
+            null, new ParentBranchStatus(expectedSourceBranch, 3, 5));
+
+        var expectedStackDetail2 = new StackStatus(stack2.Name, expectedSourceBranch, [expectedBranch3]);
+
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail1, expectedStackDetail2]);
     }
 
     [Fact]
@@ -231,44 +232,44 @@ public class StackStatusCommandHandlerTests
 
         var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
         var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
-        var stack3 = new Config.Stack("Stack2", Some.HttpsUri().ToString(), Some.BranchName(), [Some.BranchName()]);
+        var stack3 = new Config.Stack("Stack3", Some.HttpsUri().ToString(), Some.BranchName(), [Some.BranchName()]);
         var stacks = new List<Config.Stack>([stack1, stack2]);
         stackConfig.Load().Returns(stacks);
 
-        logger
-            .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
-            .Do(ci => ci.ArgAt<Action>(1)());
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false);
 
-        gitHubClient
-            .GetPullRequest(branch1)
-            .Returns(pr);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
 
         // Act
         var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
-        var expectedBranchDetailsForStack1 = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
-        };
-        var expectedBranchDetailsForStack2 = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch3, new BranchDetail { Status = new BranchStatus(true, true, true, false, 3, 5, 0, 0, new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim())) } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetailsForStack1)
-            },
-            {
-                stack2, new(expectedBranchDetailsForStack2)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 10, 5));
+
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            null, new ParentBranchStatus(expectedBranch1, 1, 0));
+
+        var expectedStackDetail1 = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+
+        var expectedBranch3 = new BranchDetail(branch3, true,
+            new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch3}", true, 0, 0),
+            null, new ParentBranchStatus(expectedSourceBranch, 3, 5));
+
+        var expectedStackDetail2 = new StackStatus(stack2.Name, expectedSourceBranch, [expectedBranch3]);
+
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail1, expectedStackDetail2]);
     }
 
     [Fact]
@@ -352,18 +353,21 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedBranchDetails = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, false, false, false, 0, 0, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())) } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, true, 11, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetails)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            null, null, new ParentBranchStatus(expectedSourceBranch, 0, 0));
+
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 11, 0));
+
+        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
     [Fact]
@@ -409,18 +413,19 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedBranchDetails = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, false, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(false, false, false, false, 0, 0, 0, 0, null) } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, true, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())), PullRequest = pr } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetails)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+
+        var expectedBranch1 = new BranchDetail(branch1, false, null, null, null, null);
+
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 1, 0));
+
+        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
     [Fact]
@@ -466,18 +471,20 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedBranchDetails = new Dictionary<string, BranchDetail>
-        {
-            { sourceBranch, new BranchDetail { Status = new BranchStatus(true, true, true, true, 0, 0, 0, 0, new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim())) } },
-            { branch1, new BranchDetail { Status = new BranchStatus(true, true, true, false, 10, 5, 0, 0, new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim())), PullRequest = pr } },
-            { branch2, new BranchDetail { Status = new BranchStatus(true, true, true, false, 1, 0, 0, 0, new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim())) } }
-        };
-        response.Statuses.Should().BeEquivalentTo(new Dictionary<Config.Stack, StackStatus>
-        {
-            {
-                stack1, new(expectedBranchDetails)
-            }
-        });
+        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+            new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
+        var expectedBranch1 = new BranchDetail(branch1, true,
+            new Commit(tipOfBranch1.Sha[..7], tipOfBranch1.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0),
+            pr, new ParentBranchStatus(expectedSourceBranch, 10, 5));
+        var expectedBranch2 = new BranchDetail(branch2, true,
+            new Commit(tipOfBranch2.Sha[..7], tipOfBranch2.Message.Trim()),
+            new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
+            null, new ParentBranchStatus(expectedBranch1, 1, 0));
+
+        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
     }

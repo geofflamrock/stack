@@ -66,7 +66,7 @@ public class SetPullRequestDescriptionCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var status = StackHelpers.GetStackStatus(
+        var status = StackHelpers.GetStackStatusNew(
             stack,
             currentBranch,
             logger,
@@ -76,12 +76,11 @@ public class SetPullRequestDescriptionCommandHandler(
 
         var pullRequestsInStack = new List<GitHubPullRequest>();
 
-        foreach (var branch in stack.Branches)
+        foreach (var branch in status.Branches)
         {
-            var branchDetail = status.Branches[branch];
-            if (branchDetail.PullRequest is not null)
+            if (branch.PullRequest is not null)
             {
-                pullRequestsInStack.Add(branchDetail.PullRequest);
+                pullRequestsInStack.Add(branch.PullRequest);
             }
         }
 
