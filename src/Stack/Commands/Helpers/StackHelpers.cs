@@ -57,74 +57,86 @@ public static class StackHelpers
 
         var branchStatuses = gitClient.GetBranchStatuses(allBranchesInStacks);
 
-        foreach (var stack in stacksOrderedByCurrentBranch)
+        if (includePullRequestStatus)
         {
-            if (!branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
-            {
-                logger.Warning($"Source branch '{stack.SourceBranch}' does not exist locally or in the remote repository.");
-                continue;
-            }
-
-            var sourceBranch = new Branch(
-                stack.SourceBranch,
-                true,
-                sourceBranchStatus.Tip,
-                sourceBranchStatus.RemoteTrackingBranchName is not null
-                    ? new RemoteTrackingBranchStatus(
-                        sourceBranchStatus.RemoteTrackingBranchName,
-                        sourceBranchStatus.RemoteBranchExists,
-                        sourceBranchStatus.Ahead,
-                        sourceBranchStatus.Behind)
-                    : null);
-            var parentBranch = sourceBranch;
-            var stackBranches = new List<BranchDetail>();
-
-            foreach (var branchName in stack.Branches)
-            {
-                branchStatuses.TryGetValue(branchName, out var branchStatus);
-
-                if (branchStatus is not null)
-                {
-                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branchName, parentBranch.Name) : (0, 0);
-                    GitHubPullRequest? pullRequest = null;
-
-                    if (includePullRequestStatus)
-                    {
-                        pullRequest = gitHubClient.GetPullRequest(branchName);
-                    }
-
-                    var branch = new BranchDetail(
-                        branchName,
-                        true,
-                        branchStatus.Tip,
-                        branchStatus.RemoteTrackingBranchName is not null
-                            ? new RemoteTrackingBranchStatus(
-                                branchStatus.RemoteTrackingBranchName,
-                                branchStatus.RemoteBranchExists,
-                                branchStatus.Ahead,
-                                branchStatus.Behind)
-                            : null,
-                        pullRequest,
-                        new ParentBranchStatus(parentBranch, aheadOfParent, behindParent));
-
-                    stackBranches.Add(branch);
-
-                    if (branchStatus.RemoteBranchExists)
-                    {
-                        parentBranch = branch;
-                    }
-                }
-                else
-                {
-                    var branch = new BranchDetail(branchName, false, null, null, null, null);
-                    stackBranches.Add(branch);
-                }
-            }
-
-            stacksToReturnStatusFor.Add(new StackStatus(stack.Name, sourceBranch, [.. stackBranches]));
+            logger.Status("Checking status of GitHub pull requests...", () => EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses));
+        }
+        else
+        {
+            EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses);
         }
 
         return stacksToReturnStatusFor;
+
+        static void EvaluateBranchStatusDetails(ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, List<StackStatus> stacksToReturnStatusFor, IOrderedEnumerable<Config.Stack> stacksOrderedByCurrentBranch, Dictionary<string, GitBranchStatus> branchStatuses)
+        {
+            foreach (var stack in stacksOrderedByCurrentBranch)
+            {
+                if (!branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
+                {
+                    logger.Warning($"Source branch '{stack.SourceBranch}' does not exist locally or in the remote repository.");
+                    continue;
+                }
+
+                var sourceBranch = new Branch(
+                    stack.SourceBranch,
+                    true,
+                    sourceBranchStatus.Tip,
+                    sourceBranchStatus.RemoteTrackingBranchName is not null
+                        ? new RemoteTrackingBranchStatus(
+                            sourceBranchStatus.RemoteTrackingBranchName,
+                            sourceBranchStatus.RemoteBranchExists,
+                            sourceBranchStatus.Ahead,
+                            sourceBranchStatus.Behind)
+                        : null);
+                var parentBranch = sourceBranch;
+                var stackBranches = new List<BranchDetail>();
+
+                foreach (var branchName in stack.Branches)
+                {
+                    branchStatuses.TryGetValue(branchName, out var branchStatus);
+
+                    if (branchStatus is not null)
+                    {
+                        var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branchName, parentBranch.Name) : (0, 0);
+                        GitHubPullRequest? pullRequest = null;
+
+                        if (includePullRequestStatus)
+                        {
+                            pullRequest = gitHubClient.GetPullRequest(branchName);
+                        }
+
+                        var branch = new BranchDetail(
+                            branchName,
+                            true,
+                            branchStatus.Tip,
+                            branchStatus.RemoteTrackingBranchName is not null
+                                ? new RemoteTrackingBranchStatus(
+                                    branchStatus.RemoteTrackingBranchName,
+                                    branchStatus.RemoteBranchExists,
+                                    branchStatus.Ahead,
+                                    branchStatus.Behind)
+                                : null,
+                            pullRequest,
+                            new ParentBranchStatus(parentBranch, aheadOfParent, behindParent));
+
+                        stackBranches.Add(branch);
+
+                        if (branchStatus.RemoteBranchExists)
+                        {
+                            parentBranch = branch;
+                        }
+                    }
+                    else
+                    {
+                        var branch = new BranchDetail(branchName, false, null, null, null, null);
+                        stackBranches.Add(branch);
+                    }
+                }
+
+                stacksToReturnStatusFor.Add(new StackStatus(stack.Name, sourceBranch, [.. stackBranches]));
+            }
+        }
     }
 
     public static StackStatus GetStackStatus(
