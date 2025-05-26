@@ -66,7 +66,7 @@ public class SetPullRequestDescriptionCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var status = StackHelpers.GetStackStatusNew(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             logger,

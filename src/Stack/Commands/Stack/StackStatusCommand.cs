@@ -95,7 +95,7 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackHelpers.GetStackStatusNew(
+        var stackStatusResults = StackHelpers.GetStackStatus(
             stacksToCheckStatusFor,
             currentBranch,
             logger,

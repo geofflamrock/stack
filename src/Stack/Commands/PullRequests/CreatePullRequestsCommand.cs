@@ -69,7 +69,7 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var status = StackHelpers.GetStackStatusNew(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             logger,
@@ -133,7 +133,7 @@ public class CreatePullRequestsCommandHandler(
                 var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
                 // Re-get the status to pick up PRs
-                status = StackHelpers.GetStackStatusNew(
+                status = StackHelpers.GetStackStatus(
                     stack,
                     currentBranch,
                     logger,

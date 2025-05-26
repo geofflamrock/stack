@@ -145,7 +145,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         repo.DeleteRemoteTrackingBranch(branch1);
 
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
-        var stackStatus = StackHelpers.GetStackStatusNew(stack, branch1, logger, gitClient, gitHubClient, false);
+        var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         // Act
         StackHelpers.UpdateStackUsingRebase(stack, stackStatus, gitClient, inputProvider, logger);
@@ -216,7 +216,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         repo.Push(sourceBranch);
 
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
-        var stackStatus = StackHelpers.GetStackStatusNew(stack, branch1, logger, gitClient, gitHubClient, false);
+        var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         // Act: Even though the parent branch (branch1) has been deleted on the remote,
         // we should not explicitly re-parent the target branch (branch2) onto the source branch
@@ -265,7 +265,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         repo.Commit();
 
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
-        var stackStatus = StackHelpers.GetStackStatusNew(stack, branch1, logger, gitClient, gitHubClient, false);
+        var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         gitClient.Fetch(true);
 

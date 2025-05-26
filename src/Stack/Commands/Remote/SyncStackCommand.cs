@@ -97,7 +97,7 @@ public class SyncStackCommandHandler(
 
         FetchChanges();
 
-        var status = StackHelpers.GetStackStatusNew(
+        var status = StackHelpers.GetStackStatus(
             stack,
             currentBranch,
             logger,
