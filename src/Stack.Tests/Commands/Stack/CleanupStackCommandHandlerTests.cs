@@ -39,6 +39,7 @@ public class CleanupStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
@@ -80,6 +81,7 @@ public class CleanupStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
@@ -117,6 +119,7 @@ public class CleanupStackCommandHandlerTests
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
@@ -154,6 +157,7 @@ public class CleanupStackCommandHandlerTests
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(false);
@@ -191,6 +195,7 @@ public class CleanupStackCommandHandlerTests
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         ]);
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
@@ -263,6 +268,7 @@ public class CleanupStackCommandHandlerTests
             new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
         ]);
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
@@ -303,6 +309,7 @@ public class CleanupStackCommandHandlerTests
 
         var remoteUri = Some.HttpsUri().ToString();
         stackConfig.Load().Returns(stacks);
+        logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
