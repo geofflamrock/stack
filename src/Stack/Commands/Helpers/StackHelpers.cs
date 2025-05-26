@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -12,8 +13,13 @@ public record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, in
 
 public record Branch(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch)
 {
+    [JsonIgnore]
     public virtual bool IsActive => Exists && RemoteTrackingBranch?.Exists == true;
+
+    [JsonIgnore]
     public int AheadOfRemote => RemoteTrackingBranch?.Ahead ?? 0;
+
+    [JsonIgnore]
     public int BehindRemote => RemoteTrackingBranch?.Behind ?? 0;
 }
 
@@ -25,11 +31,22 @@ public record BranchDetail(
     GitHubPullRequest? PullRequest,
     ParentBranchStatus? Parent) : Branch(Name, Exists, Tip, RemoteTrackingBranch)
 {
+    [JsonIgnore]
     public override bool IsActive => base.IsActive && (PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged);
+
+    [JsonIgnore]
     public bool CouldBeCleanedUp => Exists && ((RemoteTrackingBranch is not null && !RemoteTrackingBranch.Exists) || (PullRequest is not null && PullRequest.State == GitHubPullRequestStates.Merged));
+
+    [JsonIgnore]
     public bool HasPullRequest => PullRequest is not null && PullRequest.State != GitHubPullRequestStates.Closed;
+
+    [JsonIgnore]
     public int AheadOfParent => Parent?.Ahead ?? 0;
+
+    [JsonIgnore]
     public int BehindParent => Parent?.Behind ?? 0;
+
+    [JsonIgnore]
     public string ParentBranchName => Parent?.Branch.Name ?? string.Empty;
 }
 
