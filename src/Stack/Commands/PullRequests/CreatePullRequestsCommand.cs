@@ -132,6 +132,14 @@ public class CreatePullRequestsCommandHandler(
             {
                 var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
+                // Re-get the status to pick up PRs
+                status = StackHelpers.GetStackStatusNew(
+                    stack,
+                    currentBranch,
+                    logger,
+                    gitClient,
+                    gitHubClient);
+
                 var pullRequestsInStack = status.Branches
                     .Where(branch => branch.HasPullRequest)
                     .Select(branch => branch.PullRequest!)
@@ -189,7 +197,6 @@ public class CreatePullRequestsCommandHandler(
             {
                 logger.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
                 pullRequests.Add(pullRequest);
-                branchDetail = branchDetail with { PullRequest = pullRequest };
             }
         }
 
