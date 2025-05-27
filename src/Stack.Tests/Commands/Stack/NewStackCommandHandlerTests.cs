@@ -23,17 +23,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(existingBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -44,9 +39,9 @@ public class NewStackCommandHandlerTests
         await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [existingBranch])
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
         });
 
         gitClient.GetCurrentBranch().Should().Be(existingBranch);
@@ -63,7 +58,7 @@ public class NewStackCommandHandlerTests
             .WithBranch(existingBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -71,11 +66,6 @@ public class NewStackCommandHandlerTests
 
         gitClient.ChangeBranch(existingBranch);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
@@ -86,7 +76,7 @@ public class NewStackCommandHandlerTests
         await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
@@ -103,17 +93,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -124,7 +109,7 @@ public class NewStackCommandHandlerTests
         await handler.Handle(inputs);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
@@ -141,17 +126,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -162,7 +142,7 @@ public class NewStackCommandHandlerTests
         await handler.Handle(inputs);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", repo.RemoteUri, sourceBranch, [])
         });
@@ -180,17 +160,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -202,9 +177,9 @@ public class NewStackCommandHandlerTests
         await handler.Handle(inputs);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
 
         inputProvider.Received().Text(Questions.StackName);
@@ -223,17 +198,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -244,9 +214,9 @@ public class NewStackCommandHandlerTests
         await handler.Handle(NewStackCommandInputs.Empty);
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("A stack with multiple words", repo.RemoteUri, sourceBranch, [newBranch])
+            new("A stack with multiple words", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
 
         gitClient.GetCurrentBranch().Should().Be(newBranch);
@@ -262,17 +232,12 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -283,9 +248,9 @@ public class NewStackCommandHandlerTests
         await handler.Handle(new NewStackCommandInputs(null, null, null));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
 
         repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
@@ -301,7 +266,7 @@ public class NewStackCommandHandlerTests
             .WithBranch(sourceBranch)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
@@ -311,11 +276,6 @@ public class NewStackCommandHandlerTests
             .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))
             .Throw(new Exception("Failed to push branch"));
 
-        var stacks = new List<Config.Stack>();
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -326,9 +286,9 @@ public class NewStackCommandHandlerTests
         await handler.Handle(new NewStackCommandInputs(null, null, null));
 
         // Assert
-        stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [newBranch])
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
 
         repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);

@@ -6,11 +6,11 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands.Helpers;
 
-public record StackStatus(string Name, Branch SourceBranch, BranchDetail[] Branches);
+public record StackStatus(string Name, BranchDetailBase SourceBranch, BranchDetail[] Branches);
 
 public record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, int Behind);
 
-public record Branch(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch)
+public record BranchDetailBase(string Name, bool Exists, Commit? Tip, RemoteTrackingBranchStatus? RemoteTrackingBranch)
 {
     public virtual bool IsActive => Exists && RemoteTrackingBranch?.Exists == true;
     public int AheadOfRemote => RemoteTrackingBranch?.Ahead ?? 0;
@@ -23,7 +23,7 @@ public record BranchDetail(
     Commit? Tip,
     RemoteTrackingBranchStatus? RemoteTrackingBranch,
     GitHubPullRequest? PullRequest,
-    ParentBranchStatus? Parent) : Branch(Name, Exists, Tip, RemoteTrackingBranch)
+    ParentBranchStatus? Parent) : BranchDetailBase(Name, Exists, Tip, RemoteTrackingBranch)
 {
     public override bool IsActive => base.IsActive && (PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged);
     public bool CouldBeCleanedUp => Exists && ((RemoteTrackingBranch is not null && !RemoteTrackingBranch.Exists) || (PullRequest is not null && PullRequest.State == GitHubPullRequestStates.Merged));
@@ -33,7 +33,7 @@ public record BranchDetail(
     public string ParentBranchName => Parent?.Branch.Name ?? string.Empty;
 }
 
-public record ParentBranchStatus(Branch Branch, int Ahead, int Behind);
+public record ParentBranchStatus(BranchDetailBase Branch, int Ahead, int Behind);
 
 public static class StackHelpers
 {
@@ -51,7 +51,7 @@ public static class StackHelpers
             .OrderByCurrentStackThenByName(currentBranch);
 
         var allBranchesInStacks = stacks
-            .SelectMany(s => new List<string>([s.SourceBranch]).Concat(s.Branches))
+            .SelectMany(s => (new[] { s.SourceBranch }).Concat(s.AllBranchNames))
             .Distinct()
             .ToArray();
 
@@ -78,7 +78,7 @@ public static class StackHelpers
                     continue;
                 }
 
-                var sourceBranch = new Branch(
+                var sourceBranch = new BranchDetailBase(
                     stack.SourceBranch,
                     true,
                     sourceBranchStatus.Tip,
@@ -89,52 +89,64 @@ public static class StackHelpers
                             sourceBranchStatus.Ahead,
                             sourceBranchStatus.Behind)
                         : null);
-                var parentBranch = sourceBranch;
                 var stackBranches = new List<BranchDetail>();
 
-                foreach (var branchName in stack.Branches)
+                foreach (var branch in stack.Branches)
                 {
-                    branchStatuses.TryGetValue(branchName, out var branchStatus);
-
-                    if (branchStatus is not null)
-                    {
-                        var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branchName, parentBranch.Name) : (0, 0);
-                        GitHubPullRequest? pullRequest = null;
-
-                        if (includePullRequestStatus)
-                        {
-                            pullRequest = gitHubClient.GetPullRequest(branchName);
-                        }
-
-                        var branch = new BranchDetail(
-                            branchName,
-                            true,
-                            branchStatus.Tip,
-                            branchStatus.RemoteTrackingBranchName is not null
-                                ? new RemoteTrackingBranchStatus(
-                                    branchStatus.RemoteTrackingBranchName,
-                                    branchStatus.RemoteBranchExists,
-                                    branchStatus.Ahead,
-                                    branchStatus.Behind)
-                                : null,
-                            pullRequest,
-                            new ParentBranchStatus(parentBranch, aheadOfParent, behindParent));
-
-                        stackBranches.Add(branch);
-
-                        if (branchStatus.RemoteBranchExists)
-                        {
-                            parentBranch = branch;
-                        }
-                    }
-                    else
-                    {
-                        var branch = new BranchDetail(branchName, false, null, null, null, null);
-                        stackBranches.Add(branch);
-                    }
+                    var branchDetails = AddBranchDetailsForAllChildren(gitClient, gitHubClient, includePullRequestStatus, branchStatuses, sourceBranch, branch);
+                    stackBranches.AddRange(branchDetails);
                 }
 
                 stacksToReturnStatusFor.Add(new StackStatus(stack.Name, sourceBranch, [.. stackBranches]));
+            }
+
+            static List<BranchDetail> AddBranchDetailsForAllChildren(IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, Dictionary<string, GitBranchStatus> branchStatuses, BranchDetailBase parentBranch, Branch branch)
+            {
+                var branchDetails = new List<BranchDetail>();
+                var branchDetail = CreateBranchDetail(gitClient, gitHubClient, includePullRequestStatus, branchStatuses, parentBranch, branch);
+                branchDetails.Add(branchDetail);
+
+                foreach (var childBranch in branch.Children)
+                {
+                    var childBranchDetails = AddBranchDetailsForAllChildren(gitClient, gitHubClient, includePullRequestStatus, branchStatuses, branchDetail.IsActive ? branchDetail : parentBranch, childBranch);
+                    branchDetails.AddRange(childBranchDetails);
+                }
+
+                return branchDetails;
+            }
+
+            static BranchDetail CreateBranchDetail(IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, Dictionary<string, GitBranchStatus> branchStatuses, BranchDetailBase parentBranch, Branch branch)
+            {
+                branchStatuses.TryGetValue(branch.Name, out var branchStatus);
+
+                if (branchStatus is not null)
+                {
+                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branch.Name, parentBranch.Name) : (0, 0);
+                    GitHubPullRequest? pullRequest = null;
+
+                    if (includePullRequestStatus)
+                    {
+                        pullRequest = gitHubClient.GetPullRequest(branch.Name);
+                    }
+
+                    return new BranchDetail(
+                        branch.Name,
+                        true,
+                        branchStatus.Tip,
+                        branchStatus.RemoteTrackingBranchName is not null
+                            ? new RemoteTrackingBranchStatus(
+                                branchStatus.RemoteTrackingBranchName,
+                                branchStatus.RemoteBranchExists,
+                                branchStatus.Ahead,
+                                branchStatus.Behind)
+                            : null,
+                        pullRequest,
+                        new ParentBranchStatus(parentBranch, aheadOfParent, behindParent));
+                }
+                else
+                {
+                    return new BranchDetail(branch.Name, false, null, null, null, null);
+                }
             }
         }
     }
@@ -197,7 +209,7 @@ public static class StackHelpers
         return branchNameBuilder.ToString();
     }
 
-    public static string GetBranchStatusOutput(Branch branch)
+    public static string GetBranchStatusOutput(BranchDetailBase branch)
     {
         var branchNameBuilder = new StringBuilder();
 
@@ -435,7 +447,7 @@ public static class StackHelpers
 
     public static void PullChanges(Config.Stack stack, IGitClient gitClient, ILogger logger)
     {
-        List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.Branches];
+        List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
         var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
         foreach (var branch in allBranchesInStacks.Where(b => branchStatus.ContainsKey(b) && branchStatus[b].RemoteBranchExists))
@@ -453,7 +465,7 @@ public static class StackHelpers
         IGitClient gitClient,
         ILogger logger)
     {
-        var branchStatus = gitClient.GetBranchStatuses([.. stack.Branches]);
+        var branchStatus = gitClient.GetBranchStatuses([.. stack.AllBranchNames]);
 
         var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
 
@@ -541,7 +553,7 @@ public static class StackHelpers
         }
     }
 
-    public static void UpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack)
+    public static void UpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, StackData stackData, Config.Stack stack)
     {
         var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
         var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
@@ -549,7 +561,7 @@ public static class StackHelpers
         if (stackDescription != stack.PullRequestDescription)
         {
             stack.SetPullRequestDescription(stackDescription);
-            stackConfig.Save(stacks);
+            stackConfig.Save(stackData);
         }
     }
 
@@ -634,12 +646,12 @@ public static class StackHelpers
             return;
         }
 
-        var branchesToRebaseOnto = new List<string>(stack.Branches);
+        var branchesToRebaseOnto = new List<string>(stack.AllBranchNames);
         branchesToRebaseOnto.Reverse();
         branchesToRebaseOnto.Remove(branchToRebaseFrom);
         branchesToRebaseOnto.Add(stack.SourceBranch);
 
-        List<Branch> allBranchesInStack = [status.SourceBranch, .. status.Branches];
+        List<BranchDetailBase> allBranchesInStack = [status.SourceBranch, .. status.Branches];
 
         foreach (var branchToRebaseOnto in branchesToRebaseOnto)
         {

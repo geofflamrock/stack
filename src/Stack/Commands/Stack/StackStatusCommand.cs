@@ -88,7 +88,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         return await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
     }
@@ -120,7 +120,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
         );
     }
 
-    private static StackStatusCommandJsonOutputBranch MapBranch(Branch branch)
+    private static StackStatusCommandJsonOutputBranch MapBranch(BranchDetailBase branch)
     {
         return new StackStatusCommandJsonOutputBranch(
             branch.Name,
@@ -177,10 +177,10 @@ public class StackStatusCommandHandler(
     public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
         var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksToCheckStatusFor = new List<Config.Stack>();

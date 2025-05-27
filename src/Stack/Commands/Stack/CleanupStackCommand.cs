@@ -27,7 +27,7 @@ public class CleanupStackCommand : Command<CleanupStackCommandSettings>
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new CleanupStackCommandInputs(settings.Stack, settings.Confirm));
     }
@@ -49,12 +49,12 @@ public class CleanupStackCommandHandler(
     public override async Task Handle(CleanupStackCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 

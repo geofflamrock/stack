@@ -24,21 +24,24 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(branchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchWithoutRemoteTracking))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchWithoutRemoteTracking, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-
-        var remoteUri = Some.HttpsUri().ToString();
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -66,21 +69,25 @@ public class CleanupStackCommandHandlerTests
 
         repo.DeleteRemoteTrackingBranch(branchToCleanup);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-
         var remoteUri = Some.HttpsUri().ToString();
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -106,19 +113,24 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(anotherBranchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToKeep))
+                .WithBranch(branch => branch.WithName(anotherBranchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToKeep, anotherBranchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -144,19 +156,24 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(branchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -182,19 +199,24 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(branchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
@@ -219,19 +241,24 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(branchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
@@ -256,18 +283,20 @@ public class CleanupStackCommandHandlerTests
             .WithBranch(branchToKeep, true)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-        ]);
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
@@ -294,21 +323,24 @@ public class CleanupStackCommandHandlerTests
 
         repo.DeleteRemoteTrackingBranch(branchToCleanup);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branchToCleanup))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToCleanup, branchToKeep]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-
-        var remoteUri = Some.HttpsUri().ToString();
-        stackConfig.Load().Returns(stacks);
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");

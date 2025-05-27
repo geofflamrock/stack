@@ -24,7 +24,7 @@ public class SetPullRequestDescriptionCommand : Command<SetPullRequestDescriptio
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
     }
@@ -46,11 +46,11 @@ public class SetPullRequestDescriptionCommandHandler(
     public override async Task Handle(SetPullRequestDescriptionCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
@@ -90,7 +90,7 @@ public class SetPullRequestDescriptionCommandHandler(
             return;
         }
 
-        StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
+        StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stackData, stack);
         StackHelpers.UpdateStackDescriptionInPullRequests(logger, gitHubClient, stack, pullRequestsInStack);
     }
 }

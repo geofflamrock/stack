@@ -33,7 +33,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().NotContain(tipOfBranch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -41,10 +52,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -77,7 +84,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().NotContain(tipOfBranch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -85,10 +103,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -122,7 +136,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().NotContain(tipOfBranch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -130,10 +155,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -165,7 +186,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().NotContain(tipOfBranch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -173,10 +205,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch2]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -208,7 +236,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
         repo.GetCommitsReachableFromRemoteBranch(branch2).Should().NotContain(tipOfBranch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -216,10 +255,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -251,7 +286,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfBranch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -259,10 +305,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -295,7 +337,18 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1))
+                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -303,10 +356,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 

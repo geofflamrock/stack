@@ -25,22 +25,24 @@ public class OpenPullRequestsCommandHandlerTests
             .Build();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -76,22 +78,24 @@ public class OpenPullRequestsCommandHandlerTests
             .Build();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -124,19 +128,24 @@ public class OpenPullRequestsCommandHandlerTests
             .Build();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubClient
@@ -170,18 +179,20 @@ public class OpenPullRequestsCommandHandlerTests
             .Build();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubClient
@@ -215,19 +226,24 @@ public class OpenPullRequestsCommandHandlerTests
             .Build();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         // Act and assert
         var invalidStackName = Some.Name();

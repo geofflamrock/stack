@@ -32,7 +32,7 @@ public class PushStackCommand : Command<PushStackCommandSettings>
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new PushStackCommandInputs(
             settings.Stack,
@@ -56,10 +56,10 @@ public class PushStackCommandHandler(
     public override async Task Handle(PushStackCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {

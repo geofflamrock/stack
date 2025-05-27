@@ -25,7 +25,7 @@ public class CreatePullRequestsCommand : Command<CreatePullRequestsCommandSettin
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
             new FileOperations(),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
     }
@@ -49,11 +49,11 @@ public class CreatePullRequestsCommandHandler(
     {
         await Task.CompletedTask;
 
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
@@ -147,7 +147,7 @@ public class CreatePullRequestsCommandHandler(
 
                 if (pullRequestsInStack.Count > 1)
                 {
-                    UpdatePullRequestStackDescriptions(inputProvider, logger, gitHubClient, stackConfig, stacks, stack, pullRequestsInStack);
+                    UpdatePullRequestStackDescriptions(inputProvider, logger, gitHubClient, stackConfig, stackData, stack, pullRequestsInStack);
                 }
 
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
@@ -165,7 +165,7 @@ public class CreatePullRequestsCommandHandler(
         }
     }
 
-    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, ILogger logger, IGitHubClient gitHubClient, IStackConfig stackConfig, List<Config.Stack> stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
+    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, ILogger logger, IGitHubClient gitHubClient, IStackConfig stackConfig, StackData stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
     {
         if (stack.PullRequestDescription is null)
         {

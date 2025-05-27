@@ -30,7 +30,7 @@ public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Confirm));
     }
@@ -51,12 +51,12 @@ public class RemoveBranchCommandHandler(
     public override async Task Handle(RemoveBranchCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
         var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
@@ -64,17 +64,17 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.Branches]);
+        var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.AllBranchNames]);
 
-        if (!stack.Branches.Contains(branchName))
+        if (!stack.AllBranchNames.Contains(branchName))
         {
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
         if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {
-            stack.Branches.Remove(branchName);
-            stackConfig.Save(stacks);
+            stack.RemoveBranch(branchName);
+            stackConfig.Save(stackData);
 
             logger.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
         }

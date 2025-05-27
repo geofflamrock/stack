@@ -23,7 +23,18 @@ public class StackSwitchCommandHandlerTests
             .WithBranch(branchToSwitchTo)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToSwitchTo)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(anotherBranch)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -31,12 +42,6 @@ public class StackSwitchCommandHandlerTests
 
         gitClient.ChangeBranch(sourceBranch);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns(branchToSwitchTo);
 
@@ -59,7 +64,18 @@ public class StackSwitchCommandHandlerTests
             .WithBranch(branchToSwitchTo)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToSwitchTo)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(anotherBranch)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -67,12 +83,6 @@ public class StackSwitchCommandHandlerTests
 
         gitClient.ChangeBranch(sourceBranch);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
@@ -94,7 +104,18 @@ public class StackSwitchCommandHandlerTests
             .WithBranch(branchToSwitchTo)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToSwitchTo)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(anotherBranch)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -102,12 +123,6 @@ public class StackSwitchCommandHandlerTests
 
         gitClient.ChangeBranch(sourceBranch);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branchToSwitchTo]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [anotherBranch])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         // Act and assert
         var invalidBranchName = Some.BranchName();

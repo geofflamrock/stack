@@ -22,10 +22,15 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var inputProvider = Substitute.For<IInputProvider>();
 
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+        );
         var branchDetail1 = new BranchDetail(branch1, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null);
         var branchDetail2 = new BranchDetail(branch2, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null);
-        var stackStatus = new StackStatus("Stack1", new Branch(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
+        var stackStatus = new StackStatus("Stack1", new BranchDetailBase(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
 
         inputProvider
             .Select(
@@ -65,10 +70,15 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var logger = new TestLogger(testOutputHelper);
 
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+        );
         var branchDetail1 = new BranchDetail(branch1, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null);
         var branchDetail2 = new BranchDetail(branch2, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null);
-        var stackStatus = new StackStatus("Stack1", new Branch(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
+        var stackStatus = new StackStatus("Stack1", new BranchDetailBase(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
 
         gitClient
             .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
@@ -144,7 +154,12 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         // Delete the remote branch for branch1 to simulate a PR being merged
         repo.DeleteRemoteTrackingBranch(branch1);
 
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+        );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         // Act
@@ -215,7 +230,12 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         repo.Commit();
         repo.Push(sourceBranch);
 
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+        );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         // Act: Even though the parent branch (branch1) has been deleted on the remote,
@@ -264,7 +284,12 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         repo.Stage(changedFile2Path);
         repo.Commit();
 
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, [branch1, branch2]);
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+        );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
         gitClient.Fetch(true);

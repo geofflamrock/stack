@@ -41,7 +41,7 @@ public class SyncStackCommand : Command<SyncStackCommandSettings>
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(
             settings.Stack,
@@ -77,11 +77,11 @@ public class SyncStackCommandHandler(
         if (inputs.Rebase == true && inputs.Merge == true)
             throw new InvalidOperationException("Cannot specify both rebase and merge.");
 
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
@@ -128,7 +128,7 @@ public class SyncStackCommandHandler(
             StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
-                stack.Branches.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+                stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
             {
                 gitClient.ChangeBranch(currentBranch);
             }

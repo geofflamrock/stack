@@ -27,7 +27,7 @@ public class NewBranchCommand : Command<NewBranchCommandSettings>
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
     }
@@ -53,9 +53,9 @@ public class NewBranchCommandHandler(
         var currentBranch = gitClient.GetCurrentBranch();
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
@@ -70,11 +70,12 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var sourceBranch = stack.Branches.LastOrDefault() ?? stack.SourceBranch;
+        var deepestChildBranchFromFirstTree = stack.GetDeepestChildBranchFromFirstTree();
+        var sourceBranch = deepestChildBranchFromFirstTree?.Name ?? stack.SourceBranch;
 
         var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
-        if (stack.Branches.Contains(branchName))
+        if (stack.AllBranchNames.Contains(branchName))
         {
             throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
         }
@@ -88,9 +89,18 @@ public class NewBranchCommandHandler(
 
         gitClient.CreateNewBranch(branchName, sourceBranch);
 
-        stack.Branches.Add(branchName);
+        if (deepestChildBranchFromFirstTree is not null)
+        {
+            // If the stack has branches, we add the new branch to the first branch's children
+            deepestChildBranchFromFirstTree.Children.Add(new Branch(branchName, []));
+        }
+        else
+        {
+            // If the stack has no branches, we create a new branch entry
+            stack.Branches.Add(new Branch(branchName, []));
+        }
 
-        stackConfig.Save(stacks);
+        stackConfig.Save(stackData);
 
         logger.Information($"Branch {branchName.Branch()} created.");
 
