@@ -105,7 +105,7 @@ public class SyncStackCommandHandler(
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(status, logger);
+        StackHelpers.OutputStackStatus(stackData.SchemaVersion, status, logger);
 
         logger.NewLine();
 

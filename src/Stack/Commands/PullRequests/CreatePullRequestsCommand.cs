@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using MoreLinq;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
@@ -92,7 +93,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(status, logger);
+        StackHelpers.OutputStackStatus(stackData.SchemaVersion, status, logger);
 
         logger.NewLine();
 
@@ -124,7 +125,7 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            OutputUpdatedStackStatus(logger, stack, status, pullRequestInformation);
+            OutputUpdatedStackStatus(logger, stackData.SchemaVersion, stack, status, pullRequestInformation);
 
             logger.NewLine();
 
@@ -203,9 +204,9 @@ public class CreatePullRequestsCommandHandler(
         return pullRequests;
     }
 
-    private static void OutputUpdatedStackStatus(ILogger logger, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestCreateActions)
+    private static void OutputUpdatedStackStatus(ILogger logger, SchemaVersion schemaVersion, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestInformation)
     {
-        var branchDisplayItems = new List<string>();
+        var branchDisplayItems = new List<TreeItem<string>>();
 
         foreach (var branch in status.Branches)
         {
@@ -215,21 +216,18 @@ public class CreatePullRequestsCommandHandler(
             }
             else
             {
-                var action = pullRequestCreateActions.FirstOrDefault(a => a.HeadBranch == branch.Name);
-                if (action is not null)
-                {
-                    branchDisplayItems.Add($"{StackHelpers.GetBranchStatusOutput(branch)} {$"*NEW* {action.Title}".Highlighted()}{(action.Draft == true ? " (draft)".Muted() : string.Empty)}");
-                }
-                else
-                {
-                    branchDisplayItems.Add(StackHelpers.GetBranchStatusOutput(branch));
-                }
+                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestInformation(branch, pullRequestInformation));
             }
         }
 
-        logger.Tree(
+        if (schemaVersion == SchemaVersion.V1 && branchDisplayItems.Count > 0)
+        {
+            branchDisplayItems = [.. MoreEnumerable.TraverseDepthFirst(branchDisplayItems.First(), i => i.Children).Select(i => new TreeItem<string>(i.Value, []))];
+        }
+
+        logger.Tree(new Tree<string>(
             $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}",
-            [.. branchDisplayItems]);
+            [.. branchDisplayItems]));
     }
 
     private static List<PullRequestInformation> GetPullRequestInformation(
@@ -291,7 +289,7 @@ public class CreatePullRequestsCommandHandler(
         return pullRequestActions;
     }
 
-    record PullRequestInformation(
+    public record PullRequestInformation(
         string HeadBranch,
         string BaseBranch,
         string Title,

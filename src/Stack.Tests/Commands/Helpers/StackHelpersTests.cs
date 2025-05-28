@@ -28,9 +28,13 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             sourceBranch,
             [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
         );
-        var branchDetail1 = new BranchDetail(branch1, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null);
-        var branchDetail2 = new BranchDetail(branch2, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null);
-        var stackStatus = new StackStatus("Stack1", new BranchDetailBase(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
+        var branchDetail1 = new BranchDetail(
+            branch1, true, new Commit(Some.Sha(), Some.Name()),
+            new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null,
+            [new BranchDetail(
+                branch2, true, new Commit(Some.Sha(), Some.Name()),
+                new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null, [])]);
+        var stackStatus = new StackStatus("Stack1", new SourceBranchDetail(sourceBranch, true, null, null), [branchDetail1]);
 
         inputProvider
             .Select(
@@ -76,9 +80,9 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             sourceBranch,
             [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
         );
-        var branchDetail1 = new BranchDetail(branch1, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null);
-        var branchDetail2 = new BranchDetail(branch2, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null);
-        var stackStatus = new StackStatus("Stack1", new BranchDetailBase(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
+        var branchDetail1 = new BranchDetail(branch1, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch1}", true, 0, 0), null, null, []);
+        var branchDetail2 = new BranchDetail(branch2, true, new Commit(Some.Sha(), Some.Name()), new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0), null, null, []);
+        var stackStatus = new StackStatus("Stack1", new SourceBranchDetail(sourceBranch, true, null, null), [branchDetail1, branchDetail2]);
 
         gitClient
             .When(g => g.MergeFromLocalSourceBranch(sourceBranch))

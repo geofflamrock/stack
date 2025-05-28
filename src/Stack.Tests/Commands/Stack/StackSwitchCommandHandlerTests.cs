@@ -6,10 +6,11 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Stack;
 
-public class StackSwitchCommandHandlerTests
+public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenNoInputsAreProvided_AsksForBranch_ChangesToBranch()
@@ -36,12 +37,11 @@ public class StackSwitchCommandHandlerTests
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
-
 
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns(branchToSwitchTo);
 
@@ -77,12 +77,11 @@ public class StackSwitchCommandHandlerTests
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
-
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
@@ -117,12 +116,11 @@ public class StackSwitchCommandHandlerTests
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         gitClient.ChangeBranch(sourceBranch);
-
 
         // Act and assert
         var invalidBranchName = Some.BranchName();

@@ -49,7 +49,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
@@ -97,7 +96,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
@@ -147,7 +145,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-
         // Act and assert
         var invalidStackName = Some.Name();
         await handler.Invoking(async h => await h.Handle(new SyncStackCommandInputs(invalidStackName, 5, false, false, false)))
@@ -192,7 +189,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -239,7 +235,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch1);
 
-
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
 
         // Act
@@ -277,8 +272,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)
@@ -291,7 +285,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -331,8 +324,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)
@@ -345,7 +337,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -386,8 +377,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)
@@ -400,7 +390,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -441,8 +430,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)
@@ -455,7 +443,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -496,8 +483,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)
@@ -510,7 +496,6 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
         gitClient.ChangeBranch(branch1);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
@@ -551,8 +536,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithName("Stack1")
                 .WithRemoteUri(repo.RemoteUri)
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(stackBranch => stackBranch.WithName(branch1))
-                .WithBranch(stackBranch => stackBranch.WithName(branch2)))
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
                 .WithRemoteUri(repo.RemoteUri)

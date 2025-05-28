@@ -6,10 +6,11 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Branch;
 
-public class RemoveBranchCommandHandlerTests
+public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_RemovesBranchFromStack()
@@ -34,7 +35,7 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -76,11 +77,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -120,10 +119,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -156,11 +154,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -200,11 +196,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -235,11 +229,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithBranch(b => b.WithName(branchToRemove)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
@@ -279,11 +271,9 @@ public class RemoveBranchCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);

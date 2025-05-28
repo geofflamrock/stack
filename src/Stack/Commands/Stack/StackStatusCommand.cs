@@ -46,7 +46,8 @@ public record StackStatusCommandJsonOutputBranchDetail
     StackStatusCommandJsonOutputCommit? Tip,
     StackStatusCommandJsonOutputRemoteTrackingBranchStatus? RemoteTrackingBranch,
     StackStatusCommandJsonOutputGitHubPullRequest? PullRequest,
-    StackStatusCommandJsonOutputParentBranchStatus? Parent
+    StackStatusCommandJsonOutputParentBranchStatus? Parent,
+    List<StackStatusCommandJsonOutputBranchDetail> Children
 ) : StackStatusCommandJsonOutputBranch(Name, Exists, Tip, RemoteTrackingBranch);
 
 public record StackStatusCommandJsonOutputRemoteTrackingBranchStatus
@@ -74,7 +75,7 @@ public record StackStatusCommandJsonOutputGitHubPullRequest
 
 public record StackStatusCommandJsonOutputParentBranchStatus
 (
-    StackStatusCommandJsonOutputBranch Branch,
+    string Name,
     int Ahead,
     int Behind
 );
@@ -95,7 +96,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.Stacks, StdOutLogger);
+        StackHelpers.OutputStackStatus(response.SchemaVersion, response.Stacks, StdOutLogger);
 
         if (response.Stacks.Count == 1)
         {
@@ -116,7 +117,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
         return new StackStatusCommandJsonOutput(
             stack.Name,
             MapBranch(stack.SourceBranch),
-            stack.Branches.Select(MapBranchDetail).ToList()
+            [.. stack.Branches.Select(MapBranchDetail)]
         );
     }
 
@@ -137,7 +138,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
 
     private static StackStatusCommandJsonOutputBranchDetail MapBranchDetail(BranchDetail branch)
     {
-        return new StackStatusCommandJsonOutputBranchDetail(
+        var branchDetail = new StackStatusCommandJsonOutputBranchDetail(
             branch.Name,
             branch.Exists,
             branch.Tip is null ? null : new StackStatusCommandJsonOutputCommit(branch.Tip.Sha, branch.Tip.Message),
@@ -155,16 +156,20 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
                 branch.PullRequest.IsDraft
             ),
             branch.Parent is null ? null : new StackStatusCommandJsonOutputParentBranchStatus(
-                MapBranch(branch.Parent.Branch),
+                branch.Parent.Name,
                 branch.Parent.Ahead,
                 branch.Parent.Behind
-            )
+            ),
+            []
         );
+
+        branchDetail.Children.AddRange(branch.Children.Select(MapBranchDetail));
+        return branchDetail;
     }
 }
 
 public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
-public record StackStatusCommandResponse(List<StackStatus> Stacks);
+public record StackStatusCommandResponse(SchemaVersion SchemaVersion, List<StackStatus> Stacks);
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
@@ -209,6 +214,6 @@ public class StackStatusCommandHandler(
             gitHubClient,
             inputs.Full);
 
-        return new StackStatusCommandResponse(stackStatusResults);
+        return new StackStatusCommandResponse(stackData.SchemaVersion, stackStatusResults);
     }
 }
