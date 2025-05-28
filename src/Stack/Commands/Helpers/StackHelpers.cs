@@ -10,16 +10,6 @@ namespace Stack.Commands.Helpers;
 
 public record StackStatus(string Name, SourceBranchDetail SourceBranch, List<BranchDetail> Branches)
 {
-    public List<List<BranchDetail>> GetAllBranchLines()
-    {
-        var allLines = new List<List<BranchDetail>>();
-        foreach (var branch in Branches)
-        {
-            allLines.AddRange(branch.GetAllPaths());
-        }
-        return allLines;
-    }
-
     public List<BranchDetail> GetAllBranches()
     {
         var branchesToReturn = new List<BranchDetail>();
@@ -152,28 +142,6 @@ public record BranchDetail(
     public int AheadOfParent => Parent?.Ahead ?? 0;
     public int BehindParent => Parent?.Behind ?? 0;
     public string ParentBranchName => Parent?.Name ?? string.Empty;
-
-    public List<List<BranchDetail>> GetAllPaths()
-    {
-        var result = new List<List<BranchDetail>>();
-        if (Children.Count == 0)
-        {
-            result.Add([this]);
-        }
-        else
-        {
-            foreach (var child in Children)
-            {
-                foreach (var path in child.GetAllPaths())
-                {
-                    var newPath = new List<BranchDetail> { this };
-                    newPath.AddRange(path);
-                    result.Add(newPath);
-                }
-            }
-        }
-        return result;
-    }
 }
 
 public record ParentBranchStatus(string Name, int Ahead, int Behind);
