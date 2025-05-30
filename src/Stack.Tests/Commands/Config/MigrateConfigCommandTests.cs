@@ -3,9 +3,6 @@ using Stack.Commands;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 using FluentAssertions;
-using NSubstitute;
-using Stack.Infrastructure;
-using Stack.Commands.Helpers;
 
 namespace Stack.Tests.Commands
 {
@@ -27,15 +24,14 @@ namespace Stack.Tests.Commands
                 .WithBranch(b => b.WithName("branch-3").WithChildBranch(b => b.WithName("branch-4")))
                 .Build();
 
+
             fileStackConfig.Save(new StackData(SchemaVersion.V1, [stack1, stack2]));
 
-            var inputProvider = Substitute.For<IInputProvider>();
-            inputProvider.Confirm(Questions.ConfirmMigrateConfig).Returns(true);
             var logger = new TestLogger(testOutputHelper);
-            var handler = new MigrateConfigCommandHandler(inputProvider, logger, fileStackConfig);
+            var handler = new MigrateConfigCommandHandler(logger, fileStackConfig);
 
             // Act
-            await handler.Handle(new MigrateConfigCommandInputs(false));
+            await handler.Handle(new MigrateConfigCommandInputs());
 
             // Assert
             var migratedData = fileStackConfig.Load();
