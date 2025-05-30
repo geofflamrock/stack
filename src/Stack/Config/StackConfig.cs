@@ -44,6 +44,10 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     public void Save(StackData stackData)
     {
         var stacksFile = GetConfigPath();
+        if (!Directory.Exists(Path.GetDirectoryName(stacksFile)))
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(stacksFile)!);
+        }
 
         if (stackData.SchemaVersion == SchemaVersion.V1)
         {
@@ -65,7 +69,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         // If we are currently in v1 format take a backup.
         if (existingConfigFileIsInV1Format)
         {
-            var backupFile = stacksFile + ".bak";
+            var backupFile = GetV1ConfigBackupFilePath();
             if (File.Exists(backupFile))
             {
                 File.Delete(backupFile);
@@ -74,6 +78,12 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         }
 
         File.WriteAllText(stacksFile, JsonSerializer.Serialize(new StackConfigV2([.. stackData.Stacks.Select(MapToV2Format)]), serializerOptions));
+    }
+
+    public string GetV1ConfigBackupFilePath()
+    {
+        var stacksFile = GetConfigPath();
+        return Path.Combine(Path.GetDirectoryName(stacksFile)!, "config.v1-backup.json");
     }
 
     private bool IsStackConfigInV2Format(string jsonString)

@@ -20,4 +20,5 @@ public static class CommandNames
     public const string Pull = "pull";
     public const string Push = "push";
     public const string Sync = "sync";
+    public const string Migrate = "migrate";
 }

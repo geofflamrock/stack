@@ -56,7 +56,7 @@ Multiple branches are managed in a **stack**. This is an _explicit_ set of branc
 
 All commands can be run from anywhere inside the Git repository you are working with, or optionally using the `--working-dir` option.
 
-Data is stored inside a config file in `{user}/stack/config.json`. You can open the config file by running `stack config`.
+Data is stored inside a config file in `{user}/stack/config.json`. You can open the config file by running `stack config open`.
 
 ### Creating a stack
 
@@ -440,17 +440,30 @@ OPTIONS:
 
 ### Advanced commands <!-- omit from toc -->
 
-#### `stack config` <!-- omit from toc -->
+#### `stack config open` <!-- omit from toc -->
 
 Opens the configuration file in the default editor.
 
 ```shell
 USAGE:
-    stack config [OPTIONS]
+    stack config open [OPTIONS]
 
 OPTIONS:
     -h, --help           Prints help information
-    -v, --version        Prints version information
+        --verbose        Show verbose output
+        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+```
+
+#### `stack config migrate` <!-- omit from toc -->
+
+Migrates the configuration file from v1 to v2 format (preview).
+
+```shell
+USAGE:
+    stack config migrate [OPTIONS]
+
+OPTIONS:
+    -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
 ```
