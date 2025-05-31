@@ -7,6 +7,7 @@ namespace Stack.Tests.Helpers;
 public class TestStackConfigBuilder
 {
     readonly List<Action<TestStackBuilder>> stackBuilders = [];
+    SchemaVersion schemaVersion = SchemaVersion.V1;
 
     public TestStackConfigBuilder WithStack(Action<TestStackBuilder> stackBuilder)
     {
@@ -14,10 +15,16 @@ public class TestStackConfigBuilder
         return this;
     }
 
+    public TestStackConfigBuilder WithSchemaVersion(SchemaVersion schemaVersion)
+    {
+        this.schemaVersion = schemaVersion;
+        return this;
+    }
+
     public TestStackConfig Build()
     {
         return new TestStackConfig(
-            new StackData(SchemaVersion.V1, [.. stackBuilders.Select(builder =>
+            new StackData(schemaVersion, [.. stackBuilders.Select(builder =>
             {
                 var stackBuilder = new TestStackBuilder();
                 builder(stackBuilder);

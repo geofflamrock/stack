@@ -1,5 +1,6 @@
 using System.ComponentModel;
-using Spectre.Console;
+using MoreLinq;
+using MoreLinq.Extensions;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -17,6 +18,10 @@ public class NewBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to create.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("The name of the parent branch to create the new branch from.")]
+    [CommandOption("-p|--parent")]
+    public string? Parent { get; init; }
 }
 
 public class NewBranchCommand : Command<NewBranchCommandSettings>
@@ -29,13 +34,13 @@ public class NewBranchCommand : Command<NewBranchCommandSettings>
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new FileStackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name));
+        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Parent));
     }
 }
 
-public record NewBranchCommandInputs(string? StackName, string? BranchName)
+public record NewBranchCommandInputs(string? StackName, string? BranchName, string? ParentBranchName)
 {
-    public static NewBranchCommandInputs Empty => new(null, null);
+    public static NewBranchCommandInputs Empty => new(null, null, null);
 }
 
 public class NewBranchCommandHandler(
@@ -70,8 +75,29 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var deepestChildBranchFromFirstTree = stack.GetDeepestChildBranchFromFirstTree();
-        var sourceBranch = deepestChildBranchFromFirstTree?.Name ?? stack.SourceBranch;
+        if (stackData.SchemaVersion == SchemaVersion.V1 && inputs.ParentBranchName is not null)
+        {
+            throw new InvalidOperationException("Parent branches are not supported in stacks with schema version v1. Please migrate the stack to v2 format.");
+        }
+
+        Branch? sourceBranch = null;
+
+        if (stackData.SchemaVersion == SchemaVersion.V1)
+        {
+            // In V1 schema there is only a single set of branches, we always add to the end.
+            sourceBranch = stack.GetAllBranches().LastOrDefault();
+        }
+        if (stackData.SchemaVersion == SchemaVersion.V2)
+        {
+            var parentBranchName = inputs.ParentBranchName ?? inputProvider.SelectBranch(logger, null, [stack.SourceBranch, .. stack.AllBranchNames], Questions.SelectParentBranch);
+
+            var flattenedBranches = stack.Branches.SelectMany(branch => MoreEnumerable.TraverseDepthFirst(branch, b => b.Children)).ToList();
+            sourceBranch = flattenedBranches.FirstOrDefault(b => b.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase));
+            if (sourceBranch is null)
+            {
+                throw new InvalidOperationException($"Branch '{parentBranchName}' not found in stack '{stack.Name}'.");
+            }
+        }
 
         var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
 
@@ -85,14 +111,15 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
         }
 
-        logger.Information($"Creating branch {branchName.Branch()} from {sourceBranch.Branch()} in stack {stack.Name.Stack()}");
+        var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
 
-        gitClient.CreateNewBranch(branchName, sourceBranch);
+        logger.Information($"Creating branch {branchName.Branch()} from {sourceBranchName.Branch()} in stack {stack.Name.Stack()}");
 
-        if (deepestChildBranchFromFirstTree is not null)
+        gitClient.CreateNewBranch(branchName, sourceBranchName);
+
+        if (sourceBranch is not null)
         {
-            // If the stack has branches, we add the new branch to the first branch's children
-            deepestChildBranchFromFirstTree.Children.Add(new Branch(branchName, []));
+            sourceBranch.Children.Add(new Branch(branchName, []));
         }
         else
         {

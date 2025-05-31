@@ -44,7 +44,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null));
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -87,7 +87,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs("Stack1", null));
+        await handler.Handle(new NewBranchCommandInputs("Stack1", null, null));
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
@@ -125,7 +125,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null));
 
         // Assert
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
@@ -165,7 +165,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(invalidStackName, null)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(invalidStackName, null, null)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -202,7 +202,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, newBranch));
+        await handler.Handle(new NewBranchCommandInputs(null, newBranch, null));
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -243,7 +243,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidBranchName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, anotherBranch)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, anotherBranch, null)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{anotherBranch}' already exists locally.");
@@ -281,7 +281,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act and assert
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, newBranch)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, newBranch, null)))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{newBranch}' already exists in stack 'Stack1'.");
@@ -366,7 +366,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null));
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -375,5 +375,142 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack2", repo.RemoteUri, sourceBranch, [])
         });
         repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
+    }
+
+    [Fact]
+    public async Task WhenV2Schema_AndParentBranchNotProvided_AsksForParentBranch_CreatesNewBranchUnderneathParent()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var firstBranch = Some.BranchName();
+        var childBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(firstBranch)
+            .WithBranch(childBranch)
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V2)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(firstBranch).WithChildBranch(child => child.WithName(childBranch))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(firstBranch);
+
+        // Act
+        await handler.Handle(new NewBranchCommandInputs(null, null, null));
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(newBranch, [])])]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        });
+        gitClient.GetCurrentBranch().Should().Be(newBranch);
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
+    }
+
+    [Fact]
+    public async Task WhenV2Schema_AndParentBranchProvided_DoesNotAskForParentBranch_CreatesNewBranchUnderneathParent()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var firstBranch = Some.BranchName();
+        var childBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(firstBranch)
+            .WithBranch(childBranch)
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V2)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(firstBranch).WithChildBranch(child => child.WithName(childBranch))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
+
+        // Act
+        await handler.Handle(new NewBranchCommandInputs(null, null, firstBranch));
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(newBranch, [])])]),
+            new("Stack2", repo.RemoteUri, sourceBranch, [])
+        });
+        gitClient.GetCurrentBranch().Should().Be(newBranch);
+        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
+
+        inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>());
+    }
+
+    [Fact]
+    public async Task WhenV1Schema_AndParentBranchProvided_ThrowsException()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var firstBranch = Some.BranchName();
+        var childBranch = Some.BranchName();
+        var newBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(firstBranch)
+            .WithBranch(childBranch)
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V1)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(firstBranch).WithChildBranch(child => child.WithName(childBranch))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
+
+        // Act and assert
+        await handler.Invoking(h => h.Handle(new NewBranchCommandInputs(null, null, firstBranch)))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Parent branches are not supported in stacks with schema version v1. Please migrate the stack to v2 format.");
     }
 }

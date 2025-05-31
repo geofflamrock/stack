@@ -12,6 +12,30 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         this.PullRequestDescription = description;
     }
 
+    public List<Branch> GetAllBranches()
+    {
+        var branchesToReturn = new List<Branch>();
+        foreach (var branch in Branches)
+        {
+            branchesToReturn.Add(branch);
+            branchesToReturn.AddRange(GetAllBranches(branch));
+        }
+
+        return branchesToReturn;
+    }
+
+    static List<Branch> GetAllBranches(Branch branch)
+    {
+        var branchesToReturn = new List<Branch>();
+        foreach (var child in branch.Children)
+        {
+            branchesToReturn.Add(child);
+            branchesToReturn.AddRange(GetAllBranches(child));
+        }
+
+        return branchesToReturn;
+    }
+
     public List<string> AllBranchNames
     {
         get

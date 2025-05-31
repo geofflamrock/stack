@@ -79,9 +79,10 @@ public static class InputProviderExtensionMethods
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        string[] branches)
+        string[] branches,
+        string question = Questions.SelectBranch)
     {
-        return inputProvider.Select(logger, Questions.SelectBranch, name, branches);
+        return inputProvider.Select(logger, question, name, branches);
     }
 }
 
