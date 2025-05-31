@@ -80,16 +80,9 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
-
-        if (stack.AllBranchNames.Contains(branchName))
+        if (stackData.SchemaVersion == SchemaVersion.V1 && inputs.ParentBranchName is not null)
         {
-            throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
-        }
-
-        if (gitClient.DoesLocalBranchExist(branchName))
-        {
-            throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
+            throw new InvalidOperationException("Parent branches are not supported in stacks with schema version v1. Please migrate the stack to v2 format.");
         }
 
         Branch? sourceBranch = null;
@@ -101,16 +94,26 @@ public class NewBranchCommandHandler(
         }
         if (stackData.SchemaVersion == SchemaVersion.V2)
         {
-            var parentBranchName = inputProvider.SelectParentBranch(logger, inputs.ParentBranchName, stack);
+            var parentBranchName = inputs.ParentBranchName ?? inputProvider.SelectBranch(logger, null, [stack.SourceBranch, .. stack.AllBranchNames], Questions.SelectParentBranch);
 
-            if (parentBranchName != stack.SourceBranch)
+            var flattenedBranches = stack.Branches.SelectMany(branch => MoreEnumerable.TraverseDepthFirst(branch, b => b.Children)).ToList();
+            sourceBranch = flattenedBranches.FirstOrDefault(b => b.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase));
+            if (sourceBranch is null)
             {
-                sourceBranch = stack.GetAllBranches().FirstOrDefault(b => b.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase));
-                if (sourceBranch is null)
-                {
-                    throw new InvalidOperationException($"Branch '{parentBranchName}' not found in stack '{stack.Name}'.");
-                }
+                throw new InvalidOperationException($"Branch '{parentBranchName}' not found in stack '{stack.Name}'.");
             }
+        }
+
+        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
+
+        if (stack.AllBranchNames.Contains(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' already exists in stack '{stack.Name}'.");
+        }
+
+        if (gitClient.DoesLocalBranchExist(branchName))
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' already exists locally.");
         }
 
         var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
