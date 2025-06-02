@@ -19,111 +19,6 @@ public record StackStatus(string Name, SourceBranchDetail SourceBranch, List<Bra
         }
         return allLines;
     }
-
-    public List<BranchDetail> GetAllBranches()
-    {
-        var branchesToReturn = new List<BranchDetail>();
-        foreach (var branch in Branches)
-        {
-            branchesToReturn.Add(branch);
-            branchesToReturn.AddRange(GetAllBranches(branch));
-        }
-
-        return branchesToReturn;
-    }
-
-    static List<BranchDetail> GetAllBranches(BranchDetail branch)
-    {
-        var branchesToReturn = new List<BranchDetail>();
-        foreach (var child in branch.Children)
-        {
-            branchesToReturn.Add(child);
-            branchesToReturn.AddRange(GetAllBranches(child));
-        }
-
-        return branchesToReturn;
-    }
-
-    public BranchDetail? GetDeepestActiveBranchInSingleTree()
-    {
-        foreach (var branch in Branches)
-        {
-            var deepestBranch = GetDeepestActiveBranch(branch);
-            if (deepestBranch is not null)
-            {
-                return deepestBranch;
-            }
-        }
-
-        return null;
-    }
-
-    public BranchDetail? GetDeepestActiveBranch(BranchDetail branch)
-    {
-        if (branch.IsActive && branch.Children.Count == 0)
-        {
-            return branch;
-        }
-
-        foreach (var child in branch.Children)
-        {
-            if (child.IsActive)
-            {
-                var deepestChild = GetDeepestActiveBranch(child);
-                if (deepestChild is not null)
-                {
-                    return deepestChild;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    public BranchDetail? WalkBranches(Func<BranchDetail, WalkAction> predicate)
-    {
-        static BranchDetail? WalkBranch(Func<BranchDetail, WalkAction> predicate, BranchDetail branch)
-        {
-            var action = predicate(branch);
-            if (action == WalkAction.Return)
-            {
-                return branch;
-            }
-            else if (action == WalkAction.Skip)
-            {
-                return null;
-            }
-
-            foreach (var child in branch.Children)
-            {
-                var result = WalkBranch(predicate, child);
-                if (result is not null)
-                {
-                    return result;
-                }
-            }
-
-            return null;
-        }
-
-        foreach (var branch in Branches)
-        {
-            var result = WalkBranch(predicate, branch);
-            if (result is not null)
-            {
-                return result;
-            }
-        }
-
-        return null;
-    }
-}
-
-public enum WalkAction
-{
-    Continue,
-    Return,
-    Skip
 }
 
 public record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, int Behind);
@@ -620,31 +515,33 @@ public static class StackHelpers
         IInputProvider inputProvider,
         ILogger logger)
     {
-        foreach (var branch in status.Branches)
+        var allBranchLines = status.GetAllBranchLines();
+
+        foreach (var branchLine in allBranchLines)
         {
-            UpdateBranchUsingMerge(branch, status.SourceBranch, gitClient, inputProvider, logger);
+            UpdateBranchLineUsingMerge(branchLine, status.SourceBranch, gitClient, inputProvider, logger);
         }
     }
 
-    public static void UpdateBranchUsingMerge(
-        BranchDetail branch,
+    public static void UpdateBranchLineUsingMerge(
+        List<BranchDetail> branchLine,
         BranchDetailBase parentBranch,
         IGitClient gitClient,
         IInputProvider inputProvider,
         ILogger logger)
     {
-        if (branch.IsActive)
+        var currentParentBranch = parentBranch;
+        foreach (var branch in branchLine)
         {
-            MergeFromSourceBranch(branch.Name, parentBranch.Name, gitClient, inputProvider, logger);
-        }
-        else
-        {
-            logger.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
-        }
-
-        foreach (var child in branch.Children)
-        {
-            UpdateBranchUsingMerge(child, branch.IsActive ? branch : parentBranch, gitClient, inputProvider, logger);
+            if (branch.IsActive)
+            {
+                MergeFromSourceBranch(branch.Name, currentParentBranch.Name, gitClient, inputProvider, logger);
+                currentParentBranch = branch;
+            }
+            else
+            {
+                logger.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+            }
         }
     }
 
@@ -826,6 +723,16 @@ public static class StackHelpers
         IInputProvider inputProvider,
         ILogger logger)
     {
+        var allBranchLines = status.GetAllBranchLines();
+
+        foreach (var branchLine in allBranchLines)
+        {
+            UpdateBranchLineUsingRebase(status, gitClient, inputProvider, logger, branchLine);
+        }
+    }
+
+    private static void UpdateBranchLineUsingRebase(StackStatus status, IGitClient gitClient, IInputProvider inputProvider, ILogger logger, List<BranchDetail> branchLine)
+    {
         //
         // When rebasing the stack, we'll use `git rebase --update-refs` from the
         // lowest branch in the stack to pick up changes throughout all branches in the stack.
@@ -852,39 +759,38 @@ public static class StackHelpers
         // We'll rebase feature3 onto feature2 using a normal `git rebase feature2 --update-refs`, 
         // then feature3 onto main using `git rebase --onto main feature1 --update-refs` to replay
         // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
-        // which will include the squashed commit. 
+        // which will include the squashed commit.
         //
-        var lowestActionBranch = status.WalkBranches(b =>
+        logger.Information($"Rebasing stack {status.Name.Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
+
+        BranchDetail? lowestActionBranch = null;
+        foreach (var branch in branchLine)
         {
-            if (b.IsActive && b.Children.Count == 0)
+            if (branch.IsActive)
             {
-                return WalkAction.Return;
+                lowestActionBranch = branch;
             }
+        }
 
-            return WalkAction.Continue;
-        });
-
-        string? branchToRebaseFrom = lowestActionBranch?.Name;
-        string? lowestInactiveBranchToReParentFrom = null;
-
-        if (branchToRebaseFrom is null)
+        if (lowestActionBranch is null)
         {
             logger.Warning("No active branches found in the stack.");
             return;
         }
 
-        var branchesToRebaseOnto = new List<string>(stack.AllBranchNames);
-        branchesToRebaseOnto.Reverse();
-        branchesToRebaseOnto.Remove(branchToRebaseFrom);
-        branchesToRebaseOnto.Add(stack.SourceBranch);
+        string? branchToRebaseFrom = lowestActionBranch.Name;
+        string? lowestInactiveBranchToReParentFrom = null;
 
-        List<BranchDetailBase> allBranchesInStack = [status.SourceBranch, .. status.GetAllBranches()];
+        List<BranchDetailBase> branchesToRebaseOnto = [.. branchLine];
+        branchesToRebaseOnto.Reverse();
+        branchesToRebaseOnto.Remove(lowestActionBranch);
+        branchesToRebaseOnto.Add(status.SourceBranch);
+
+        List<BranchDetailBase> allBranchesInStack = [status.SourceBranch, .. branchLine];
 
         foreach (var branchToRebaseOnto in branchesToRebaseOnto)
         {
-            var branchDetail = allBranchesInStack.First(b => b.Name == branchToRebaseOnto);
-
-            if (branchDetail.IsActive)
+            if (branchToRebaseOnto.IsActive)
             {
                 var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInStack.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
                 var shouldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
@@ -896,16 +802,16 @@ public static class StackHelpers
 
                 if (shouldRebaseOntoParent)
                 {
-                    RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto, lowestInactiveBranchToReParentFrom!, gitClient, inputProvider, logger);
+                    RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!, gitClient, inputProvider, logger);
                 }
                 else
                 {
-                    RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto, gitClient, inputProvider, logger);
+                    RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name, gitClient, inputProvider, logger);
                 }
             }
             else if (lowestInactiveBranchToReParentFrom is null)
             {
-                lowestInactiveBranchToReParentFrom = branchToRebaseOnto;
+                lowestInactiveBranchToReParentFrom = branchToRebaseOnto.Name;
             }
         }
     }

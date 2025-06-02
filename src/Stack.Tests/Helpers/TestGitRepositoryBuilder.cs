@@ -1,3 +1,4 @@
+using System.Text;
 using LibGit2Sharp;
 using Stack.Git;
 
@@ -84,13 +85,8 @@ public class CommitBuilder
 {
     Func<Repository, string>? getBranchName;
     string? message;
-    string? authorName;
-    string? authorEmail;
-    string? committerName;
-    string? committerEmail;
-    bool allowEmptyCommit;
     bool pushToRemote;
-    List<(string Path, string Contents)> changes = [];
+    List<(string Path, string? Contents)> changes = [];
 
     public CommitBuilder OnBranch(string branch)
     {
@@ -116,26 +112,6 @@ public class CommitBuilder
         return this;
     }
 
-    public CommitBuilder WithAuthor(string name, string email)
-    {
-        authorName = name;
-        authorEmail = email;
-        return this;
-    }
-
-    public CommitBuilder WithCommitter(string name, string email)
-    {
-        committerName = name;
-        committerEmail = email;
-        return this;
-    }
-
-    public CommitBuilder AllowEmptyCommit()
-    {
-        allowEmptyCommit = true;
-        return this;
-    }
-
     public CommitBuilder PushToRemote()
     {
         pushToRemote = true;
@@ -152,29 +128,80 @@ public class CommitBuilder
             branch = repository.Branches[branchName];
         }
 
-        if (branch is not null)
-        {
-            repository.Refs.UpdateTarget("HEAD", branch.CanonicalName);
-        }
+        var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
 
-        foreach (var (path, contents) in changes)
-        {
-            var fullPath = Path.Combine(repository.Info.WorkingDirectory, path);
-            var directory = Path.GetDirectoryName(fullPath);
-            Directory.CreateDirectory(directory!);
-            File.WriteAllText(fullPath, contents);
-            LibGit2Sharp.Commands.Stage(repository, path);
-        }
-
-        var signature = new Signature(authorName ?? Some.Name(), authorEmail ?? Some.Name(), DateTimeOffset.Now);
-        var committer = new Signature(committerName ?? Some.Name(), committerEmail ?? Some.Name(), DateTimeOffset.Now);
-
-        repository.Commit(message ?? Some.Name(), signature, committer, new CommitOptions() { AllowEmptyCommit = allowEmptyCommit });
+        Commit(repository, branch?.Tip, branch?.CanonicalName, message ?? Some.Name(), signature, changes.ToArray());
 
         if (branch is not null && pushToRemote)
         {
             repository.Network.Push(branch);
         }
+    }
+
+    public static LibGit2Sharp.Commit Commit(Repository repository,
+        LibGit2Sharp.Commit? parent,
+        string? branchName,
+        string message,
+        Signature? signature,
+        params (string Name, string? Content)[] files)
+    {
+        // Commits for uninitialised repositories will have no parent, and will need to start with an empty tree.
+        var treeDefinition = parent is null ? new TreeDefinition() : TreeDefinition.From(parent.Tree);
+
+        foreach (var file in files)
+        {
+            if (file.Content is null)
+            {
+                treeDefinition.Remove(file.Name);
+            }
+            else
+            {
+                var bytes = Encoding.UTF8.GetBytes(file.Content);
+                var blobId = repository.ObjectDatabase.Write<Blob>(bytes);
+                treeDefinition.Add(file.Name, blobId, Mode.NonExecutableFile);
+            }
+        }
+
+        return CommitTreeDefinition(repository, parent, branchName, message, signature, treeDefinition);
+    }
+
+    static LibGit2Sharp.Commit CommitTreeDefinition(Repository repository,
+        LibGit2Sharp.Commit? parent,
+        string? branchName,
+        string message,
+        Signature? signature,
+        TreeDefinition treeDefinition)
+    {
+        // Write the tree to the object database
+        var tree = repository.ObjectDatabase.CreateTree(treeDefinition);
+
+        // Create the commit
+        var parents = parent is null ? Array.Empty<LibGit2Sharp.Commit>() : new[] { parent };
+        var commit = repository.ObjectDatabase.CreateCommit(
+            signature,
+            signature,
+            message,
+            tree,
+            parents,
+            false);
+
+        if (branchName is not null)
+        {
+            // Point the branch at the new commit if a branch name
+            // has been provided
+            var branch = repository.Branches[branchName];
+
+            if (branch is null)
+            {
+                repository.Branches.Add(branchName, commit);
+            }
+            else
+            {
+                repository.Refs.UpdateTarget(branch.Reference, commit.Id);
+            }
+        }
+
+        return commit;
     }
 }
 
@@ -216,7 +243,7 @@ public class TestGitRepositoryBuilder
         {
             commitBuilders.Add(b =>
             {
-                b.OnBranch(branchName).WithMessage($"Empty commit {i + 1}").AllowEmptyCommit();
+                b.OnBranch(branchName).WithMessage($"Empty commit {i + 1}");
 
                 if (pushToRemote)
                 {
@@ -234,7 +261,6 @@ public class TestGitRepositoryBuilder
             commitBuilders.Add(b =>
             {
                 commitBuilder(b);
-                b.AllowEmptyCommit();
             });
         }
         return this;
@@ -248,7 +274,6 @@ public class TestGitRepositoryBuilder
             {
                 commitBuilder(b);
                 b.OnBranch(r => r.Branches[branch].TrackedBranch.CanonicalName);
-                b.AllowEmptyCommit();
             });
         }
         return this;
