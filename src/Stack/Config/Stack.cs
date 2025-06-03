@@ -36,18 +36,7 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         return branchesToReturn;
     }
 
-    public List<string> AllBranchNames
-    {
-        get
-        {
-            var branches = new List<string>();
-            foreach (var branch in Branches)
-            {
-                branches.AddRange(branch.AllBranchNames);
-            }
-            return [.. branches.Distinct()];
-        }
-    }
+    public List<string> AllBranchNames => [.. GetAllBranches().Select(b => b.Name).Distinct()];
 
     public bool HasSingleTree
     {
