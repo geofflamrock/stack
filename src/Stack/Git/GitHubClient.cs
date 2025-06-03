@@ -17,7 +17,14 @@ public static class GitHubPullRequestStates
     public const string Merged = "MERGED";
 }
 
-public record GitHubPullRequest(int Number, string Title, string Body, string State, Uri Url, bool IsDraft);
+public record GitHubPullRequest(
+    int Number,
+    string Title,
+    string Body,
+    string State,
+    Uri Url,
+    bool IsDraft,
+    string HeadRefName);
 
 public static class GitHubPullRequestExtensionMethods
 {
@@ -58,7 +65,7 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
-        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft --head {branch} --state all");
+        var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,headRefName --head {branch} --state all");
         var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
             new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
 

@@ -334,14 +334,15 @@ public static class StackHelpers
     public static void OutputStackStatus(
         SchemaVersion schemaVersion,
         StackStatus status,
-        ILogger logger)
+        ILogger logger,
+        Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
     {
         var header = GetBranchStatusOutput(status.SourceBranch);
         var items = new List<TreeItem<string>>();
 
         foreach (var branch in status.Branches)
         {
-            items.Add(GetBranchAndPullRequestStatusOutput(branch));
+            items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }
 
         if (schemaVersion == SchemaVersion.V1 && items.Count > 0)
@@ -353,19 +354,27 @@ public static class StackHelpers
         logger.Tree(new Tree<string>(header, [.. items]));
     }
 
-    public static TreeItem<string> GetBranchAndPullRequestStatusOutput(BranchDetail branch)
+    public static TreeItem<string> GetBranchAndPullRequestStatusOutput(
+        BranchDetail branch,
+        Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
     {
         var branchNameBuilder = new StringBuilder();
         branchNameBuilder.Append(GetBranchStatusOutput(branch));
 
-        if (branch.PullRequest is not null)
+        var pullRequestDisplay = getBranchPullRequestDisplay?.Invoke(branch);
+
+        if (pullRequestDisplay is not null)
+        {
+            branchNameBuilder.Append($"   {pullRequestDisplay}");
+        }
+        else if (branch.PullRequest is not null)
         {
             branchNameBuilder.Append($"   {branch.PullRequest.GetPullRequestDisplay()}");
         }
 
         var treeItemValue = branchNameBuilder.ToString();
         var children = branch.Children
-            .Select(GetBranchAndPullRequestStatusOutput)
+            .Select(b => GetBranchAndPullRequestStatusOutput(b, getBranchPullRequestDisplay))
             .ToList();
 
         return new TreeItem<string>(treeItemValue, children);
@@ -718,11 +727,35 @@ public static class StackHelpers
         Config.Stack stack,
         List<GitHubPullRequest> pullRequestsInStack)
     {
+        var prListBuilder = new StringBuilder();
+
+        void AppendPullRequestToList(GitHubPullRequest pullRequest, int indentLevel)
+        {
+            prListBuilder.AppendLine($"{new string(' ', indentLevel * 2)}- {pullRequest.Url}");
+        }
+
+        void AppendBranchPullRequestsToList(Branch branch, int indentLevel)
+        {
+            var pullRequest = pullRequestsInStack.FirstOrDefault(pr => pr.HeadRefName == branch.Name);
+            if (pullRequest is not null)
+            {
+                AppendPullRequestToList(pullRequest, indentLevel);
+            }
+
+            foreach (var child in branch.Children)
+            {
+                AppendBranchPullRequestsToList(child, indentLevel + 1);
+            }
+        }
+
+        foreach (var branch in stack.Branches)
+        {
+            AppendBranchPullRequestsToList(branch, 0);
+        }
+
         // Edit each PR and add to the top of the description
         // the details of each PR in the stack
-        var prList = pullRequestsInStack
-            .Select(pr => $"- {pr.Url}")
-            .ToList();
+        var prList = prListBuilder.ToString();
         var prListMarkdown = string.Join(Environment.NewLine, prList);
         var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{StackConstants.StackMarkerEnd}";
 

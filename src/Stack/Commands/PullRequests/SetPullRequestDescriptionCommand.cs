@@ -76,7 +76,7 @@ public class SetPullRequestDescriptionCommandHandler(
 
         var pullRequestsInStack = new List<GitHubPullRequest>();
 
-        foreach (var branch in status.Branches)
+        foreach (var branch in status.GetAllBranches())
         {
             if (branch.PullRequest is not null)
             {
