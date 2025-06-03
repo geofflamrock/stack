@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -17,6 +16,10 @@ public class AddBranchCommandSettings : CommandSettingsBase
     [Description("The name of the branch to add.")]
     [CommandOption("-n|--name")]
     public string? Name { get; init; }
+
+    [Description("The name of the parent branch to add branch as a child of.")]
+    [CommandOption("-p|--parent")]
+    public string? Parent { get; init; }
 }
 
 public class AddBranchCommand : Command<AddBranchCommandSettings>
@@ -29,13 +32,13 @@ public class AddBranchCommand : Command<AddBranchCommandSettings>
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new FileStackConfig());
 
-        await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name));
+        await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name, settings.Parent));
     }
 }
 
-public record AddBranchCommandInputs(string? StackName, string? BranchName)
+public record AddBranchCommandInputs(string? StackName, string? BranchName, string? ParentBranchName)
 {
-    public static AddBranchCommandInputs Empty => new(null, null);
+    public static AddBranchCommandInputs Empty => new(null, null, null);
 }
 
 public class AddBranchCommandHandler(
@@ -63,6 +66,11 @@ public class AddBranchCommandHandler(
             return;
         }
 
+        if (stackData.SchemaVersion == SchemaVersion.V1 && inputs.ParentBranchName is not null)
+        {
+            throw new InvalidOperationException("Parent branches are not supported in stacks with schema version v1. Please migrate the stack to v2 format.");
+        }
+
         var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
 
         if (stack is null)
@@ -70,8 +78,6 @@ public class AddBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var deepestChildBranchFromFirstTree = stack.GetDeepestChildBranchFromFirstTree();
-        var sourceBranch = deepestChildBranchFromFirstTree?.Name ?? stack.SourceBranch;
         var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, branches);
 
         if (stack.AllBranchNames.Contains(branchName))
@@ -84,12 +90,32 @@ public class AddBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' does not exist locally.");
         }
 
+        Branch? sourceBranch = null;
+
+        if (stackData.SchemaVersion == SchemaVersion.V1)
+        {
+            // In V1 schema there is only a single set of branches, we always add to the end.
+            sourceBranch = stack.GetAllBranches().LastOrDefault();
+        }
+        if (stackData.SchemaVersion == SchemaVersion.V2)
+        {
+            var parentBranchName = inputProvider.SelectParentBranch(logger, inputs.ParentBranchName, stack);
+
+            if (parentBranchName != stack.SourceBranch)
+            {
+                sourceBranch = stack.GetAllBranches().FirstOrDefault(b => b.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase));
+                if (sourceBranch is null)
+                {
+                    throw new InvalidOperationException($"Branch '{parentBranchName}' not found in stack '{stack.Name}'.");
+                }
+            }
+        }
+
         logger.Information($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
 
-        if (deepestChildBranchFromFirstTree is not null)
+        if (sourceBranch is not null)
         {
-            // If the stack has branches, we add the new branch to the first branch's children
-            deepestChildBranchFromFirstTree.Children.Add(new Branch(branchName, []));
+            sourceBranch.Children.Add(new Branch(branchName, []));
         }
         else
         {
