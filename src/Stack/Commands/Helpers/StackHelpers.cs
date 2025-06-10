@@ -19,6 +19,30 @@ public record StackStatus(string Name, SourceBranchDetail SourceBranch, List<Bra
         }
         return allLines;
     }
+
+    public List<BranchDetail> GetAllBranches()
+    {
+        var branchesToReturn = new List<BranchDetail>();
+        foreach (var branch in Branches)
+        {
+            branchesToReturn.Add(branch);
+            branchesToReturn.AddRange(GetAllBranches(branch));
+        }
+
+        return branchesToReturn;
+    }
+
+    static List<BranchDetail> GetAllBranches(BranchDetail branch)
+    {
+        var branchesToReturn = new List<BranchDetail>();
+        foreach (var child in branch.Children)
+        {
+            branchesToReturn.Add(child);
+            branchesToReturn.AddRange(GetAllBranches(child));
+        }
+
+        return branchesToReturn;
+    }
 }
 
 public record RemoteTrackingBranchStatus(string Name, bool Exists, int Ahead, int Behind);
@@ -410,29 +434,29 @@ public static class StackHelpers
     }
 
     public static void OutputBranchAndStackActions(
-        StackStatus stack,
+        StackStatus status,
         ILogger logger)
     {
-        var allBranches = stack.GetAllBranches();
+        var allBranches = status.GetAllBranches();
         if (allBranches.All(branch => branch.CouldBeCleanedUp))
         {
             logger.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
             logger.NewLine();
-            logger.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
+            logger.Information($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.");
             logger.NewLine();
         }
         else if (allBranches.Any(branch => branch.CouldBeCleanedUp))
         {
             logger.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
             logger.NewLine();
-            logger.Information($"Run {$"stack cleanup --stack \"{stack.Name}\"".Example()} to clean up local branches.");
+            logger.Information($"Run {$"stack cleanup --stack \"{status.Name}\"".Example()} to clean up local branches.");
             logger.NewLine();
         }
         else if (allBranches.All(branch => !branch.Exists))
         {
             logger.Information("No branches exist locally. This stack might be able to be deleted.");
             logger.NewLine();
-            logger.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack.");
+            logger.Information($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack.");
             logger.NewLine();
         }
 
@@ -440,7 +464,7 @@ public static class StackHelpers
         {
             logger.Information("There are changes in local branches that have not been pushed to the remote repository.");
             logger.NewLine();
-            logger.Information($"Run {$"stack push --stack \"{stack.Name}\"".Example()} to push the changes to the remote repository.");
+            logger.Information($"Run {$"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.");
             logger.NewLine();
         }
 
@@ -448,9 +472,9 @@ public static class StackHelpers
         {
             logger.Information("There are changes in source branches that have not been applied to the stack.");
             logger.NewLine();
-            logger.Information($"Run {$"stack update --stack \"{stack.Name}\"".Example()} to update the stack locally.");
+            logger.Information($"Run {$"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.");
             logger.NewLine();
-            logger.Information($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} to sync the stack with the remote repository.");
+            logger.Information($"Run {$"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.");
             logger.NewLine();
         }
     }
