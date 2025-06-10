@@ -62,9 +62,12 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         }
 
         // Else we are writing in v2 format
+        var existingConfigFileIsInV1Format = false;
 
-        var jsonString = File.ReadAllText(stacksFile);
-        var existingConfigFileIsInV1Format = !IsStackConfigInV2Format(jsonString);
+        if (File.Exists(stacksFile))
+        {
+            existingConfigFileIsInV1Format = !IsStackConfigInV2Format(File.ReadAllText(stacksFile));
+        }
 
         // If we are currently in v1 format take a backup.
         if (existingConfigFileIsInV1Format)
