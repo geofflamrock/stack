@@ -29,17 +29,22 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
@@ -52,7 +57,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
         var expectedBranch1 = new BranchDetail(branch1, true,
@@ -64,7 +69,7 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             null, new ParentBranchStatus(expectedBranch1, 1, 0));
 
-        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
@@ -86,17 +91,22 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
@@ -109,7 +119,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
 
@@ -123,7 +133,7 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             null, new ParentBranchStatus(expectedBranch1, 1, 0));
 
-        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
 
         inputProvider.ReceivedCalls().Should().BeEmpty();
@@ -150,17 +160,23 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
         var tipOfBranch3 = repo.GetTipOfBranch(branch3);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branch3)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -176,7 +192,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
 
@@ -190,14 +206,14 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             null, new ParentBranchStatus(expectedBranch1, 1, 0));
 
-        var expectedStackDetail1 = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail1 = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
 
         var expectedBranch3 = new BranchDetail(branch3, true,
             new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{branch3}", true, 0, 0),
             null, new ParentBranchStatus(expectedSourceBranch, 3, 5));
 
-        var expectedStackDetail2 = new StackStatus(stack2.Name, expectedSourceBranch, [expectedBranch3]);
+        var expectedStackDetail2 = new StackStatus("Stack2", expectedSourceBranch, [expectedBranch3]);
 
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail1, expectedStackDetail2]);
     }
@@ -223,18 +239,28 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
         var tipOfBranch3 = repo.GetTipOfBranch(branch3);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branch3)))
+            .WithStack(stack => stack
+                .WithName("Stack3")
+                .WithRemoteUri(Some.HttpsUri().ToString())
+                .WithSourceBranch(Some.BranchName())
+                .WithBranch(b => b.WithName(Some.BranchName())))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
-        var stack3 = new Config.Stack("Stack3", Some.HttpsUri().ToString(), Some.BranchName(), [Some.BranchName()]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         logger.WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>())).Do(ci => ci.ArgAt<Action>(1)());
 
@@ -246,7 +272,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
 
@@ -260,14 +286,14 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             null, new ParentBranchStatus(expectedBranch1, 1, 0));
 
-        var expectedStackDetail1 = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail1 = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
 
         var expectedBranch3 = new BranchDetail(branch3, true,
             new Commit(tipOfBranch3.Sha[..7], tipOfBranch3.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{branch3}", true, 0, 0),
             null, new ParentBranchStatus(expectedSourceBranch, 3, 5));
 
-        var expectedStackDetail2 = new StackStatus(stack2.Name, expectedSourceBranch, [expectedBranch3]);
+        var expectedStackDetail2 = new StackStatus("Stack2", expectedSourceBranch, [expectedBranch3]);
 
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail1, expectedStackDetail2]);
     }
@@ -288,17 +314,23 @@ public class StackStatusCommandHandlerTests
             .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(aBranch).WithChildBranch(b2 => b2.WithName(aSecondBranch))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(aThirdBranch)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [aBranch, aSecondBranch]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [aThirdBranch]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         // Act and assert
         var incorrectStackName = Some.Name();
@@ -326,17 +358,23 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branch3)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         logger
@@ -353,7 +391,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
 
@@ -366,7 +404,7 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             pr, new ParentBranchStatus(expectedSourceBranch, 11, 0));
 
-        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
@@ -386,17 +424,23 @@ public class StackStatusCommandHandlerTests
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branch3)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, [branch3]);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         logger
@@ -413,7 +457,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
 
@@ -424,7 +468,7 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             pr, new ParentBranchStatus(expectedSourceBranch, 1, 0));
 
-        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
     }
 
@@ -446,16 +490,18 @@ public class StackStatusCommandHandlerTests
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
         var tipOfBranch2 = repo.GetTipOfBranch(branch2);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = Substitute.For<ILogger>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stacks = new List<Config.Stack>([stack1]);
-        stackConfig.Load().Returns(stacks);
 
         logger
             .WhenForAnyArgs(o => o.Status(Arg.Any<string>(), Arg.Any<Action>()))
@@ -471,7 +517,7 @@ public class StackStatusCommandHandlerTests
         var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
 
         // Assert
-        var expectedSourceBranch = new global::Stack.Commands.Helpers.Branch(sourceBranch, true,
+        var expectedSourceBranch = new BranchDetailBase(sourceBranch, true,
             new Commit(tipOfSourceBranch.Sha[..7], tipOfSourceBranch.Message.Trim()),
             new RemoteTrackingBranchStatus($"origin/{sourceBranch}", true, 0, 0));
         var expectedBranch1 = new BranchDetail(branch1, true,
@@ -483,7 +529,7 @@ public class StackStatusCommandHandlerTests
             new RemoteTrackingBranchStatus($"origin/{branch2}", true, 0, 0),
             null, new ParentBranchStatus(expectedBranch1, 1, 0));
 
-        var expectedStackDetail = new StackStatus(stack1.Name, expectedSourceBranch, [expectedBranch1, expectedBranch2]);
+        var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1, expectedBranch2]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
 
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());

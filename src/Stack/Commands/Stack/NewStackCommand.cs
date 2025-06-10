@@ -46,7 +46,7 @@ public class NewStackCommand : Command<NewStackCommandSettings>
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(
             new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName));
@@ -75,7 +75,7 @@ public class NewStackCommandHandler(
 
         var sourceBranch = inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
 
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
         var remoteUri = gitClient.GetRemoteUri();
         var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
@@ -118,12 +118,12 @@ public class NewStackCommandHandler(
 
         if (branchName is not null)
         {
-            stack.Branches.Add(branchName);
+            stack.Branches.Add(new Branch(branchName, []));
         }
 
-        stacks.Add(stack);
+        stackData.Stacks.Add(stack);
 
-        stackConfig.Save(stacks);
+        stackConfig.Save(stackData);
 
         if (branchName is not null)
         {

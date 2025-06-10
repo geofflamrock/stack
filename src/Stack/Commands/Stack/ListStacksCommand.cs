@@ -14,7 +14,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
     protected override async Task<ListStacksCommandResponse> Execute(ListStacksCommandSettings settings)
     {
         var handler = new ListStacksCommandHandler(
-            new StackConfig(),
+            new FileStackConfig(),
             new GitClient(StdErrLogger, settings.GetGitClientSettings()));
 
         return await handler.Handle(new ListStacksCommandInputs());
@@ -46,7 +46,7 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitCl
     {
         await Task.CompletedTask;
 
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
 
@@ -55,7 +55,7 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitCl
             return new ListStacksCommandResponse([]);
         }
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
     }

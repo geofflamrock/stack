@@ -29,21 +29,23 @@ public class SetPullRequestDescriptionCommandHandlerTests(ITestOutputHelper test
             .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .WithPullRequest(branch2, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .Build();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -77,21 +79,23 @@ A custom description
         var gitHubClient = new TestGitHubRepositoryBuilder()
             .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .Build();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
@@ -124,18 +128,23 @@ A custom description
             .Build();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        ]);
-        stackConfig.Load().Returns(stacks);
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -162,20 +171,19 @@ A custom description
             .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .WithPullRequest(branch2, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .Build();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 
@@ -210,20 +218,19 @@ A custom description
             .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .WithPullRequest(branch2, pr => pr.WithBody($"{StackConstants.StackMarkerStart} The current description {StackConstants.StackMarkerEnd}"))
             .Build();
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(branch1))
+                .WithBranch(branch => branch.WithName(branch2)))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new SetPullRequestDescriptionCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stacks = new List<Config.Stack>(
-        [
-            new("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2])
-        ]);
-        stackConfig.Load().Returns(stacks);
-        stackConfig
-            .WhenForAnyArgs(s => s.Save(Arg.Any<List<Config.Stack>>()))
-            .Do(ci => stacks = ci.ArgAt<List<Config.Stack>>(0));
 
         inputProvider.Text(Questions.PullRequestStackDescription, Arg.Any<string>()).Returns("A custom description");
 

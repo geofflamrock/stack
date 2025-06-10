@@ -1,80 +1,202 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Humanizer;
 
 namespace Stack.Config;
 
-public static class StackConstants
-{
-    public const string StackMarkerText = "stack-pr-list";
-    public const string StackMarkerStart = $"<!-- {StackMarkerText} -->";
-    public const string StackMarkerEnd = $"<!-- /{StackMarkerText} -->";
-    public const string StackMarkerDescription = $"<!-- The contents of the section between the {StackConstants.StackMarkerText} markers will be replaced with the description and list of pull requests in the stack when there is more than one pull request. Move this section around as you would like or delete it to not include the list of pull requests.  -->";
-}
-
-public class Stack(string Name, string RemoteUri, string SourceBranch, List<string> Branches)
-{
-    public string Name { get; private set; } = Name;
-    public string RemoteUri { get; private set; } = RemoteUri;
-    public string SourceBranch { get; private set; } = SourceBranch;
-    public List<string> Branches { get; private set; } = Branches;
-
-    [JsonInclude]
-    public string? PullRequestDescription { get; private set; }
-
-    public void SetPullRequestDescription(string description)
-    {
-        this.PullRequestDescription = description;
-    }
-
-    public string GetDefaultBranchName()
-    {
-        return $"{Name.Kebaberize()}-{Branches.Count + 1}";
-    }
-}
-
-public static class StackExtensionMethods
-{
-    public static bool IsCurrentStack(this Stack stack, string currentBranch)
-    {
-        return stack.Branches.Contains(currentBranch);
-    }
-
-    public static IOrderedEnumerable<Stack> OrderByCurrentStackThenByName(this List<Stack> stacks, string currentBranch)
-    {
-        return stacks.OrderBy(s => s.IsCurrentStack(currentBranch) ? 0 : 1).ThenBy(s => s.Name);
-    }
-}
+public record StackData(SchemaVersion SchemaVersion, List<Stack> Stacks);
 
 public interface IStackConfig
 {
     string GetConfigPath();
-    List<Stack> Load();
-    void Save(List<Stack> stacks);
+    StackData Load();
+    void Save(StackData stackData);
 }
 
-public class StackConfig : IStackConfig
+public class FileStackConfig(string? configDirectory = null) : IStackConfig
 {
+    readonly JsonSerializerOptions serializerOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
+    readonly string? configDirectory = configDirectory;
+
     public string GetConfigPath()
     {
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(homeDirectory, "stack", "config.json");
+        return Path.Combine(configDirectory ?? homeDirectory, "stack", "config.json");
     }
 
-    public List<Stack> Load()
+    public StackData Load()
     {
         var stacksFile = GetConfigPath();
         if (!File.Exists(stacksFile))
         {
-            return new List<Stack>();
+            return new StackData(SchemaVersion.V1, []);
         }
         var jsonString = File.ReadAllText(stacksFile);
-        return JsonSerializer.Deserialize<List<Stack>>(jsonString, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+
+        if (IsStackConfigInV2Format(jsonString))
+        {
+            return new StackData(SchemaVersion.V2, LoadStacksFromV2Format(jsonString));
+        }
+
+        // If no schema version, this means v1 format, which we need to convert to v2.
+        return new StackData(SchemaVersion.V1, LoadStacksFromV1Format(jsonString));
     }
 
-    public void Save(List<Stack> stacks)
+    public void Save(StackData stackData)
     {
         var stacksFile = GetConfigPath();
-        File.WriteAllText(stacksFile, JsonSerializer.Serialize(stacks, new JsonSerializerOptions { WriteIndented = true }));
+
+        if (stackData.SchemaVersion == SchemaVersion.V1)
+        {
+            if (stackData.Stacks.Any(s => !s.HasSingleTree))
+            {
+                throw new InvalidOperationException("Cannot save in v1 format if any stack has multiple trees.");
+            }
+
+            // If all stacks have a single tree and we are still in v1 format continue to preference this.
+            File.WriteAllText(stacksFile, JsonSerializer.Serialize(stackData.Stacks.Select(MapToV1Format).ToList(), serializerOptions));
+            return;
+        }
+
+        // Else we are writing in v2 format
+
+        var jsonString = File.ReadAllText(stacksFile);
+        var existingConfigFileIsInV1Format = !IsStackConfigInV2Format(jsonString);
+
+        // If we are currently in v1 format take a backup.
+        if (existingConfigFileIsInV1Format)
+        {
+            var backupFile = stacksFile + ".bak";
+            if (File.Exists(backupFile))
+            {
+                File.Delete(backupFile);
+            }
+            File.Move(stacksFile, backupFile);
+        }
+
+        File.WriteAllText(stacksFile, JsonSerializer.Serialize(new StackConfigV2([.. stackData.Stacks.Select(MapToV2Format)]), serializerOptions));
+    }
+
+    private bool IsStackConfigInV2Format(string jsonString)
+    {
+        try
+        {
+            var stackConfig = JsonSerializer.Deserialize<StackConfigV1OrV2>(jsonString, serializerOptions);
+            return stackConfig?.SchemaVersion == SchemaVersions.V2;
+        }
+        catch (JsonException)
+        {
+            return false; // If deserialization fails, it's not in v2 format.
+        }
+    }
+
+    private List<Stack> LoadStacksFromV2Format(string jsonString)
+    {
+        var stacksV2 = JsonSerializer.Deserialize<StackConfigV2>(jsonString, serializerOptions);
+
+        if (stacksV2 is null)
+        {
+            return [];
+        }
+        return [.. stacksV2.Stacks.Select(MapFromV2Format)];
+    }
+
+    private static StackV2 MapToV2Format(Stack stack)
+    {
+        var branchesV2 = stack.Branches.Select(MapToV2Format).ToList();
+        return new StackV2(stack.Name, stack.RemoteUri, stack.SourceBranch, branchesV2, stack.PullRequestDescription);
+    }
+
+    private static StackV2Branch MapToV2Format(Branch branch)
+    {
+        return new StackV2Branch(branch.Name, [.. branch.Children.Select(MapToV2Format)]);
+    }
+
+    private List<Stack> LoadStacksFromV1Format(string jsonString)
+    {
+        var stacksV1 = JsonSerializer.Deserialize<List<StackV1>>(jsonString, serializerOptions);
+        if (stacksV1 == null)
+        {
+            return [];
+        }
+
+        return [.. stacksV1.Select(MapFromV1Format)];
+    }
+
+    private static Stack MapFromV2Format(StackV2 stackV2)
+    {
+        var branches = stackV2.Branches.Select(b => new Branch(b.Name, [.. b.Children.Select(MapFromV2Format)])).ToList();
+        var stack = new Stack(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
+
+        if (stackV2.PullRequestDescription is not null)
+        {
+            stack.SetPullRequestDescription(stackV2.PullRequestDescription);
+        }
+
+        return stack;
+    }
+
+    private static Branch MapFromV2Format(StackV2Branch branchV2)
+    {
+        return new Branch(branchV2.Name, [.. branchV2.Children.Select(MapFromV2Format)]);
+    }
+
+    private static StackV1 MapToV1Format(Stack stack)
+    {
+        return new StackV1(stack.Name, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames, stack.PullRequestDescription);
+    }
+
+    private static Stack MapFromV1Format(StackV1 stackV1)
+    {
+        // In v1, the branches are a flat list, but this actually represents a tree structure
+        // where each branch is the child of the previous one.
+        var childBranches = new List<Branch>();
+        Branch? currentParent = null;
+        foreach (var branch in stackV1.Branches)
+        {
+            var newBranch = new Branch(branch, []);
+            if (currentParent == null)
+            {
+                childBranches.Add(newBranch);
+            }
+            else
+            {
+                currentParent.Children.Add(newBranch);
+            }
+            currentParent = newBranch;
+        }
+
+        var stack = new Stack(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
+        if (stackV1.PullRequestDescription is not null)
+        {
+            stack.SetPullRequestDescription(stackV1.PullRequestDescription);
+        }
+        return stack;
     }
 }
+
+public record StackV1(string Name, string RemoteUri, string SourceBranch, List<string> Branches, string? PullRequestDescription);
+public record StackV2(string Name, string RemoteUri, string SourceBranch, List<StackV2Branch> Branches, string? PullRequestDescription);
+public record StackV2Branch(string Name, List<StackV2Branch> Children);
+
+public record StackConfigV2(List<StackV2> Stacks)
+{
+    [JsonInclude]
+    [JsonPropertyOrder(0)]
+    public string SchemaVersion => SchemaVersions.V2;
+
+    [JsonPropertyOrder(1)]
+    public List<StackV2> Stacks { get; private set; } = Stacks;
+}
+
+public static class SchemaVersions
+{
+    public const string V2 = "v2";
+}
+
+public enum SchemaVersion
+{
+    V1,
+    V2
+}
+
+public record StackConfigV1OrV2(string? SchemaVersion);

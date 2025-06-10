@@ -30,17 +30,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -69,17 +75,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -106,17 +118,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -147,17 +165,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs("Stack1", false, true));
@@ -187,17 +211,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -224,7 +254,17 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
@@ -234,10 +274,6 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -269,16 +305,19 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
         var tipOfBranch1 = repo.GetTipOfBranch(branch1);
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stacks = new List<Config.Stack>([stack1]);
-        stackConfig.Load().Returns(stacks);
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false, true));
@@ -307,17 +346,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithNumberOfEmptyCommits(b => b.OnBranch(branch2).PushToRemote(), 1)
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -351,17 +396,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithConfig("stack.update.strategy", "rebase")
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -395,17 +446,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithConfig("stack.update.strategy", "rebase")
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -439,17 +496,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithConfig("stack.update.strategy", "merge")
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -483,17 +546,23 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithConfig("stack.update.strategy", "merge")
             .Build();
 
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        var stack1 = new Config.Stack("Stack1", repo.RemoteUri, sourceBranch, [branch1, branch2]);
-        var stack2 = new Config.Stack("Stack2", repo.RemoteUri, sourceBranch, []);
-        var stacks = new List<Config.Stack>([stack1, stack2]);
-        stackConfig.Load().Returns(stacks);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -514,7 +583,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
     {
         // Arrange
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();

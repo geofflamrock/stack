@@ -15,7 +15,7 @@ public class OpenConfigCommand : Command<CommandSettingsBase>
     {
         await Task.CompletedTask;
         var console = AnsiConsole.Console;
-        var stackConfig = new StackConfig();
+        var stackConfig = new FileStackConfig();
 
         var configPath = stackConfig.GetConfigPath();
 

@@ -23,7 +23,7 @@ public class PullStackCommand : Command<PullStackCommandSettings>
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new PullStackCommandInputs(settings.Stack));
     }
@@ -40,10 +40,10 @@ public class PullStackCommandHandler(
     public override async Task Handle(PullStackCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {

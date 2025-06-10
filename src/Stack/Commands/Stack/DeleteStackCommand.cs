@@ -29,7 +29,7 @@ public class DeleteStackCommand : Command<DeleteStackCommandSettings>
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new DeleteStackCommandInputs(settings.Stack, settings.Confirm));
     }
@@ -53,12 +53,12 @@ public class DeleteStackCommandHandler(
     public override async Task Handle(DeleteStackCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
 
@@ -81,8 +81,8 @@ public class DeleteStackCommandHandler(
                 }
             }
 
-            stacks.Remove(stack);
-            stackConfig.Save(stacks);
+            stackData.Stacks.Remove(stack);
+            stackConfig.Save(stackData);
 
             logger.Information($"Stack {stack.Name.Stack()} deleted");
         }

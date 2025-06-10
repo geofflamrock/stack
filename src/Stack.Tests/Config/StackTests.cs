@@ -24,7 +24,13 @@ public class StackTests
     public void GetDefaultBranchName_WhenMultipleBranchesInStack_ShouldReturnBranchNameWithCorrectNumberAtTheEnd()
     {
         // Arrange
-        var stack = new Config.Stack("Test Stack", Some.HttpsUri().ToString(), "branch-1", ["branch-2", "branch-3"]);
+        var stack = new Config.Stack(
+            "Test Stack",
+            Some.HttpsUri().ToString(),
+            "branch-1",
+            [
+                new Config.Branch("branch-2", [new Config.Branch("branch-3", [])]),
+            ]);
 
         // Act
         var branch = stack.GetDefaultBranchName();

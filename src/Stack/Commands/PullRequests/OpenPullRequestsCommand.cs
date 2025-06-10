@@ -24,7 +24,7 @@ public class OpenPullRequestsCommand : Command<OpenPullRequestsCommandSettings>
             StdErrLogger,
             new GitClient(StdErrLogger, settings.GetGitClientSettings()),
             new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
-            new StackConfig());
+            new FileStackConfig());
 
         await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));
     }
@@ -46,11 +46,11 @@ public class OpenPullRequestsCommandHandler(
     public override async Task Handle(OpenPullRequestsCommandInputs inputs)
     {
         await Task.CompletedTask;
-        var stacks = stackConfig.Load();
+        var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();
 
-        var stacksForRemote = stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
         if (stacksForRemote.Count == 0)
         {
@@ -70,7 +70,7 @@ public class OpenPullRequestsCommandHandler(
 
         foreach (var branch in stack.Branches)
         {
-            var existingPullRequest = gitHubClient.GetPullRequest(branch);
+            var existingPullRequest = gitHubClient.GetPullRequest(branch.Name);
 
             if (existingPullRequest is not null && existingPullRequest.State != GitHubPullRequestStates.Closed)
             {
