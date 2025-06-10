@@ -466,4 +466,5 @@ OPTIONS:
     -h, --help           Prints help information
         --verbose        Show verbose output
         --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+        --yes            Confirm the migration without prompting
 ```
