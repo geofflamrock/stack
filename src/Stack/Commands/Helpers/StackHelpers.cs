@@ -509,21 +509,22 @@ public static class StackHelpers
         StackStatus stack,
         ILogger logger)
     {
-        if (stack.Branches.All(branch => branch.CouldBeCleanedUp))
+        var allBranches = stack.GetAllBranches();
+        if (allBranches.All(branch => branch.CouldBeCleanedUp))
         {
             logger.Information("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.");
             logger.NewLine();
             logger.Information($"Run {$"stack delete --stack \"{stack.Name}\"".Example()} to delete the stack if it's no longer needed.");
             logger.NewLine();
         }
-        else if (stack.Branches.Any(branch => branch.CouldBeCleanedUp))
+        else if (allBranches.Any(branch => branch.CouldBeCleanedUp))
         {
             logger.Information("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.");
             logger.NewLine();
             logger.Information($"Run {$"stack cleanup --stack \"{stack.Name}\"".Example()} to clean up local branches.");
             logger.NewLine();
         }
-        else if (stack.Branches.All(branch => !branch.Exists))
+        else if (allBranches.All(branch => !branch.Exists))
         {
             logger.Information("No branches exist locally. This stack might be able to be deleted.");
             logger.NewLine();
@@ -531,7 +532,7 @@ public static class StackHelpers
             logger.NewLine();
         }
 
-        if (stack.Branches.Any(branch => branch.Exists && (branch.RemoteTrackingBranch is null || branch.RemoteTrackingBranch.Ahead > 0)))
+        if (allBranches.Any(branch => branch.Exists && (branch.RemoteTrackingBranch is null || branch.RemoteTrackingBranch.Ahead > 0)))
         {
             logger.Information("There are changes in local branches that have not been pushed to the remote repository.");
             logger.NewLine();
@@ -539,7 +540,7 @@ public static class StackHelpers
             logger.NewLine();
         }
 
-        if (stack.Branches.Any(branch => branch.Exists && branch.RemoteTrackingBranch is not null && branch.RemoteTrackingBranch.Behind > 0))
+        if (allBranches.Any(branch => branch.Exists && branch.RemoteTrackingBranch is not null && branch.RemoteTrackingBranch.Behind > 0))
         {
             logger.Information("There are changes in source branches that have not been applied to the stack.");
             logger.NewLine();
