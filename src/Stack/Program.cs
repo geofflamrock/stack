@@ -42,7 +42,12 @@ app.Configure(configure =>
         });
 
     // Advanced commands
-    configure.AddCommand<OpenConfigCommand>(CommandNames.Config).WithDescription("Opens the configuration file in the default editor.");
+    configure.AddBranch(CommandNames.Config, config =>
+    {
+        config.SetDescription("Manages stack configuration.");
+        config.AddCommand<OpenConfigCommand>(CommandNames.Open).WithDescription("Opens the configuration file in the default editor.");
+        config.AddCommand<MigrateConfigCommand>(CommandNames.Migrate).WithDescription("Migrates the configuration file from v1 to v2 format (preview).");
+    });
 });
 
 await app.RunAsync(args);

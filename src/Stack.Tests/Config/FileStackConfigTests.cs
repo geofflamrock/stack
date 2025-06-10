@@ -274,8 +274,9 @@ public class FileStackConfigTests
         normalizedSavedJson.Should().Be(normalizedExpectedJson);
 
         // Original backup should be in V1 format
-        File.Exists(configPath + ".bak").Should().BeTrue();
-        var backupJson = File.ReadAllText(configPath + ".bak");
+        var backupPath = fileStackConfig.GetV1ConfigBackupFilePath();
+        File.Exists(backupPath).Should().BeTrue();
+        var backupJson = File.ReadAllText(backupPath);
         backupJson.Should().Be(v1Json);
     }
 
