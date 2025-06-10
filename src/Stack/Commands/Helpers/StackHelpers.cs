@@ -690,7 +690,7 @@ public static class StackHelpers
         var currentBranch = gitClient.GetCurrentBranch();
         var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, true);
 
-        return [.. stackStatus.Branches.Where(b => b.CouldBeCleanedUp).Select(b => b.Name)];
+        return [.. stackStatus.GetAllBranches().Where(b => b.CouldBeCleanedUp).Select(b => b.Name)];
     }
 
     public static void OutputBranchesNeedingCleanup(ILogger logger, string[] branches)

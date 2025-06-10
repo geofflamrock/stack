@@ -339,4 +339,51 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteBranches);
         repo.GetBranches().Should().NotContain(b => b.FriendlyName == branchToCleanup);
     }
+
+    [Fact]
+    public async Task WhenChildBranchExistsLocally_AndHasBeenDeletedFromTheRemote_BranchIsDeletedLocally()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var parentBranch = Some.BranchName();
+        var branchToCleanup = Some.BranchName();
+        var branchToKeep = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch, true)
+            .WithBranch(parentBranch, true)
+            .WithBranch(branchToCleanup, true)
+            .WithBranch(branchToKeep, true)
+            .Build();
+
+        repo.DeleteRemoteTrackingBranch(branchToCleanup);
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(branch => branch.WithName(parentBranch).WithChildBranch(b => b.WithName(branchToCleanup)))
+                .WithBranch(branch => branch.WithName(branchToKeep)))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        var remoteUri = Some.HttpsUri().ToString();
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+
+        // Act
+        await handler.Handle(CleanupStackCommandInputs.Empty);
+
+        // Assert
+        repo.GetBranches().Should().NotContain(b => b.FriendlyName == branchToCleanup);
+    }
 }
