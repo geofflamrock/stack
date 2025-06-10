@@ -289,4 +289,128 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         });
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch);
     }
+
+    [Fact]
+    public async Task WhenSchemaIsV2_AndChildActionIsMoveChildrenToParent_RemovesBranchAndMovesChildrenToParent()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var childBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .WithBranch(childBranch)
+            .Build();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V2)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+            .Returns(RemoveBranchChildAction.MoveChildrenToParent);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+
+        // Act
+        await handler.Handle(RemoveBranchCommandInputs.Empty);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+        });
+    }
+
+    [Fact]
+    public async Task WhenSchemaIsV2_AndChildActionIsRemoveChildren_RemovesBranchAndDeletesChildren()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var childBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .WithBranch(childBranch)
+            .Build();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V2)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+            .Returns(RemoveBranchChildAction.RemoveChildren);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+
+        // Act
+        await handler.Handle(RemoveBranchCommandInputs.Empty);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [])
+        });
+    }
+
+    [Fact]
+    public async Task WhenSchemaIsV1_RemovesBranchAndMovesChildrenToParent()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var childBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(sourceBranch)
+            .WithBranch(branchToRemove)
+            .WithBranch(childBranch)
+            .Build();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithSchemaVersion(SchemaVersion.V1)
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+
+        // Act
+        await handler.Handle(RemoveBranchCommandInputs.Empty);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+        });
+    }
 }

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Humanizer;
+using Stack.Commands;
 
 namespace Stack.Config;
 
@@ -62,7 +63,7 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         return $"{Name.Kebaberize()}-{fullBranchNames.Count + 1}";
     }
 
-    public void RemoveBranch(string branchName)
+    public void RemoveBranch(string branchName, RemoveBranchChildAction action)
     {
         if (Branches.Count == 0)
         {
@@ -73,35 +74,40 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         {
             if (branch.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
             {
-                var childrenToMove = branch.Children;
                 Branches.Remove(branch);
-                branch.Children.AddRange(childrenToMove);
+
+                if (action == RemoveBranchChildAction.MoveChildrenToParent)
+                {
+                    Branches.AddRange(branch.Children);
+                }
                 return;
             }
 
-            if (RemoveBranch(branch, branchName))
+            if (RemoveBranch(branch, branchName, action))
             {
                 return;
             }
         }
     }
 
-    static bool RemoveBranch(Branch branch, string branchName)
+    static bool RemoveBranch(Branch branch, string branchName, RemoveBranchChildAction action)
     {
         var childBranch = branch.Children.FirstOrDefault(c => c.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase));
         if (childBranch != null)
         {
-            // Get all the children of the branch to be removed,
-            // and add them to the parent of the branch being removed.
-            var childrenToMove = childBranch.Children;
             branch.Children.Remove(childBranch);
-            branch.Children.AddRange(childrenToMove);
+            if (action == RemoveBranchChildAction.MoveChildrenToParent)
+            {
+                // Get all the children of the branch to be removed,
+                // and add them to the parent of the branch being removed.
+                branch.Children.AddRange(childBranch.Children);
+            }
             return true;
         }
 
         foreach (var child in branch.Children)
         {
-            if (RemoveBranch(child, branchName))
+            if (RemoveBranch(child, branchName, action))
             {
                 return true;
             }

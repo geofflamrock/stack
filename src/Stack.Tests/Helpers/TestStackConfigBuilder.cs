@@ -15,9 +15,9 @@ public class TestStackConfigBuilder
         return this;
     }
 
-    public TestStackConfigBuilder WithSchemaVersion(SchemaVersion schemaVersion)
+    public TestStackConfigBuilder WithSchemaVersion(SchemaVersion version)
     {
-        this.schemaVersion = schemaVersion;
+        schemaVersion = version;
         return this;
     }
 
