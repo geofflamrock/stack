@@ -196,7 +196,7 @@ public class FileStackConfigTests
     }
 
     [Fact]
-    public void Save_WhenConfigFileIsInV1Format_AndSomeStacksHaveMultipleBranchTrees_SavesInV2FormatAndCreatesABackupFile()
+    public void Save_WhenConfigFileIsInV1Format_AndStackIsChangedToHaveTreeStructure_SavingInV2FormatCreatesABackupFile()
     {
         // Arrange
         using var tempDirectory = TemporaryDirectory.Create();
@@ -229,7 +229,7 @@ public class FileStackConfigTests
             sourceBranch,
             [
                 new(branch1, [new(branch2, [])]),
-                    new(branch3, [])
+                new(branch3, [])
             ]);
         stack.SetPullRequestDescription(prDescription);
 
