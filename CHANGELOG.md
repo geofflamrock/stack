@@ -1,3 +1,24 @@
+# v0.12.0 (Wed Jun 11 2025)
+
+#### 🚀 New Features and Improvements
+
+- Support tree structure when updating stack [#264](https://github.com/geofflamrock/stack/pull/264) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when removing branch from stack [#271](https://github.com/geofflamrock/stack/pull/271) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when adding branch to stack [#270](https://github.com/geofflamrock/stack/pull/270) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when creating pull requests [#266](https://github.com/geofflamrock/stack/pull/266) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when cleaning stack [#272](https://github.com/geofflamrock/stack/pull/272) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when creating new branch [#265](https://github.com/geofflamrock/stack/pull/265) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure in status command [#262](https://github.com/geofflamrock/stack/pull/262) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds command to migrate from v1 to v2 format [#263](https://github.com/geofflamrock/stack/pull/263) ([@geofflamrock](https://github.com/geofflamrock))
+- Add support for tree structure in config file [#252](https://github.com/geofflamrock/stack/pull/252) ([@geofflamrock](https://github.com/geofflamrock))
+- Refactor stack status [#250](https://github.com/geofflamrock/stack/pull/250) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.11.3 (Wed Mar 19 2025)
 
 #### 🐛 Bug Fixes
