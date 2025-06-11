@@ -6,10 +6,11 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Branch;
 
-public class AddBranchCommandHandlerTests
+public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_AddsBranchToStack()
@@ -33,7 +34,7 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -73,12 +74,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
-
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
 
@@ -115,10 +113,9 @@ public class AddBranchCommandHandlerTests
                 .WithBranch(branch => branch.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
 
@@ -155,11 +152,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -191,11 +186,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -233,11 +226,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -273,11 +264,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -310,11 +299,9 @@ public class AddBranchCommandHandlerTests
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(repo.RemoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-
 
         // Act
         await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd));

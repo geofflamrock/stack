@@ -6,10 +6,11 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Branch;
 
-public class NewBranchCommandHandlerTests
+public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenNoInputsProvided_AsksForStackAndBranch_CreatesAndAddsBranchToStack_PushesToRemote_AndSwitchesToBranch()
@@ -24,7 +25,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -68,7 +69,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -110,7 +111,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -147,7 +148,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -183,7 +184,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -224,7 +225,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -261,7 +262,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -299,7 +300,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -342,7 +343,7 @@ public class NewBranchCommandHandlerTests
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack

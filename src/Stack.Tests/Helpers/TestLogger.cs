@@ -44,4 +44,14 @@ public class TestLogger(ITestOutputHelper testOutputHelper) : ILogger
     {
         testOutputHelper.WriteLine($"WARNING: {message}");
     }
+
+    public void Tree(Tree<string> tree)
+    {
+        testOutputHelper.WriteLine($"TREE: {tree.Header}");
+        foreach (var child in tree.Children)
+        {
+            testOutputHelper.WriteLine($"  {child.Value}");
+            // TODO: Handle child nodes if needed
+        }
+    }
 }

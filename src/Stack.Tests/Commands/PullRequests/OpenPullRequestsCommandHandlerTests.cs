@@ -6,10 +6,11 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.PullRequests;
 
-public class OpenPullRequestsCommandHandlerTests
+public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task WhenThereAreMultiplePullRequestsInAStack_OpensAllPullRequests()
@@ -38,11 +39,10 @@ public class OpenPullRequestsCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -91,11 +91,10 @@ public class OpenPullRequestsCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -141,11 +140,10 @@ public class OpenPullRequestsCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubClient
@@ -188,11 +186,10 @@ public class OpenPullRequestsCommandHandlerTests
                 .WithBranch(branch => branch.WithName(branch2)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false);
         gitHubClient
@@ -239,11 +236,10 @@ public class OpenPullRequestsCommandHandlerTests
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
 
         // Act and assert
         var invalidStackName = Some.Name();

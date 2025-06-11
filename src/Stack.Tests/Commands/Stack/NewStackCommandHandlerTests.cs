@@ -6,12 +6,12 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Stack;
 
-public class NewStackCommandHandlerTests
+public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
-
     [Fact]
     public async Task WithAnExistingBranch_TheStackIsCreatedAndTheCurrentBranchIsChanged()
     {
@@ -25,10 +25,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -60,13 +59,11 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient.ChangeBranch(existingBranch);
-
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -95,10 +92,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -128,10 +124,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -162,10 +157,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -200,10 +194,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -234,10 +227,9 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -268,14 +260,13 @@ public class NewStackCommandHandlerTests
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = Substitute.For<ILogger>();
+        var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         gitClient
             .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))
             .Throw(new Exception("Failed to push branch"));
-
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);

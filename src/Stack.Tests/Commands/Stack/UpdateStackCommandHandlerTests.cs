@@ -96,7 +96,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
@@ -141,7 +141,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitHubClient.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, false));
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true));
 
         // Assert
         repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
