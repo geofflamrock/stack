@@ -33,7 +33,7 @@ jobs:
       pull-requests: write
     if: needs.version.outputs.has_unreleased_changes == 'true'
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ secrets.APP_ID }}
