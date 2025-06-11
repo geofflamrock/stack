@@ -12,18 +12,31 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         this.PullRequestDescription = description;
     }
 
-    public List<string> AllBranchNames
+    public List<Branch> GetAllBranches()
     {
-        get
+        var branchesToReturn = new List<Branch>();
+        foreach (var branch in Branches)
         {
-            var branches = new List<string>();
-            foreach (var branch in Branches)
-            {
-                branches.AddRange(branch.AllBranchNames);
-            }
-            return [.. branches.Distinct()];
+            branchesToReturn.Add(branch);
+            branchesToReturn.AddRange(GetAllBranches(branch));
         }
+
+        return branchesToReturn;
     }
+
+    static List<Branch> GetAllBranches(Branch branch)
+    {
+        var branchesToReturn = new List<Branch>();
+        foreach (var child in branch.Children)
+        {
+            branchesToReturn.Add(child);
+            branchesToReturn.AddRange(GetAllBranches(child));
+        }
+
+        return branchesToReturn;
+    }
+
+    public List<string> AllBranchNames => [.. GetAllBranches().Select(b => b.Name).Distinct()];
 
     public bool HasSingleTree
     {

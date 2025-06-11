@@ -10,6 +10,7 @@ public static class Questions
     public const string SelectBranch = "Select branch:";
     public const string BranchName = "Branch name:";
     public const string SelectSourceBranch = "Select a branch to start your stack from:";
+    public const string SelectParentBranch = "Select a branch to add branch as child of:";
     public const string ConfirmSyncStack = "Are you sure you want to sync this stack with the remote repository?";
     public const string ConfirmDeleteStack = "Are you sure you want to delete this stack?";
     public const string ConfirmDeleteBranches = "Are you sure you want to delete these local branches?";

@@ -79,9 +79,38 @@ public static class InputProviderExtensionMethods
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        string[] branches)
+        string[] branches,
+        string question = Questions.SelectBranch)
     {
-        return inputProvider.Select(logger, Questions.SelectBranch, name, branches);
+        return inputProvider.Select(logger, question, name, branches);
+    }
+
+    public static string SelectParentBranch(
+        this IInputProvider inputProvider,
+        ILogger logger,
+        string? name,
+        Config.Stack stack)
+    {
+        void GetBranchNamesWithIndentation(Branch branch, List<string> names, int level = 0)
+        {
+            names.Add($"{new string(' ', level * 2)}{branch.Name}");
+            foreach (var child in branch.Children)
+            {
+                GetBranchNamesWithIndentation(child, names, level + 1);
+            }
+        }
+
+        var allBranchNamesWithLevel = new List<string>();
+        foreach (var branch in stack.Branches)
+        {
+            GetBranchNamesWithIndentation(branch, allBranchNamesWithLevel, 1);
+        }
+
+        var branchSelection = name ?? inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel]).Trim();
+
+        logger.Information($"{Questions.SelectParentBranch} {branchSelection}");
+
+        return branchSelection;
     }
 }
 
