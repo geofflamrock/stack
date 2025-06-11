@@ -8,7 +8,8 @@ public class TestGitHubRepositoryBuilder
 
     public TestGitHubRepositoryBuilder WithPullRequest(string branch, Action<TestGitHubPullRequestBuilder>? pullRequestBuilder = null)
     {
-        var builder = new TestGitHubPullRequestBuilder();
+        var builder = new TestGitHubPullRequestBuilder()
+            .WithHeadRefName(branch);
         pullRequestBuilder?.Invoke(builder);
         pullRequests.Add(branch, builder.Build());
         return this;
@@ -45,6 +46,12 @@ public class TestGitHubPullRequestBuilder
     public TestGitHubPullRequestBuilder Merged()
     {
         state = GitHubPullRequestStates.Merged;
+        return this;
+    }
+
+    public TestGitHubPullRequestBuilder WithHeadRefName(string headRefName)
+    {
+        this.headRefName = headRefName;
         return this;
     }
 

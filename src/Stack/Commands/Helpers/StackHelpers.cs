@@ -755,9 +755,7 @@ public static class StackHelpers
 
         // Edit each PR and add to the top of the description
         // the details of each PR in the stack
-        var prList = prListBuilder.ToString();
-        var prListMarkdown = string.Join(Environment.NewLine, prList);
-        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListMarkdown}{Environment.NewLine}{StackConstants.StackMarkerEnd}";
+        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListBuilder}{StackConstants.StackMarkerEnd}";
 
         foreach (var pullRequest in pullRequestsInStack)
         {
