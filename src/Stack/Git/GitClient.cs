@@ -361,7 +361,7 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
             }
             else
             {
-                throw new Exception("Failed to execute git command.");
+                throw new Exception($"Failed to execute git command: {command}. Exit code: {result}. Error: {errorBuilder}.");
             }
         }
 

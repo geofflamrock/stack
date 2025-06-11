@@ -162,7 +162,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+            [new Config.Branch(branch1, [new Config.Branch(branch2, [])])]
         );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
@@ -238,7 +238,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+            [new Config.Branch(branch1, [new Config.Branch(branch2, [])])]
         );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
@@ -292,7 +292,7 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            [new Config.Branch(branch1, []), new Config.Branch(branch2, [])]
+            [new Config.Branch(branch1, [new Config.Branch(branch2, [])])]
         );
         var stackStatus = StackHelpers.GetStackStatus(stack, branch1, logger, gitClient, gitHubClient, false);
 
@@ -305,5 +305,133 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         gitClient.ChangeBranch(branch2);
         var fileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFile2Path));
         fileContents.Should().Be(changedFile2Contents);
+    }
+
+    [Fact]
+    public void UpdateStackUsingRebase_WhenStackHasATreeStructure_RebasesAllBranchesCorrectly()
+    {
+        // Arrange
+        var sourceBranch = "source-branch";
+        var branch1 = "branch-1";
+        var branch2 = "branch-2";
+        var branch3 = "branch-3";
+        var changedFilePath = "change-file-1";
+        var commit1ChangedFileContents = "These are the changes in the first commit";
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b
+                .WithName(sourceBranch)
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch1)
+                .FromSourceBranch(sourceBranch)
+                .WithCommit(c => c.WithChanges("file-1", "file-1-changes"))
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch2)
+                .FromSourceBranch(branch1)
+                .WithCommit(c => c.WithChanges("file-2", "file-2-changes"))
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch3)
+                .FromSourceBranch(branch1)
+                .WithCommit(c => c.WithChanges("file-3", "file-3-changes"))
+                .PushToRemote())
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = new GitClient(new TestLogger(testOutputHelper), repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+
+        gitClient.ChangeBranch(sourceBranch);
+        File.WriteAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath), commit1ChangedFileContents);
+        repo.Stage(changedFilePath);
+        repo.Commit();
+        repo.Push(sourceBranch);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, [new Config.Branch(branch2, []), new Config.Branch(branch3, [])])]
+        );
+        var stackStatus = StackHelpers.GetStackStatus(stack, sourceBranch, logger, gitClient, gitHubClient, false);
+
+        // Act
+        StackHelpers.UpdateStackUsingRebase(stack, stackStatus, gitClient, inputProvider, logger);
+
+        // Assert
+        gitClient.ChangeBranch(branch2);
+        var branch2FileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath));
+        branch2FileContents.Should().Be(commit1ChangedFileContents);
+
+        gitClient.ChangeBranch(branch3);
+        var branch3FileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath));
+        branch3FileContents.Should().Be(commit1ChangedFileContents);
+    }
+
+    [Fact]
+    public void UpdateStackUsingMerge_WhenStackHasATreeStructure_MergesAllBranchesCorrectly()
+    {
+        // Arrange
+        var sourceBranch = "source-branch";
+        var branch1 = "branch-1";
+        var branch2 = "branch-2";
+        var branch3 = "branch-3";
+        var changedFilePath = "change-file-1";
+        var commit1ChangedFileContents = "These are the changes in the first commit";
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b
+                .WithName(sourceBranch)
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch1)
+                .FromSourceBranch(sourceBranch)
+                .WithCommit(c => c.WithChanges("file-1", "file-1-changes"))
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch2)
+                .FromSourceBranch(branch1)
+                .WithCommit(c => c.WithChanges("file-2", "file-2-changes"))
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch3)
+                .FromSourceBranch(branch1)
+                .WithCommit(c => c.WithChanges("file-3", "file-3-changes"))
+                .PushToRemote())
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = new GitClient(new TestLogger(testOutputHelper), repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+
+        gitClient.ChangeBranch(sourceBranch);
+        File.WriteAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath), commit1ChangedFileContents);
+        repo.Stage(changedFilePath);
+        repo.Commit();
+        repo.Push(sourceBranch);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, [new Config.Branch(branch2, []), new Config.Branch(branch3, [])])]
+        );
+        var stackStatus = StackHelpers.GetStackStatus(stack, sourceBranch, logger, gitClient, gitHubClient, false);
+
+        // Act
+        StackHelpers.UpdateStackUsingMerge(stack, stackStatus, gitClient, inputProvider, logger);
+
+        // Assert
+        gitClient.ChangeBranch(branch2);
+        var branch2FileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath));
+        branch2FileContents.Should().Be(commit1ChangedFileContents);
+
+        gitClient.ChangeBranch(branch3);
+        var branch3FileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath));
+        branch3FileContents.Should().Be(commit1ChangedFileContents);
     }
 }

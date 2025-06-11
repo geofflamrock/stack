@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Humanizer;
 using Stack.Commands;
 
@@ -12,6 +11,7 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
     {
         this.PullRequestDescription = description;
     }
+
 
     public List<Branch> GetAllBranches()
     {
@@ -39,23 +39,7 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
 
     public List<string> AllBranchNames => [.. GetAllBranches().Select(b => b.Name).Distinct()];
 
-    public bool HasSingleTree
-    {
-        get
-        {
-            if (Branches.Count == 0)
-            {
-                return true;
-            }
-
-            if (Branches.Count > 1)
-            {
-                return false;
-            }
-
-            return Branches.First().HasSingleTree;
-        }
-    }
+    public bool HasSingleTree => GetAllBranchLines().Count == 1;
 
     public string GetDefaultBranchName()
     {
@@ -115,6 +99,16 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
 
         return false;
     }
+
+    public List<List<Branch>> GetAllBranchLines()
+    {
+        var allLines = new List<List<Branch>>();
+        foreach (var branch in Branches)
+        {
+            allLines.AddRange(branch.GetAllPaths());
+        }
+        return allLines;
+    }
 }
 
 public record Branch(string Name, List<Branch> Children)
@@ -132,21 +126,25 @@ public record Branch(string Name, List<Branch> Children)
         }
     }
 
-    public bool HasSingleTree
+    public List<List<Branch>> GetAllPaths()
     {
-        get
+        var result = new List<List<Branch>>();
+        if (Children.Count == 0)
         {
-            if (Children.Count == 0)
-            {
-                return true;
-            }
-
-            if (Children.Count > 1)
-            {
-                return false;
-            }
-
-            return Children.First().HasSingleTree;
+            result.Add([this]);
         }
+        else
+        {
+            foreach (var child in Children)
+            {
+                foreach (var path in child.GetAllPaths())
+                {
+                    var newPath = new List<Branch> { this };
+                    newPath.AddRange(path);
+                    result.Add(newPath);
+                }
+            }
+        }
+        return result;
     }
 }
