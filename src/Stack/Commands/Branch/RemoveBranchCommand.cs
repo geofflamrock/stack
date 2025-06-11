@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Humanizer;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -71,13 +72,32 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
+        var action = RemoveBranchChildAction.MoveChildrenToParent;
+
+        if (stackData.SchemaVersion == SchemaVersion.V2)
+        {
+            action = inputProvider.Select(
+                Questions.RemoveBranchChildAction,
+                [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
+                (action) => action.Humanize());
+        }
+
         if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {
-            stack.RemoveBranch(branchName);
+            stack.RemoveBranch(branchName, action);
             stackConfig.Save(stackData);
 
             logger.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
         }
     }
+}
+
+public enum RemoveBranchChildAction
+{
+    [Description("Move children branches to parent branch")]
+    MoveChildrenToParent,
+
+    [Description("Remove children branches")]
+    RemoveChildren
 }
 
