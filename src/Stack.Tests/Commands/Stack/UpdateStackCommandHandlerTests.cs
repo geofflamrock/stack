@@ -138,7 +138,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
-        gitHubClient.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false));
+        gitHubClient.GetPullRequest(branch1).Returns(new GitHubPullRequest(1, Some.Name(), Some.Name(), GitHubPullRequestStates.Merged, Some.HttpsUri(), false, branch1));
 
         // Act
         await handler.Handle(new UpdateStackCommandInputs(null, false, true));

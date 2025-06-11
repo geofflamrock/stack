@@ -28,6 +28,7 @@ public class TestGitHubPullRequestBuilder
     string state = GitHubPullRequestStates.Open;
     Uri url = Some.HttpsUri();
     bool draft = false;
+    string headRefName = Some.Name();
 
     public TestGitHubPullRequestBuilder WithTitle(string title)
     {
@@ -49,7 +50,7 @@ public class TestGitHubPullRequestBuilder
 
     public GitHubPullRequest Build()
     {
-        return new GitHubPullRequest(number, title, body, state, url, draft);
+        return new GitHubPullRequest(number, title, body, state, url, draft, headRefName);
     }
 }
 
@@ -65,7 +66,7 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
         bool draft)
     {
         var prBody = File.ReadAllText(bodyFilePath).Trim();
-        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft);
+        var pr = new GitHubPullRequest(Some.Int(), title, prBody, GitHubPullRequestStates.Open, Some.HttpsUri(), draft, headBranch);
         PullRequests.Add(headBranch, pr);
         return pr;
     }
