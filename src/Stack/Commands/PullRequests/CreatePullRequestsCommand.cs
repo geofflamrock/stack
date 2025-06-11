@@ -77,19 +77,25 @@ public class CreatePullRequestsCommandHandler(
             gitClient,
             gitHubClient);
 
-        var sourceBranch = stack.SourceBranch;
         var pullRequestCreateActions = new List<PullRequestCreateAction>();
 
-        foreach (var branch in status.Branches)
-        {
-            if (branch.IsActive)
-            {
-                if (!branch.HasPullRequest)
-                {
-                    pullRequestCreateActions.Add(new PullRequestCreateAction(branch.Name, sourceBranch));
-                }
+        var allBranchLines = status.GetAllBranchLines();
 
-                sourceBranch = branch.Name;
+        foreach (var branchLine in allBranchLines)
+        {
+            var sourceBranch = stack.SourceBranch;
+
+            foreach (var branch in branchLine)
+            {
+                if (branch.IsActive)
+                {
+                    if (!branch.HasPullRequest)
+                    {
+                        pullRequestCreateActions.Add(new PullRequestCreateAction(branch.Name, sourceBranch));
+                    }
+
+                    sourceBranch = branch.Name;
+                }
             }
         }
 
@@ -133,17 +139,10 @@ public class CreatePullRequestsCommandHandler(
             {
                 var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
-                // Re-get the status to pick up PRs
-                status = StackHelpers.GetStackStatus(
-                    stack,
-                    currentBranch,
-                    logger,
-                    gitClient,
-                    gitHubClient);
-
-                var pullRequestsInStack = status.Branches
+                var pullRequestsInStack = status.GetAllBranches()
                     .Where(branch => branch.HasPullRequest)
                     .Select(branch => branch.PullRequest!)
+                    .Concat(newPullRequests)
                     .ToList();
 
                 if (pullRequestsInStack.Count > 1)
@@ -166,7 +165,14 @@ public class CreatePullRequestsCommandHandler(
         }
     }
 
-    private static void UpdatePullRequestStackDescriptions(IInputProvider inputProvider, ILogger logger, IGitHubClient gitHubClient, IStackConfig stackConfig, StackData stacks, Config.Stack stack, List<GitHubPullRequest> pullRequestsInStack)
+    private static void UpdatePullRequestStackDescriptions(
+        IInputProvider inputProvider,
+        ILogger logger,
+        IGitHubClient gitHubClient,
+        IStackConfig stackConfig,
+        StackData stacks,
+        Config.Stack stack,
+        List<GitHubPullRequest> pullRequestsInStack)
     {
         if (stack.PullRequestDescription is null)
         {
@@ -185,7 +191,6 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            var branchDetail = status.Branches.First(b => b.Name == action.HeadBranch);
             logger.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
@@ -204,30 +209,28 @@ public class CreatePullRequestsCommandHandler(
         return pullRequests;
     }
 
-    private static void OutputUpdatedStackStatus(ILogger logger, SchemaVersion schemaVersion, Config.Stack stack, StackStatus status, List<PullRequestInformation> pullRequestInformation)
+    private static void OutputUpdatedStackStatus(
+        ILogger logger,
+        SchemaVersion schemaVersion,
+        Config.Stack stack,
+        StackStatus status,
+        List<PullRequestInformation> pullRequestInformation)
     {
-        var branchDisplayItems = new List<TreeItem<string>>();
-
-        foreach (var branch in status.Branches)
-        {
-            if (branch.PullRequest is not null && branch.PullRequest.State != GitHubPullRequestStates.Closed)
+        StackHelpers.OutputStackStatus(
+            schemaVersion,
+            status,
+            logger,
+            (branch) =>
             {
-                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestStatusOutput(branch));
-            }
-            else
-            {
-                branchDisplayItems.Add(StackHelpers.GetBranchAndPullRequestInformation(branch, pullRequestInformation));
-            }
-        }
+                var pr = pullRequestInformation.FirstOrDefault(pr => pr.HeadBranch == branch.Name);
 
-        if (schemaVersion == SchemaVersion.V1 && branchDisplayItems.Count > 0)
-        {
-            branchDisplayItems = [.. MoreEnumerable.TraverseDepthFirst(branchDisplayItems.First(), i => i.Children).Select(i => new TreeItem<string>(i.Value, []))];
-        }
+                if (pr is not null)
+                {
+                    return $" {$"*NEW* {pr.Title}".Highlighted()}{(pr.Draft == true ? " (draft)".Muted() : string.Empty)}";
+                }
 
-        logger.Tree(new Tree<string>(
-            $"{stack.Name.Stack()}: {stack.SourceBranch.Muted()}",
-            [.. branchDisplayItems]));
+                return null;
+            });
     }
 
     private static List<PullRequestInformation> GetPullRequestInformation(
