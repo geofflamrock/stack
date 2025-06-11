@@ -81,7 +81,7 @@ public static class InputProviderExtensionMethods
         string? name,
         string[] branches)
     {
-        return inputProvider.Select(logger, question, name, branches);
+        return inputProvider.Select(logger, Questions.SelectBranch, name, branches);
     }
 
     public static string SelectParentBranch(
