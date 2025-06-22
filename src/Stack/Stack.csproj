@@ -15,7 +15,8 @@
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" Version="3.0.0-beta.96" />
     <PackageReference Include="morelinq" Version="4.4.0" />
-    <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
+    <PackageReference Include="Spectre.Console" Version="0.50.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta5.25306.1" />
   </ItemGroup>
 
 </Project>

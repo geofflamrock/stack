@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,47 +6,32 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class SyncStackCommandSettings : CommandSettingsBase
+public class SyncStackCommand : Command
 {
-    [Description("The name of the stack to sync with the remote.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public SyncStackCommand() : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.MaxBatchSize);
+        Add(CommonOptions.Rebase);
+        Add(CommonOptions.Merge);
+        Add(CommonOptions.Confirm);
+    }
 
-    [Description("The maximum number of branches to push changes for at once.")]
-    [CommandOption("--max-batch-size")]
-    [DefaultValue(5)]
-    public int MaxBatchSize { get; init; } = 5;
-
-    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
-    [CommandOption("--rebase")]
-    public bool? Rebase { get; init; }
-
-    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
-    [CommandOption("--merge")]
-    public bool? Merge { get; init; }
-
-    [Description("Confirm the sync without prompting.")]
-    [CommandOption("--yes")]
-    public bool Confirm { get; init; }
-}
-
-public class SyncStackCommand : Command<SyncStackCommandSettings>
-{
-    protected override async Task Execute(SyncStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new SyncStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
         await handler.Handle(new SyncStackCommandInputs(
-            settings.Stack,
-            settings.MaxBatchSize,
-            settings.Rebase,
-            settings.Merge,
-            settings.Confirm));
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.MaxBatchSize),
+            parseResult.GetValue(CommonOptions.Rebase),
+            parseResult.GetValue(CommonOptions.Merge),
+            parseResult.GetValue(CommonOptions.Confirm)));
     }
 }
 

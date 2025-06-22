@@ -1,35 +1,31 @@
-using System.ComponentModel;
-using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Commands.Helpers;
+using System.CommandLine;
 
 namespace Stack.Commands;
 
-public class CleanupStackCommandSettings : CommandSettingsBase
+public class CleanupStackCommand : Command
 {
-    [Description("The name of the stack to cleanup.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public CleanupStackCommand() : base("cleanup", "Clean up branches in a stack that are no longer needed.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Confirm);
+    }
 
-    [Description("Confirm the cleanup operation without prompting.")]
-    [CommandOption("--yes")]
-    public bool Confirm { get; init; }
-}
-
-public class CleanupStackCommand : Command<CleanupStackCommandSettings>
-{
-    protected override async Task Execute(CleanupStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new CleanupStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new CleanupStackCommandInputs(settings.Stack, settings.Confirm));
+        await handler.Handle(new CleanupStackCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Confirm)));
     }
 }
 

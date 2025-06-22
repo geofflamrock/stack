@@ -1,37 +1,31 @@
-
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Commands.Helpers;
+using System.CommandLine;
 
 namespace Stack.Commands;
 
-public class DeleteStackCommandSettings : CommandSettingsBase
+public class DeleteStackCommand : Command
 {
-    [Description("The name of the stack to delete.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public DeleteStackCommand() : base("delete", "Delete a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Confirm);
+    }
 
-    [Description("Confirm the deletion of the stack without prompting.")]
-    [CommandOption("--yes")]
-    public bool Confirm { get; init; }
-}
-
-public class DeleteStackCommand : Command<DeleteStackCommandSettings>
-{
-    protected override async Task Execute(DeleteStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new DeleteStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new DeleteStackCommandInputs(settings.Stack, settings.Confirm));
+        await handler.Handle(new DeleteStackCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Confirm)));
     }
 }
 

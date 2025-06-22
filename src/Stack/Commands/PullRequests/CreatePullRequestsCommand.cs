@@ -1,7 +1,6 @@
-using System.ComponentModel;
+using System.CommandLine;
 using MoreLinq;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -9,26 +8,25 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class CreatePullRequestsCommandSettings : CommandSettingsBase
+public class CreatePullRequestsCommand : Command
 {
-    [Description("The name of the stack to create pull requests for.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-}
+    public CreatePullRequestsCommand() : base("create", "Create pull requests for a stack.")
+    {
+        Add(CommonOptions.Stack);
+    }
 
-public class CreatePullRequestsCommand : Command<CreatePullRequestsCommandSettings>
-{
-    protected override async Task Execute(CreatePullRequestsCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new CreatePullRequestsCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileOperations(),
             new FileStackConfig());
 
-        await handler.Handle(new CreatePullRequestsCommandInputs(settings.Stack));
+        await handler.Handle(new CreatePullRequestsCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack)));
     }
 }
 

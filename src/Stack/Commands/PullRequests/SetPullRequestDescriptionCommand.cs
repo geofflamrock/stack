@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,25 +6,24 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class SetPullRequestDescriptionCommandSettings : CommandSettingsBase
+public class SetPullRequestDescriptionCommand : Command
 {
-    [Description("The name of the stack to open PRs for.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-}
+    public SetPullRequestDescriptionCommand() : base("description", "Set the pull request description for the stack and apply it to all pull requests.")
+    {
+        Add(CommonOptions.Stack);
+    }
 
-public class SetPullRequestDescriptionCommand : Command<SetPullRequestDescriptionCommandSettings>
-{
-    protected override async Task Execute(SetPullRequestDescriptionCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new SetPullRequestDescriptionCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new SetPullRequestDescriptionCommandInputs(settings.Stack));
+        await handler.Handle(new SetPullRequestDescriptionCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack)));
     }
 }
 

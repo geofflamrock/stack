@@ -1,6 +1,6 @@
+using System.CommandLine;
 using System.ComponentModel;
 using Humanizer;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,32 +8,27 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class RemoveBranchCommandSettings : CommandSettingsBase
+public class RemoveBranchCommand : Command
 {
-    [Description("The name of the stack to create the branch in.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public RemoveBranchCommand() : base("remove", "Remove a branch from a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Branch);
+        Add(CommonOptions.Confirm);
+    }
 
-    [Description("The name of the branch to add.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
-
-    [Description("Confirm the removal of the branch without prompting.")]
-    [CommandOption("--yes")]
-    public bool Confirm { get; init; }
-}
-
-public class RemoveBranchCommand : Command<RemoveBranchCommandSettings>
-{
-    protected override async Task Execute(RemoveBranchCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new RemoveBranchCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new RemoveBranchCommandInputs(settings.Stack, settings.Name, settings.Confirm));
+        await handler.Handle(new RemoveBranchCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Branch),
+            parseResult.GetValue(CommonOptions.Confirm)));
     }
 }
 

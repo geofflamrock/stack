@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Humanizer;
@@ -15,15 +16,17 @@ internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerCo
 {
 }
 
-public class ListStacksCommandSettings : CommandWithOutputSettingsBase;
-
-public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, ListStacksCommandResponse>
+public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
-    protected override async Task<ListStacksCommandResponse> Execute(ListStacksCommandSettings settings)
+    public ListStacksCommand() : base("list", "List stacks.")
+    {
+    }
+
+    protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new ListStacksCommandHandler(
             new FileStackConfig(),
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()));
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)));
 
         return await handler.Handle(new ListStacksCommandInputs());
     }
