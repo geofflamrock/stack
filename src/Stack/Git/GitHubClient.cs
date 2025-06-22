@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Octopus.Shellfish;
 using Spectre.Console;
 using Stack.Infrastructure;
@@ -61,13 +63,22 @@ public interface IGitHubClient
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
 
+// Matches JsonSerializerOptions.Web: https://github.com/dotnet/runtime/blob/9d5a6a9aa463d6d10b0b0ba6d5982cc82f363dc3/src/libraries/System.Text.Json/src/System/Text/Json/Serialization/JsonSerializerOptions.cs#L170
+[JsonSourceGenerationOptions(
+    PropertyNameCaseInsensitive = true,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    NumberHandling = JsonNumberHandling.AllowReadingFromString)]
+[JsonSerializable(typeof(List<GitHubPullRequest>))]
+internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
+{
+}
+
 public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
         var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,headRefName --head {branch} --state all");
-        var pullRequests = System.Text.Json.JsonSerializer.Deserialize<List<GitHubPullRequest>>(output,
-            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        var pullRequests = JsonSerializer.Deserialize(output, GitHubClientJsonSerializerContext.Default.ListGitHubPullRequest)!;
 
         return pullRequests.FirstOrDefault();
     }

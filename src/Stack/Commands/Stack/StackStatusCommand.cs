@@ -1,5 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using MoreLinq.Extensions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
@@ -80,6 +82,19 @@ public record StackStatusCommandJsonOutputParentBranchStatus
     int Behind
 );
 
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(List<StackStatusCommandJsonOutput>))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutput))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputBranch))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputBranchDetail))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputRemoteTrackingBranchStatus))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputCommit))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputGitHubPullRequest))]
+[JsonSerializable(typeof(StackStatusCommandJsonOutputParentBranchStatus))]
+internal partial class StackStatusCommandJsonSerializerContext : JsonSerializerContext
+{
+}
+
 public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, StackStatusCommandResponse>
 {
     protected override async Task<StackStatusCommandResponse> Execute(StackStatusCommandSettings settings)
@@ -105,10 +120,10 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, 
         }
     }
 
-    protected override void WriteJsonOutput(StackStatusCommandResponse response, JsonSerializerOptions options)
+    protected override void WriteJsonOutput(StackStatusCommandResponse response)
     {
         var output = response.Stacks.Select(MapToJsonOutput).ToList();
-        var json = JsonSerializer.Serialize(output, options);
+        var json = JsonSerializer.Serialize(output, typeof(List<StackStatusCommandJsonOutput>), StackStatusCommandJsonSerializerContext.Default);
         StdOut.WriteLine(json);
     }
 

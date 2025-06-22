@@ -1,11 +1,19 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Humanizer;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 
 namespace Stack.Commands;
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(ListStacksCommandResponse))]
+[JsonSerializable(typeof(ListStacksCommandResponseItem))]
+internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerContext
+{
+}
 
 public class ListStacksCommandSettings : CommandWithOutputSettingsBase;
 
@@ -32,6 +40,12 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandSettings, Li
         {
             StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
         }
+    }
+
+    protected override void WriteJsonOutput(ListStacksCommandResponse response)
+    {
+        var json = JsonSerializer.Serialize(response, typeof(ListStacksCommandResponse), ListStacksCommandJsonSerializerContext.Default);
+        StdOut.WriteLine(json);
     }
 }
 

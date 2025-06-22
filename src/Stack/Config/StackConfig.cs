@@ -12,9 +12,16 @@ public interface IStackConfig
     void Save(StackData stackData);
 }
 
+[JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true, WriteIndented = true)]
+[JsonSerializable(typeof(StackConfigSchemaVersion))]
+[JsonSerializable(typeof(StackConfigV2))]
+[JsonSerializable(typeof(List<StackV1>))]
+internal partial class StackConfigJsonSerializerContext : JsonSerializerContext
+{
+}
+
 public class FileStackConfig(string? configDirectory = null) : IStackConfig
 {
-    readonly JsonSerializerOptions serializerOptions = new() { PropertyNameCaseInsensitive = true, WriteIndented = true };
     readonly string? configDirectory = configDirectory;
 
     public string GetConfigPath()
@@ -57,7 +64,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             }
 
             // If all stacks have a single tree and we are still in v1 format continue to preference this.
-            File.WriteAllText(stacksFile, JsonSerializer.Serialize(stackData.Stacks.Select(MapToV1Format).ToList(), serializerOptions));
+            File.WriteAllText(stacksFile, JsonSerializer.Serialize(stackData.Stacks.Select(MapToV1Format).ToList(), StackConfigJsonSerializerContext.Default.ListStackV1));
             return;
         }
 
@@ -80,7 +87,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             File.Move(stacksFile, backupFile);
         }
 
-        File.WriteAllText(stacksFile, JsonSerializer.Serialize(new StackConfigV2([.. stackData.Stacks.Select(MapToV2Format)]), serializerOptions));
+        File.WriteAllText(stacksFile, JsonSerializer.Serialize(new StackConfigV2([.. stackData.Stacks.Select(MapToV2Format)]), StackConfigJsonSerializerContext.Default.StackConfigV2));
     }
 
     public string GetV1ConfigBackupFilePath()
@@ -93,7 +100,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     {
         try
         {
-            var stackConfig = JsonSerializer.Deserialize<StackConfigSchemaVersion>(jsonString, serializerOptions);
+            var stackConfig = JsonSerializer.Deserialize(jsonString, StackConfigJsonSerializerContext.Default.StackConfigSchemaVersion);
             return stackConfig?.SchemaVersion == SchemaVersions.V2;
         }
         catch (JsonException)
@@ -104,7 +111,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
 
     private List<Stack> LoadStacksFromV2Format(string jsonString)
     {
-        var stacksV2 = JsonSerializer.Deserialize<StackConfigV2>(jsonString, serializerOptions);
+        var stacksV2 = JsonSerializer.Deserialize(jsonString, StackConfigJsonSerializerContext.Default.StackConfigV2);
 
         if (stacksV2 is null)
         {
@@ -126,7 +133,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
 
     private List<Stack> LoadStacksFromV1Format(string jsonString)
     {
-        var stacksV1 = JsonSerializer.Deserialize<List<StackV1>>(jsonString, serializerOptions);
+        var stacksV1 = JsonSerializer.Deserialize(jsonString, StackConfigJsonSerializerContext.Default.ListStackV1);
         if (stacksV1 == null)
         {
             return [];
@@ -193,7 +200,6 @@ public record StackV2Branch(string Name, List<StackV2Branch> Children);
 
 public record StackConfigV2(List<StackV2> Stacks)
 {
-    [JsonInclude]
     [JsonPropertyOrder(0)]
     public int SchemaVersion => SchemaVersions.V2;
 
