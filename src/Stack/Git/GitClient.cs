@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using System.Text;
-using Octopus.Shellfish;
 using Spectre.Console;
 using Stack.Infrastructure;
 
@@ -334,50 +332,15 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         bool captureStandardError = false,
         Func<int, Exception?>? exceptionHandler = null)
     {
-        if (settings.Verbose)
-            logger.Debug($"git {command}");
-
-        var infoBuilder = new StringBuilder();
-        var errorBuilder = new StringBuilder();
-
-        var result = ShellExecutor.ExecuteCommand(
+        return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
-            settings.WorkingDirectory ?? ".",
-            (_) => { },
-            (info) => infoBuilder.AppendLine(info),
-            (error) => errorBuilder.AppendLine(error));
-
-        if (result != 0)
-        {
-            logger.Error(Markup.Escape(errorBuilder.ToString()));
-            if (exceptionHandler != null)
-            {
-                var exception = exceptionHandler(result);
-                if (exception != null)
-                {
-                    throw exception;
-                }
-            }
-            else
-            {
-                throw new Exception($"Failed to execute git command: {command}. Exit code: {result}. Error: {errorBuilder}.");
-            }
-        }
-
-        if (settings.Verbose && infoBuilder.Length > 0)
-        {
-            logger.Debug(Markup.Escape(infoBuilder.ToString()));
-        }
-
-        var output = infoBuilder.ToString();
-
-        if (captureStandardError)
-        {
-            output += $"{Environment.NewLine}{errorBuilder}";
-        }
-
-        return output;
+            settings.WorkingDirectory,
+            logger,
+            settings.Verbose,
+            captureStandardError,
+            exceptionHandler
+        );
     }
 
     private void ExecuteGitCommand(
