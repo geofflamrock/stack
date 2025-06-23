@@ -87,12 +87,13 @@ public class NewStackCommandHandler(
         }
         else
         {
-            branchAction = inputProvider.Select(
+            var selectedBranchAction = inputProvider.Select(
                 Questions.AddOrCreateBranch,
                 [BranchAction.Create, BranchAction.Add, BranchAction.None],
                 action => action.Humanize());
 
-            logger.Information($"{Questions.AddOrCreateBranch} {branchAction.Humanize()}");
+            logger.Information($"{Questions.AddOrCreateBranch} {selectedBranchAction.Humanize()}");
+            branchAction = selectedBranchAction;
         }
 
         if (branchAction == BranchAction.Create)
