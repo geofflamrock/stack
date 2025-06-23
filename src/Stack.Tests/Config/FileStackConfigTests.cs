@@ -91,7 +91,7 @@ public class FileStackConfigTests
 
         // Create a V2 format config file with multiple trees directly as JSON
         var v2Json = $@"{{
-    ""SchemaVersion"": ""v2"",
+    ""SchemaVersion"": 2,
     ""Stacks"": [
         {{
             ""Name"": ""{stackName}"",
@@ -241,7 +241,7 @@ public class FileStackConfigTests
         // Assert
         var savedJson = File.ReadAllText(configPath);
         var expectedJson = $@"{{
-    ""SchemaVersion"": ""v2"",
+    ""SchemaVersion"": 2,
     ""Stacks"": [
         {{
             ""Name"": ""{stackName}"",

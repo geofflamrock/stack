@@ -93,7 +93,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     {
         try
         {
-            var stackConfig = JsonSerializer.Deserialize<StackConfigV1OrV2>(jsonString, serializerOptions);
+            var stackConfig = JsonSerializer.Deserialize<StackConfigSchemaVersion>(jsonString, serializerOptions);
             return stackConfig?.SchemaVersion == SchemaVersions.V2;
         }
         catch (JsonException)
@@ -195,7 +195,7 @@ public record StackConfigV2(List<StackV2> Stacks)
 {
     [JsonInclude]
     [JsonPropertyOrder(0)]
-    public string SchemaVersion => SchemaVersions.V2;
+    public int SchemaVersion => SchemaVersions.V2;
 
     [JsonPropertyOrder(1)]
     public List<StackV2> Stacks { get; private set; } = Stacks;
@@ -203,7 +203,7 @@ public record StackConfigV2(List<StackV2> Stacks)
 
 public static class SchemaVersions
 {
-    public const string V2 = "v2";
+    public const int V2 = 2;
 }
 
 public enum SchemaVersion
@@ -212,4 +212,4 @@ public enum SchemaVersion
     V2
 }
 
-public record StackConfigV1OrV2(string? SchemaVersion);
+public record StackConfigSchemaVersion(int? SchemaVersion);
