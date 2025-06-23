@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Octopus.Shellfish;
 using Spectre.Console;
 using Stack.Infrastructure;
 
@@ -114,32 +113,15 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
-        if (settings.Verbose)
-            logger.Debug($"gh {command}");
-
-        var infoBuilder = new StringBuilder();
-        var errorBuilder = new StringBuilder();
-
-        var result = ShellExecutor.ExecuteCommand(
+        return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "gh",
             command,
-            settings.WorkingDirectory ?? ".",
-            (_) => { },
-            (info) => infoBuilder.AppendLine(info),
-            (error) => errorBuilder.AppendLine(error));
-
-        if (result != 0)
-        {
-            logger.Error(Markup.Escape(errorBuilder.ToString()));
-            throw new Exception("Failed to execute gh command.");
-        }
-
-        if (settings.Verbose && infoBuilder.Length > 0)
-        {
-            logger.Debug(Markup.Escape(infoBuilder.ToString()));
-        }
-
-        return infoBuilder.ToString();
+            settings.WorkingDirectory,
+            logger,
+            settings.Verbose,
+            false,
+            null
+        );
     }
 
     private void ExecuteGitHubCommand(string command)
@@ -147,34 +129,7 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
         if (settings.Verbose)
             logger.Debug($"gh {command}");
 
-        ExecuteGitHubCommandInternal(command);
-    }
-
-    private void ExecuteGitHubCommandInternal(string command)
-    {
-        var infoBuilder = new StringBuilder();
-        var errorBuilder = new StringBuilder();
-
-        var result = ShellExecutor.ExecuteCommand(
-            "gh",
-            command,
-            settings.WorkingDirectory ?? ".",
-            (_) => { },
-            (info) => infoBuilder.AppendLine(info),
-            (error) => errorBuilder.AppendLine(error));
-
-        if (result != 0)
-        {
-            logger.Error($"{errorBuilder}");
-            throw new Exception("Failed to execute gh command.");
-        }
-        else
-        {
-            if (infoBuilder.Length > 0)
-            {
-                logger.Debug(Markup.Escape(infoBuilder.ToString()));
-            }
-        }
+        ExecuteGitHubCommandAndReturnOutput(command);
     }
 
     private string Sanitize(string value)
