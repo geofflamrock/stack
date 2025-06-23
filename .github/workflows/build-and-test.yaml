@@ -86,29 +86,35 @@ jobs:
             runtime-id: linux-x64
             artifact-name: linux_amd64
             archive_type: tar
+            os: ubuntu-latest
           - name: Linux arm64
             runtime-id: linux-arm64
             artifact-name: linux_arm64
             archive_type: tar
+            os: ubuntu-22.04-arm
           - name: Windows amd64
             runtime-id: win-x64
             artifact-name: windows_amd64
             archive_type: zip
+            os: windows-latest
           - name: Windows arm64
             runtime-id: win-arm64
             artifact-name: windows_arm64
             archive_type: zip
+            os: windows-latest
           - name: macOS amd64
             runtime-id: osx-x64
             artifact-name: macos_amd64
             archive_type: tar
+            os: macos-latest
           - name: macOS arm64
             runtime-id: osx-arm64
             artifact-name: macos_arm64
             archive_type: tar
+            os: macos-latest
 
     name: Publish ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -135,7 +141,7 @@ jobs:
         if: matrix.archive_type == 'tar'
 
       - name: Create zip archive
-        run: zip -r ${{ github.workspace }}/artifacts/stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.zip *
+        run: Compress-Archive -Path * -DestinationPath ${{ github.workspace }}\artifacts\stack_${{ needs.version.outputs.version }}_${{ matrix.artifact-name }}.zip
         working-directory: ${{ github.workspace }}/publish
         if: matrix.archive_type == 'zip'
 
