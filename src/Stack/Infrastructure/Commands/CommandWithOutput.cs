@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace Stack.Commands;
@@ -25,17 +24,13 @@ public abstract class CommandWithOutput<TSettings, TResponse> : Command<TSetting
 
     protected abstract void WriteDefaultOutput(TResponse response);
 
-    protected virtual void WriteJsonOutput(TResponse response, JsonSerializerOptions options)
-    {
-        var json = JsonSerializer.Serialize(response, jsonSerializerOptions);
-        StdOut.WriteLine(json);
-    }
+    protected abstract void WriteJsonOutput(TResponse response);
 
     private void WriteOutput(TSettings settings, TResponse response)
     {
         if (settings.Json)
         {
-            WriteJsonOutput(response, jsonSerializerOptions);
+            WriteJsonOutput(response);
         }
         else
         {
