@@ -472,4 +472,38 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         // Assert
         branchesPushedToRemote.ToArray().Should().BeEquivalentTo([branchAheadOfRemote]);
     }
+
+    [Fact]
+    public void PullChanges_WhenSomeBranchesHaveChanges_AndOthersDoNot_OnlyPullsChangesForBranchesThatNeedIt()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchWithRemoteChanges = Some.BranchName();
+        var branchWithoutRemoteChanges = Some.BranchName();
+
+        var gitClient = Substitute.For<IGitClient>();
+
+        var branchStatus = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branchWithRemoteChanges, new GitBranchStatus(branchWithRemoteChanges, $"origin/{branchWithRemoteChanges}", true, false, 0, 3, new Commit(Some.Sha(), Some.Name())) },
+            { branchWithoutRemoteChanges, new GitBranchStatus(branchWithoutRemoteChanges, $"origin/{branchWithoutRemoteChanges}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(branchWithRemoteChanges))
+            .WithBranch(b => b.WithName(branchWithoutRemoteChanges))
+            .Build();
+
+        // Act
+        StackHelpers.PullChanges(stack, gitClient, new TestLogger(testOutputHelper));
+
+        // Assert
+        gitClient.DidNotReceive().PullBranch(sourceBranch);
+        gitClient.Received().PullBranch(branchWithRemoteChanges);
+        gitClient.DidNotReceive().PullBranch(branchWithoutRemoteChanges);
+    }
 }
