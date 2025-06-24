@@ -123,7 +123,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     private static StackV2 MapToV2Format(Stack stack)
     {
         var branchesV2 = stack.Branches.Select(MapToV2Format).ToList();
-        return new StackV2(stack.Name, stack.RemoteUri, stack.SourceBranch, branchesV2, stack.PullRequestDescription);
+        return new StackV2(stack.Name, stack.RemoteUri, stack.SourceBranch, branchesV2);
     }
 
     private static StackV2Branch MapToV2Format(Branch branch)
@@ -145,14 +145,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     private static Stack MapFromV2Format(StackV2 stackV2)
     {
         var branches = stackV2.Branches.Select(b => new Branch(b.Name, [.. b.Children.Select(MapFromV2Format)])).ToList();
-        var stack = new Stack(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
-
-        if (stackV2.PullRequestDescription is not null)
-        {
-            stack.SetPullRequestDescription(stackV2.PullRequestDescription);
-        }
-
-        return stack;
+        return new Stack(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
     }
 
     private static Branch MapFromV2Format(StackV2Branch branchV2)
@@ -162,7 +155,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
 
     private static StackV1 MapToV1Format(Stack stack)
     {
-        return new StackV1(stack.Name, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames, stack.PullRequestDescription);
+        return new StackV1(stack.Name, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames);
     }
 
     private static Stack MapFromV1Format(StackV1 stackV1)
@@ -185,17 +178,12 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             currentParent = newBranch;
         }
 
-        var stack = new Stack(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
-        if (stackV1.PullRequestDescription is not null)
-        {
-            stack.SetPullRequestDescription(stackV1.PullRequestDescription);
-        }
-        return stack;
+        return new Stack(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
     }
 }
 
-public record StackV1(string Name, string RemoteUri, string SourceBranch, List<string> Branches, string? PullRequestDescription);
-public record StackV2(string Name, string RemoteUri, string SourceBranch, List<StackV2Branch> Branches, string? PullRequestDescription);
+public record StackV1(string Name, string RemoteUri, string SourceBranch, List<string> Branches);
+public record StackV2(string Name, string RemoteUri, string SourceBranch, List<StackV2Branch> Branches);
 public record StackV2Branch(string Name, List<StackV2Branch> Children);
 
 public record StackConfigV2(List<StackV2> Stacks)

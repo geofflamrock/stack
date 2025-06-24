@@ -144,7 +144,7 @@ public class CreatePullRequestsCommandHandler(
 
                 if (pullRequestsInStack.Count > 1)
                 {
-                    UpdatePullRequestStackDescriptions(inputProvider, logger, gitHubClient, stackConfig, stackData, stack, pullRequestsInStack);
+                    StackHelpers.UpdateStackPullRequestList(logger, gitHubClient, stack, pullRequestsInStack);
                 }
 
                 if (inputProvider.Confirm(Questions.OpenPullRequests))
@@ -160,23 +160,6 @@ public class CreatePullRequestsCommandHandler(
         {
             logger.Information("No new pull requests to create.");
         }
-    }
-
-    private static void UpdatePullRequestStackDescriptions(
-        IInputProvider inputProvider,
-        ILogger logger,
-        IGitHubClient gitHubClient,
-        IStackConfig stackConfig,
-        StackData stacks,
-        Config.Stack stack,
-        List<GitHubPullRequest> pullRequestsInStack)
-    {
-        if (stack.PullRequestDescription is null)
-        {
-            StackHelpers.UpdateStackPullRequestDescription(inputProvider, stackConfig, stacks, stack);
-        }
-
-        StackHelpers.UpdateStackDescriptionInPullRequests(logger, gitHubClient, stack, pullRequestsInStack);
     }
 
     private static List<GitHubPullRequest> CreatePullRequests(

@@ -642,7 +642,7 @@ public static class StackHelpers
         }
     }
 
-    public static void UpdateStackDescriptionInPullRequests(
+    public static void UpdateStackPullRequestList(
         ILogger logger,
         IGitHubClient gitHubClient,
         Config.Stack stack,
@@ -676,7 +676,7 @@ public static class StackHelpers
 
         // Edit each PR and add to the top of the description
         // the details of each PR in the stack
-        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{stack.PullRequestDescription}{Environment.NewLine}{Environment.NewLine}{prListBuilder}{StackConstants.StackMarkerEnd}";
+        var prBodyMarkdown = $"{StackConstants.StackMarkerStart}{Environment.NewLine}{prListBuilder}{StackConstants.StackMarkerEnd}";
 
         foreach (var pullRequest in pullRequestsInStack)
         {
@@ -696,18 +696,6 @@ public static class StackHelpers
 
                 gitHubClient.EditPullRequest(pullRequest.Number, prBody);
             }
-        }
-    }
-
-    public static void UpdateStackPullRequestDescription(IInputProvider inputProvider, IStackConfig stackConfig, StackData stackData, Config.Stack stack)
-    {
-        var defaultStackDescription = stack.PullRequestDescription ?? $"This PR is part of a stack **{stack.Name}**:";
-        var stackDescription = inputProvider.Text(Questions.PullRequestStackDescription, defaultStackDescription);
-
-        if (stackDescription != stack.PullRequestDescription)
-        {
-            stack.SetPullRequestDescription(stackDescription);
-            stackConfig.Save(stackData);
         }
     }
 

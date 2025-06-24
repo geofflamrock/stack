@@ -150,11 +150,11 @@ To do this:
 - For each branch you'll be asked for the title of the pull request.
 - The pull request will then be created, targeting the previous branch in the stack.
 
-When all the pull requests have been created you'll be asked for a pull request stack description if there is more than 1 pull request in the stack. This will be added to the top of the description of each pull request along with a set of links to all pull requests in the stack. For an example of this look at https://github.com/geofflamrock/stack/pull/32.
+When all the pull requests have been created set of links to all pull requests in the stack will be put into the body of each pull request. This is optional and is controlled by the presence of the `<!-- stack-pr-list -->` comment in the body of the pull request. To opt-out just remove the comment.
 
 You can then open each pull request if the stack if you want to view them.
 
-`stack pr create` can be run multiple times, if there are new branches in the stack that don't have an associated pull request these will be created and the description updated on each pull request.
+`stack pr create` can be run multiple times, if there are new branches in the stack that don't have an associated pull request these will be created and the list updated on each pull request.
 
 ## Commands
 
@@ -415,21 +415,6 @@ Opens pull requests for a stack in the default browser.
 ```shell
 USAGE:
     stack pr open [OPTIONS]
-
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to open PRs for
-```
-
-#### `stack pr description` <!-- omit from toc -->
-
-Sets the pull request description for the stack and applies it all pull requests.
-
-```shell
-USAGE:
-    stack pr description [OPTIONS]
 
 OPTIONS:
     -h, --help           Prints help information
