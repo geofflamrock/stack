@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.ComponentModel;
-using Humanizer;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;

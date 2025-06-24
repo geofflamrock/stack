@@ -2,7 +2,6 @@
 
 using System.CommandLine;
 using System.ComponentModel;
-using Humanizer;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
