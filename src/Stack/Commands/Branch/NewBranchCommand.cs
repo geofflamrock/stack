@@ -74,7 +74,7 @@ public class NewBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, stack.GetDefaultBranchName());
+        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName);
 
         if (stack.AllBranchNames.Contains(branchName))
         {

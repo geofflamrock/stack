@@ -183,39 +183,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenAStackHasANameWithMultipleWords_SuggestsAGoodDefaultNewBranchName()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
-
-        var stackConfig = new TestStackConfigBuilder().Build();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-        inputProvider.Text(Questions.StackName).Returns("A stack with multiple words");
-        inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
-        inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
-        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-1").Returns(newBranch);
-
-        // Act
-        await handler.Handle(NewStackCommandInputs.Empty);
-
-        // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("A stack with multiple words", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
-        });
-
-        gitClient.GetCurrentBranch().Should().Be(newBranch);
-    }
-
-    [Fact]
     public async Task WithANewBranch_TheStackIsCreatedAndTheBranchExistsOnTheRemote()
     {
         // Arrange
