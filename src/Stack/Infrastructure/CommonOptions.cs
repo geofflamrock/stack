@@ -2,7 +2,7 @@ using System.CommandLine;
 
 public static class CommonOptions
 {
-    public static Option<string?> WorkingDirectory { get; } = new Option<string?>("--working-directory", "--working-dir")
+    public static Option<string?> WorkingDirectory { get; } = new Option<string?>("--working-dir")
     {
         Description = "The path to the directory containing the git repository. Defaults to the current directory.",
         Required = false
