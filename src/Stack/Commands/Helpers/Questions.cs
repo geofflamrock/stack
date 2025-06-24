@@ -1,6 +1,3 @@
-using Humanizer;
-using Stack.Infrastructure;
-
 namespace Stack.Commands.Helpers;
 
 public static class Questions

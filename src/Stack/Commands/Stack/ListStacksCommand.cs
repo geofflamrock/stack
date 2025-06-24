@@ -1,7 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Humanizer;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -41,7 +40,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {"branch".ToQuantity(stack.BranchCount)}");
+            StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}");
         }
     }
 
