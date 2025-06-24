@@ -46,7 +46,6 @@ public interface IGitClient
     string GetRemoteUri();
     string[] GetLocalBranchesOrderedByMostRecentCommitterDate();
     string GetRootOfRepository();
-    void OpenFileInEditorAndWaitForClose(string path);
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
 }
@@ -293,38 +292,6 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         });
 
         return isAncestor;
-    }
-
-    public void OpenFileInEditorAndWaitForClose(string path)
-    {
-        var editor = GetConfiguredEditor();
-        if (string.IsNullOrWhiteSpace(editor))
-        {
-            logger.Error("No editor is configured in git. Please configure an editor using 'git config --global core.editor <editor>'.");
-            return;
-        }
-
-        var editorSplit = editor.Split(' ');
-        var editorFileName = editorSplit[0];
-        var editorArguments = editorSplit.Length > 1 ? string.Join(' ', editorSplit.Skip(1)) : string.Empty;
-
-        var processStartInfo = new ProcessStartInfo
-        {
-            FileName = editorFileName,
-            Arguments = $"\"{path}\" {editorArguments}",
-            UseShellExecute = true,
-            CreateNoWindow = true
-        };
-
-        var process = Process.Start(processStartInfo);
-
-        if (process == null)
-        {
-            logger.Error("Failed to start editor process.");
-            return;
-        }
-
-        process.WaitForExit();
     }
 
     private string ExecuteGitCommandAndReturnOutput(

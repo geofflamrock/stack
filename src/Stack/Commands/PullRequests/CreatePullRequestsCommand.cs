@@ -123,7 +123,6 @@ public class CreatePullRequestsCommandHandler(
                 inputProvider,
                 logger,
                 gitClient,
-                gitHubClient,
                 fileOperations,
                 selectedPullRequestActions);
 
@@ -235,7 +234,6 @@ public class CreatePullRequestsCommandHandler(
         IInputProvider inputProvider,
         ILogger logger,
         IGitClient gitClient,
-        IGitHubClient gitHubClient,
         IFileOperations fileOperations,
         List<PullRequestCreateAction> pullRequestCreateActions)
     {
@@ -271,11 +269,6 @@ public class CreatePullRequestsCommandHandler(
 {StackConstants.StackMarkerDescription}
 
 {StackConstants.StackMarkerEnd}");
-
-            if (inputProvider.Confirm(Questions.EditPullRequestBody))
-            {
-                gitClient.OpenFileInEditorAndWaitForClose(bodyFilePath);
-            }
 
             var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
 
