@@ -20,7 +20,6 @@ public static class Questions
     public const string PullRequestStackDescription = "Stack description for pull request:";
     public const string OpenPullRequests = "Open new pull requests in a browser?";
     public const string CreatePullRequestAsDraft = "Create pull request as draft?";
-    public const string EditPullRequestBody = "Edit pull request body? This will open a file in your default editor.";
     public const string ContinueOrAbortMerge = "Conflict(s) detected during merge. Please either resolve the conflicts, commit the result and select Continue to continue merging, or Abort.";
     public const string ContinueOrAbortRebase = "Conflict(s) detected during rebase. Please either resolve the conflicts and select Continue to continue rebasing, or Abort.";
     public const string ConfirmMigrateConfig = "Are you sure you want to migrate the configuration file to the latest version? This will create a backup of the current configuration file.";
