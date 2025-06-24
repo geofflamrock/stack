@@ -8,6 +8,11 @@ namespace Stack.Commands;
 
 public class SyncStackCommand : Command
 {
+    readonly Option<bool> NoPush = new("--no-push")
+    {
+        Description = "Don't push changes to the remote repository"
+    };
+
     public SyncStackCommand() : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.")
     {
         Add(CommonOptions.Stack);
@@ -15,6 +20,7 @@ public class SyncStackCommand : Command
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
         Add(CommonOptions.Confirm);
+        Add(NoPush);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
@@ -31,7 +37,8 @@ public class SyncStackCommand : Command
             parseResult.GetValue(CommonOptions.MaxBatchSize),
             parseResult.GetValue(CommonOptions.Rebase),
             parseResult.GetValue(CommonOptions.Merge),
-            parseResult.GetValue(CommonOptions.Confirm)));
+            parseResult.GetValue(CommonOptions.Confirm),
+            parseResult.GetValue(NoPush)));
     }
 }
 
@@ -40,9 +47,10 @@ public record SyncStackCommandInputs(
     int MaxBatchSize,
     bool? Rebase,
     bool? Merge,
-    bool Confirm)
+    bool Confirm,
+    bool NoPush)
 {
-    public static SyncStackCommandInputs Empty => new(null, 5, null, null, false);
+    public static SyncStackCommandInputs Empty => new(null, 5, null, null, false, false);
 }
 
 public class SyncStackCommandHandler(
@@ -108,7 +116,8 @@ public class SyncStackCommandHandler(
 
             var forceWithLease = inputs.Rebase == true || StackHelpers.GetUpdateStrategyConfigValue(gitClient) == UpdateStrategy.Rebase;
 
-            StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
+            if (!inputs.NoPush)
+                StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

@@ -389,6 +389,7 @@ OPTIONS:
         --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
         --merge             Use merge when updating the stack. Overrides any setting in Git configuration
         --yes               Confirm the sync without prompting
+        --no-push           Don't push changes to the remote repository
 ```
 
 ### GitHub commands <!-- omit from toc -->
