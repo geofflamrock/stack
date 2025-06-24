@@ -591,7 +591,10 @@ public static class StackHelpers
     {
         var branchStatus = gitClient.GetBranchStatuses([.. stack.AllBranchNames]);
 
-        var branchesThatHaveNotBeenPushedToRemote = branchStatus.Where(b => b.Value.RemoteTrackingBranchName is null).Select(b => b.Value.BranchName).ToList();
+        var branchesThatHaveNotBeenPushedToRemote = branchStatus
+            .Where(b => b.Value.RemoteTrackingBranchName is null)
+            .Select(b => b.Value.BranchName)
+            .ToList();
 
         foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
         {
@@ -599,9 +602,12 @@ public static class StackHelpers
             gitClient.PushNewBranch(branch);
         }
 
-        var branchesInStackWithRemote = branchStatus.Where(b => b.Value.RemoteBranchExists).Select(b => b.Value.BranchName).ToList();
+        var branchesThatAreAheadOfTheRemote = branchStatus
+            .Where(b => b.Value.RemoteBranchExists && b.Value.Ahead > 0)
+            .Select(b => b.Value.BranchName)
+            .ToList();
 
-        var branchGroupsToPush = branchesInStackWithRemote
+        var branchGroupsToPush = branchesThatAreAheadOfTheRemote
             .Select((b, i) => new { Index = i, Value = b })
             .GroupBy(b => b.Index / maxBatchSize)
             .Select(g => g.Select(b => b.Value).ToList())
