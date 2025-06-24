@@ -41,33 +41,6 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
 
     public bool HasSingleTree => GetAllBranchLines().Count == 1;
 
-    public string GetDefaultBranchName()
-    {
-        var fullBranchNames = Branches.SelectMany(b => b.AllBranchNames).Distinct().ToList();
-        return $"{SanitizeBranchName(Name)}-{fullBranchNames.Count + 1}";
-    }
-
-    static string SanitizeBranchName(string name)
-    {
-        // Replace invalid characters (including spaces and special chars) with '-'
-        var sanitized = Regex.Replace(name, "[\\s~^:?*\\[\\\\@{{}}]+|[" + Regex.Escape(new string(Path.GetInvalidFileNameChars())) + "]", "-");
-
-        // Remove consecutive dashes
-        sanitized = Regex.Replace(sanitized, "-+", "-");
-
-        // Trim leading/trailing dashes and dots
-        sanitized = sanitized.Trim('-', '.');
-
-        // Git branch names cannot start with a slash, dot, or end with a dot or slash
-        sanitized = sanitized.TrimStart('/', '.').TrimEnd('/', '.');
-
-        // Avoid reserved names
-        if (sanitized.Equals("HEAD", StringComparison.OrdinalIgnoreCase))
-            sanitized = "branch-" + sanitized;
-
-        return sanitized.ToLower();
-    }
-
     public void RemoveBranch(string branchName, RemoveBranchChildAction action)
     {
         if (Branches.Count == 0)

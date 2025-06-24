@@ -288,49 +288,6 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenStackHasANameWithMultipleWords_SuggestsAGoodDefaultNewBranchName()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var anotherBranch = Some.BranchName();
-        var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(anotherBranch)
-            .Build();
-
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackConfig = new TestStackConfigBuilder()
-            .WithStack(stack => stack
-                .WithName("A stack with multiple words")
-                .WithRemoteUri(repo.RemoteUri)
-                .WithSourceBranch(sourceBranch)
-                .WithBranch(branch => branch.WithName(anotherBranch)))
-            .WithStack(stack => stack
-                .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
-                .WithSourceBranch(sourceBranch))
-            .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("A stack with multiple words");
-        inputProvider.Text(Questions.BranchName, "a-stack-with-multiple-words-2").Returns(newBranch);
-
-        // Act
-        await handler.Handle(NewBranchCommandInputs.Empty);
-
-        // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("A stack with multiple words", repo.RemoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(newBranch, [])])]),
-            new("Stack2", repo.RemoteUri, sourceBranch, [])
-        });
-        gitClient.GetCurrentBranch().Should().Be(newBranch);
-    }
-
-    [Fact]
     public async Task WhenPushToTheRemoteFails_StillCreatesTheBranchLocallyAndAddsItToTheStack()
     {
         // Arrange
