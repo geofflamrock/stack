@@ -1,7 +1,6 @@
-using System.ComponentModel;
+using System.CommandLine;
 using MoreLinq;
 using MoreLinq.Extensions;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -9,32 +8,27 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class NewBranchCommandSettings : CommandSettingsBase
+public class NewBranchCommand : Command
 {
-    [Description("The name of the stack to create the branch in.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public NewBranchCommand() : base("new", "Create a new branch in a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Branch);
+        Add(CommonOptions.ParentBranch);
+    }
 
-    [Description("The name of the branch to create.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
-
-    [Description("The name of the parent branch to create the new branch from.")]
-    [CommandOption("-p|--parent")]
-    public string? Parent { get; init; }
-}
-
-public class NewBranchCommand : Command<NewBranchCommandSettings>
-{
-    protected override async Task Execute(NewBranchCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new NewBranchCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(settings.Stack, settings.Name, settings.Parent));
+        await handler.Handle(new NewBranchCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Branch),
+            parseResult.GetValue(CommonOptions.ParentBranch)));
     }
 }
 

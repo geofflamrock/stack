@@ -1,30 +1,14 @@
-using System.ComponentModel;
+using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using MoreLinq.Extensions;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 
 namespace Stack.Commands;
-
-public class StackStatusCommandSettings : CommandWithOutputSettingsBase
-{
-    [Description("The name of the stack to show the status of.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-
-    [Description("Show status of all stacks.")]
-    [CommandOption("--all")]
-    public bool All { get; init; }
-
-    [Description("Show full status including pull requests.")]
-    [CommandOption("--full")]
-    public bool Full { get; init; }
-}
 
 public record StackStatusCommandJsonOutput
 (
@@ -95,18 +79,38 @@ internal partial class StackStatusCommandJsonSerializerContext : JsonSerializerC
 {
 }
 
-public class StackStatusCommand : CommandWithOutput<StackStatusCommandSettings, StackStatusCommandResponse>
+public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 {
-    protected override async Task<StackStatusCommandResponse> Execute(StackStatusCommandSettings settings)
+    static readonly Option<bool> All = new("--all")
+    {
+        Description = "Show status of all stacks."
+    };
+
+    static readonly Option<bool> Full = new("--full")
+    {
+        Description = "Show full status including pull requests."
+    };
+
+    public StackStatusCommand() : base("status", "Show the status of the current stack or all stacks in the repository.")
+    {
+        Add(CommonOptions.Stack);
+        Add(All);
+        Add(Full);
+    }
+
+    protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new StackStatusCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        return await handler.Handle(new StackStatusCommandInputs(settings.Stack, settings.All, settings.Full));
+        return await handler.Handle(new StackStatusCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(All),
+            parseResult.GetValue(Full)));
     }
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)

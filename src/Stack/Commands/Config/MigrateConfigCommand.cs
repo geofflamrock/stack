@@ -1,24 +1,22 @@
-using System.ComponentModel;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class MigrateConfigCommandSettings : CommandSettingsBase
+public class MigrateConfigCommand : Command
 {
-    [Description("Confirm the migration without prompting.")]
-    [CommandOption("--yes")]
-    public bool Confirm { get; init; }
-}
+    public MigrateConfigCommand() : base("migrate", "Migrate the configuration file from v1 to v2 format (preview).")
+    {
+        Add(CommonOptions.Confirm);
+    }
 
-public class MigrateConfigCommand : Command<MigrateConfigCommandSettings>
-{
-    protected override async Task Execute(MigrateConfigCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new MigrateConfigCommandHandler(InputProvider, StdErrLogger, new FileStackConfig());
-        await handler.Handle(new MigrateConfigCommandInputs(settings.Confirm));
+        await handler.Handle(new MigrateConfigCommandInputs(
+            parseResult.GetValue(CommonOptions.Confirm)));
     }
 }
 

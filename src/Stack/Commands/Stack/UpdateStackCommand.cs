@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Humanizer;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,33 +6,28 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class UpdateStackCommandSettings : CommandSettingsBase
+public class UpdateStackCommand : Command
 {
-    [Description("The name of the stack to update.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public UpdateStackCommand() : base("update", "Update the branches in a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Rebase);
+        Add(CommonOptions.Merge);
+    }
 
-    [Description("Use rebase when updating the stack. Overrides any setting in Git configuration.")]
-    [CommandOption("--rebase")]
-    public bool? Rebase { get; init; }
-
-    [Description("Use merge when updating the stack. Overrides any setting in Git configuration.")]
-    [CommandOption("--merge")]
-    public bool? Merge { get; init; }
-}
-
-public class UpdateStackCommand : Command<UpdateStackCommandSettings>
-{
-    protected override async Task Execute(UpdateStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new UpdateStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new UpdateStackCommandInputs(settings.Stack, settings.Rebase, settings.Merge));
+        await handler.Handle(new UpdateStackCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Rebase),
+            parseResult.GetValue(CommonOptions.Merge)));
     }
 }
 

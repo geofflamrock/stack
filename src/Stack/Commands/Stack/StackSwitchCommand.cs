@@ -1,6 +1,5 @@
-using System.ComponentModel;
+using System.CommandLine;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,23 +7,22 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class StackSwitchCommandSettings : CommandSettingsBase
+public class StackSwitchCommand : Command
 {
-    [Description("The name of the branch to switch to.")]
-    [CommandOption("-b|--branch")]
-    public string? Branch { get; init; }
-}
+    public StackSwitchCommand() : base("switch", "Switch to a branch in a stack.")
+    {
+        Add(CommonOptions.Branch);
+    }
 
-public class StackSwitchCommand : Command<StackSwitchCommandSettings>
-{
-    protected override async Task Execute(StackSwitchCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new StackSwitchCommandHandler(
             InputProvider,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new StackSwitchCommandInputs(settings.Branch));
+        await handler.Handle(new StackSwitchCommandInputs(
+            parseResult.GetValue(CommonOptions.Branch)));
     }
 }
 

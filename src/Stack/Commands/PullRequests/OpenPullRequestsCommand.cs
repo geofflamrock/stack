@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,25 +6,24 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class OpenPullRequestsCommandSettings : CommandSettingsBase
+public class OpenPullRequestsCommand : Command
 {
-    [Description("The name of the stack to open PRs for.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-}
+    public OpenPullRequestsCommand() : base("open", "Open pull requests for a stack in the default browser.")
+    {
+        Add(CommonOptions.Stack);
+    }
 
-public class OpenPullRequestsCommand : Command<OpenPullRequestsCommandSettings>
-{
-    protected override async Task Execute(OpenPullRequestsCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new OpenPullRequestsCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
-            new GitHubClient(StdErrLogger, settings.GetGitHubClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new OpenPullRequestsCommandInputs(settings.Stack));
+        await handler.Handle(new OpenPullRequestsCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack)));
     }
 }
 

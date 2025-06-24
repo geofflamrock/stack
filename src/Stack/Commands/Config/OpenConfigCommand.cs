@@ -1,17 +1,17 @@
+using System.CommandLine;
 using System.Diagnostics;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Config;
 
 namespace Stack.Commands;
 
-public class OpenConfigCommandSettings : CommandSettingsBase
+public class OpenConfigCommand : Command
 {
-}
+    public OpenConfigCommand() : base("open", "Open the configuration file in the default editor.")
+    {
+    }
 
-public class OpenConfigCommand : Command<CommandSettingsBase>
-{
-    protected override async Task Execute(CommandSettingsBase settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var console = AnsiConsole.Console;

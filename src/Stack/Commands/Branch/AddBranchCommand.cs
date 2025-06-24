@@ -1,5 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -7,32 +6,27 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class AddBranchCommandSettings : CommandSettingsBase
+public class AddBranchCommand : Command
 {
-    [Description("The name of the stack to create the branch in.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    public AddBranchCommand() : base("add", "Add an existing branch to a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.Branch);
+        Add(CommonOptions.ParentBranch);
+    }
 
-    [Description("The name of the branch to add.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
-
-    [Description("The name of the parent branch to add branch as a child of.")]
-    [CommandOption("-p|--parent")]
-    public string? Parent { get; init; }
-}
-
-public class AddBranchCommand : Command<AddBranchCommandSettings>
-{
-    protected override async Task Execute(AddBranchCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new AddBranchCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new AddBranchCommandInputs(settings.Stack, settings.Name, settings.Parent));
+        await handler.Handle(new AddBranchCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.Branch),
+            parseResult.GetValue(CommonOptions.ParentBranch)));
     }
 }
 

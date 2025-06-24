@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,24 +6,23 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class PullStackCommandSettings : CommandSettingsBase
+public class PullStackCommand : Command
 {
-    [Description("The name of the stack to pull changes from the remote for.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
-}
+    public PullStackCommand() : base("pull", "Pull changes from the remote repository for a stack.")
+    {
+        Add(CommonOptions.Stack);
+    }
 
-public class PullStackCommand : Command<PullStackCommandSettings>
-{
-    protected override async Task Execute(PullStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new PullStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new PullStackCommandInputs(settings.Stack));
+        await handler.Handle(new PullStackCommandInputs(
+            parseResult.GetValue(CommonOptions.Stack)));
     }
 }
 

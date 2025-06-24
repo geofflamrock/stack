@@ -1,6 +1,4 @@
-using System.ComponentModel;
-using Spectre.Console;
-using Spectre.Console.Cli;
+using System.CommandLine;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -8,36 +6,32 @@ using Stack.Infrastructure;
 
 namespace Stack.Commands;
 
-public class PushStackCommandSettings : CommandSettingsBase
+public class PushStackCommand : Command
 {
-    [Description("The name of the stack to push changes from the remote for.")]
-    [CommandOption("-s|--stack")]
-    public string? Stack { get; init; }
+    static readonly Option<bool> ForceWithLease = new("--force-with-lease")
+    {
+        Description = "Force push changes with lease."
+    };
 
-    [Description("The maximum number of branches to push changes for at once.")]
-    [CommandOption("--max-batch-size")]
-    [DefaultValue(5)]
-    public int MaxBatchSize { get; init; } = 5;
+    public PushStackCommand() : base("push", "Push changes to the remote repository for a stack.")
+    {
+        Add(CommonOptions.Stack);
+        Add(CommonOptions.MaxBatchSize);
+        Add(ForceWithLease);
+    }
 
-    [Description("Force push changes with lease.")]
-    [CommandOption("--force-with-lease")]
-    public bool ForceWithLease { get; init; }
-}
-
-public class PushStackCommand : Command<PushStackCommandSettings>
-{
-    protected override async Task Execute(PushStackCommandSettings settings)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new PushStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
         await handler.Handle(new PushStackCommandInputs(
-            settings.Stack,
-            settings.MaxBatchSize,
-            settings.ForceWithLease));
+            parseResult.GetValue(CommonOptions.Stack),
+            parseResult.GetValue(CommonOptions.MaxBatchSize),
+            parseResult.GetValue(ForceWithLease)));
     }
 }
 

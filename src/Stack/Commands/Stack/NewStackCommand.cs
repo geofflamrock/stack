@@ -1,30 +1,15 @@
 
 
+using System.CommandLine;
 using System.ComponentModel;
 using Humanizer;
 using Spectre.Console;
-using Spectre.Console.Cli;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 
 namespace Stack.Commands;
-
-public class NewStackCommandSettings : CommandSettingsBase
-{
-    [Description("The name of the stack. Must be unique.")]
-    [CommandOption("-n|--name")]
-    public string? Name { get; init; }
-
-    [Description("The source branch to use for the new branch. Defaults to the default branch for the repository.")]
-    [CommandOption("--source-branch")]
-    public string? SourceBranch { get; init; }
-
-    [Description("The name of the branch to create within the stack.")]
-    [CommandOption("-b|--branch")]
-    public string? BranchName { get; init; }
-}
 
 public enum BranchAction
 {
@@ -38,18 +23,42 @@ public enum BranchAction
     None
 }
 
-public class NewStackCommand : Command<NewStackCommandSettings>
+public class NewStackCommand : Command
 {
-    protected override async Task Execute(NewStackCommandSettings settings)
+    static readonly Option<string?> StackName = new("--name", "-n")
+    {
+        Description = "The name of the stack. Must be unique within the repository."
+    };
+
+    static readonly Option<string?> SourceBranch = new("--source-branch", "-s")
+    {
+        Description = "The source branch to use for the new stack. Defaults to the default branch for the repository."
+    };
+
+    static readonly Option<string?> BranchName = new("--branch", "-b")
+    {
+        Description = "The name of the branch to create within the stack."
+    };
+
+    public NewStackCommand() : base("new", "Create a new stack.")
+    {
+        Add(StackName);
+        Add(SourceBranch);
+        Add(BranchName);
+    }
+
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var handler = new NewStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, settings.GetGitClientSettings()),
+            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(
-            new NewStackCommandInputs(settings.Name, settings.SourceBranch, settings.BranchName));
+        await handler.Handle(new NewStackCommandInputs(
+            parseResult.GetValue(StackName),
+            parseResult.GetValue(SourceBranch),
+            parseResult.GetValue(BranchName)));
     }
 }
 
