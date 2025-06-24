@@ -39,7 +39,6 @@ public class FileStackConfigTests
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var prDescription = "Test PR description";
 
         // Create a V1 format config file directly as JSON
         var v1Json = $@"[
@@ -47,8 +46,7 @@ public class FileStackConfigTests
         ""Name"": ""{stackName}"",
         ""RemoteUri"": ""{remoteUri}"",
         ""SourceBranch"": ""{sourceBranch}"",
-        ""Branches"": [""{branch1}"", ""{branch2}""],
-        ""PullRequestDescription"": ""{prDescription}""
+        ""Branches"": [""{branch1}"", ""{branch2}""]
     }}
 ]";
         File.WriteAllText(configPath, v1Json);
@@ -64,7 +62,6 @@ public class FileStackConfigTests
                         new(branch2, [])
                     ])
             ]);
-        expectedStack.SetPullRequestDescription(prDescription);
 
         // Act
         var stackData = fileStackConfig.Load();
@@ -87,7 +84,6 @@ public class FileStackConfigTests
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
         var branch3 = Some.BranchName();
-        var prDescription = "Test PR description";
 
         // Create a V2 format config file with multiple trees directly as JSON
         var v2Json = $@"{{
@@ -111,8 +107,7 @@ public class FileStackConfigTests
                     ""Name"": ""{branch3}"",
                     ""Children"": []
                 }}
-            ],
-            ""PullRequestDescription"": ""{prDescription}""
+            ]
         }}
     ]
 }}";
@@ -128,7 +123,6 @@ public class FileStackConfigTests
                 new(branch1, [new(branch2, [])]),
                     new(branch3, [])
             ]);
-        expectedStack.SetPullRequestDescription(prDescription);
 
         // Act
         var stackData = fileStackConfig.Load();
@@ -148,7 +142,6 @@ public class FileStackConfigTests
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var prDescription = "Test PR description";
 
         // Create an empty config file
         Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
@@ -165,7 +158,6 @@ public class FileStackConfigTests
                         new(branch2, [])
                     ])
             ]);
-        stack.SetPullRequestDescription(prDescription);
 
         // Act
         var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
@@ -183,8 +175,7 @@ public class FileStackConfigTests
         ""Branches"": [
             ""{branch1}"",
             ""{branch2}""
-        ],
-        ""PullRequestDescription"": ""{prDescription}""
+        ]
     }}
 ]";
 
@@ -208,7 +199,6 @@ public class FileStackConfigTests
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
         var branch3 = Some.BranchName();
-        var prDescription = "Test PR description";
 
         // Create an empty config file in v1 format
         Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
@@ -217,8 +207,7 @@ public class FileStackConfigTests
         ""Name"": ""{stackName}"",
         ""RemoteUri"": ""{remoteUri}"",
         ""SourceBranch"": ""{sourceBranch}"",
-        ""Branches"": [""{branch1}"", ""{branch2}""],
-        ""PullRequestDescription"": ""{prDescription}""
+        ""Branches"": [""{branch1}"", ""{branch2}""]
     }}
 ]";
         File.WriteAllText(configPath, v1Json);
@@ -231,7 +220,6 @@ public class FileStackConfigTests
                 new(branch1, [new(branch2, [])]),
                 new(branch3, [])
             ]);
-        stack.SetPullRequestDescription(prDescription);
 
         var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
 
@@ -261,8 +249,7 @@ public class FileStackConfigTests
                     ""Name"": ""{branch3}"",
                     ""Children"": []
                 }}
-            ],
-            ""PullRequestDescription"": ""{prDescription}""
+            ]
         }}
     ]
 }}";

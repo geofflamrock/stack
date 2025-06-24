@@ -39,7 +39,6 @@ public class TestStackBuilder
     string? remoteUri;
     string? sourceBranch;
     List<Action<TestStackBranchBuilder>> branchBuilders = [];
-    string? pullRequestDescription;
 
     public TestStackBuilder WithName(string name)
     {
@@ -65,12 +64,6 @@ public class TestStackBuilder
         return this;
     }
 
-    public TestStackBuilder WithPullRequestDescription(string pullRequestDescription)
-    {
-        this.pullRequestDescription = pullRequestDescription;
-        return this;
-    }
-
     public Config.Stack Build()
     {
         var branches = branchBuilders
@@ -83,11 +76,6 @@ public class TestStackBuilder
             .ToList();
 
         var stack = new Config.Stack(name ?? Some.Name(), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
-
-        if (pullRequestDescription is not null)
-        {
-            stack.SetPullRequestDescription(pullRequestDescription);
-        }
 
         return stack;
     }

@@ -5,14 +5,6 @@ namespace Stack.Config;
 
 public record Stack(string Name, string RemoteUri, string SourceBranch, List<Branch> Branches)
 {
-    public string? PullRequestDescription { get; private set; }
-
-    public void SetPullRequestDescription(string description)
-    {
-        this.PullRequestDescription = description;
-    }
-
-
     public List<Branch> GetAllBranches()
     {
         var branchesToReturn = new List<Branch>();

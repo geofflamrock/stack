@@ -6,6 +6,5 @@ public class PullRequestsCommand : GroupCommand
     {
         Add(new CreatePullRequestsCommand());
         Add(new OpenPullRequestsCommand());
-        Add(new SetPullRequestDescriptionCommand());
     }
 }
