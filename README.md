@@ -162,295 +162,284 @@ You can then open each pull request if the stack if you want to view them.
 
 #### `stack new` <!-- omit from toc -->
 
-Creates a new stack.
+Create a new stack.
 
 ```shell
-USAGE:
-    stack new [OPTIONS]
+Usage:
+  stack new [options]
 
-OPTIONS:
-    -h, --help             Prints help information
-    -v, --version          Prints version information
-        --verbose          Show verbose output
-        --working-dir      The path to the directory containing the git repository. Defaults to the current directory
-    -n, --name             The name of the stack. Must be unique
-        --source-branch    The source branch to use for the new branch. Defaults to the default branch for the repository
-    -b, --branch           The name of the branch to create within the stack
+Options:
+  --working-dir        The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose            Show verbose output.
+  -n, --name           The name of the stack. Must be unique within the repository.
+  -s, --source-branch  The source branch to use for the new stack. Defaults to the default branch for the repository.
+  -b, --branch         The name of the branch to create within the stack.
+  -?, -h, --help       Show help and usage information
 ```
 
 #### `stack list` <!-- omit from toc -->
 
-Lists stacks for the current repository.
+List stacks.
 
 ```shell
-USAGE:
-    stack list [OPTIONS]
+Usage:
+  stack list [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --json           Output results as JSON
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  --json          Output results as JSON.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack status` <!-- omit from toc -->
 
-Shows the status of a stack, including commits compared to other branches and optionally the status of any associated pull requests.
+Show the status of the current stack or all stacks in the repository.
 
 ```shell
-USAGE:
-    stack status [OPTIONS]
+Usage:
+  stack status [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to show the status of
-        --all            Show status of all stacks
-        --full           Show full status including pull requests
-        --json           Output results as JSON
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  --json          Output results as JSON.
+  -s, --stack     The name of the stack.
+  --all           Show status of all stacks.
+  --full          Show full status including pull requests.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack delete` <!-- omit from toc -->
 
-Deletes a stack. If there are local branches which no longer exist on the remote or the associated pull request is no longer open these can be deleted as part of the command.
+Delete a stack.
 
 ```shell
-USAGE:
-    stack delete [OPTIONS]
+Usage:
+  stack delete [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to delete
-        --yes            Confirm the deletion of the stack without prompting
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -y, --yes       Confirm the command without prompting.
+  -?, -h, --help  Show help and usage information
 ```
 
 ### Branch commands <!-- omit from toc -->
 
 #### `stack update` <!-- omit from toc -->
 
-Updates the branches for a stack by either merging or rebasing each branch.
+Update the branches in a stack.
 
 ```shell
-USAGE:
-    stack update [OPTIONS]
+Usage:
+  stack update [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to update
-        --rebase         Use rebase when updating the stack. Overrides any setting in Git configuration
-        --merge          Use merge when updating the stack. Overrides any setting in Git configuration
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  --rebase        Use rebase when updating the stack. Overrides any setting in Git configuration.
+  --merge         Use merge when updating the stack. Overrides any setting in Git configuration.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack switch` <!-- omit from toc -->
 
-Switches to a different branch in the current stack or another stack.
+Switch to a branch in a stack.
 
 ```shell
-USAGE:
-    stack switch [OPTIONS]
+Usage:
+  stack switch [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -b, --branch         The name of the branch to switch to
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -b, --branch    The name of the branch.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack cleanup` <!-- omit from toc -->
 
-Cleans up local branches in a stack which no longer exist on the remote or where the associated pull request is no longer open.
+Clean up branches in a stack that are no longer needed.
 
 ```shell
-USAGE:
-    stack cleanup [OPTIONS]
+Usage:
+  stack cleanup [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to cleanup
-        --yes            Confirm the cleanup operation without prompting
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -y, --yes       Confirm the command without prompting.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack branch new` <!-- omit from toc -->
 
-Creates a new branch from the last branch in the stack and adds it.
+Create a new branch in a stack.
 
 ```shell
-USAGE:
-    stack branch new [OPTIONS]
+Usage:
+  stack branch new [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to create the branch in
-    -n, --name           The name of the branch to create
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -b, --branch    The name of the branch.
+  -p, --parent    The name of the parent branch to put the branch under.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack branch add` <!-- omit from toc -->
 
-Adds an existing branch to the end of the stack.
+Add an existing branch to a stack.
 
 ```shell
-USAGE:
-    stack branch add [OPTIONS]
+Usage:
+  stack branch add [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to create the branch in
-    -n, --name           The name of the branch to add
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -b, --branch    The name of the branch.
+  -p, --parent    The name of the parent branch to put the branch under.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack branch remove` <!-- omit from toc -->
 
-Removes a branch from a stack.
+Remove a branch from a stack.
 
 ```shell
-USAGE:
-    stack branch remove [OPTIONS]
+Usage:
+  stack branch remove [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to create the branch in
-    -n, --name           The name of the branch to add
-        --yes            Confirm the removal of the branch without prompting
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -b, --branch    The name of the branch.
+  -y, --yes       Confirm the command without prompting.
+  -?, -h, --help  Show help and usage information
 ```
 
 ### Remote commands <!-- omit from toc -->
 
 #### `stack pull` <!-- omit from toc -->
 
-Pulls changes from the remote repository for a stack.
+Pull changes from the remote repository for a stack.
 
 ```shell
+Usage:
+  stack pull [options]
 
-USAGE:
-    stack pull [OPTIONS]
-
-OPTIONS:
-    -h, --help           Prints help information
-    -v, --version        Prints version information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to pull changes from the remote for
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack push` <!-- omit from toc -->
 
-Pushes changes to the remote repository for a stack.
+Push changes to the remote repository for a stack.
 
 ```shell
+Usage:
+  stack push [options]
 
-USAGE:
-    stack push [OPTIONS]
-
-OPTIONS:
-    -h, --help                Prints help information
-    -v, --version             Prints version information
-        --verbose             Show verbose output
-        --working-dir         The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack               The name of the stack to push changes from the remote for
-        --max-batch-size      The maximum number of branches to push changes for at once (default: 5)
-        --force-with-lease    Force push changes with lease
+Options:
+  --working-dir       The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose           Show verbose output.
+  -s, --stack         The name of the stack.
+  --max-batch-size    The maximum number of branches to process at once. [default: 5]
+  --force-with-lease  Force push changes with lease.
+  -?, -h, --help      Show help and usage information
 ```
 
 #### `stack sync` <!-- omit from toc -->
 
-Syncs a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.
+Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.
 
 ```shell
+Usage:
+  stack sync [options]
 
-USAGE:
-    stack sync [OPTIONS]
-
-OPTIONS:
-    -h, --help              Prints help information
-    -v, --version           Prints version information
-        --verbose           Show verbose output
-        --working-dir       The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack             The name of the stack to sync with the remote
-        --max-batch-size    The maximum number of branches to push changes for at once (default: 5)
-        --rebase            Use rebase when updating the stack. Overrides any setting in Git configuration
-        --merge             Use merge when updating the stack. Overrides any setting in Git configuration
-        --yes               Confirm the sync without prompting
-        --no-push           Don't push changes to the remote repository
+Options:
+  --working-dir     The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose         Show verbose output.
+  -s, --stack       The name of the stack.
+  --max-batch-size  The maximum number of branches to process at once. [default: 5]
+  --rebase          Use rebase when updating the stack. Overrides any setting in Git configuration.
+  --merge           Use merge when updating the stack. Overrides any setting in Git configuration.
+  -y, --yes         Confirm the command without prompting.
+  --no-push         Don't push changes to the remote repository
+  -?, -h, --help    Show help and usage information
 ```
 
 ### GitHub commands <!-- omit from toc -->
 
 #### `stack pr create` <!-- omit from toc -->
 
-Creates and/or updates pull requests for each branch in a stack.
+Create pull requests for a stack.
 
 ```shell
-USAGE:
-    stack pr create [OPTIONS]
+Usage:
+  stack pr create [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to create pull requests for
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack pr open` <!-- omit from toc -->
 
-Opens pull requests for a stack in the default browser.
+Open pull requests for a stack in the default browser.
 
 ```shell
-USAGE:
-    stack pr open [OPTIONS]
+Usage:
+  stack pr open [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-    -s, --stack          The name of the stack to open PRs for
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -?, -h, --help  Show help and usage information
 ```
 
 ### Advanced commands <!-- omit from toc -->
 
 #### `stack config open` <!-- omit from toc -->
 
-Opens the configuration file in the default editor.
+Open the configuration file in the default editor.
 
 ```shell
-USAGE:
-    stack config open [OPTIONS]
+Usage:
+  stack config open [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -?, -h, --help  Show help and usage information
 ```
 
 #### `stack config migrate` <!-- omit from toc -->
 
-Migrates the configuration file from v1 to v2 format (preview).
+Migrate the configuration file from v1 to v2 format (preview).
 
 ```shell
-USAGE:
-    stack config migrate [OPTIONS]
+Usage:
+  stack config migrate [options]
 
-OPTIONS:
-    -h, --help           Prints help information
-        --verbose        Show verbose output
-        --working-dir    The path to the directory containing the git repository. Defaults to the current directory
-        --yes            Confirm the migration without prompting
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -y, --yes       Confirm the command without prompting.
+  -?, -h, --help  Show help and usage information
 ```
