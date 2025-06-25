@@ -1,3 +1,47 @@
+# v0.12.0 (Wed Jun 25 2025)
+
+#### 🚀 New Features and Improvements
+
+- Enable publishing with Native AOT [#287](https://github.com/geofflamrock/stack/pull/287) ([@geofflamrock](https://github.com/geofflamrock))
+- Add option to not push changes during sync [#296](https://github.com/geofflamrock/stack/pull/296) ([@geofflamrock](https://github.com/geofflamrock))
+- Only pull changes when local branch is behind remote [#294](https://github.com/geofflamrock/stack/pull/294) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes pull request description [#293](https://github.com/geofflamrock/stack/pull/293) ([@geofflamrock](https://github.com/geofflamrock))
+- Only push changes to branches that are ahead of the remote [#295](https://github.com/geofflamrock/stack/pull/295) ([@geofflamrock](https://github.com/geofflamrock))
+- Removes default branch name [#291](https://github.com/geofflamrock/stack/pull/291) ([@geofflamrock](https://github.com/geofflamrock))
+- Remove editing PR body as part of creation [#292](https://github.com/geofflamrock/stack/pull/292) ([@geofflamrock](https://github.com/geofflamrock))
+- Remove `Humanizer` [#290](https://github.com/geofflamrock/stack/pull/290) ([@geofflamrock](https://github.com/geofflamrock))
+- Convert to `System.CommandLine` [#276](https://github.com/geofflamrock/stack/pull/276) ([@geofflamrock](https://github.com/geofflamrock))
+- Replaces `Octopus.Shellfish` with directly using `Process` [#284](https://github.com/geofflamrock/stack/pull/284) ([@geofflamrock](https://github.com/geofflamrock))
+- Use source generator for Json serialization [#285](https://github.com/geofflamrock/stack/pull/285) ([@geofflamrock](https://github.com/geofflamrock))
+- Update to `Spectre.Console.Cli` 0.50.0 [#280](https://github.com/geofflamrock/stack/pull/280) ([@geofflamrock](https://github.com/geofflamrock))
+- Update to `Humanizer.Core` v3 beta [#286](https://github.com/geofflamrock/stack/pull/286) ([@geofflamrock](https://github.com/geofflamrock))
+- Change schema version to be stored as int [#283](https://github.com/geofflamrock/stack/pull/283) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when updating stack [#264](https://github.com/geofflamrock/stack/pull/264) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when removing branch from stack [#271](https://github.com/geofflamrock/stack/pull/271) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when adding branch to stack [#270](https://github.com/geofflamrock/stack/pull/270) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when creating pull requests [#266](https://github.com/geofflamrock/stack/pull/266) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when cleaning stack [#272](https://github.com/geofflamrock/stack/pull/272) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure when creating new branch [#265](https://github.com/geofflamrock/stack/pull/265) ([@geofflamrock](https://github.com/geofflamrock))
+- Support tree structure in status command [#262](https://github.com/geofflamrock/stack/pull/262) ([@geofflamrock](https://github.com/geofflamrock))
+- Adds command to migrate from v1 to v2 format [#263](https://github.com/geofflamrock/stack/pull/263) ([@geofflamrock](https://github.com/geofflamrock))
+- Add support for tree structure in config file [#252](https://github.com/geofflamrock/stack/pull/252) ([@geofflamrock](https://github.com/geofflamrock))
+- Refactor stack status [#250](https://github.com/geofflamrock/stack/pull/250) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 🏠 Internal
+
+- Improve exception handling from commands [#299](https://github.com/geofflamrock/stack/pull/299) ([@geofflamrock](https://github.com/geofflamrock))
+- Remove `--working-directory` alias [#298](https://github.com/geofflamrock/stack/pull/298) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### 📝 Documentation
+
+- Update readme to reflect new command options [#297](https://github.com/geofflamrock/stack/pull/297) ([@geofflamrock](https://github.com/geofflamrock))
+
+#### Authors: 1
+
+- Geoff Lamrock ([@geofflamrock](https://github.com/geofflamrock))
+
+---
+
 # v0.11.3 (Wed Mar 19 2025)
 
 #### 🐛 Bug Fixes
