@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Spectre.Console;
+using Stack.Git;
 using Stack.Infrastructure;
 
 namespace Stack.Commands;
@@ -38,8 +39,21 @@ public abstract class Command : System.CommandLine.Command
             WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
             Verbose = parseResult.GetValue(CommonOptions.Verbose);
 
-            await Execute(parseResult, cancellationToken);
-            return 0;
+            try
+            {
+                await Execute(parseResult, cancellationToken);
+                return 0;
+            }
+            catch (ProcessException processException)
+            {
+                StdErrLogger.Error(processException.Message);
+                return processException.ExitCode;
+            }
+            catch (Exception ex)
+            {
+                StdErrLogger.Error(ex.Message);
+                return 1;
+            }
         });
     }
 

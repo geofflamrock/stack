@@ -54,7 +54,9 @@ public static class ProcessHelpers
 
         if (result != 0)
         {
-            logger.Error(Markup.Escape(errorBuilder.ToString()));
+            if (verbose)
+                logger.Debug($"Failed to execute command: {fileName} {command}. Exit code: {result}. Error: {errorBuilder}.");
+
             if (exceptionHandler != null)
             {
                 var exception = exceptionHandler(result);
@@ -65,7 +67,7 @@ public static class ProcessHelpers
             }
             else
             {
-                throw new Exception($"Failed to execute command: {fileName} {command}. Exit code: {result}. Error: {errorBuilder}.");
+                throw new ProcessException(errorBuilder.ToString(), result);
             }
         }
 
@@ -82,5 +84,15 @@ public static class ProcessHelpers
         }
 
         return output;
+    }
+}
+
+public class ProcessException : Exception
+{
+    public int ExitCode { get; }
+
+    public ProcessException(string message, int exitCode) : base(message)
+    {
+        ExitCode = exitCode;
     }
 }
