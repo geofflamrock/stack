@@ -89,10 +89,11 @@ jobs:
           labels: |
             release
             chore
+          base: main
           body: |
             This PR will release version `${{ github.event.inputs.version }}`
 
-            ${{ steps.generate_release_notes.outputs.release_notes }}
+            ${{ env.release_notes }}
 
             ## Releasing a new version
             To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
