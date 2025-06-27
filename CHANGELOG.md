@@ -1,5 +1,15 @@
 # v0.12.0 (Wed Jun 25 2025)
 
+# Version v0.12.1
+
+## What's Changed
+* Allow manual run of versioning PR by @geofflamrock in https://github.com/geofflamrock/stack/pull/301
+
+
+**Full Changelog**: https://github.com/geofflamrock/stack/compare/v0.12.0...v0.12.1
+
+
+
 #### 🚀 New Features and Improvements
 
 - Enable publishing with Native AOT [#287](https://github.com/geofflamrock/stack/pull/287) ([@geofflamrock](https://github.com/geofflamrock))
