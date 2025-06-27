@@ -110,13 +110,13 @@ jobs:
             chore
           base: main
           body: |
+            ## Changes
             This PR prepares the changelog for release `${{ github.event.inputs.version }}`
 
             ${{ env.filtered_release_notes }}
 
-            ## Releasing a new version
-            When you are ready to release the new version, merge this PR.
-            Then create a release in the repository with the tag `${{ github.event.inputs.version }}`.
+            ## Releasing the new version
+            When you are ready to release the new version, merge this PR, then create a release in the repository with the tag `${{ github.event.inputs.version }}`.
           token: ${{ steps.app-token.outputs.token }}
           author: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
           committer: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
