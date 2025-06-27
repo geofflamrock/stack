@@ -56,8 +56,8 @@ jobs:
       - name: Update changelog
         id: update_changelog
         run: |
-          # Filter out the "Full changelog" link from release notes
-          filtered_notes=$(echo "${release_notes}" | sed '/\*\*Full Changelog\*\*/,$d' | sed 's/[[:space:]]*$//')
+          # Filter out the "Full changelog" link, release.yml configuration comment, and "What's changed" heading from release notes
+          filtered_notes=$(echo "${release_notes}" | sed '/\*\*Full Changelog\*\*/,$d' | sed '/^<!-- .* -->$/d' | sed '/^## What'\''s [Cc]hanged$/d' | sed 's/[[:space:]]*$//')
 
           # Store filtered notes for PR body
           echo "filtered_release_notes<<EOF" >> $GITHUB_ENV
