@@ -1,0 +1,21 @@
+changelog:
+  categories:
+    - title: ⛓️‍💥 Breaking Changes
+      labels:
+        - breaking
+        - major
+    - title: 🚀 New Features
+      labels:
+        - enhancement
+        - minor
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - patch
+    - title: Other changes
+      labels:
+        - "*"
+  exclude:
+    labels:
+      - chore
+      - release

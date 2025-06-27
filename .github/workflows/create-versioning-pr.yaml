@@ -1,39 +1,19 @@
-name: Create versioning pull request
+name: Create changelog pull request
 
 on:
   workflow_dispatch:
-  
-  push:
-    branches: ["main"]
-    paths-ignore:
-      - README.md
+    inputs:
+      version:
+        description: The version to prepare changelog for
+        required: true
 
 jobs:
-  version:
-    name: Get versioning information
-    runs-on: ubuntu-latest
-    outputs:
-      next_release_version: ${{ steps.get_versioning_information.outputs.next_release_version }}
-      has_unreleased_changes: ${{ steps.get_versioning_information.outputs.has_unreleased_changes }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Get all tags
-
-      - name: Get versioning information
-        uses: ./.github/actions/get-versioning-information
-        id: get_versioning_information
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-  versioning_pr:
-    name: Create versioning pull request
-    needs: [version]
+  changelog_pr:
+    name: Create changelog pull request
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
-    if: needs.version.outputs.has_unreleased_changes == 'true'
     steps:
       - uses: actions/create-github-app-token@v1
         id: app-token
@@ -46,11 +26,6 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0 # Get all tags
           persist-credentials: false # Make sure the value of GITHUB_TOKEN will not be persisted in repo's config
-
-      - name: Download auto
-        run: |
-          curl -kL -o - https://github.com/intuit/auto/releases/download/v11.3.0/auto-linux.gz | gunzip > ${{ runner.temp }}/auto
-          chmod +x ${{ runner.temp }}/auto
 
       - name: Get GitHub App User ID
         id: get-user-id
@@ -66,33 +41,82 @@ jobs:
         id: get-user-name
         run: echo "name=${{ steps.app-token.outputs.app-slug }}[bot]" >> "$GITHUB_OUTPUT"
 
-      - name: Update changelog
-        id: update_changelog
+      - name: Generate release notes
+        id: generate_release_notes
         run: |
-          echo "changes<<EOF" >> $GITHUB_ENV
-          echo "$(${{ runner.temp }}/auto changelog --quiet --no-git-commit --name ${{ steps.get-user-name.outputs.name }} --email ${{ steps.get-user-email.outputs.email }})" >> $GITHUB_ENV
+          echo "release_notes<<EOF" >> $GITHUB_ENV
+          gh api repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="${{ github.event.inputs.version }}" \
+            -f target_commitish="${{ github.sha }}" \
+            --jq '.body' >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
-      - name: Create versioning pull request
+      - name: Update changelog
+        id: update_changelog
+        run: |
+          # Filter out the "Full changelog" link, release.yml configuration comment, and "What's changed" heading from release notes
+          filtered_notes=$(echo "${release_notes}" | sed '/\*\*Full Changelog\*\*/,$d' | sed '/^<!-- .* -->$/d' | sed '/^## What'\''s [Cc]hanged$/d' | sed 's/[[:space:]]*$//')
+
+          # Store filtered notes for PR body
+          echo "filtered_release_notes<<EOF" >> $GITHUB_ENV
+          echo "${filtered_notes}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          # Create a temporary file with the new changelog entry
+          cat > /tmp/new_changelog_entry.md << EOF
+          # ${{ github.event.inputs.version }} ($(date +%Y-%m-%d))
+          ${filtered_notes}
+          EOF
+
+          # Insert the new entry at the top of CHANGELOG.md (after the first line if it's a "Changelog" heading)
+          if [ -f CHANGELOG.md ]; then
+            # Check if the first line is a "Changelog" heading
+            first_line=$(head -n 1 CHANGELOG.md)
+            if [[ "$first_line" =~ ^#.*[Cc]hangelog ]]; then
+              # If first line is a changelog heading, insert after it
+              head -n 1 CHANGELOG.md > /tmp/updated_changelog.md
+              echo "" >> /tmp/updated_changelog.md
+              cat /tmp/new_changelog_entry.md >> /tmp/updated_changelog.md
+              echo "" >> /tmp/updated_changelog.md
+              tail -n +2 CHANGELOG.md >> /tmp/updated_changelog.md
+              mv /tmp/updated_changelog.md CHANGELOG.md
+            else
+              # If first line is not a changelog heading, add one and insert the entry
+              echo "# Changelog" > /tmp/updated_changelog.md
+              echo "" >> /tmp/updated_changelog.md
+              cat /tmp/new_changelog_entry.md >> /tmp/updated_changelog.md
+              echo "" >> /tmp/updated_changelog.md
+              cat CHANGELOG.md >> /tmp/updated_changelog.md
+              mv /tmp/updated_changelog.md CHANGELOG.md
+            fi
+          else
+            # If no changelog exists, create one with a heading
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            cat /tmp/new_changelog_entry.md >> CHANGELOG.md
+          fi
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Create changelog pull request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: auto/release
-          title: Release version `${{ needs.version.outputs.next_release_version }}`
-          commit-message: Release version `${{ needs.version.outputs.next_release_version }}`
+          branch: automation/update-changelog
+          title: Update changelog for `${{ github.event.inputs.version }}`
+          commit-message: Update changelog for `${{ github.event.inputs.version }}`
           labels: |
-            release
             chore
+          base: main
           body: |
-            This PR will release version `${{ needs.version.outputs.next_release_version }}`
-
             ## Changes
-            ${{ env.changes }}
+            This PR prepares the changelog for release `${{ github.event.inputs.version }}`
 
-            ## Releasing a new version
-            To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
-            If you don't see your changes in the list above, please check your PR is tagged with an appropriate label to include your change in the release notes.
+            ${{ env.filtered_release_notes }}
+
+            ## Releasing the new version
+            When you are ready to release the new version, merge this PR, then create a release in the repository with the tag `${{ github.event.inputs.version }}`.
           token: ${{ steps.app-token.outputs.token }}
           author: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
           committer: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
