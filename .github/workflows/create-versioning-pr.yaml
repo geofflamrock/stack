@@ -57,8 +57,7 @@ jobs:
         id: update_changelog
         run: |
           # Filter out the "Full changelog" link, release.yml configuration comment, and "What's changed" heading from release notes
-          # Then remove leading and trailing blank lines
-          filtered_notes=$(echo "${release_notes}" | sed '/\*\*Full Changelog\*\*/,$d' | sed '/^<!-- .* -->$/d' | sed '/^## What'\''s [Cc]hanged$/d' | sed '/^[[:space:]]*$/d' | sed -e :a -e '/^\s*$/N;ba' -e 's/\n*$//')
+          filtered_notes=$(echo "${release_notes}" | sed '/\*\*Full Changelog\*\*/,$d' | sed '/^<!-- .* -->$/d' | sed '/^## What'\''s [Cc]hanged$/d' | sed 's/[[:space:]]*$//')
 
           # Store filtered notes for PR body
           echo "filtered_release_notes<<EOF" >> $GITHUB_ENV
@@ -68,9 +67,7 @@ jobs:
           # Create a temporary file with the new changelog entry
           cat > /tmp/new_changelog_entry.md << EOF
           # ${{ github.event.inputs.version }} ($(date +%Y-%m-%d))
-
           ${filtered_notes}
-
           EOF
 
           # Insert the new entry at the top of CHANGELOG.md (after the first line if it's a "Changelog" heading)
@@ -113,13 +110,13 @@ jobs:
             chore
           base: main
           body: |
-            This PR will release version `${{ github.event.inputs.version }}`
+            This PR prepares the changelog for release `${{ github.event.inputs.version }}`
 
             ${{ env.filtered_release_notes }}
 
             ## Releasing a new version
-            To release the version when you are ready, merge this PR. The new version will then be built and published to a GitHub release.
-            If you don't see your changes in the list above, please check your PR is tagged with an appropriate label to include your change in the release notes.
+            When you are ready to release the new version, merge this PR.
+            Then create a release in the repository with the tag `${{ github.event.inputs.version }}`.
           token: ${{ steps.app-token.outputs.token }}
           author: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
           committer: ${{ steps.get-user-name.outputs.name }} <${{ steps.get-user-email.outputs.email }}>
