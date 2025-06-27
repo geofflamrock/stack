@@ -109,7 +109,6 @@ jobs:
           title: Update changelog for `${{ github.event.inputs.version }}`
           commit-message: Update changelog for `${{ github.event.inputs.version }}`
           labels: |
-            release
             chore
           base: main
           body: |
