@@ -6,6 +6,7 @@ on:
     paths:
       - "!**" # Exclude every file
       - "README.md" # Except only readme changes
+      - "CHANGELOG.md" # And changelog changes
 
 jobs:
   pr_complete:
