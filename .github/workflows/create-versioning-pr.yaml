@@ -100,7 +100,7 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
 
-      - name: Create versioning pull request
+      - name: Create changelog pull request
         uses: peter-evans/create-pull-request@v7
         with:
           branch: automation/update-changelog

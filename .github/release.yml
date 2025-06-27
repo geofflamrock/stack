@@ -12,9 +12,6 @@ changelog:
       labels:
         - bug
         - patch
-    - title: Automation
-      labels:
-        - automation
     - title: Other changes
       labels:
         - "*"
