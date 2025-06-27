@@ -85,15 +85,19 @@ jobs:
               tail -n +2 CHANGELOG.md >> /tmp/updated_changelog.md
               mv /tmp/updated_changelog.md CHANGELOG.md
             else
-              # If first line is not a changelog heading, insert at the top
-              cat /tmp/new_changelog_entry.md > /tmp/updated_changelog.md
+              # If first line is not a changelog heading, add one and insert the entry
+              echo "# Changelog" > /tmp/updated_changelog.md
+              echo "" >> /tmp/updated_changelog.md
+              cat /tmp/new_changelog_entry.md >> /tmp/updated_changelog.md
               echo "" >> /tmp/updated_changelog.md
               cat CHANGELOG.md >> /tmp/updated_changelog.md
               mv /tmp/updated_changelog.md CHANGELOG.md
             fi
           else
-            # If no changelog exists, create one
-            cat /tmp/new_changelog_entry.md > CHANGELOG.md
+            # If no changelog exists, create one with a heading
+            echo "# Changelog" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            cat /tmp/new_changelog_entry.md >> CHANGELOG.md
           fi
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -101,9 +105,9 @@ jobs:
       - name: Create versioning pull request
         uses: peter-evans/create-pull-request@v7
         with:
-          branch: auto/release
-          title: Release version `${{ github.event.inputs.version }}`
-          commit-message: Release version `${{ github.event.inputs.version }}`
+          branch: automation/update-changelog
+          title: Update changelog for `${{ github.event.inputs.version }}`
+          commit-message: Update changelog for `${{ github.event.inputs.version }}`
           labels: |
             release
             chore
