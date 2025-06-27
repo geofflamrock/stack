@@ -1,6 +1,8 @@
 name: Create versioning pull request
 
 on:
+  workflow_dispatch:
+  
   push:
     branches: ["main"]
     paths-ignore:
