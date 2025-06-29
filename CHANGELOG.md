@@ -1,3 +1,10 @@
+# Changelog
+
+# v0.12.1 (2025-06-29)
+
+### Other changes
+* Allow manual run of versioning PR by @geofflamrock in https://github.com/geofflamrock/stack/pull/301
+
 # v0.12.0 (Wed Jun 25 2025)
 
 #### 🚀 New Features and Improvements
