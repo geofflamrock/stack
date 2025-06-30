@@ -204,4 +204,6 @@ jobs:
           tag_name: ${{ needs.version.outputs.version }}
           draft: false
           prerelease: false
-          files: ${{ github.workspace }}/artifacts/**
+          files: |
+            ${{ github.workspace }}/artifacts/**/*.zip
+            ${{ github.workspace }}/artifacts/**/*.tar.gz
