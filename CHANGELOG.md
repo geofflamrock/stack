@@ -1,3 +1,10 @@
+# Changelog
+
+# v0.13.0 (2025-06-30)
+
+### 🚀 New Features
+* Ask for update strategy instead of using merge as a default by @geofflamrock in https://github.com/geofflamrock/stack/pull/305
+
 # v0.12.0 (Wed Jun 25 2025)
 
 #### 🚀 New Features and Improvements
