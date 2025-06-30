@@ -498,7 +498,7 @@ public static class StackHelpers
         return null;
     }
 
-    public static void UpdateStack(
+    public static UpdateStrategy UpdateStack(
         Config.Stack stack,
         StackStatus status,
         UpdateStrategy? specificUpdateStrategy,
@@ -506,7 +506,7 @@ public static class StackHelpers
         IInputProvider inputProvider,
         ILogger logger)
     {
-        var strategy = UpdateStrategy.Merge;
+        UpdateStrategy? strategy = null;
 
         if (specificUpdateStrategy is not null)
         {
@@ -522,6 +522,20 @@ public static class StackHelpers
             }
         }
 
+        if (strategy is null)
+        {
+            strategy = inputProvider.Select(
+                Questions.SelectUpdateStrategy,
+                [UpdateStrategy.Merge, UpdateStrategy.Rebase]);
+
+            logger.Information($"{Questions.SelectUpdateStrategy} {strategy}");
+
+            logger.NewLine();
+            logger.Information($"Run {$"git config stack.update.strategy {strategy.ToString()!.ToLowerInvariant()}".Example()} to configure this update strategy for the current repository.");
+            logger.Information($"Run {$"git config --global stack.update.strategy {strategy.ToString()!.ToLowerInvariant()}".Example()} to configure this update strategy for all repositories.");
+            logger.NewLine();
+        }
+
         if (strategy == UpdateStrategy.Rebase)
         {
             UpdateStackUsingRebase(stack, status, gitClient, inputProvider, logger);
@@ -530,6 +544,8 @@ public static class StackHelpers
         {
             UpdateStackUsingMerge(stack, status, gitClient, inputProvider, logger);
         }
+
+        return strategy.Value;
     }
 
     public static void UpdateStackUsingMerge(
@@ -539,6 +555,8 @@ public static class StackHelpers
         IInputProvider inputProvider,
         ILogger logger)
     {
+        logger.Information($"Updating stack {status.Name.Stack()} using merge...");
+
         var allBranchLines = status.GetAllBranchLines();
 
         foreach (var branchLine in allBranchLines)
@@ -745,6 +763,8 @@ public static class StackHelpers
         IInputProvider inputProvider,
         ILogger logger)
     {
+        logger.Information($"Updating stack {status.Name.Stack()} using rebase...");
+
         var allBranchLines = status.GetAllBranchLines();
 
         foreach (var branchLine in allBranchLines)
