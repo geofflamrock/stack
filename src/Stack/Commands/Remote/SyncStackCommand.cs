@@ -106,7 +106,7 @@ public class SyncStackCommandHandler(
 
             StackHelpers.PullChanges(stack, gitClient, logger);
 
-            StackHelpers.UpdateStack(
+            var updateStrategy = StackHelpers.UpdateStack(
                 stack,
                 status,
                 inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
@@ -114,7 +114,7 @@ public class SyncStackCommandHandler(
                 inputProvider,
                 logger);
 
-            var forceWithLease = inputs.Rebase == true || StackHelpers.GetUpdateStrategyConfigValue(gitClient) == UpdateStrategy.Rebase;
+            var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
             if (!inputs.NoPush)
                 StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);

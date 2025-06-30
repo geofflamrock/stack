@@ -580,6 +580,105 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task WhenGitConfigValueDoesNotExist_AndRebaseIsSelected_AllBranchesInStackAreUpdatedUsingRebase()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch2).PushToRemote(), 1)
+            .Build();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Rebase);
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null));
+
+        // Assert
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
+        repo.GetAheadBehind(branch2).Should().Be((20, 12));
+    }
+
+    [Fact]
+    public async Task WhenGitConfigValueDoesNotExist_AndMergeIsSelected_AllBranchesInStackAreUpdatedUsingMerge()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommits(b => b.OnBranch(sourceBranch).PushToRemote(), 5)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch1).PushToRemote(), 3)
+            .WithNumberOfEmptyCommits(b => b.OnBranch(branch2).PushToRemote(), 1)
+            .WithConfig("stack.update.strategy", "")
+            .Build();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Merge);
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null));
+
+        // Assert
+        var tipOfSourceBranch = repo.GetTipOfBranch(sourceBranch);
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+
+        repo.GetCommitsReachableFromBranch(branch1).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfSourceBranch);
+        repo.GetCommitsReachableFromBranch(branch2).Should().Contain(tipOfBranch1);
+        repo.GetAheadBehind(branch2).Should().Be((10, 0));
+    }
+
+    [Fact]
     public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
     {
         // Arrange

@@ -107,7 +107,7 @@ There are two strategies that can be used to update branches in a stack.
 
 The Git configuration key `stack.update.strategy` can be used to control the default update strategy on a global or per-repository basis.
 
-The `merge` update strategy is used by default if no configuration is supplied.
+You will be asked to select an update strategy if none is supplied or configured.
 
 ##### Merge <!-- omit from toc -->
 

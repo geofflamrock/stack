@@ -565,6 +565,114 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task WhenNotSpecifyingRebaseOrMerge_AndNoUpdateSettingExists_AndMergeIsSelected_DoesSyncUsingMerge()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(sourceBranch, 5, b => b.PushToRemote())
+            .WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(branch1, 3, b => b.PushToRemote())
+            .WithConfig("stack.update.strategy", "")
+            .Build();
+
+        var tipOfRemoteSourceBranch = repo.GetTipOfRemoteBranch(sourceBranch);
+        var tipOfRemoteBranch1 = repo.GetTipOfRemoteBranch(branch1);
+        repo.GetCommitsReachableFromBranch(sourceBranch).Should().NotContain(tipOfRemoteSourceBranch);
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.ChangeBranch(branch1);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Merge);
+        inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
+
+        // Act
+        await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false));
+
+        // Assert
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
+        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfRemoteSourceBranch);
+        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfBranch1);
+        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteBranch1); // The merge should retain the tip of the branch
+    }
+
+    [Fact]
+    public async Task WhenNotSpecifyingRebaseOrMerge_AndNoUpdateSettingsExists_AndRebaseIsSelected_DoesSyncUsingRebase()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(sourceBranch, 5, b => b.PushToRemote())
+            .WithNumberOfEmptyCommitsOnRemoteTrackingBranchOf(branch1, 3, b => b.PushToRemote())
+            .WithConfig("stack.update.strategy", "")
+            .Build();
+
+        var tipOfRemoteSourceBranch = repo.GetTipOfRemoteBranch(sourceBranch);
+        var tipOfRemoteBranch1 = repo.GetTipOfRemoteBranch(branch1);
+        repo.GetCommitsReachableFromBranch(sourceBranch).Should().NotContain(tipOfRemoteSourceBranch);
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(repo.RemoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var handler = new SyncStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.ChangeBranch(branch1);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Rebase);
+        inputProvider.Confirm(Questions.ConfirmSyncStack).Returns(true);
+
+        // Act
+        await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false));
+
+        // Assert
+        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
+        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().Contain(tipOfRemoteSourceBranch);
+        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfRemoteSourceBranch);
+        repo.GetCommitsReachableFromRemoteBranch(branch2).Should().Contain(tipOfBranch1);
+        repo.GetCommitsReachableFromRemoteBranch(branch1).Should().NotContain(tipOfRemoteBranch1); // When doing a rebase we should no longer have the previous tip
+    }
+
+    [Fact]
     public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
     {
         // Arrange
