@@ -45,7 +45,7 @@ jobs:
 
       - name: Get version
         id: get_version
-        run: echo "version=${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ github.ref_type == 'tag' && github.event_name == 'push' && steps.get_release_version.outputs.version || steps.get_pre_release_version.outputs.version }}" >> $GITHUB_OUTPUT
 
   build:
     needs: version
