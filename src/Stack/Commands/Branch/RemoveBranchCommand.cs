@@ -9,11 +9,23 @@ namespace Stack.Commands;
 
 public class RemoveBranchCommand : Command
 {
+    static readonly Option<bool> RemoveChildren = new("--remove-children")
+    {
+        Description = "Remove children branches."
+    };
+
+    static readonly Option<bool> MoveChildrenToParent = new("--move-children-to-parent")
+    {
+        Description = "Move children branches to the parent branch."
+    };
+
     public RemoveBranchCommand() : base("remove", "Remove a branch from a stack.")
     {
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.Confirm);
+        Add(RemoveChildren);
+        Add(MoveChildrenToParent);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
@@ -24,16 +36,25 @@ public class RemoveBranchCommand : Command
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
+        var removeChildren = parseResult.GetValue(RemoveChildren);
+        var moveChildrenToParent = parseResult.GetValue(MoveChildrenToParent);
+
+        if (removeChildren && moveChildrenToParent)
+        {
+            throw new InvalidOperationException("Cannot specify both --remove-children and --move-children-to-parent options.");
+        }
+
         await handler.Handle(new RemoveBranchCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.Branch),
-            parseResult.GetValue(CommonOptions.Confirm)));
+            parseResult.GetValue(CommonOptions.Confirm),
+            removeChildren ? RemoveBranchChildAction.RemoveChildren : moveChildrenToParent ? RemoveBranchChildAction.MoveChildrenToParent : null));
     }
 }
 
-public record RemoveBranchCommandInputs(string? StackName, string? BranchName, bool Confirm)
+public record RemoveBranchCommandInputs(string? StackName, string? BranchName, bool Confirm, RemoveBranchChildAction? RemoveChildrenAction = null)
 {
-    public static RemoveBranchCommandInputs Empty => new(null, null, false);
+    public static RemoveBranchCommandInputs Empty => new(null, null, false, null);
 }
 
 public class RemoveBranchCommandHandler(
@@ -70,10 +91,12 @@ public class RemoveBranchCommandHandler(
 
         if (stackData.SchemaVersion == SchemaVersion.V2)
         {
-            action = inputProvider.Select(
-                Questions.RemoveBranchChildAction,
-                [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
-                (action) => action.Humanize());
+            action =
+                inputs.RemoveChildrenAction ??
+                inputProvider.Select(
+                    Questions.RemoveBranchChildAction,
+                    [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
+                    (action) => action.Humanize());
         }
 
         if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
