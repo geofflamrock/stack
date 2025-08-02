@@ -319,12 +319,14 @@ Usage:
   stack branch remove [options]
 
 Options:
-  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
-  --verbose       Show verbose output.
-  -s, --stack     The name of the stack.
-  -b, --branch    The name of the branch.
-  -y, --yes       Confirm the command without prompting.
-  -?, -h, --help  Show help and usage information
+  --working-dir              The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose                  Show verbose output.
+  -s, --stack                The name of the stack.
+  -b, --branch               The name of the branch.
+  -y, --yes                  Confirm the command without prompting.
+  --remove-children          Remove children branches.
+  --move-children-to-parent  Move children branches to the parent branch.
+  -?, -h, --help             Show help and usage information
 ```
 
 ### Remote commands <!-- omit from toc -->
