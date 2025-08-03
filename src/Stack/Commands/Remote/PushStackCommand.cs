@@ -46,7 +46,7 @@ public class PushStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig,
-    IRemoteStackActions remoteStackActions)
+    IStackActions stackActions)
     : CommandHandlerBase<PushStackCommandInputs>
 {
     public override async Task Handle(PushStackCommandInputs inputs)
@@ -70,7 +70,7 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        remoteStackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
+        stackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
         return;
     }
 }

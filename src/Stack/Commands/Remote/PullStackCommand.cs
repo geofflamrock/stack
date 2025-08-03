@@ -33,7 +33,7 @@ public class PullStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IStackConfig stackConfig,
-    IRemoteStackActions remoteStackActions)
+    IStackActions stackActions)
     : CommandHandlerBase<PullStackCommandInputs>
 {
     public override async Task Handle(PullStackCommandInputs inputs)
@@ -57,7 +57,7 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        remoteStackActions.PullChanges(stack, gitClient, logger);
+        stackActions.PullChanges(stack, gitClient, logger);
 
         gitClient.ChangeBranch(currentBranch);
     }
