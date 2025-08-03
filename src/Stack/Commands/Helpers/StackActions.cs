@@ -4,7 +4,7 @@ using Stack.Git;
 
 namespace Stack.Commands.Helpers
 {
-    public class StackActions : IRemoteStackActions, ILocalStackActions
+    public class StackActions : IStackActions
     {
         public UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient)
         {

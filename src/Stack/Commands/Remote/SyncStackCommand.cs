@@ -31,7 +31,6 @@ public class SyncStackCommand : Command
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig(),
-            new StackActions(),
             new StackActions());
 
         await handler.Handle(new SyncStackCommandInputs(
@@ -61,8 +60,7 @@ public class SyncStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
-    ILocalStackActions localStackActions,
-    IRemoteStackActions remoteStackActions)
+    IStackActions stackActions)
     : CommandHandlerBase<SyncStackCommandInputs>
 {
     public override async Task Handle(SyncStackCommandInputs inputs)
@@ -108,12 +106,12 @@ public class SyncStackCommandHandler(
         {
             logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            remoteStackActions.PullChanges(stack, gitClient, logger);
+            stackActions.PullChanges(stack, gitClient, logger);
 
             var updateStrategy =
                 inputs.Merge == true ? UpdateStrategy.Merge :
                 inputs.Rebase == true ? UpdateStrategy.Rebase :
-                localStackActions.GetUpdateStrategyConfigValue(gitClient);
+                stackActions.GetUpdateStrategyConfigValue(gitClient);
 
             if (updateStrategy == null)
             {
@@ -129,7 +127,7 @@ public class SyncStackCommandHandler(
                 logger.NewLine();
             }
 
-            localStackActions.UpdateStack(
+            stackActions.UpdateStack(
                 stack,
                 status,
                 updateStrategy,
@@ -140,7 +138,7 @@ public class SyncStackCommandHandler(
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
             if (!inputs.NoPush)
-                remoteStackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
+                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
