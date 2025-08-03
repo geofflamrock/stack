@@ -6,6 +6,11 @@ namespace Stack.Commands.Helpers
 {
     public class StackActions : IRemoteStackActions, ILocalStackActions
     {
+        public UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient)
+        {
+            return StackHelpers.GetUpdateStrategyConfigValue(gitClient);
+        }
+
         public void PullChanges(
             Config.Stack stack,
             IGitClient gitClient,
@@ -26,21 +31,12 @@ namespace Stack.Commands.Helpers
 
         public UpdateStrategy UpdateStack(
             Config.Stack stack,
+            StackStatus status,
             UpdateStrategy? specificUpdateStrategy,
             IGitClient gitClient,
             IInputProvider inputProvider,
             ILogger logger)
         {
-            var currentBranch = gitClient.GetCurrentBranch();
-            var status = StackHelpers.GetStackStatus(
-                stack,
-                currentBranch,
-                logger,
-                gitClient,
-                // Try to get a default IGitHubClient if needed, or pass null if not used
-                null,
-                true);
-
             return StackHelpers.UpdateStack(
                 stack,
                 status,

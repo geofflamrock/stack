@@ -8,9 +8,12 @@ namespace Stack.Commands.Helpers
     {
         UpdateStrategy UpdateStack(
             Config.Stack stack,
+            StackStatus status,
             UpdateStrategy? specificUpdateStrategy,
             IGitClient gitClient,
             IInputProvider inputProvider,
             ILogger logger);
+
+        UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient);
     }
 }
