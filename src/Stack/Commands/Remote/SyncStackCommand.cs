@@ -110,9 +110,29 @@ public class SyncStackCommandHandler(
 
             remoteStackActions.PullChanges(stack, gitClient, logger);
 
-            var updateStrategy = localStackActions.UpdateStack(
+            var updateStrategy =
+                inputs.Merge == true ? UpdateStrategy.Merge :
+                inputs.Rebase == true ? UpdateStrategy.Rebase :
+                localStackActions.GetUpdateStrategyConfigValue(gitClient);
+
+            if (updateStrategy == null)
+            {
+                updateStrategy = inputProvider.Select(
+                    Questions.SelectUpdateStrategy,
+                    [UpdateStrategy.Merge, UpdateStrategy.Rebase]);
+
+                logger.Information($"{Questions.SelectUpdateStrategy} {updateStrategy}");
+
+                logger.NewLine();
+                logger.Information($"Run {$"git config stack.update.strategy {updateStrategy.ToString()!.ToLowerInvariant()}".Example()} to configure this update strategy for the current repository.");
+                logger.Information($"Run {$"git config --global stack.update.strategy {updateStrategy.ToString()!.ToLowerInvariant()}".Example()} to configure this update strategy for all repositories.");
+                logger.NewLine();
+            }
+
+            localStackActions.UpdateStack(
                 stack,
-                inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
+                status,
+                updateStrategy,
                 gitClient,
                 inputProvider,
                 logger);

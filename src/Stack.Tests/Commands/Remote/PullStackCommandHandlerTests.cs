@@ -47,7 +47,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var remoteStackActions = Substitute.For<IRemoteStackActions>();
+        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, remoteStackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -98,7 +99,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var remoteStackActions = Substitute.For<IRemoteStackActions>();
+        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, remoteStackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -148,7 +150,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var remoteStackActions = Substitute.For<IRemoteStackActions>();
+        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, remoteStackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -195,7 +198,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var remoteStackActions = Substitute.For<IRemoteStackActions>();
+        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, remoteStackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -244,7 +248,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var remoteStackActions = Substitute.For<IRemoteStackActions>();
+        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, remoteStackActions);
 
         gitClient.ChangeBranch(branch2);
 
