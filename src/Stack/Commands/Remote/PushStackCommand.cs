@@ -26,7 +26,8 @@ public class PushStackCommand : Command
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            new FileStackConfig(),
+            new StackActions());
 
         await handler.Handle(new PushStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -44,7 +45,8 @@ public class PushStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IRemoteStackActions remoteStackActions)
     : CommandHandlerBase<PushStackCommandInputs>
 {
     public override async Task Handle(PushStackCommandInputs inputs)
@@ -68,7 +70,7 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        StackHelpers.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
+        remoteStackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
         return;
     }
 }

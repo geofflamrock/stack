@@ -19,7 +19,8 @@ public class PullStackCommand : Command
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            new FileStackConfig(),
+            new StackActions());
 
         await handler.Handle(new PullStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
@@ -31,7 +32,8 @@ public class PullStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IRemoteStackActions remoteStackActions)
     : CommandHandlerBase<PullStackCommandInputs>
 {
     public override async Task Handle(PullStackCommandInputs inputs)
@@ -55,7 +57,7 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        StackHelpers.PullChanges(stack, gitClient, logger);
+        remoteStackActions.PullChanges(stack, gitClient, logger);
 
         gitClient.ChangeBranch(currentBranch);
     }
