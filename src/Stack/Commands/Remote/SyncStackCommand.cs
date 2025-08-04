@@ -25,13 +25,21 @@ public class SyncStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+        var stackActions = new StackActions(
+            gitClient,
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            InputProvider,
+            StdErrLogger);
+
         var handler = new SyncStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            gitClient,
+            gitHubClient,
             new FileStackConfig(),
-            new StackActions());
+            stackActions);
 
         await handler.Handle(new SyncStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -106,12 +114,12 @@ public class SyncStackCommandHandler(
         {
             logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            stackActions.PullChanges(stack, gitClient, logger);
+            stackActions.PullChanges(stack);
 
             var updateStrategy =
                 inputs.Merge == true ? UpdateStrategy.Merge :
                 inputs.Rebase == true ? UpdateStrategy.Rebase :
-                stackActions.GetUpdateStrategyConfigValue(gitClient);
+                stackActions.GetUpdateStrategyConfigValue();
 
             if (updateStrategy == null)
             {
@@ -129,16 +137,12 @@ public class SyncStackCommandHandler(
 
             stackActions.UpdateStack(
                 stack,
-                status,
-                updateStrategy,
-                gitClient,
-                inputProvider,
-                logger);
+                updateStrategy);
 
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
             if (!inputs.NoPush)
-                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
+                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

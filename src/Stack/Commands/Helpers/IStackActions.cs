@@ -8,24 +8,15 @@ namespace Stack.Commands.Helpers
     {
         UpdateStrategy UpdateStack(
             Config.Stack stack,
-            StackStatus status,
-            UpdateStrategy? specificUpdateStrategy,
-            IGitClient gitClient,
-            IInputProvider inputProvider,
-            ILogger logger);
+            UpdateStrategy? specificUpdateStrategy);
 
-        UpdateStrategy? GetUpdateStrategyConfigValue(IGitClient gitClient);
+        UpdateStrategy? GetUpdateStrategyConfigValue();
 
-        void PullChanges(
-            Config.Stack stack,
-            IGitClient gitClient,
-            ILogger logger);
+        void PullChanges(Config.Stack stack);
 
         void PushChanges(
             Config.Stack stack,
             int maxBatchSize,
-            bool forceWithLease,
-            IGitClient gitClient,
-            ILogger logger);
+            bool forceWithLease);
     }
 }
