@@ -22,12 +22,19 @@ public class PushStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var stackActions = new StackActions(
+            gitClient,
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            InputProvider,
+            StdErrLogger);
+
         var handler = new PushStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            gitClient,
             new FileStackConfig(),
-            new StackActions());
+            stackActions);
 
         await handler.Handle(new PushStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -70,7 +77,7 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        stackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease, gitClient, logger);
+        stackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease);
         return;
     }
 }

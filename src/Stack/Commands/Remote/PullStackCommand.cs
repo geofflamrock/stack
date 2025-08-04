@@ -15,12 +15,19 @@ public class PullStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var stackActions = new StackActions(
+            gitClient,
+            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            InputProvider,
+            StdErrLogger);
+
         var handler = new PullStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            gitClient,
             new FileStackConfig(),
-            new StackActions());
+            stackActions);
 
         await handler.Handle(new PullStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
@@ -57,7 +64,7 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        stackActions.PullChanges(stack, gitClient, logger);
+        stackActions.PullChanges(stack);
 
         gitClient.ChangeBranch(currentBranch);
     }
