@@ -48,7 +48,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -100,7 +101,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -153,7 +155,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -204,7 +207,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -255,7 +259,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -306,7 +311,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
@@ -358,7 +364,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var stackActions = new StackActions();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
