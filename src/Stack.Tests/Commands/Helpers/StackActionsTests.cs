@@ -932,4 +932,97 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.DidNotReceive().PushBranches(Arg.Any<string[]>(), Arg.Any<bool>());
         gitClient.DidNotReceive().PushNewBranch(Arg.Any<string>());
     }
+
+    [Fact]
+    public void PushChanges_WithRealGitRepository_PushesOnlyBranchesThatAreAheadAndExistInRemote()
+    {
+        // Arrange
+        var sourceBranch = "main";
+        var branch1 = "feature-1";
+        var branch2 = "feature-2";
+        var branch3 = "feature-3";
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b
+                .WithName(sourceBranch)
+                .WithNumberOfEmptyCommits(2)
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch1)
+                .FromSourceBranch(sourceBranch)
+                .WithNumberOfEmptyCommits(1)
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch2)
+                .FromSourceBranch(branch1)
+                .WithNumberOfEmptyCommits(1)
+                .PushToRemote())
+            .WithBranch(b => b
+                .WithName(branch3)
+                .FromSourceBranch(branch2)
+                .WithNumberOfEmptyCommits(1)
+                .PushToRemote())
+            .Build();
+
+        var gitClient = new GitClient(new TestLogger(testOutputHelper), repo.GitClientSettings);
+        var logger = new TestLogger(testOutputHelper);
+
+        // Make some local changes to branch1 and branch2 (but not branch3)
+        gitClient.ChangeBranch(branch1);
+        File.WriteAllText(Path.Join(repo.LocalDirectoryPath, "local-change1.txt"), "local content 1");
+        repo.Stage("local-change1.txt");
+        repo.Commit("Local change to branch1");
+
+        gitClient.ChangeBranch(branch2);
+        File.WriteAllText(Path.Join(repo.LocalDirectoryPath, "local-change2.txt"), "local content 2");
+        repo.Stage("local-change2.txt");
+        repo.Commit("Local change to branch2");
+
+        // Delete the remote tracking branch for branch3
+        repo.DeleteRemoteTrackingBranch(branch3);
+
+        var stack = new Config.Stack(
+            "TestStack",
+            repo.RemoteUri,
+            sourceBranch,
+            [
+                new Config.Branch(branch1, [
+                    new Config.Branch(branch2, [
+                        new Config.Branch(branch3, [])
+                    ])
+                ])
+            ]
+        );
+
+        var stackActions = new StackActions(
+            gitClient,
+            Substitute.For<IGitHubClient>(),
+            Substitute.For<IInputProvider>(),
+            logger
+        );
+
+        // Get initial commit counts to verify pushes
+        var initialBranch1RemoteCommitCount = repo.GetCommitsReachableFromRemoteBranch(branch1).Count;
+        var initialBranch2RemoteCommitCount = repo.GetCommitsReachableFromRemoteBranch(branch2).Count;
+
+        // Act
+        stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);
+
+        // Assert
+        // Branch1 and branch2 should have been pushed (they had local changes and exist in remote)
+        var finalBranch1RemoteCommitCount = repo.GetCommitsReachableFromRemoteBranch(branch1).Count;
+        var finalBranch2RemoteCommitCount = repo.GetCommitsReachableFromRemoteBranch(branch2).Count;
+
+        finalBranch1RemoteCommitCount.Should().Be(initialBranch1RemoteCommitCount + 1, "branch1 should have been pushed");
+        finalBranch2RemoteCommitCount.Should().Be(initialBranch2RemoteCommitCount + 1, "branch2 should have been pushed");
+
+        // Verify the pushed content exists in remote by checking the tip commit messages
+        var branch1RemoteTip = repo.GetTipOfRemoteBranch(branch1);
+        var branch2RemoteTip = repo.GetTipOfRemoteBranch(branch2);
+
+        branch1RemoteTip?.Message.Should().Contain("Local change to branch1", "branch1 local changes should be in remote");
+        branch2RemoteTip?.Message.Should().Contain("Local change to branch2", "branch2 local changes should be in remote");
+
+        repo.GetTipOfRemoteBranch(branch3).Should().BeNull("branch3 was deleted on remote, and should not have been pushed");
+    }
 }
