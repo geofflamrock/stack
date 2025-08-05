@@ -137,7 +137,7 @@ public class SyncStackCommandHandler(
 
             stackActions.UpdateStack(
                 stack,
-                updateStrategy);
+                updateStrategy.Value);
 
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
