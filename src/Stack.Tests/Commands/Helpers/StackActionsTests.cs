@@ -122,6 +122,115 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, [new Config.Branch(branch2, [])])]
+        );
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortRebase,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Continue);
+
+        gitClient
+            .When(g => g.RebaseFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        var stackActions = new StackActions(
+            gitClient,
+            Substitute.For<IGitHubClient>(),
+            inputProvider,
+            logger
+        );
+
+        // Act
+        stackActions.UpdateStack(
+            stack,
+            UpdateStrategy.Rebase
+        );
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+        gitClient.Received().RebaseFromLocalSourceBranch(sourceBranch);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            [new Config.Branch(branch1, [new Config.Branch(branch2, [])])]
+        );
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        gitClient
+            .When(g => g.RebaseFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortRebase,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Abort);
+
+        var stackActions = new StackActions(
+            gitClient,
+            Substitute.For<IGitHubClient>(),
+            inputProvider,
+            logger
+        );
+
+        // Act
+        var updateAction = () => stackActions.UpdateStack(
+            stack,
+            UpdateStrategy.Rebase
+        );
+
+        // Assert
+        updateAction.Should().Throw<Exception>().WithMessage("Rebase aborted due to conflicts.");
+        gitClient.Received().AbortRebase();
+    }
+
+    [Fact]
     public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_RebasesOntoTheParentBranchToAvoidConflicts()
     {
         // Arrange
