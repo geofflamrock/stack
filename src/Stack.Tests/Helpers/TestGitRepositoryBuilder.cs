@@ -419,6 +419,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
     }
 
+    public void ResetBranchToParent(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var parentCommit = branch.Tip.Parents.First();
+        LocalRepository.Reset(LibGit2Sharp.ResetMode.Hard, parentCommit);
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
