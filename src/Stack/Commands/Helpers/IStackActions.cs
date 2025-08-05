@@ -6,9 +6,7 @@ namespace Stack.Commands.Helpers
 {
     public interface IStackActions
     {
-        UpdateStrategy UpdateStack(
-            Config.Stack stack,
-            UpdateStrategy? specificUpdateStrategy);
+        void UpdateStack(Config.Stack stack, UpdateStrategy updateStrategy);
 
         UpdateStrategy? GetUpdateStrategyConfigValue();
 

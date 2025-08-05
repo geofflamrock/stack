@@ -99,7 +99,7 @@ public class UpdateStackCommandHandler(
 
         stackActions.UpdateStack(
             stack,
-            updateStrategy);
+            updateStrategy.Value);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
