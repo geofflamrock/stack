@@ -45,7 +45,12 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(
+            inputProvider,
+            logger,
+            gitClient,
+            stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -90,7 +95,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -133,7 +139,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -180,7 +187,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         // Act
@@ -226,8 +234,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
-
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -269,7 +277,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
         // We are on a specific branch in the stack
         gitClient.ChangeBranch(branch1);
@@ -316,7 +325,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         // Act
@@ -361,7 +371,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -411,7 +422,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -461,7 +473,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -511,7 +524,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -561,7 +575,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -610,7 +625,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Rebase);
@@ -660,7 +676,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>()).Returns(UpdateStrategy.Merge);
@@ -687,7 +704,8 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig,
+            new StackActions(gitClient, gitHubClient, inputProvider, logger));
 
         // Act and assert
         await handler

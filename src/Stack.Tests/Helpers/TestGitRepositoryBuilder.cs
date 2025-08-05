@@ -352,11 +352,15 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches[branchName].Commits];
     }
 
-    public LibGit2Sharp.Commit GetTipOfRemoteBranch(string branchName)
+    public LibGit2Sharp.Commit? GetTipOfRemoteBranch(string branchName)
     {
         var branch = LocalRepository.Branches[branchName];
+        if (branch.TrackedBranch is null)
+        {
+            return null;
+        }
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
-        return LocalRepository.Branches[remoteBranchName].Tip;
+        return LocalRepository.Branches[remoteBranchName]?.Tip;
     }
 
     public List<LibGit2Sharp.Commit> GetCommitsReachableFromRemoteBranch(string branchName)
@@ -413,6 +417,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public void Push(string branchName)
     {
         LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
+    }
+
+    public void ResetBranchToParent(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var parentCommit = branch.Tip.Parents.First();
+        LocalRepository.Reset(LibGit2Sharp.ResetMode.Hard, parentCommit);
     }
 
     public void Dispose()
