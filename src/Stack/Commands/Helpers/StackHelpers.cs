@@ -5,6 +5,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
+using System.Diagnostics;
 
 namespace Stack.Commands.Helpers;
 
@@ -107,6 +108,9 @@ public static class StackHelpers
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
     {
+        using var activity = Telemetry.StartActivity("stack.status");
+        activity?.SetTag("stack.count", stacks.Count);
+        activity?.SetTag("stack.include_pr", includePullRequestStatus);
         var stacksToReturnStatusFor = new List<StackStatus>();
 
         var stacksOrderedByCurrentBranch = stacks
@@ -134,6 +138,8 @@ public static class StackHelpers
         {
             foreach (var stack in stacksOrderedByCurrentBranch)
             {
+                using var stackActivity = Telemetry.StartActivity("stack.status.evaluate_stack");
+                stackActivity?.SetTag("stack.name", stack.Name);
                 if (!branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
                 {
                     logger.Warning($"Source branch '{stack.SourceBranch}' does not exist locally or in the remote repository.");
@@ -181,12 +187,29 @@ public static class StackHelpers
 
                 if (branchStatus is not null)
                 {
-                    var (aheadOfParent, behindParent) = branchStatus.RemoteBranchExists ? gitClient.CompareBranches(branch.Name, parentBranch.Name) : (0, 0);
+                    int aheadOfParent = 0;
+                    int behindParent = 0;
+                    if (branchStatus.RemoteBranchExists)
+                    {
+                        using var compareActivity = Telemetry.StartActivity("stack.branch.compare");
+                        compareActivity?.SetTag("branch.name", branch.Name);
+                        compareActivity?.SetTag("branch.parent", parentBranch.Name);
+                        (aheadOfParent, behindParent) = gitClient.CompareBranches(branch.Name, parentBranch.Name);
+                        compareActivity?.SetTag("branch.ahead_parent", aheadOfParent);
+                        compareActivity?.SetTag("branch.behind_parent", behindParent);
+                    }
                     GitHubPullRequest? pullRequest = null;
 
                     if (includePullRequestStatus)
                     {
+                        using var prActivity = Telemetry.StartActivity("stack.branch.get_pr");
+                        prActivity?.SetTag("branch.name", branch.Name);
                         pullRequest = gitHubClient.GetPullRequest(branch.Name);
+                        if (pullRequest is not null)
+                        {
+                            prActivity?.SetTag("pr.number", pullRequest.Number);
+                            prActivity?.SetTag("pr.state", pullRequest.State);
+                        }
                     }
 
                     return new BranchDetail(
@@ -210,7 +233,14 @@ public static class StackHelpers
 
                     if (includePullRequestStatus)
                     {
+                        using var prActivity = Telemetry.StartActivity("stack.branch.get_pr");
+                        prActivity?.SetTag("branch.name", branch.Name);
                         pullRequest = gitHubClient.GetPullRequest(branch.Name);
+                        if (pullRequest is not null)
+                        {
+                            prActivity?.SetTag("pr.number", pullRequest.Number);
+                            prActivity?.SetTag("pr.state", pullRequest.State);
+                        }
                     }
 
                     return new BranchDetail(branch.Name, false, null, null, pullRequest, null, []);

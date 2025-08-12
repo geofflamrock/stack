@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 using Stack.Infrastructure;
+using System.Diagnostics;
 
 namespace Stack.Git;
 
@@ -76,6 +77,8 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
+        using var activity = Telemetry.StartActivity("github.get_pull_request");
+        activity?.SetTag("github.branch", branch);
         var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,headRefName --head {branch} --state all");
         var pullRequests = JsonSerializer.Deserialize(output, GitHubClientJsonSerializerContext.Default.ListGitHubPullRequest)!;
 
@@ -96,6 +99,9 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
             command += " --draft";
         }
 
+        using var activity = Telemetry.StartActivity("github.create_pull_request");
+        activity?.SetTag("github.head", headBranch);
+        activity?.SetTag("github.base", baseBranch);
         ExecuteGitHubCommand(command);
 
         return GetPullRequest(headBranch) ?? throw new Exception("Failed to create pull request.");
@@ -103,11 +109,15 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
 
     public void EditPullRequest(int number, string body)
     {
+        using var activity = Telemetry.StartActivity("github.edit_pull_request");
+        activity?.SetTag("github.number", number);
         ExecuteGitHubCommand($"pr edit {number} --body \"{Sanitize(body)}\"");
     }
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)
     {
+        using var activity = Telemetry.StartActivity("github.open_pull_request");
+        activity?.SetTag("github.number", pullRequest.Number);
         ExecuteGitHubCommand($"pr view {pullRequest.Number} --web");
     }
 

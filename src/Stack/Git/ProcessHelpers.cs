@@ -19,6 +19,12 @@ public static class ProcessHelpers
         if (verbose)
             logger.Debug($"{fileName} {command}");
 
+        using var activity = Telemetry.StartActivity("process.exec");
+        activity?.SetTag("process.executable.name", fileName);
+        activity?.SetTag("process.command_line", $"{fileName} {command}");
+        if (workingDirectory is not null)
+            activity?.SetTag("process.working_directory", workingDirectory);
+
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
 
@@ -52,6 +58,8 @@ public static class ProcessHelpers
         process.WaitForExit();
         int result = process.ExitCode;
 
+        activity?.SetTag("process.exit_code", result);
+
         if (result != 0)
         {
             if (verbose)
@@ -67,7 +75,10 @@ public static class ProcessHelpers
             }
             else
             {
-                throw new ProcessException(errorBuilder.ToString(), result);
+                var message = errorBuilder.ToString();
+                activity?.SetStatus(ActivityStatusCode.Error, message);
+                activity?.AddEvent(new ActivityEvent("process.error"));
+                throw new ProcessException(message, result);
             }
         }
 
