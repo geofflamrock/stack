@@ -1,5 +1,12 @@
 # Changelog
 
+# v0.13.1 (2025-08-13)
+
+### 🐛 Bug Fixes
+* Add options for supplying child branch action when removing branch by @geofflamrock in https://github.com/geofflamrock/stack/pull/308
+* Fix issue where worktree would cause status command to fail by @geofflamrock in https://github.com/geofflamrock/stack/pull/319
+
+
 # v0.13.0 (2025-06-30)
 
 ### 🚀 New Features
