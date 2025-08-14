@@ -48,6 +48,7 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
+    void FetchBranchRefSpecs(string[] branchNames);
 }
 
 public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
@@ -80,6 +81,17 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
     public void FetchBranches(string[] branches)
     {
         ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
+    }
+
+    public void FetchBranchRefSpecs(string[] branchNames)
+    {
+        if (branchNames is null || branchNames.Length == 0)
+        {
+            return;
+        }
+
+        var refSpecs = string.Join(" ", branchNames.Select(b => $"{b}:{b}"));
+        ExecuteGitCommand($"fetch origin {refSpecs}");
     }
 
     public void PullBranch(string branchName)
