@@ -11,7 +11,15 @@ public record GitClientSettings(bool Verbose, string? WorkingDirectory)
 
 public record Commit(string Sha, string Message);
 
-public record GitBranchStatus(string BranchName, string? RemoteTrackingBranchName, bool RemoteBranchExists, bool IsCurrentBranch, int Ahead, int Behind, Commit Tip);
+public record GitBranchStatus(
+    string BranchName,
+    string? RemoteTrackingBranchName,
+    bool RemoteBranchExists,
+    bool IsCurrentBranch,
+    int Ahead,
+    int Behind,
+    Commit Tip,
+    string? WorktreePath);
 
 public class ConflictException : Exception;
 
@@ -49,6 +57,7 @@ public interface IGitClient
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
     void FetchBranchRefSpecs(string[] branchNames);
+    void PullBranchForWorktree(string branchName, string worktreePath);
 }
 
 public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
@@ -97,6 +106,12 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
     public void PullBranch(string branchName)
     {
         ExecuteGitCommand($"pull origin {branchName}");
+    }
+
+    public void PullBranchForWorktree(string branchName, string worktreePath)
+    {
+        // Execute the pull within the specified worktree without changing the current working directory
+        ExecuteGitCommand($"-C \"{worktreePath}\" pull origin {branchName}");
     }
 
     public void PushBranches(string[] branches, bool forceWithLease)

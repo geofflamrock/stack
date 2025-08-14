@@ -23,8 +23,9 @@ public static class GitBranchStatusParser
             var remoteBranchExists = remoteTrackingBranchName is not null && !match.Groups["status"].Value.Contains("gone");
             var sha = match.Groups["sha"].Value;
             var message = match.Groups["message"].Value;
+            var worktreePath = match.Groups["worktreePath"].Success ? match.Groups["worktreePath"].Value : null;
 
-            return new GitBranchStatus(branchName, remoteTrackingBranchName, remoteBranchExists, isCurrentBranch, ahead, behind, new Commit(sha, message));
+            return new GitBranchStatus(branchName, remoteTrackingBranchName, remoteBranchExists, isCurrentBranch, ahead, behind, new Commit(sha, message), worktreePath);
         }
 
         return null;
