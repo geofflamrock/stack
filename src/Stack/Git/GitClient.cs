@@ -17,30 +17,9 @@ public class ConflictException : Exception;
 
 public interface IGitClient
 {
-    void CreateNewBranch(string branchName, string sourceBranch);
-    void PushNewBranch(string branchName);
-    void PushBranch(string branchName);
-    void ChangeBranch(string branchName);
-    void Fetch(bool prune);
-    void FetchBranches(string[] branches);
-    void PullBranch(string branchName);
-    void PushBranches(string[] branches, bool forceWithLease);
-    void UpdateBranch(string branchName);
-    void DeleteLocalBranch(string branchName);
-    void MergeFromLocalSourceBranch(string sourceBranchName);
-    void RebaseFromLocalSourceBranch(string sourceBranchName);
-    void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName);
-    void AbortMerge();
-    void AbortRebase();
-    void ContinueRebase();
     string GetCurrentBranch();
     bool DoesLocalBranchExist(string branchName);
-    bool DoesRemoteBranchExist(string branchName);
     string[] GetBranchesThatExistLocally(string[] branches);
-    string[] GetBranchesThatExistInRemote(string[] branches);
-    bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName);
-    string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName);
-    (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName);
     (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName);
     Dictionary<string, GitBranchStatus> GetBranchStatuses(string[] branches);
     string GetRemoteUri();
@@ -48,143 +27,28 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
+    void Fetch(bool prune);
+
+    void ChangeBranch(string branchName);
+    void CreateNewBranch(string branchName, string sourceBranch);
+    void PushNewBranch(string branchName);
+    void PullBranch(string branchName);
+    void PushBranches(string[] branches, bool forceWithLease);
+    void DeleteLocalBranch(string branchName);
+
+    void MergeFromLocalSourceBranch(string sourceBranchName);
+    void RebaseFromLocalSourceBranch(string sourceBranchName);
+    void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName);
+    void AbortMerge();
+    void AbortRebase();
+    void ContinueRebase();
 }
 
 public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
 {
-    public void CreateNewBranch(string branchName, string sourceBranch)
-    {
-        ExecuteGitCommand($"branch {branchName} {sourceBranch}");
-    }
-
-    public virtual void PushNewBranch(string branchName)
-    {
-        ExecuteGitCommand($"push -u origin {branchName}");
-    }
-
-    public void PushBranch(string branchName)
-    {
-        ExecuteGitCommand($"push origin {branchName}");
-    }
-
-    public void ChangeBranch(string branchName)
-    {
-        ExecuteGitCommand($"checkout {branchName}");
-    }
-
-    public void Fetch(bool prune)
-    {
-        ExecuteGitCommand($"fetch origin {(prune ? "--prune" : string.Empty)}");
-    }
-
-    public void FetchBranches(string[] branches)
-    {
-        ExecuteGitCommand($"fetch origin {string.Join(" ", branches)}");
-    }
-
-    public void PullBranch(string branchName)
-    {
-        ExecuteGitCommand($"pull origin {branchName}");
-    }
-
-    public void PushBranches(string[] branches, bool forceWithLease)
-    {
-        var command = $"push origin {string.Join(" ", branches)}";
-        if (forceWithLease)
-        {
-            command += " --force-with-lease";
-        }
-
-        ExecuteGitCommand(command, true);
-    }
-
-    public void UpdateBranch(string branchName)
-    {
-        var currentBranch = GetCurrentBranch();
-
-        if (!currentBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
-        {
-            ChangeBranch(branchName);
-        }
-
-        PullBranch(branchName);
-    }
-
-    public void DeleteLocalBranch(string branchName)
-    {
-        ExecuteGitCommand($"branch -D {branchName}");
-    }
-
-    public void MergeFromLocalSourceBranch(string sourceBranchName)
-    {
-        ExecuteGitCommand($"merge {sourceBranchName}", false, exitCode =>
-        {
-            if (exitCode > 0)
-            {
-                return new ConflictException();
-            }
-
-            return null;
-        });
-    }
-
-    public void RebaseFromLocalSourceBranch(string sourceBranchName)
-    {
-        ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, exitCode =>
-        {
-            if (exitCode > 0)
-            {
-                return new ConflictException();
-            }
-
-            return null;
-        });
-    }
-
-    public void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName)
-    {
-        ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, exitCode =>
-        {
-            if (exitCode > 0)
-            {
-                return new ConflictException();
-            }
-
-            return null;
-        });
-    }
-
-    public void AbortMerge()
-    {
-        ExecuteGitCommand("merge --abort");
-    }
-
-    public void AbortRebase()
-    {
-        ExecuteGitCommand("rebase --abort");
-    }
-
-    public void ContinueRebase()
-    {
-        ExecuteGitCommand($"rebase --continue", false, exitCode =>
-        {
-            if (exitCode > 0)
-            {
-                return new ConflictException();
-            }
-
-            return null;
-        });
-    }
-
     public string GetCurrentBranch()
     {
         return ExecuteGitCommandAndReturnOutput("branch --show-current").Trim();
-    }
-
-    public bool DoesRemoteBranchExist(string branchName)
-    {
-        return ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {branchName}").Trim().Length > 0;
     }
 
     public bool DoesLocalBranchExist(string branchName)
@@ -197,32 +61,6 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         var localBranches = ExecuteGitCommandAndReturnOutput("branch --format=%(refname:short)").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
         return branches.Where(b => localBranches.Any(lb => lb.Equals(b, StringComparison.OrdinalIgnoreCase))).ToArray();
-    }
-
-    public string[] GetBranchesThatExistInRemote(string[] branches)
-    {
-        var remoteBranches = ExecuteGitCommandAndReturnOutput($"ls-remote --heads origin {string.Join(" ", branches)}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-
-        return branches.Where(b => remoteBranches.Any(rb => rb.EndsWith(b))).ToArray();
-    }
-
-    public bool IsRemoteBranchFullyMerged(string branchName, string sourceBranchName)
-    {
-        var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        return remoteBranchesThatHaveBeenMerged.Any(b => b.EndsWith(branchName));
-    }
-
-    public string[] GetBranchesThatHaveBeenMerged(string[] branches, string sourceBranchName)
-    {
-        var remoteBranchesThatHaveBeenMerged = ExecuteGitCommandAndReturnOutput($"branch --remote --merged {sourceBranchName}").Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        return branches.Where(b => remoteBranchesThatHaveBeenMerged.Any(rb => rb.EndsWith(b))).ToArray();
-    }
-
-    public (int Ahead, int Behind) GetStatusOfRemoteBranch(string branchName, string sourceBranchName)
-    {
-        var status = ExecuteGitCommandAndReturnOutput($"rev-list --left-right --count origin/{branchName}...origin/{sourceBranchName}").Trim();
-        var parts = status.Split('\t');
-        return (int.Parse(parts[0]), int.Parse(parts[1]));
     }
 
     public (int Ahead, int Behind) CompareBranches(string branchName, string sourceBranchName)
@@ -294,6 +132,109 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         return isAncestor;
     }
 
+    public void Fetch(bool prune)
+    {
+        ExecuteGitCommand($"fetch origin {(prune ? "--prune" : string.Empty)}");
+    }
+
+    public void ChangeBranch(string branchName)
+    {
+        ExecuteGitCommand($"checkout {branchName}");
+    }
+
+    public void CreateNewBranch(string branchName, string sourceBranch)
+    {
+        ExecuteGitCommand($"branch {branchName} {sourceBranch}");
+    }
+
+    public virtual void PushNewBranch(string branchName)
+    {
+        ExecuteGitCommand($"push -u origin {branchName}");
+    }
+
+    public void PullBranch(string branchName)
+    {
+        ExecuteGitCommand($"pull origin {branchName}");
+    }
+
+    public void PushBranches(string[] branches, bool forceWithLease)
+    {
+        var command = $"push origin {string.Join(" ", branches)}";
+        if (forceWithLease)
+        {
+            command += " --force-with-lease";
+        }
+
+        ExecuteGitCommand(command, true);
+    }
+
+    public void DeleteLocalBranch(string branchName)
+    {
+        ExecuteGitCommand($"branch -D {branchName}");
+    }
+
+    public void MergeFromLocalSourceBranch(string sourceBranchName)
+    {
+        ExecuteGitCommand($"merge {sourceBranchName}", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void RebaseFromLocalSourceBranch(string sourceBranchName)
+    {
+        ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName)
+    {
+        ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
+    public void AbortMerge()
+    {
+        ExecuteGitCommand("merge --abort");
+    }
+
+    public void AbortRebase()
+    {
+        ExecuteGitCommand("rebase --abort");
+    }
+
+    public void ContinueRebase()
+    {
+        ExecuteGitCommand($"rebase --continue", false, exitCode =>
+        {
+            if (exitCode > 0)
+            {
+                return new ConflictException();
+            }
+
+            return null;
+        });
+    }
+
     private string ExecuteGitCommandAndReturnOutput(
         string command,
         bool captureStandardError = false,
@@ -325,10 +266,5 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
             // of the command so don't write it again.
             logger.Debug(Markup.Escape(output));
         }
-    }
-
-    private string GetConfiguredEditor()
-    {
-        return ExecuteGitCommandAndReturnOutput("config --get core.editor").Trim();
     }
 }
