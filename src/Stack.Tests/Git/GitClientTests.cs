@@ -443,20 +443,34 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var baseBranch = Some.BranchName();
         var featureBranch = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(builder => builder.WithName(baseBranch))
+            .WithBranch(builder => builder.WithName(baseBranch).PushToRemote())
             .WithBranch(builder => builder.WithName(featureBranch).FromSourceBranch(baseBranch).WithNumberOfEmptyCommits(1))
             .Build();
 
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
 
+        // Make a commit on the base branch and push it to remote
+        gitClient.ChangeBranch(baseBranch);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent = Some.Name();
+        File.WriteAllText(filePath, fileContent);
+        repo.Stage(Path.GetFileName(filePath));
+        var baseCommit = repo.Commit();
+        repo.Push(baseBranch);
+
+        // Get initial feature branch commits
+        var initialFeatureCommits = repo.GetCommitsReachableFromBranch(featureBranch);
+
         gitClient.ChangeBranch(featureBranch);
 
         // Act
-        var rebase = () => gitClient.RebaseFromLocalSourceBranch(baseBranch);
+        gitClient.RebaseFromLocalSourceBranch(baseBranch);
 
-        // Assert
-        rebase.Should().NotThrow();
+        // Assert - feature branch should now contain the base branch commit
+        var finalFeatureCommits = repo.GetCommitsReachableFromBranch(featureBranch);
+        finalFeatureCommits.Should().Contain(c => c.Sha == baseCommit.Sha);
+        finalFeatureCommits.Count.Should().BeGreaterThan(initialFeatureCommits.Count);
     }
 
     [Fact]
@@ -514,13 +528,22 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
 
+        // Add a commit to the new parent branch
+        gitClient.ChangeBranch(newParent);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent = Some.Name();
+        File.WriteAllText(filePath, fileContent);
+        repo.Stage(Path.GetFileName(filePath));
+        var newParentCommit = repo.Commit();
+
         gitClient.ChangeBranch(childBranch);
 
         // Act
-        var rebase = () => gitClient.RebaseOntoNewParent(newParent, oldParent);
+        gitClient.RebaseOntoNewParent(newParent, oldParent);
 
-        // Assert
-        rebase.Should().NotThrow();
+        // Assert - child branch should now contain the new parent's commit
+        var childCommits = repo.GetCommitsReachableFromBranch(childBranch);
+        childCommits.Should().Contain(c => c.Sha == newParentCommit.Sha);
     }
 
     [Fact]
