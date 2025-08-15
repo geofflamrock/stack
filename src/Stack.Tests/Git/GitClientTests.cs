@@ -714,21 +714,21 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Assert - use a single assertion as requested
         using (new AssertionScope())
         {
-            statuses.Should().SatisfyRespectively(
-                first => first.Value.Should().Match<GitBranchStatus>(s => 
-                    s.BranchName == branch1 && 
-                    s.IsCurrentBranch == true && 
-                    s.Ahead >= 0 && 
-                    s.Behind >= 0 &&
-                    s.RemoteBranchExists == true &&
-                    s.RemoteTrackingBranchName != null),
-                second => second.Value.Should().Match<GitBranchStatus>(s => 
-                    s.BranchName == branch2 && 
-                    s.IsCurrentBranch == false && 
-                    s.Ahead >= 0 && 
-                    s.Behind >= 0 &&
-                    s.RemoteBranchExists == true &&
-                    s.RemoteTrackingBranchName != null));
+            statuses.Should().HaveCount(2);
+            statuses[branch1].Should().Match<GitBranchStatus>(s => 
+                s.BranchName == branch1 && 
+                s.IsCurrentBranch == true && 
+                s.Ahead >= 0 && 
+                s.Behind >= 0 &&
+                s.RemoteBranchExists == true &&
+                s.RemoteTrackingBranchName != null);
+            statuses[branch2].Should().Match<GitBranchStatus>(s => 
+                s.BranchName == branch2 && 
+                s.IsCurrentBranch == false && 
+                s.Ahead >= 0 && 
+                s.Behind >= 0 &&
+                s.RemoteBranchExists == true &&
+                s.RemoteTrackingBranchName != null);
         }
     }
 
