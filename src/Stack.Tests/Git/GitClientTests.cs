@@ -1,4 +1,5 @@
 using FluentAssertions;
+using LibGit2Sharp;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
@@ -652,30 +653,53 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     public void GetBranchStatuses_ReturnsCorrectStatusesForRequestedBranches()
     {
         // Arrange
-        var branch1 = Some.BranchName();
-        var branch2 = Some.BranchName();
+        var branch1 = Some.BranchName(); // This branch will be ahead of remote
+        var branch2 = Some.BranchName(); // This branch will be behind remote  
         var ignoredBranch = Some.BranchName();
         
         using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(builder => builder.WithName(branch1))
-            .WithBranch(builder => builder.WithName(branch2))
+            .WithBranch(builder => builder.WithName(branch1).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(branch2).PushToRemote().WithNumberOfEmptyCommits(1))
             .WithBranch(builder => builder.WithName(ignoredBranch))
             .Build();
 
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
 
+        // Make branch2 behind by resetting it to previous commit
+        gitClient.ChangeBranch(branch2);
+        var branch2Commits = repo.GetCommitsReachableFromBranch(branch2);
+        var parentCommit = branch2Commits[1];
+        repo.ResetBranchToCommit(branch2, parentCommit.Sha);
+
+        // Make branch1 current and ahead with additional commit
+        gitClient.ChangeBranch(branch1);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(Path.GetFileName(filePath));
+        var newCommit = repo.Commit();
+
         var branchesToCheck = new[] { branch1, branch2 };
 
         // Act
         var statuses = gitClient.GetBranchStatuses(branchesToCheck);
 
-        // Assert
-        statuses.Should().ContainKey(branch1);
-        statuses.Should().ContainKey(branch2);
-        statuses.Should().NotContainKey(ignoredBranch);
-        statuses[branch1].BranchName.Should().Be(branch1);
-        statuses[branch2].BranchName.Should().Be(branch2);
+        // Assert - use a single assertion as requested
+        statuses.Should().SatisfyRespectively(
+            first => first.Value.Should().Match<GitBranchStatus>(s => 
+                s.BranchName == branch1 && 
+                s.IsCurrentBranch == true && 
+                s.Ahead >= 0 && 
+                s.Behind >= 0 &&
+                s.RemoteBranchExists == true &&
+                s.RemoteTrackingBranchName != null),
+            second => second.Value.Should().Match<GitBranchStatus>(s => 
+                s.BranchName == branch2 && 
+                s.IsCurrentBranch == false && 
+                s.Ahead >= 0 && 
+                s.Behind >= 0 &&
+                s.RemoteBranchExists == true &&
+                s.RemoteTrackingBranchName != null));
     }
 
     [Fact]
@@ -733,9 +757,11 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(newBranch);
 
-        // Act & Assert
-        var push = () => gitClient.PushNewBranch(newBranch);
-        push.Should().NotThrow();
+        // Act
+        gitClient.PushNewBranch(newBranch);
+
+        // Assert
+        repo.DoesRemoteBranchExist(newBranch).Should().BeTrue();
     }
 
     [Fact]
@@ -744,7 +770,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var branch = Some.BranchName();
         using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(builder => builder.WithName(branch).PushToRemote())
+            .WithBranch(builder => builder.WithName(branch).PushToRemote().WithNumberOfEmptyCommits(2))
             .Build();
 
         var logger = new TestLogger(testOutputHelper);
@@ -752,9 +778,20 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
 
         gitClient.ChangeBranch(branch);
 
-        // Act & Assert
-        var pull = () => gitClient.PullBranch(branch);
-        pull.Should().NotThrow();
+        // Reset local branch to one commit behind to simulate changes in remote
+        var commits = repo.GetCommitsReachableFromBranch(branch);
+        var secondCommit = commits[1]; // Get the parent commit
+        repo.ResetBranchToCommit(branch, secondCommit.Sha);
+
+        // Get initial commit count
+        var initialCommits = repo.GetCommitsReachableFromBranch(branch);
+
+        // Act
+        gitClient.PullBranch(branch);
+
+        // Assert - should now have the additional commit from the remote
+        var finalCommits = repo.GetCommitsReachableFromBranch(branch);
+        finalCommits.Count.Should().BeGreaterThan(initialCommits.Count);
     }
 
     [Fact]
@@ -771,11 +808,31 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
 
+        // Create changes on each branch
+        gitClient.ChangeBranch(branch1);
+        var filePath1 = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent1 = Some.Name();
+        File.WriteAllText(filePath1, fileContent1);
+        repo.Stage(Path.GetFileName(filePath1));
+        var commit1 = repo.Commit();
+
+        gitClient.ChangeBranch(branch2);
+        var filePath2 = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent2 = Some.Name();
+        File.WriteAllText(filePath2, fileContent2);
+        repo.Stage(Path.GetFileName(filePath2));
+        var commit2 = repo.Commit();
+
         var branches = new[] { branch1, branch2 };
 
-        // Act & Assert
-        var push = () => gitClient.PushBranches(branches, false);
-        push.Should().NotThrow();
+        // Act
+        gitClient.PushBranches(branches, false);
+
+        // Assert - verify changes exist in remote
+        var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
+        var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
+        remoteTip1.Sha.Should().Be(commit1.Sha);
+        remoteTip2.Sha.Should().Be(commit2.Sha);
     }
 
     [Fact]
@@ -792,10 +849,41 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var logger = new TestLogger(testOutputHelper);
         var gitClient = new GitClient(logger, repo.GitClientSettings);
 
+        // Create changes on remote branches (simulate someone else pushed)
+        var remoteCommitMessage1 = Some.Name();
+        var remoteCommitMessage2 = Some.Name();
+        repo.CreateCommitOnRemoteTrackingBranch(branch1, remoteCommitMessage1);
+        repo.CreateCommitOnRemoteTrackingBranch(branch2, remoteCommitMessage2);
+
+        // Fetch to update local tracking information
+        gitClient.Fetch(false);
+
+        // Create different changes on local branches
+        gitClient.ChangeBranch(branch1);
+        var filePath1 = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent1 = Some.Name();
+        File.WriteAllText(filePath1, fileContent1);
+        repo.Stage(Path.GetFileName(filePath1));
+        var localCommit1 = repo.Commit();
+
+        gitClient.ChangeBranch(branch2);
+        var filePath2 = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        var fileContent2 = Some.Name();
+        File.WriteAllText(filePath2, fileContent2);
+        repo.Stage(Path.GetFileName(filePath2));
+        var localCommit2 = repo.Commit();
+
         var branches = new[] { branch1, branch2 };
 
-        // Act & Assert
-        var push = () => gitClient.PushBranches(branches, true);
-        push.Should().NotThrow();
+        // Act
+        gitClient.PushBranches(branches, true);
+
+        // Assert - local changes should exist in remote, previous remote changes should not
+        var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
+        var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
+        remoteTip1.Sha.Should().Be(localCommit1.Sha);
+        remoteTip2.Sha.Should().Be(localCommit2.Sha);
+        remoteTip1.Message.Should().NotBe(remoteCommitMessage1);
+        remoteTip2.Message.Should().NotBe(remoteCommitMessage2);
     }
 }
