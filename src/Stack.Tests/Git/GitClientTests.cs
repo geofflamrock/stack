@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentAssertions.Execution;
 using LibGit2Sharp;
 using Stack.Git;
 using Stack.Tests.Helpers;
@@ -437,7 +438,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void RebaseFromLocalSourceBranch_WhenConflictsDoNotOccur_DoesNotThrow()
+    public void RebaseFromLocalSourceBranch_WhenConflictsDoNotOccur_IncludesBaseBranchCommits()
     {
         // Arrange
         var baseBranch = Some.BranchName();
@@ -468,9 +469,12 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         gitClient.RebaseFromLocalSourceBranch(baseBranch);
 
         // Assert - feature branch should now contain the base branch commit
-        var finalFeatureCommits = repo.GetCommitsReachableFromBranch(featureBranch);
-        finalFeatureCommits.Should().Contain(c => c.Sha == baseCommit.Sha);
-        finalFeatureCommits.Count.Should().BeGreaterThan(initialFeatureCommits.Count);
+        using (new AssertionScope())
+        {
+            var finalFeatureCommits = repo.GetCommitsReachableFromBranch(featureBranch);
+            finalFeatureCommits.Should().Contain(c => c.Sha == baseCommit.Sha);
+            finalFeatureCommits.Count.Should().BeGreaterThan(initialFeatureCommits.Count);
+        }
     }
 
     [Fact]
@@ -512,7 +516,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void RebaseOntoNewParent_WhenConflictsDoNotOccur_DoesNotThrow()
+    public void RebaseOntoNewParent_WhenConflictsDoNotOccur_IncludesNewParentCommit()
     {
         // Arrange
         var oldParent = Some.BranchName();
@@ -708,21 +712,24 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var statuses = gitClient.GetBranchStatuses(branchesToCheck);
 
         // Assert - use a single assertion as requested
-        statuses.Should().SatisfyRespectively(
-            first => first.Value.Should().Match<GitBranchStatus>(s => 
-                s.BranchName == branch1 && 
-                s.IsCurrentBranch == true && 
-                s.Ahead >= 0 && 
-                s.Behind >= 0 &&
-                s.RemoteBranchExists == true &&
-                s.RemoteTrackingBranchName != null),
-            second => second.Value.Should().Match<GitBranchStatus>(s => 
-                s.BranchName == branch2 && 
-                s.IsCurrentBranch == false && 
-                s.Ahead >= 0 && 
-                s.Behind >= 0 &&
-                s.RemoteBranchExists == true &&
-                s.RemoteTrackingBranchName != null));
+        using (new AssertionScope())
+        {
+            statuses.Should().SatisfyRespectively(
+                first => first.Value.Should().Match<GitBranchStatus>(s => 
+                    s.BranchName == branch1 && 
+                    s.IsCurrentBranch == true && 
+                    s.Ahead >= 0 && 
+                    s.Behind >= 0 &&
+                    s.RemoteBranchExists == true &&
+                    s.RemoteTrackingBranchName != null),
+                second => second.Value.Should().Match<GitBranchStatus>(s => 
+                    s.BranchName == branch2 && 
+                    s.IsCurrentBranch == false && 
+                    s.Ahead >= 0 && 
+                    s.Behind >= 0 &&
+                    s.RemoteBranchExists == true &&
+                    s.RemoteTrackingBranchName != null));
+        }
     }
 
     [Fact]
@@ -767,7 +774,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void PushNewBranch_DoesNotThrow()
+    public void PushNewBranch_CreatesRemoteBranch()
     {
         // Arrange
         var newBranch = Some.BranchName();
@@ -788,7 +795,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void PullBranch_DoesNotThrow()
+    public void PullBranch_IncludesRemoteChanges()
     {
         // Arrange
         var branch = Some.BranchName();
@@ -818,7 +825,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void PushBranches_WithoutForceWithLease_DoesNotThrow()
+    public void PushBranches_WithoutForceWithLease_PushesChangesToRemote()
     {
         // Arrange
         var branch1 = Some.BranchName();
@@ -852,14 +859,17 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         gitClient.PushBranches(branches, false);
 
         // Assert - verify changes exist in remote
-        var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
-        var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
-        remoteTip1.Sha.Should().Be(commit1.Sha);
-        remoteTip2.Sha.Should().Be(commit2.Sha);
+        using (new AssertionScope())
+        {
+            var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
+            var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
+            remoteTip1.Sha.Should().Be(commit1.Sha);
+            remoteTip2.Sha.Should().Be(commit2.Sha);
+        }
     }
 
     [Fact]
-    public void PushBranches_WithForceWithLease_DoesNotThrow()
+    public void PushBranches_WithForceWithLease_OverwritesRemoteChanges()
     {
         // Arrange
         var branch1 = Some.BranchName();
@@ -902,11 +912,14 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         gitClient.PushBranches(branches, true);
 
         // Assert - local changes should exist in remote, previous remote changes should not
-        var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
-        var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
-        remoteTip1.Sha.Should().Be(localCommit1.Sha);
-        remoteTip2.Sha.Should().Be(localCommit2.Sha);
-        remoteTip1.Message.Should().NotBe(remoteCommitMessage1);
-        remoteTip2.Message.Should().NotBe(remoteCommitMessage2);
+        using (new AssertionScope())
+        {
+            var remoteTip1 = repo.GetTipOfRemoteBranch(branch1);
+            var remoteTip2 = repo.GetTipOfRemoteBranch(branch2);
+            remoteTip1.Sha.Should().Be(localCommit1.Sha);
+            remoteTip2.Sha.Should().Be(localCommit2.Sha);
+            remoteTip1.Message.Should().NotBe(remoteCommitMessage1);
+            remoteTip2.Message.Should().NotBe(remoteCommitMessage2);
+        }
     }
 }
