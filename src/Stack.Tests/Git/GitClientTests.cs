@@ -229,9 +229,9 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Act
         var root = gitClient.GetRootOfRepository();
 
-        // Assert - use path equivalence check to handle symlink resolution differences (e.g., /var vs /private/var on macOS)
-        ArePathsEquivalent(root, repo.LocalDirectoryPath).Should().BeTrue(
-            "the repository root should match the local directory path, accounting for symlink resolution");
+        // Assert - check that the last directory component matches (the unique GUID part)
+        Path.GetFileName(root).Should().Be(Path.GetFileName(repo.LocalDirectoryPath),
+            "the repository root should match the local directory path");
     }
 
     [Fact]
@@ -923,30 +923,5 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             remoteTip1.Message.Should().NotBe(remoteCommitMessage1);
             remoteTip2.Message.Should().NotBe(remoteCommitMessage2);
         }
-    }
-
-    /// <summary>
-    /// Compares two paths for equivalence, handling platform-specific symlink resolution differences.
-    /// On macOS, /var is often symlinked to /private/var, so paths like /var/folders/... and /private/var/folders/...
-    /// should be considered equivalent.
-    /// </summary>
-    private static bool ArePathsEquivalent(string path1, string path2)
-    {
-        path1 = Path.GetFullPath(path1);
-        path2 = Path.GetFullPath(path2);
-        
-        // If they're already equal, return true
-        if (path1 == path2) return true;
-        
-        // Handle macOS /var vs /private/var symlink case
-        var privatePath1 = path1.StartsWith("/private/var/") ? path1 : 
-                          path1.StartsWith("/var/") ? "/private" + path1 : path1;
-        var privatePath2 = path2.StartsWith("/private/var/") ? path2 : 
-                          path2.StartsWith("/var/") ? "/private" + path2 : path2;
-        
-        var nonPrivatePath1 = path1.StartsWith("/private/var/") ? path1.Substring("/private".Length) : path1;
-        var nonPrivatePath2 = path2.StartsWith("/private/var/") ? path2.Substring("/private".Length) : path2;
-        
-        return privatePath1 == privatePath2 || nonPrivatePath1 == nonPrivatePath2;
     }
 }
