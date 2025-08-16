@@ -415,6 +415,35 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
     }
 
+    public bool DoesRemoteBranchExist(string branchName)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        return branch?.TrackedBranch != null;
+    }
+
+    public void ResetBranchToCommit(string branchName, string commitSha)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var commit = LocalRepository.Lookup<LibGit2Sharp.Commit>(commitSha);
+        LocalRepository.Reset(ResetMode.Hard, commit);
+    }
+
+    public void CreateCommitOnRemoteTrackingBranch(string branchName, string message)
+    {
+        var branch = LocalRepository.Branches[branchName];
+        var remoteBranchName = branch.TrackedBranch.CanonicalName;
+        var remoteBranch = LocalRepository.Branches[remoteBranchName];
+        
+        // Create a commit directly on the remote tracking branch
+        var signature = new Signature(Some.Name(), Some.Email(), DateTimeOffset.Now);
+        var tree = remoteBranch.Tip.Tree;
+        var parents = new[] { remoteBranch.Tip };
+        var commit = LocalRepository.ObjectDatabase.CreateCommit(signature, signature, message, tree, parents, false);
+        
+        // Update the remote tracking branch to point to the new commit
+        LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
