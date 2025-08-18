@@ -18,7 +18,6 @@ public class PullStackCommand : Command
         var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
         var stackActions = new StackActions(
             gitClient,
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             InputProvider,
             StdErrLogger);
 

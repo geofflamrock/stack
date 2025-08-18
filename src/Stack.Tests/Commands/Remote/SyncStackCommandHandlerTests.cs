@@ -57,7 +57,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
         inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
@@ -148,7 +148,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -194,7 +194,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
 
@@ -245,7 +245,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
         inputProvider.DidNotReceive().Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>());
         gitClient.Received().ChangeBranch(branch1);
@@ -295,7 +295,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -346,7 +346,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -397,7 +397,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -448,7 +448,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -499,7 +499,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -551,7 +551,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -603,7 +603,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -671,7 +671,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
         inputProvider.DidNotReceive().Confirm(Questions.ConfirmSyncStack);
@@ -722,7 +722,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge);
+        stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<StackStatus>());
         stackActions.DidNotReceive().PushChanges(Arg.Any<Config.Stack>(), Arg.Any<int>(), Arg.Any<bool>());
         gitClient.Received().ChangeBranch(branch1);
     }

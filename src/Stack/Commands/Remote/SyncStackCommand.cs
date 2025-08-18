@@ -29,7 +29,6 @@ public class SyncStackCommand : Command
         var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
         var stackActions = new StackActions(
             gitClient,
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             InputProvider,
             StdErrLogger);
 
@@ -137,7 +136,8 @@ public class SyncStackCommandHandler(
 
             stackActions.UpdateStack(
                 stack,
-                updateStrategy.Value);
+                updateStrategy.Value,
+                status);
 
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 

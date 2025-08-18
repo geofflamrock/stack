@@ -18,9 +18,9 @@ public class UpdateStackCommand : Command
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
         var stackActions = new StackActions(
             gitClient,
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
             InputProvider,
             StdErrLogger);
 
@@ -28,6 +28,7 @@ public class UpdateStackCommand : Command
             InputProvider,
             StdErrLogger,
             gitClient,
+            gitHubClient,
             new FileStackConfig(),
             stackActions);
 
@@ -49,6 +50,7 @@ public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
+    IGitHubClient gitHubClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
     : CommandHandlerBase<UpdateStackCommandInputs>
@@ -79,9 +81,9 @@ public class UpdateStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         var updateStrategy =
-                inputs.Merge == true ? UpdateStrategy.Merge :
-                inputs.Rebase == true ? UpdateStrategy.Rebase :
-                stackActions.GetUpdateStrategyConfigValue();
+            inputs.Merge == true ? UpdateStrategy.Merge :
+            inputs.Rebase == true ? UpdateStrategy.Rebase :
+            stackActions.GetUpdateStrategyConfigValue();
 
         if (updateStrategy == null)
         {
@@ -97,9 +99,18 @@ public class UpdateStackCommandHandler(
             logger.NewLine();
         }
 
+        var status = StackHelpers.GetStackStatus(
+            stack,
+            gitClient.GetCurrentBranch(),
+            logger,
+            gitClient,
+            gitHubClient,
+            false);
+
         stackActions.UpdateStack(
             stack,
-            updateStrategy.Value);
+            updateStrategy.Value,
+            status);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

@@ -4,10 +4,9 @@ using Stack.Git;
 
 namespace Stack.Commands.Helpers
 {
-    public class StackActions(IGitClient gitClient, IGitHubClient gitHubClient, IInputProvider inputProvider, ILogger logger) : IStackActions
+    public class StackActions(IGitClient gitClient, IInputProvider inputProvider, ILogger logger) : IStackActions
     {
         private readonly IGitClient gitClient = gitClient;
-        private readonly IGitHubClient gitHubClient = gitHubClient;
         private readonly IInputProvider inputProvider = inputProvider;
         private readonly ILogger logger = logger;
 
@@ -84,17 +83,8 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        public void UpdateStack(Config.Stack stack, UpdateStrategy updateStrategy)
+        public void UpdateStack(Config.Stack stack, UpdateStrategy updateStrategy, StackStatus status)
         {
-            var currentBranch = gitClient.GetCurrentBranch();
-
-            var status = StackHelpers.GetStackStatus(
-                stack,
-                currentBranch,
-                logger,
-                gitClient,
-                gitHubClient);
-
             if (updateStrategy == UpdateStrategy.Rebase)
             {
                 UpdateStackUsingRebase(stack, status);
