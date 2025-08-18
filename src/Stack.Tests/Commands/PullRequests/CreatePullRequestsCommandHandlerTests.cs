@@ -44,7 +44,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -108,7 +108,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -162,7 +162,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider
@@ -213,7 +213,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -266,7 +266,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider
@@ -323,7 +323,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         // Act and assert
@@ -369,7 +369,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -426,7 +426,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
         Directory.CreateDirectory(Path.Join(repo.LocalDirectoryPath, ".github"));
         File.WriteAllText(Path.Join(repo.LocalDirectoryPath, ".github", "PULL_REQUEST_TEMPLATE.md"), "This is the PR template");
@@ -486,7 +486,7 @@ This is the PR template";
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -544,7 +544,7 @@ This is the PR template";
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
@@ -592,7 +592,7 @@ This is the PR template";
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig, Substitute.For<IStackStatusProvider>());
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");

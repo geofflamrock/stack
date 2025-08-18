@@ -100,12 +100,17 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+        var stackStatusProvider = new StackStatusProvider(StdErrLogger, gitClient, gitHubClient);
+
         var handler = new StackStatusCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            gitClient,
+            gitHubClient,
+            new FileStackConfig(),
+            stackStatusProvider);
 
         return await handler.Handle(new StackStatusCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -195,7 +200,8 @@ public class StackStatusCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IStackStatusProvider stackStatusProvider)
     : CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse>
 {
     public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
@@ -225,13 +231,7 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackHelpers.GetStackStatus(
-            stacksToCheckStatusFor,
-            currentBranch,
-            logger,
-            gitClient,
-            gitHubClient,
-            inputs.Full);
+        var stackStatusResults = stackStatusProvider.GetStackStatus(stacksToCheckStatusFor, currentBranch, inputs.Full);
 
         return new StackStatusCommandResponse(stackData.SchemaVersion, stackStatusResults);
     }

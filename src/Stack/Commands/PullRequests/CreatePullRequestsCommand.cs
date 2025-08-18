@@ -17,13 +17,18 @@ public class CreatePullRequestsCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+        var stackStatusProvider = new StackStatusProvider(StdErrLogger, gitClient, gitHubClient);
+
         var handler = new CreatePullRequestsCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            gitClient,
+            gitHubClient,
             new FileOperations(),
-            new FileStackConfig());
+            new FileStackConfig(),
+            stackStatusProvider);
 
         await handler.Handle(new CreatePullRequestsCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
@@ -41,7 +46,8 @@ public class CreatePullRequestsCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IStackStatusProvider stackStatusProvider)
     : CommandHandlerBase<CreatePullRequestsCommandInputs>
 {
     public override async Task Handle(CreatePullRequestsCommandInputs inputs)
@@ -68,12 +74,9 @@ public class CreatePullRequestsCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var status = StackHelpers.GetStackStatus(
+        var status = stackStatusProvider.GetStackStatus(
             stack,
-            currentBranch,
-            logger,
-            gitClient,
-            gitHubClient);
+            currentBranch);
 
         var pullRequestCreateActions = new List<PullRequestCreateAction>();
 
