@@ -25,12 +25,14 @@ public class SyncStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
         var handler = new SyncStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+            gitClient,
             new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            new FileStackConfig(),
+            new StackActions(gitClient, StdErrLogger));
 
         await handler.Handle(new SyncStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -58,7 +60,8 @@ public class SyncStackCommandHandler(
     ILogger logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IStackActions stackActions)
     : CommandHandlerBase<SyncStackCommandInputs>
 {
     public override async Task Handle(SyncStackCommandInputs inputs)
@@ -104,7 +107,7 @@ public class SyncStackCommandHandler(
         {
             logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
-            StackHelpers.PullChanges(stack, gitClient, logger);
+            stackActions.PullChanges(stack);
 
             var updateStrategy = StackHelpers.UpdateStack(
                 stack,
