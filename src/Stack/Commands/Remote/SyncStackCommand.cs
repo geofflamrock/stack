@@ -120,7 +120,7 @@ public class SyncStackCommandHandler(
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
             if (!inputs.NoPush)
-                StackHelpers.PushChanges(stack, inputs.MaxBatchSize, forceWithLease, gitClient, logger);
+                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
 
             if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
                 stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

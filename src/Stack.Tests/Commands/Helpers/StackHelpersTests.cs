@@ -434,42 +434,4 @@ public class StackHelpersTests(ITestOutputHelper testOutputHelper)
         var branch3FileContents = File.ReadAllText(Path.Join(repo.LocalDirectoryPath, changedFilePath));
         branch3FileContents.Should().Be(commit1ChangedFileContents);
     }
-
-    [Fact]
-    public void PushChanges_WhenSomeLocalBranchesAreAhead_OnlyPushesChangesForBranchesThatAreAhead()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branchAheadOfRemote = Some.BranchName();
-        var branchNotAheadOfRemote = Some.BranchName();
-
-        var gitClient = Substitute.For<IGitClient>();
-
-        var branchStatus = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchAheadOfRemote, new GitBranchStatus(branchAheadOfRemote, $"origin/{branchAheadOfRemote}", true, false, 3, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchNotAheadOfRemote, new GitBranchStatus(branchNotAheadOfRemote, $"origin/{branchNotAheadOfRemote}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
-        };
-
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
-
-        var branchesPushedToRemote = new List<string>();
-
-        gitClient
-            .WhenForAnyArgs(g => g.PushBranches(Arg.Any<string[]>(), Arg.Any<bool>()))
-            .Do((c) => branchesPushedToRemote.AddRange(c.Arg<string[]>()));
-
-        var stack = new TestStackBuilder()
-            .WithSourceBranch(sourceBranch)
-            .WithBranch(b => b.WithName(branchAheadOfRemote))
-            .WithBranch(b => b.WithName(branchNotAheadOfRemote))
-            .Build();
-
-        // Act
-        StackHelpers.PushChanges(stack, 5, false, gitClient, new TestLogger(testOutputHelper));
-
-        // Assert
-        branchesPushedToRemote.ToArray().Should().BeEquivalentTo([branchAheadOfRemote]);
-    }
 }
