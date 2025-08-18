@@ -548,6 +548,29 @@ public static class StackHelpers
         return strategy.Value;
     }
 
+    public static UpdateStrategy GetUpdateStrategy(UpdateStrategy? specificUpdateStrategy, IGitClient gitClient, IInputProvider inputProvider, ILogger logger)
+    {
+        if (specificUpdateStrategy is not null)
+        {
+            return specificUpdateStrategy.Value;
+        }
+
+        var strategyFromConfig = GetUpdateStrategyConfigValue(gitClient);
+
+        if (strategyFromConfig is not null)
+        {
+            return strategyFromConfig.Value;
+        }
+
+        var strategy = inputProvider.Select(
+                Questions.SelectUpdateStrategy,
+                [UpdateStrategy.Merge, UpdateStrategy.Rebase]);
+
+        logger.Information($"{Questions.SelectUpdateStrategy} {strategy}");
+
+        return strategy;
+    }
+
     public static void UpdateStackUsingMerge(
         Config.Stack stack,
         StackStatus status,

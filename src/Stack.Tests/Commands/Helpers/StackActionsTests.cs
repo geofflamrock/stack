@@ -11,6 +11,434 @@ namespace Stack.Tests.Helpers;
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
+    public void UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortMerge,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Continue);
+
+        gitClient
+            .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        var stackActions = new StackActions(
+            gitClient,
+            gitHubClient,
+            inputProvider,
+            logger
+        );
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+        gitClient.Received().MergeFromLocalSourceBranch(branch1);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        gitClient
+            .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortMerge,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Abort);
+
+        var stackActions = new StackActions(
+            gitClient,
+            gitHubClient,
+            inputProvider,
+            logger
+        );
+
+        // Act
+        var updateAction = () => stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+
+        // Assert
+        updateAction.Should().Throw<Exception>().WithMessage("Merge aborted due to conflicts.");
+        gitClient.Received().AbortMerge();
+        gitClient.DidNotReceive().ChangeBranch(branch2);
+        gitClient.DidNotReceive().MergeFromLocalSourceBranch(branch1);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortRebase,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Continue);
+
+        gitClient
+            .When(g => g.RebaseFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        var stackActions = new StackActions(
+            gitClient,
+            gitHubClient,
+            inputProvider,
+            logger
+        );
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+        gitClient.Received().RebaseFromLocalSourceBranch(sourceBranch);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        gitClient
+            .When(g => g.RebaseFromLocalSourceBranch(sourceBranch))
+            .Throws(new ConflictException());
+
+        inputProvider
+            .Select(
+                Questions.ContinueOrAbortRebase,
+                Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<Func<MergeConflictAction, string>>())
+            .Returns(MergeConflictAction.Abort);
+
+        var stackActions = new StackActions(
+            gitClient,
+            gitHubClient,
+            inputProvider,
+            logger
+        );
+
+        // Act
+        var updateAction = () => stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        updateAction.Should().Throw<Exception>().WithMessage("Rebase aborted due to conflicts.");
+        gitClient.Received().AbortRebase();
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_RebasesOntoTheParentBranchToAvoidConflicts()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        // Setup branch statuses to simulate the scenario
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", false, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }, // remote branch deleted
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+        gitClient.IsAncestor(branch2, branch1).Returns(true);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+
+        var stackActions = new StackActions(
+            gitClient,
+            gitHubClient,
+            inputProvider,
+            logger
+        );
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+        gitClient.Received().RebaseOntoNewParent(sourceBranch, branch1);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_ButTheTargetBranchHasAlreadyHadAdditionalCommitsMergedInto_DoesNotRebaseOntoTheParentBranch()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        var changedFilePath = Some.Name();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        // Setup branch statuses to simulate the scenario
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", false, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }, // remote branch deleted
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+        gitClient.IsAncestor(branch2, branch1).Returns(false);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+        gitClient.Received().RebaseFromLocalSourceBranch(sourceBranch);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_AndLocalBranchIsDeleted_DoesNotRebaseOntoTheParentBranch()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+
+        gitClient.Fetch(true);
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        gitClient.Received().ChangeBranch(branch2);
+    }
+
+    [Fact]
+    public void UpdateStack_UsingRebase_WhenStackHasATreeStructure_RebasesAllBranchesCorrectly()
+    {
+        // Arrange
+        var sourceBranch = "source-branch";
+        var branch1 = "branch-1";
+        var branch2 = "branch-2";
+        var branch3 = "branch-3";
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch3, new GitBranchStatus(branch3, $"origin/{branch3}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+
+        // Assert
+        Received.InOrder(() =>
+        {
+            gitClient.ChangeBranch(branch2);
+            gitClient.RebaseFromLocalSourceBranch(branch1);
+            gitClient.ChangeBranch(branch2);
+            gitClient.RebaseFromLocalSourceBranch(sourceBranch);
+            gitClient.ChangeBranch(branch3);
+            gitClient.RebaseFromLocalSourceBranch(branch1);
+            gitClient.ChangeBranch(branch3);
+            gitClient.RebaseFromLocalSourceBranch(sourceBranch);
+        });
+    }
+
+    [Fact]
+    public void UpdateStack_UsingMerge_WhenStackHasATreeStructure_MergesAllBranchesCorrectly()
+    {
+        // Arrange
+        var sourceBranch = "source-branch";
+        var branch1 = "branch-1";
+        var branch2 = "branch-2";
+        var branch3 = "branch-3";
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var logger = new TestLogger(testOutputHelper);
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch3, new GitBranchStatus(branch3, $"origin/{branch3}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        });
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+
+        // Act
+        stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+
+        // Assert that merges were attempted
+        Received.InOrder(() =>
+        {
+            gitClient.ChangeBranch(branch1);
+            gitClient.MergeFromLocalSourceBranch(sourceBranch);
+            gitClient.ChangeBranch(branch2);
+            gitClient.MergeFromLocalSourceBranch(branch1);
+            gitClient.ChangeBranch(branch1);
+            gitClient.MergeFromLocalSourceBranch(sourceBranch);
+            gitClient.ChangeBranch(branch3);
+            gitClient.MergeFromLocalSourceBranch(branch1);
+        });
+    }
+
+    [Fact]
     public void PullChanges_WhenSomeBranchesHaveChanges_AndOthersDoNot_OnlyPullsChangesForBranchesThatNeedIt()
     {
         // Arrange
@@ -19,6 +447,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchWithoutRemoteChanges = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -35,7 +465,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchWithoutRemoteChanges))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PullChanges(stack);
@@ -55,6 +485,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchThatDoesNotExistInRemote = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -71,7 +503,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PullChanges(stack);
@@ -91,6 +523,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchNotAheadOfRemote = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -113,7 +547,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchNotAheadOfRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -131,6 +565,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchThatDoesNotExistInRemoteButIsAhead = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -153,7 +589,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemoteButIsAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -171,6 +607,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var newBranchWithNoRemote = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -198,7 +636,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(newBranchWithNoRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -218,6 +656,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branch3 = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -242,7 +682,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch3))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 2, forceWithLease: false);
@@ -262,6 +702,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchAhead = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -276,7 +718,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: true);
@@ -294,6 +736,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchBehind = Some.BranchName();
 
         var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -310,7 +754,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchBehind))
             .Build();
 
-        var stackActions = new StackActions(gitClient, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);

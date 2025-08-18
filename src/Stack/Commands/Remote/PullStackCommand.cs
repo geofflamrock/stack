@@ -16,13 +16,14 @@ public class PullStackCommand : Command
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
 
         var handler = new PullStackCommandHandler(
             InputProvider,
             StdErrLogger,
             gitClient,
             new FileStackConfig(),
-            new StackActions(gitClient, StdErrLogger));
+            new StackActions(gitClient, gitHubClient, InputProvider, StdErrLogger));
 
         await handler.Handle(new PullStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));

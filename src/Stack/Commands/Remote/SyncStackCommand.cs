@@ -26,13 +26,15 @@ public class SyncStackCommand : Command
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+
         var handler = new SyncStackCommandHandler(
             InputProvider,
             StdErrLogger,
             gitClient,
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            gitHubClient,
             new FileStackConfig(),
-            new StackActions(gitClient, StdErrLogger));
+            new StackActions(gitClient, gitHubClient, InputProvider, StdErrLogger));
 
         await handler.Handle(new SyncStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -109,13 +111,11 @@ public class SyncStackCommandHandler(
 
             stackActions.PullChanges(stack);
 
-            var updateStrategy = StackHelpers.UpdateStack(
-                stack,
-                status,
+            var updateStrategy = StackHelpers.GetUpdateStrategy(
                 inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-                gitClient,
-                inputProvider,
-                logger);
+                gitClient, inputProvider, logger);
+
+            stackActions.UpdateStack(stack, updateStrategy);
 
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 
