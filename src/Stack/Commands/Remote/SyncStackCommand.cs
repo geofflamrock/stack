@@ -32,13 +32,15 @@ public class SyncStackCommand : Command
             InputProvider,
             StdErrLogger);
 
+        var stackStatusProvider = new StackStatusProvider(StdErrLogger, gitClient, gitHubClient);
         var handler = new SyncStackCommandHandler(
             InputProvider,
             StdErrLogger,
             gitClient,
             gitHubClient,
             new FileStackConfig(),
-            stackActions);
+            stackActions,
+            stackStatusProvider);
 
         await handler.Handle(new SyncStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -67,7 +69,8 @@ public class SyncStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
-    IStackActions stackActions)
+    IStackActions stackActions,
+    IStackStatusProvider stackStatusProvider)
     : CommandHandlerBase<SyncStackCommandInputs>
 {
     public override async Task Handle(SyncStackCommandInputs inputs)
@@ -97,13 +100,10 @@ public class SyncStackCommandHandler(
 
         FetchChanges();
 
-        var status = StackHelpers.GetStackStatus(
+        var status = stackStatusProvider.GetStackStatus(
             stack,
             currentBranch,
-            logger,
-            gitClient,
-            gitHubClient,
-            true);
+            includePullRequestStatus: true);
 
         StackHelpers.OutputStackStatus(stackData.SchemaVersion, status, logger);
 

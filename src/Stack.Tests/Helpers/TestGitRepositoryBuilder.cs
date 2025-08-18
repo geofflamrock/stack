@@ -352,15 +352,11 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches[branchName].Commits];
     }
 
-    public LibGit2Sharp.Commit? GetTipOfRemoteBranch(string branchName)
+    public LibGit2Sharp.Commit GetTipOfRemoteBranch(string branchName)
     {
         var branch = LocalRepository.Branches[branchName];
-        if (branch.TrackedBranch is null)
-        {
-            return null;
-        }
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
-        return LocalRepository.Branches[remoteBranchName]?.Tip;
+        return LocalRepository.Branches[remoteBranchName].Tip;
     }
 
     public List<LibGit2Sharp.Commit> GetCommitsReachableFromRemoteBranch(string branchName)
@@ -419,13 +415,6 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Network.Push(LocalRepository.Branches[branchName]);
     }
 
-    public void ResetBranchToParent(string branchName)
-    {
-        var branch = LocalRepository.Branches[branchName];
-        var parentCommit = branch.Tip.Parents.First();
-        LocalRepository.Reset(LibGit2Sharp.ResetMode.Hard, parentCommit);
-    }
-
     public bool DoesRemoteBranchExist(string branchName)
     {
         var branch = LocalRepository.Branches[branchName];
@@ -444,13 +433,13 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var branch = LocalRepository.Branches[branchName];
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         var remoteBranch = LocalRepository.Branches[remoteBranchName];
-
+        
         // Create a commit directly on the remote tracking branch
         var signature = new Signature(Some.Name(), Some.Email(), DateTimeOffset.Now);
         var tree = remoteBranch.Tip.Tree;
         var parents = new[] { remoteBranch.Tip };
         var commit = LocalRepository.ObjectDatabase.CreateCommit(signature, signature, message, tree, parents, false);
-
+        
         // Update the remote tracking branch to point to the new commit
         LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
     }

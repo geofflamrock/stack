@@ -19,7 +19,8 @@ public class StackActionsTests
     private StackStatus BuildStatus(Config.Stack stack, ILogger logger, IGitClient gitClient)
     {
         var gitHubClient = Substitute.For<IGitHubClient>();
-        return StackHelpers.GetStackStatus(new List<Config.Stack> { stack }, stack.SourceBranch, logger, gitClient, gitHubClient, includePullRequestStatus: false).First();
+        var provider = new StackStatusProvider(logger, gitClient, gitHubClient);
+        return provider.GetStackStatus(stack, stack.SourceBranch, includePullRequestStatus: false);
     }
 
     [Fact]
@@ -353,7 +354,8 @@ public class StackActionsTests
 
         // Act
         var gitHubClientForStatus = Substitute.For<IGitHubClient>();
-        var status = StackHelpers.GetStackStatus(new List<Config.Stack> { stack }, stack.SourceBranch, logger, gitClient, gitHubClientForStatus, includePullRequestStatus: false).First();
+        var provider = new StackStatusProvider(logger, gitClient, gitHubClientForStatus);
+        var status = provider.GetStackStatus(stack, stack.SourceBranch, includePullRequestStatus: false);
         stackActions.UpdateStack(stack, UpdateStrategy.Rebase, status);
 
         // Assert
@@ -398,7 +400,8 @@ public class StackActionsTests
 
         // Act: run update
         var ghForStatus = Substitute.For<IGitHubClient>();
-        var status = StackHelpers.GetStackStatus(new List<Config.Stack> { stack }, stack.SourceBranch, logger, gitClient, ghForStatus, includePullRequestStatus: false).First();
+        var provider = new StackStatusProvider(logger, gitClient, ghForStatus);
+        var status = provider.GetStackStatus(stack, stack.SourceBranch, includePullRequestStatus: false);
         stackActions.UpdateStack(stack, UpdateStrategy.Rebase, status);
 
         // Assert that we moved to the target branch and attempted a rebase from the source

@@ -24,13 +24,15 @@ public class UpdateStackCommand : Command
             InputProvider,
             StdErrLogger);
 
+        var stackStatusProvider = new StackStatusProvider(StdErrLogger, gitClient, gitHubClient);
         var handler = new UpdateStackCommandHandler(
             InputProvider,
             StdErrLogger,
             gitClient,
             gitHubClient,
             new FileStackConfig(),
-            stackActions);
+            stackActions,
+            stackStatusProvider);
 
         await handler.Handle(new UpdateStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -52,7 +54,8 @@ public class UpdateStackCommandHandler(
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
-    IStackActions stackActions)
+    IStackActions stackActions,
+    IStackStatusProvider stackStatusProvider)
     : CommandHandlerBase<UpdateStackCommandInputs>
 {
     public override async Task Handle(UpdateStackCommandInputs inputs)
@@ -99,13 +102,10 @@ public class UpdateStackCommandHandler(
             logger.NewLine();
         }
 
-        var status = StackHelpers.GetStackStatus(
+        var status = stackStatusProvider.GetStackStatus(
             stack,
             gitClient.GetCurrentBranch(),
-            logger,
-            gitClient,
-            gitHubClient,
-            false);
+            includePullRequestStatus: false);
 
         stackActions.UpdateStack(
             stack,
