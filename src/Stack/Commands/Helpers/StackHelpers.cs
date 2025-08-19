@@ -689,7 +689,7 @@ public static class StackHelpers
 
                 logger.Information($"Updating pull request {pullRequest.GetPullRequestDisplay()} with stack details");
 
-                gitHubClient.EditPullRequest(pullRequest.Number, prBody);
+                gitHubClient.EditPullRequest(pullRequest, prBody);
             }
         }
     }

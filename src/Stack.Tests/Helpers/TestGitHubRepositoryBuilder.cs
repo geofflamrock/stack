@@ -78,15 +78,16 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
         return pr;
     }
 
-    public void EditPullRequest(int number, string body)
+    public GitHubPullRequest EditPullRequest(GitHubPullRequest pullRequest, string body)
     {
-        if (!PullRequests.Any(pr => pr.Value.Number == number))
+        if (!PullRequests.Any(pr => pr.Value.Number == pullRequest.Number))
         {
             throw new InvalidOperationException("Pull request not found.");
         }
 
-        var pr = PullRequests.First(p => p.Value.Number == number);
+        var pr = PullRequests.First(p => p.Value.Number == pullRequest.Number);
         PullRequests[pr.Key] = pr.Value with { Body = body };
+        return PullRequests[pr.Key];
     }
 
     public GitHubPullRequest? GetPullRequest(string branch)

@@ -20,7 +20,7 @@ public class DeleteStackCommand : Command
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
             new FileStackConfig());
 
         await handler.Handle(new DeleteStackCommandInputs(

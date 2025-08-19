@@ -103,8 +103,8 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         var handler = new StackStatusCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+                new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
+                new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
             new FileStackConfig());
 
         return await handler.Handle(new StackStatusCommandInputs(
