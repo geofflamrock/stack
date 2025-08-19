@@ -17,12 +17,20 @@ public class UpdateStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+
         var handler = new UpdateStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            gitClient,
+            new FileStackConfig(),
+            new StackActions(
+                gitClient,
+                gitHubClient,
+                InputProvider,
+                StdErrLogger
+            ));
 
         await handler.Handle(new UpdateStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
@@ -42,8 +50,8 @@ public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     ILogger logger,
     IGitClient gitClient,
-    IGitHubClient gitHubClient,
-    IStackConfig stackConfig)
+    IStackConfig stackConfig,
+    IStackActions stackActions)
     : CommandHandlerBase<UpdateStackCommandInputs>
 {
     public override async Task Handle(UpdateStackCommandInputs inputs)
@@ -71,21 +79,11 @@ public class UpdateStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        var status = StackHelpers.GetStackStatus(
-            stack,
-            currentBranch,
-            logger,
-            gitClient,
-            gitHubClient,
-            false);
-
-        StackHelpers.UpdateStack(
-            stack,
-            status,
+        var updateStrategy = StackHelpers.GetUpdateStrategy(
             inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-            gitClient,
-            inputProvider,
-            logger);
+            gitClient, inputProvider, logger);
+
+        stackActions.UpdateStack(stack, updateStrategy);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

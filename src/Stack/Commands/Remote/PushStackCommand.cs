@@ -23,6 +23,8 @@ public class PushStackCommand : Command
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
+        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+
         var handler = new PushStackCommandHandler(
             InputProvider,
             StdErrLogger,
@@ -30,6 +32,8 @@ public class PushStackCommand : Command
             new FileStackConfig(),
             new StackActions(
                 gitClient,
+                gitHubClient,
+                InputProvider,
                 StdErrLogger));
 
         await handler.Handle(new PushStackCommandInputs(
