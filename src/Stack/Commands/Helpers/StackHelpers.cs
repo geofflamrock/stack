@@ -587,23 +587,6 @@ public static class StackHelpers
         }
     }
 
-    public static void PullChanges(Config.Stack stack, IGitClient gitClient, ILogger logger)
-    {
-        List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
-        var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
-
-        foreach (var branch in allBranchesInStacks
-            .Where(b =>
-                branchStatus.ContainsKey(b) &&
-                branchStatus[b].RemoteBranchExists &&
-                branchStatus[b].Behind > 0))
-        {
-            logger.Information($"Pulling changes for {branch.Branch()} from remote");
-            gitClient.ChangeBranch(branch);
-            gitClient.PullBranch(branch);
-        }
-    }
-
     public static void PushChanges(
         Config.Stack stack,
         int maxBatchSize,
