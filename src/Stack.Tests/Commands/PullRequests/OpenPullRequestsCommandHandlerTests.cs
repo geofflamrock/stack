@@ -19,30 +19,28 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branch1, true)
-            .WithBranch(branch2, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branch1))
                 .WithBranch(branch => branch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -71,30 +69,28 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branch1, true)
-            .WithBranch(branch2, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branch1))
                 .WithBranch(branch => branch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
 
@@ -120,30 +116,28 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branch1, true)
-            .WithBranch(branch2, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branch1))
                 .WithBranch(branch => branch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -170,17 +164,13 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branch1, true)
-            .WithBranch(branch2, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branch1))
                 .WithBranch(branch => branch.WithName(branch2)))
@@ -188,8 +178,10 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -216,30 +208,28 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branch1, true)
-            .WithBranch(branch2, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branch1))
                 .WithBranch(branch => branch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
         var fileOperations = Substitute.For<IFileOperations>();
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         // Act and assert
         var invalidStackName = Some.Name();

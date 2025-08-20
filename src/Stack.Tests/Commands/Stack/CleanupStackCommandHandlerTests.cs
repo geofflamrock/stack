@@ -19,38 +19,46 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branchWithoutRemoteTracking = Some.BranchName();
         var branchToKeep = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch, true)
-            .WithBranch(branchWithoutRemoteTracking, false)
-            .WithBranch(branchToKeep, true)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(branchWithoutRemoteTracking))
                 .WithBranch(branch => branch.WithName(branchToKeep)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        
+        // Setup branch statuses - branch without remote tracking should not be cleaned up
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            [sourceBranch] = new(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc123", "source commit")),
+            [branchWithoutRemoteTracking] = new(branchWithoutRemoteTracking, null, false, false, 0, 0, new Commit("def456", "local commit")),
+            [branchToKeep] = new(branchToKeep, $"origin/{branchToKeep}", true, false, 0, 0, new Commit("ghi789", "keep commit"))
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+        
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
 
         // Act
         await handler.Handle(CleanupStackCommandInputs.Empty);
 
-        // Assert
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == branchWithoutRemoteTracking);
+        // Assert - branch without remote tracking should not be deleted
+        gitClient.DidNotReceive().DeleteLocalBranch(branchWithoutRemoteTracking);
     }
 
     [Fact]
