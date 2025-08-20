@@ -58,7 +58,7 @@ public interface IGitHubClient
         string title,
         string bodyFilePath,
         bool draft);
-    void EditPullRequest(int number, string body);
+    GitHubPullRequest EditPullRequest(GitHubPullRequest pullRequest, string body);
     void OpenPullRequest(GitHubPullRequest pullRequest);
 }
 
@@ -101,9 +101,10 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
         return GetPullRequest(headBranch) ?? throw new Exception("Failed to create pull request.");
     }
 
-    public void EditPullRequest(int number, string body)
+    public GitHubPullRequest EditPullRequest(GitHubPullRequest pullRequest, string body)
     {
-        ExecuteGitHubCommand($"pr edit {number} --body \"{Sanitize(body)}\"");
+        ExecuteGitHubCommand($"pr edit {pullRequest.Number} --body \"{Sanitize(body)}\"");
+        return pullRequest with { Body = body };
     }
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)

@@ -21,7 +21,7 @@ public class CreatePullRequestsCommand : Command
             InputProvider,
             StdErrLogger,
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)),
+            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
             new FileOperations(),
             new FileStackConfig());
 
