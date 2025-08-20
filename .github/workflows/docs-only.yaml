@@ -7,6 +7,7 @@ on:
       - "!**" # Exclude every file
       - "README.md" # Except only readme changes
       - "CHANGELOG.md" # And changelog changes
+      - ".github/workflows/copilot-setup-steps.yml"
 
 jobs:
   pr_complete:
