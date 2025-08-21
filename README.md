@@ -83,7 +83,7 @@ Once you've done some work on the first branch within the stack, at some point y
 - Give the branch a name.
 - Select the branch to create the new branch from.
 
-The new branch will be created from the branch at the bottom of the stack and the current branch will be changed so you can make more changes.
+The new branch will be created from the selected parent branch and the current branch will be changed so you can make more changes.
 
 If a new branch was not able to be pushed to the remote, you can use the `stack push` command to push the branch to the remote later.
 

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace Stack.Config;
 
-public record StackData(SchemaVersion SchemaVersion, List<Stack> Stacks);
+public record StackData(List<Stack> Stacks);
 
 public interface IStackConfig
 {
@@ -35,18 +35,18 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         var stacksFile = GetConfigPath();
         if (!File.Exists(stacksFile))
         {
-            return new StackData(SchemaVersion.V2, []);
+            return new StackData([]);
         }
         var jsonString = File.ReadAllText(stacksFile);
 
         if (IsStackConfigInV2Format(jsonString))
         {
-            return new StackData(SchemaVersion.V2, LoadStacksFromV2Format(jsonString));
+            return new StackData(LoadStacksFromV2Format(jsonString));
         }
 
         // If no schema version, this means v1 format - migrate to v2 format and re-save before returning
         var stacksV1 = LoadStacksFromV1Format(jsonString);
-        var stacks = new StackData(SchemaVersion.V2, stacksV1);
+        var stacks = new StackData(stacksV1);
         Save(stacks);
         return stacks;
     }
@@ -59,19 +59,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             Directory.CreateDirectory(Path.GetDirectoryName(stacksFile)!);
         }
 
-        if (stackData.SchemaVersion == SchemaVersion.V1)
-        {
-            if (stackData.Stacks.Any(s => !s.HasSingleTree))
-            {
-                throw new InvalidOperationException("Cannot save in v1 format if any stack has multiple trees.");
-            }
-
-            // If all stacks have a single tree and we are still in v1 format continue to preference this.
-            File.WriteAllText(stacksFile, JsonSerializer.Serialize(stackData.Stacks.Select(MapToV1Format).ToList(), StackConfigJsonSerializerContext.Default.ListStackV1));
-            return;
-        }
-
-        // Else we are writing in v2 format
+        // We only write in v2 format
         var existingConfigFileIsInV1Format = false;
 
         if (File.Exists(stacksFile))

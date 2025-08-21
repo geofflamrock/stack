@@ -23,7 +23,7 @@ public class FileStackConfigTests
         var stackData = fileStackConfig.Load();
 
         // Assert
-        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V2, []));
+        stackData.Should().BeEquivalentTo(new StackData([]));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class FileStackConfigTests
         var stackData = fileStackConfig.Load();
 
         // Assert
-        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V2, [expectedStack]));
+        stackData.Should().BeEquivalentTo(new StackData([expectedStack]));
         var savedJson = File.ReadAllText(configPath);
         var expectedJson = $@"{{
     ""SchemaVersion"": 2,
@@ -162,62 +162,7 @@ public class FileStackConfigTests
         var stackData = fileStackConfig.Load();
 
         // Assert
-        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V2, [expectedStack]));
-    }
-
-    [Fact]
-    public void Save_WhenConfigFileIsInV1Format_AndAllStacksHaveASingleTree_SavesCorrectlyInV1Format()
-    {
-        // Arrange
-        using var tempDirectory = TemporaryDirectory.Create();
-        var configPath = Path.Combine(tempDirectory.DirectoryPath, "stack", "config.json");
-        var stackName = Some.Name();
-        var remoteUri = Some.HttpsUri().ToString();
-        var sourceBranch = Some.BranchName();
-        var branch1 = Some.BranchName();
-        var branch2 = Some.BranchName();
-
-        // Create an empty config file
-        Directory.CreateDirectory(Path.GetDirectoryName(configPath)!);
-        File.WriteAllText(configPath, "[]");
-
-        // Create a Stack object with a simple tree structure that should be saved in V1 format
-        var stack = new Config.Stack(
-            stackName,
-            remoteUri,
-            sourceBranch,
-            [
-                new(branch1,
-                    [
-                        new(branch2, [])
-                    ])
-            ]);
-
-        // Act
-        var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
-        fileStackConfig.Save(new StackData(SchemaVersion.V1, [stack]));
-
-        // Assert
-        var savedJson = File.ReadAllText(configPath);
-
-        // Format the expected JSON string with proper indentation
-        var expectedJson = $@"[
-    {{
-        ""Name"": ""{stackName}"",
-        ""RemoteUri"": ""{remoteUri}"",
-        ""SourceBranch"": ""{sourceBranch}"",
-        ""Branches"": [
-            ""{branch1}"",
-            ""{branch2}""
-        ]
-    }}
-]";
-
-        // Normalize both JSON strings to remove whitespace differences
-        var normalizedSavedJson = NormalizeJsonString(savedJson);
-        var normalizedExpectedJson = NormalizeJsonString(expectedJson);
-
-        normalizedSavedJson.Should().Be(normalizedExpectedJson);
+        stackData.Should().BeEquivalentTo(new StackData([expectedStack]));
     }
 
     [Fact]
@@ -258,7 +203,7 @@ public class FileStackConfigTests
         var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
 
         // Act
-        fileStackConfig.Save(new StackData(SchemaVersion.V2, [stack]));
+        fileStackConfig.Save(new StackData([stack]));
 
         // Assert
         var savedJson = File.ReadAllText(configPath);
