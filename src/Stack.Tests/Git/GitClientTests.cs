@@ -148,7 +148,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var existingBranch1 = Some.BranchName();
         var existingBranch2 = Some.BranchName();
         var nonExistentBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(existingBranch1))
             .WithBranch(builder => builder.WithName(existingBranch2))
@@ -175,7 +175,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var baseBranch = Some.BranchName();
         var featureBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(baseBranch))
             .WithBranch(builder => builder.WithName(featureBranch).FromSourceBranch(baseBranch))
@@ -240,7 +240,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var configKey = "user.name";
         var expectedValue = Some.Name();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithConfig(configKey, expectedValue)
             .Build();
@@ -260,7 +260,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var nonExistentKey = "non.existent.key";
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .Build();
 
@@ -280,7 +280,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(branch1))
             .WithBranch(builder => builder.WithName(branch2))
@@ -334,7 +334,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(sourceBranch))
             .Build();
@@ -355,7 +355,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var branchToDelete = Some.BranchName();
         var otherBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(branchToDelete))
             .WithBranch(builder => builder.WithName(otherBranch))
@@ -486,7 +486,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var oldParent = Some.BranchName();
         var newParent = Some.BranchName();
         var childBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(oldParent))
             .WithBranch(builder => builder.WithName(newParent))
@@ -524,7 +524,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var oldParent = Some.BranchName();
         var newParent = Some.BranchName();
         var childBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(oldParent))
             .WithBranch(builder => builder.WithName(newParent))
@@ -685,7 +685,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var branch1 = Some.BranchName(); // This branch will be ahead of remote
         var branch2 = Some.BranchName(); // This branch will be behind remote  
         var ignoredBranch = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(branch1).PushToRemote().WithNumberOfEmptyCommits(1))
             .WithBranch(builder => builder.WithName(branch2).PushToRemote().WithNumberOfEmptyCommits(1))
@@ -717,17 +717,17 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         using (new AssertionScope())
         {
             statuses.Should().HaveCount(2);
-            statuses[branch1].Should().Match<GitBranchStatus>(s => 
-                s.BranchName == branch1 && 
-                s.IsCurrentBranch == true && 
-                s.Ahead >= 0 && 
+            statuses[branch1].Should().Match<GitBranchStatus>(s =>
+                s.BranchName == branch1 &&
+                s.IsCurrentBranch == true &&
+                s.Ahead >= 0 &&
                 s.Behind >= 0 &&
                 s.RemoteBranchExists == true &&
                 s.RemoteTrackingBranchName != null);
-            statuses[branch2].Should().Match<GitBranchStatus>(s => 
-                s.BranchName == branch2 && 
-                s.IsCurrentBranch == false && 
-                s.Ahead >= 0 && 
+            statuses[branch2].Should().Match<GitBranchStatus>(s =>
+                s.BranchName == branch2 &&
+                s.IsCurrentBranch == false &&
+                s.Ahead >= 0 &&
                 s.Behind >= 0 &&
                 s.RemoteBranchExists == true &&
                 s.RemoteTrackingBranchName != null);
@@ -740,7 +740,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        
+
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(branch1))
             .WithBranch(builder => builder.WithName(branch2))
@@ -923,5 +923,149 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             remoteTip1.Message.Should().NotBe(remoteCommitMessage1);
             remoteTip2.Message.Should().NotBe(remoteCommitMessage2);
         }
+    }
+
+    [Fact]
+    public void FetchBranchRefSpecs_WhenBranchesProvided_FastForwardsLocalBranch()
+    {
+        // Arrange
+        var targetBranch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(targetBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(b => b.WithName(otherBranch).PushToRemote())
+            .Build();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        // Make a new commit on the target branch and push it so remote is ahead
+        gitClient.ChangeBranch(targetBranch);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(Path.GetFileName(filePath));
+        var pushedCommit = repo.Commit();
+        repo.Push(targetBranch); // remote now ahead
+
+        // Determine parent commit to reset local branch to (making local behind)
+        var commits = repo.GetCommitsReachableFromBranch(targetBranch);
+        var parentCommit = commits[1];
+        repo.ResetBranchToCommit(targetBranch, parentCommit.Sha); // local behind remote
+        var originalLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
+        originalLocalTip.Should().Be(parentCommit.Sha);
+
+        var remoteTip = repo.GetTipOfRemoteBranch(targetBranch).Sha;
+        remoteTip.Should().Be(pushedCommit.Sha);
+        remoteTip.Should().NotBe(originalLocalTip);
+
+        // Switch to other branch so fetch can update target branch ref
+        gitClient.ChangeBranch(otherBranch);
+
+        // Act
+        gitClient.FetchBranchRefSpecs(new[] { targetBranch });
+
+        // Assert - local branch should now match remote tip
+        var newLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
+        newLocalTip.Should().Be(remoteTip);
+    }
+
+    [Fact]
+    public void FetchBranchRefSpecs_WhenNoBranchesProvided_DoesNothing()
+    {
+        // Arrange
+        var targetBranch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(targetBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(b => b.WithName(otherBranch).PushToRemote())
+            .Build();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+
+        gitClient.ChangeBranch(otherBranch);
+        var originalLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
+
+        // Act
+        gitClient.FetchBranchRefSpecs(Array.Empty<string>());
+
+        // Assert - local branch tip unchanged
+        var newLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
+        newLocalTip.Should().Be(originalLocalTip);
+    }
+
+    [Fact]
+    public void PullBranchForWorktree_WhenRemoteAhead_FastForwardsWorktreeBranch()
+    {
+        // Arrange
+        var branch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(branch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(b => b.WithName(otherBranch))
+            .Build();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+
+        // Make remote ahead: checkout branch, create commit, push
+        gitClient.ChangeBranch(branch);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(Path.GetFileName(filePath));
+        var newCommit = repo.Commit();
+        repo.Push(branch);
+
+        // Reset local branch to previous commit (behind remote)
+        var commits = repo.GetCommitsReachableFromBranch(branch);
+        var parentCommit = commits[1];
+        repo.ResetBranchToCommit(branch, parentCommit.Sha);
+
+        // Switch away from branch so it can be updated via worktree
+        gitClient.ChangeBranch(otherBranch);
+
+        // Create a worktree with the target branch checked out (non-detached)
+        var worktreePath = repo.CreateWorktree(branch);
+
+        var originalLocalTip = repo.GetTipOfBranch(branch).Sha; // behind
+        var remoteTip = repo.GetTipOfRemoteBranch(branch).Sha; // ahead
+        remoteTip.Should().Be(newCommit.Sha);
+        originalLocalTip.Should().NotBe(remoteTip);
+
+        // Act
+        gitClient.PullBranchForWorktree(branch, worktreePath);
+
+        // Assert - branch ref should now be fast-forwarded
+        var finalTip = repo.GetTipOfBranch(branch).Sha;
+        finalTip.Should().Be(remoteTip);
+    }
+
+    [Fact]
+    public void PullBranchForWorktree_WhenUpToDate_DoesNotChangeCommit()
+    {
+        // Arrange
+        var branch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(branch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(b => b.WithName(otherBranch))
+            .Build();
+
+        var logger = new TestLogger(testOutputHelper);
+        var gitClient = new GitClient(logger, repo.GitClientSettings);
+
+        // Switch away from branch and add worktree tracking branch
+        gitClient.ChangeBranch(otherBranch);
+        var worktreePath = repo.CreateWorktree(branch);
+
+        var originalTip = repo.GetTipOfBranch(branch).Sha;
+
+        // Act
+        gitClient.PullBranchForWorktree(branch, worktreePath);
+
+        // Assert
+        var finalTip = repo.GetTipOfBranch(branch).Sha;
+        finalTip.Should().Be(originalTip);
     }
 }
