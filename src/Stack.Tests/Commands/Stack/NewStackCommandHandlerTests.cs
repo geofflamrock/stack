@@ -18,18 +18,19 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var existingBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(existingBranch)
-            .Build();
+        var stackName = Some.ShortName();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
+
+        inputProvider.Text(Questions.StackName).Returns(stackName);
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(existingBranch);
@@ -40,10 +41,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
+            new(stackName, remoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
         });
-
-        gitClient.GetCurrentBranch().Should().Be(existingBranch);
+        gitClient.Received().ChangeBranch(existingBranch);
     }
 
     [Fact]
@@ -52,20 +52,19 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var existingBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(existingBranch)
-            .Build();
+        var stackName = Some.ShortName();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        gitClient.ChangeBranch(existingBranch);
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
-        inputProvider.Text(Questions.StackName).Returns("Stack1");
+        inputProvider.Text(Questions.StackName).Returns(stackName);
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
 
@@ -75,10 +74,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [])
+            new(stackName, remoteUri, sourceBranch, [])
         });
-
-        gitClient.GetCurrentBranch().Should().Be(existingBranch);
+        gitClient.DidNotReceive().ChangeBranch(Arg.Any<string>());
     }
 
     [Fact]
@@ -86,20 +84,22 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
+        var stackName = Some.ShortName();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
 
-        var inputs = new NewStackCommandInputs("Stack1", null, null);
+        var inputs = new NewStackCommandInputs(stackName, null, null);
 
         // Act
         await handler.Handle(inputs);
@@ -107,9 +107,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [])
+            new(stackName, remoteUri, sourceBranch, [])
         });
-
         inputProvider.DidNotReceive().Text(Questions.StackName);
     }
 
@@ -118,15 +117,16 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -139,9 +139,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [])
+            new("Stack1", remoteUri, sourceBranch, [])
         });
-
         inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
     }
 
@@ -151,19 +150,19 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
-        // Note there shouldn't be any more inputs required at all
 
         var inputs = new NewStackCommandInputs(null, null, newBranch);
 
@@ -173,13 +172,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
-
-        inputProvider.Received().Text(Questions.StackName);
-        inputProvider.Received().Select(Questions.SelectSourceBranch, Arg.Any<string[]>());
-        inputProvider.ClearReceivedCalls();
-        inputProvider.ReceivedCalls().Should().BeEmpty();
+        gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
+        gitClient.Received().PushNewBranch(newBranch);
+        inputProvider.DidNotReceive().Text(Questions.BranchName);
     }
 
     [Fact]
@@ -188,15 +185,16 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -209,10 +207,10 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
-
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && b.IsTracking);
+        gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
+        gitClient.Received().PushNewBranch(newBranch);
     }
 
     [Fact]
@@ -221,19 +219,19 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .Build();
+        var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = Substitute.ForPartsOf<GitClient>(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
+        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient
-            .WhenForAnyArgs(gc => gc.PushNewBranch(Arg.Any<string>()))
-            .Throw(new Exception("Failed to push branch"));
+            .When(gc => gc.PushNewBranch(newBranch))
+            .Do(_ => throw new Exception("Failed to push branch"));
 
         inputProvider.Text(Questions.StackName).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>()).Returns(sourceBranch);
@@ -246,9 +244,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", repo.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
-
-        repo.GetBranches().Should().Contain(b => b.FriendlyName == newBranch && !b.IsTracking);
+        gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
+        gitClient.Received().PushNewBranch(newBranch);
     }
 }
