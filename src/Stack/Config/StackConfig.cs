@@ -35,7 +35,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         var stacksFile = GetConfigPath();
         if (!File.Exists(stacksFile))
         {
-            return new StackData(SchemaVersion.V1, []);
+            return new StackData(SchemaVersion.V2, []);
         }
         var jsonString = File.ReadAllText(stacksFile);
 

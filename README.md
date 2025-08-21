@@ -81,6 +81,7 @@ Once you've done some work on the first branch within the stack, at some point y
 - Run `stack branch new`.
 - Select the stack to create the branch in.
 - Give the branch a name.
+- Select the branch to create the new branch from.
 
 The new branch will be created from the branch at the bottom of the stack and the current branch will be changed so you can make more changes.
 
@@ -433,7 +434,7 @@ Options:
 
 #### `stack config migrate` <!-- omit from toc -->
 
-Migrate the configuration file from v1 to v2 format (preview).
+Migrate the configuration file from v1 to v2 format.
 
 ```shell
 Usage:

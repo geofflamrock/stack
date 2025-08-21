@@ -23,7 +23,7 @@ public class FileStackConfigTests
         var stackData = fileStackConfig.Load();
 
         // Assert
-        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V1, []));
+        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V2, []));
     }
 
     [Fact]
