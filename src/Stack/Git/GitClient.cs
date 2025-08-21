@@ -27,12 +27,14 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
+
     void Fetch(bool prune);
 
     void ChangeBranch(string branchName);
     void CreateNewBranch(string branchName, string sourceBranch);
     void PushNewBranch(string branchName);
     void PullBranch(string branchName);
+    void FetchBranchRefSpecs(string[] branchNames);
     void PushBranches(string[] branches, bool forceWithLease);
     void DeleteLocalBranch(string branchName);
 
@@ -155,6 +157,17 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
     public void PullBranch(string branchName)
     {
         ExecuteGitCommand($"pull origin {branchName}");
+    }
+
+    public void FetchBranchRefSpecs(string[] branchNames)
+    {
+        if (branchNames is null || branchNames.Length == 0)
+        {
+            return;
+        }
+
+        var refSpecs = string.Join(" ", branchNames.Select(b => $"{b}:{b}"));
+        ExecuteGitCommand($"fetch origin {refSpecs}");
     }
 
     public void PushBranches(string[] branches, bool forceWithLease)
