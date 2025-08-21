@@ -27,7 +27,7 @@ public class FileStackConfigTests
     }
 
     [Fact]
-    public void Load_WhenConfigFileIsInV1Format_LoadsCorrectly()
+    public void Load_WhenConfigFileIsInV1Format_LoadsCorrectly_MigratesAndSavesFileInV2Format()
     {
         // Arrange
         using var tempDirectory = TemporaryDirectory.Create();
@@ -67,7 +67,41 @@ public class FileStackConfigTests
         var stackData = fileStackConfig.Load();
 
         // Assert
-        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V1, [expectedStack]));
+        stackData.Should().BeEquivalentTo(new StackData(SchemaVersion.V2, [expectedStack]));
+        var savedJson = File.ReadAllText(configPath);
+        var expectedJson = $@"{{
+    ""SchemaVersion"": 2,
+    ""Stacks"": [
+        {{
+            ""Name"": ""{stackName}"",
+            ""RemoteUri"": ""{remoteUri}"",
+            ""SourceBranch"": ""{sourceBranch}"",
+            ""Branches"": [
+                {{
+                    ""Name"": ""{branch1}"",
+                    ""Children"": [
+                        {{
+                            ""Name"": ""{branch2}"",
+                            ""Children"": []
+                        }}
+                    ]
+                }}
+            ]
+        }}
+    ]
+}}";
+
+        // Normalize both JSON strings to remove whitespace differences
+        var normalizedSavedJson = NormalizeJsonString(savedJson);
+        var normalizedExpectedJson = NormalizeJsonString(expectedJson);
+
+        normalizedSavedJson.Should().Be(normalizedExpectedJson);
+
+        // Original backup should be in V1 format
+        var backupPath = fileStackConfig.GetV1ConfigBackupFilePath();
+        File.Exists(backupPath).Should().BeTrue();
+        var backupJson = File.ReadAllText(backupPath);
+        backupJson.Should().Be(v1Json);
     }
 
     [Fact]
