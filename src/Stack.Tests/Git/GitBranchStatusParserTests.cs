@@ -15,7 +15,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, true, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, true, 0, 0, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 1, 2, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 1, 2, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 1, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 1, 0, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 2, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 2, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", null, false, false, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", null, false, false, 0, 0, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", false, false, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", false, false, 0, 0, new Commit("1234567", "Some message"), null));
     }
 
     [Fact]
@@ -93,7 +93,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 0, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 6, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 0, 6, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 6, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 6, 0, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 6, 2, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 6, 2, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", false, false, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", false, false, 0, 0, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", null, false, false, 0, 0, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", null, false, false, 0, 0, new Commit("1234567", "Some message"), "D:/path/to/worktree"));
     }
 
     [Fact]
@@ -171,6 +171,6 @@ public class GitBranchStatusParserTests
         var result = GitBranchStatusParser.Parse(branchStatus);
 
         // Assert
-        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 3, 1, new Commit("1234567", "Some message")));
+        result.Should().Be(new GitBranchStatus("main", "origin/main", true, false, 3, 1, new Commit("1234567", "Some message"), "D:/path/with (parentheses)/worktree"));
     }
 }

@@ -33,14 +33,30 @@ namespace Stack.Commands.Helpers
 
             // Pull the current branch and fetch ref-specs for the others
             var shouldPullCurrent = branchesNeedingUpdate.Contains(currentBranch);
+            // Identify branches that are behind and checked out in another worktree (marker '+') so can be pulled directly
+            var branchesInOtherWorktrees = branchesNeedingUpdate
+                .Where(b =>
+                    branchStatus[b].IsCurrentBranch == false &&
+                    !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) &&
+                    branchStatus[b].WorktreePath is not null)
+                .ToArray();
+
             var nonCurrentBranches = branchesNeedingUpdate
-                .Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
+                .Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !branchesInOtherWorktrees.Contains(b))
                 .ToArray();
 
             if (shouldPullCurrent)
             {
                 logger.Information($"Pulling changes for {currentBranch.Branch()} from remote");
                 gitClient.PullBranch(currentBranch);
+            }
+
+            // Pull branches that are in other worktrees directly
+            foreach (var branch in branchesInOtherWorktrees)
+            {
+                var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
+                logger.Information($"Pulling changes for {branch.Branch()} (worktree: {worktreePath}) from remote");
+                gitClient.PullBranchForWorktree(branch, worktreePath);
             }
 
             if (nonCurrentBranches.Length > 0)

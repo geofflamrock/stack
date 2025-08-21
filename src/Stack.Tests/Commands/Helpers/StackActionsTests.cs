@@ -640,6 +640,43 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public void PullChanges_WhenBranchIsBehind_AndCheckedOutInAnotherWorktree_PullsItDirectly()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInOtherWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            // Simulate branch existing in another worktree (marker '+') by providing WorktreePath
+            { branchInOtherWorktree, new GitBranchStatus(branchInOtherWorktree, $"origin/{branchInOtherWorktree}", true, false, 0, 4, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(branchInOtherWorktree))
+            .Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.Received(1).PullBranchForWorktree(branchInOtherWorktree, worktreePath);
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        gitClient.DidNotReceive().PullBranch(branchInOtherWorktree);
+    }
+
+    [Fact]
     public void PushChanges_WhenSomeLocalBranchesAreAhead_OnlyPushesChangesForBranchesThatAreAhead()
     {
         // Arrange
