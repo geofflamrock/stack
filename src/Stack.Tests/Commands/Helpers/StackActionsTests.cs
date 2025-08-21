@@ -471,9 +471,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.DidNotReceive().PullBranch(sourceBranch);
-        gitClient.Received().PullBranch(branchWithRemoteChanges);
-        gitClient.DidNotReceive().PullBranch(branchWithoutRemoteChanges);
+        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchWithRemoteChanges));
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchWithoutRemoteChanges) || a.Contains(sourceBranch)));
     }
 
     [Fact]
@@ -509,9 +508,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.DidNotReceive().PullBranch(sourceBranch);
-        gitClient.Received().PullBranch(branchThatExistsInRemote);
-        gitClient.DidNotReceive().PullBranch(branchThatDoesNotExistInRemote);
+        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchThatExistsInRemote));
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchThatDoesNotExistInRemote) || a.Contains(sourceBranch)));
     }
 
     [Fact]
