@@ -18,15 +18,51 @@ namespace Stack.Commands.Helpers
             List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
             var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
-            foreach (var branch in allBranchesInStacks
-                .Where(b =>
-                    branchStatus.ContainsKey(b) &&
-                    branchStatus[b].RemoteBranchExists &&
-                    branchStatus[b].Behind > 0))
+            var currentBranch = gitClient.GetCurrentBranch();
+
+            var branchesNeedingUpdate = allBranchesInStacks
+                .Where(b => branchStatus.ContainsKey(b)
+                            && branchStatus[b].RemoteBranchExists
+                            && branchStatus[b].Behind > 0)
+                .ToList();
+
+            if (branchesNeedingUpdate.Count == 0)
             {
-                logger.Information($"Pulling changes for {branch.Branch()} from remote");
-                gitClient.ChangeBranch(branch);
-                gitClient.PullBranch(branch);
+                return;
+            }
+
+            // Pull the current branch and fetch ref-specs for the others
+            var shouldPullCurrent = branchesNeedingUpdate.Contains(currentBranch);
+            // Identify branches that are behind and checked out in another worktree (marker '+') so can be pulled directly
+            var branchesInOtherWorktrees = branchesNeedingUpdate
+                .Where(b =>
+                    branchStatus[b].IsCurrentBranch == false &&
+                    !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) &&
+                    branchStatus[b].WorktreePath is not null)
+                .ToArray();
+
+            var nonCurrentBranches = branchesNeedingUpdate
+                .Where(b => !b.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) && !branchesInOtherWorktrees.Contains(b))
+                .ToArray();
+
+            if (shouldPullCurrent)
+            {
+                logger.Information($"Pulling changes for {currentBranch.Branch()} from remote");
+                gitClient.PullBranch(currentBranch);
+            }
+
+            // Pull branches that are in other worktrees directly
+            foreach (var branch in branchesInOtherWorktrees)
+            {
+                var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
+                logger.Information($"Pulling changes for {branch.Branch()} (worktree: {worktreePath}) from remote");
+                gitClient.PullBranchForWorktree(branch, worktreePath);
+            }
+
+            if (nonCurrentBranches.Length > 0)
+            {
+                logger.Information($"Fetching changes for {string.Join(", ", nonCurrentBranches.Select(b => b.Branch()))} from remote");
+                gitClient.FetchBranchRefSpecs(nonCurrentBranches);
             }
         }
 

@@ -20,8 +20,13 @@ public class TemporaryDirectory(string DirectoryPath) : IDisposable
 
     public static TemporaryDirectory Create()
     {
-        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        var path = CreatePath();
         Directory.CreateDirectory(path);
         return new TemporaryDirectory(path);
+    }
+
+    public static string CreatePath()
+    {
+        return Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
     }
 }

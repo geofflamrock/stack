@@ -341,6 +341,7 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public string LocalDirectoryPath => LocalDirectory.DirectoryPath;
     public GitClientSettings GitClientSettings => new GitClientSettings(true, LocalDirectory.DirectoryPath);
+    readonly List<TemporaryDirectory> WorktreePaths = [];
 
     public LibGit2Sharp.Commit GetTipOfBranch(string branchName)
     {
@@ -433,15 +434,33 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var branch = LocalRepository.Branches[branchName];
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         var remoteBranch = LocalRepository.Branches[remoteBranchName];
-        
+
         // Create a commit directly on the remote tracking branch
         var signature = new Signature(Some.Name(), Some.Email(), DateTimeOffset.Now);
         var tree = remoteBranch.Tip.Tree;
         var parents = new[] { remoteBranch.Tip };
         var commit = LocalRepository.ObjectDatabase.CreateCommit(signature, signature, message, tree, parents, false);
-        
+
         // Update the remote tracking branch to point to the new commit
         LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
+    }
+
+    public string CreateWorktree(string branchName)
+    {
+        // Validate branch exists
+        if (LocalRepository.Branches[branchName] is null)
+        {
+            throw new ArgumentException($"Branch '{branchName}' does not exist.", nameof(branchName));
+        }
+
+        // Create a temporary directory for the worktree
+        var worktreePath = TemporaryDirectory.CreatePath();
+        var worktreeName = Some.Name();
+        LocalRepository.Worktrees.Add(branchName, worktreeName, worktreePath, false);
+
+        WorktreePaths.Add(new TemporaryDirectory(worktreePath));
+
+        return worktreePath;
     }
 
     public void Dispose()
@@ -450,5 +469,9 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Dispose();
         LocalDirectory.Dispose();
         RemoteDirectory.Dispose();
+        foreach (var worktreePath in WorktreePaths)
+        {
+            worktreePath.Dispose();
+        }
     }
 }

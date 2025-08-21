@@ -471,9 +471,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.DidNotReceive().PullBranch(sourceBranch);
-        gitClient.Received().PullBranch(branchWithRemoteChanges);
-        gitClient.DidNotReceive().PullBranch(branchWithoutRemoteChanges);
+        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchWithRemoteChanges));
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchWithoutRemoteChanges) || a.Contains(sourceBranch)));
     }
 
     [Fact]
@@ -509,9 +508,170 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.DidNotReceive().PullBranch(sourceBranch);
-        gitClient.Received().PullBranch(branchThatExistsInRemote);
-        gitClient.DidNotReceive().PullBranch(branchThatDoesNotExistInRemote);
+        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchThatExistsInRemote));
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchThatDoesNotExistInRemote) || a.Contains(sourceBranch)));
+    }
+
+    [Fact]
+    public void PullChanges_WhenOnlyNonCurrentBranchesBehind_FetchesThem()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) },
+            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 3, new Commit(Some.Sha(), Some.Name())) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(branch1))
+            .WithBranch(b => b.WithName(branch2))
+            .Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.DidNotReceive().PullBranch(Arg.Any<string>());
+        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 2 && a.Contains(branch1) && a.Contains(branch2)));
+    }
+
+    [Fact]
+    public void PullChanges_WhenOnlyCurrentBranchBehind_PullsIt()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 5, new Commit(Some.Sha(), Some.Name())) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+
+        var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.Received(1).PullBranch(sourceBranch);
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+    }
+
+    [Fact]
+    public void PullChanges_WhenCurrentAndOtherBranchesBehind_PullsCurrentAndFetchesOthers()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 1, new Commit(Some.Sha(), Some.Name())) },
+            { otherBranch, new GitBranchStatus(otherBranch, $"origin/{otherBranch}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(otherBranch))
+            .Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.Received(1).PullBranch(sourceBranch);
+        gitClient.Received(1).FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == otherBranch));
+    }
+
+    [Fact]
+    public void PullChanges_WhenNoBranchesBehind_DoesNothing()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var otherBranch = Some.BranchName();
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { otherBranch, new GitBranchStatus(otherBranch, $"origin/{otherBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+        var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).WithBranch(b => b.WithName(otherBranch)).Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.DidNotReceive().PullBranch(Arg.Any<string>());
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+    }
+
+    [Fact]
+    public void PullChanges_WhenBranchIsBehind_AndCheckedOutInAnotherWorktree_PullsItDirectly()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInOtherWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var statuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            // Simulate branch existing in another worktree (marker '+') by providing WorktreePath
+            { branchInOtherWorktree, new GitBranchStatus(branchInOtherWorktree, $"origin/{branchInOtherWorktree}", true, false, 0, 4, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(branchInOtherWorktree))
+            .Build();
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+
+        // Act
+        stackActions.PullChanges(stack);
+
+        // Assert
+        gitClient.Received(1).PullBranchForWorktree(branchInOtherWorktree, worktreePath);
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        gitClient.DidNotReceive().PullBranch(branchInOtherWorktree);
     }
 
     [Fact]
