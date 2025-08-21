@@ -19,37 +19,42 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(branchToSwitchTo)
-            .Build();
-
+        var remoteUri = Some.HttpsUri().ToString();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
+        var gitClient = Substitute.For<IGitClient>();
+        var currentBranch = sourceBranch;
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
+        gitClient.DoesLocalBranchExist(branchToSwitchTo).Returns(true);
+        gitClient
+            .When(g => g.ChangeBranch(Arg.Any<string>()))
+            .Do(ci => currentBranch = ci.Arg<string>());
+
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
-        gitClient.ChangeBranch(sourceBranch);
-
-        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>()).Returns(branchToSwitchTo);
+        inputProvider
+            .SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>())
+            .Returns(branchToSwitchTo);
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(null));
 
         // Assert
-        gitClient.GetCurrentBranch().Should().Be(branchToSwitchTo);
+        currentBranch.Should().Be(branchToSwitchTo);
     }
 
     [Fact]
@@ -59,35 +64,38 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(branchToSwitchTo)
-            .Build();
-
+        var remoteUri = Some.HttpsUri().ToString();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
+        var gitClient = Substitute.For<IGitClient>();
+        var currentBranch = sourceBranch;
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
+        gitClient.DoesLocalBranchExist(branchToSwitchTo).Returns(true);
+        gitClient
+            .When(g => g.ChangeBranch(Arg.Any<string>()))
+            .Do(ci => currentBranch = ci.Arg<string>());
 
-        gitClient.ChangeBranch(sourceBranch);
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
 
         // Assert
-        gitClient.GetCurrentBranch().Should().Be(branchToSwitchTo);
+        currentBranch.Should().Be(branchToSwitchTo);
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
 
@@ -98,32 +106,36 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(sourceBranch)
-            .WithBranch(branchToSwitchTo)
-            .Build();
-
+        var remoteUri = Some.HttpsUri().ToString();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
+        var gitClient = Substitute.For<IGitClient>();
+        var currentBranch = sourceBranch;
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
+        gitClient
+            .When(g => g.ChangeBranch(Arg.Any<string>()))
+            .Do(ci => currentBranch = ci.Arg<string>());
 
-        gitClient.ChangeBranch(sourceBranch);
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         // Act and assert
         var invalidBranchName = Some.BranchName();
+        gitClient.DoesLocalBranchExist(invalidBranchName).Returns(false);
+
         await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs(invalidBranchName)))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{invalidBranchName}' does not exist.");
