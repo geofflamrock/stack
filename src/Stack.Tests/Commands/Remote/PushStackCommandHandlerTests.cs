@@ -185,38 +185,28 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenUsingForceWithLease_ChangesAreForcePushedToTheRemote()
     {
         // Arrange
+        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        using var repo = new TestGitRepositoryBuilder()
-            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote())
-            .WithBranch(builder => builder.WithName(branch1).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(10).PushToRemote())
-            .WithBranch(builder => builder.WithName(branch2).FromSourceBranch(branch1).WithNumberOfEmptyCommits(1).PushToRemote())
-            .WithNumberOfEmptyCommits(branch1, 3, false)
-            .WithNumberOfEmptyCommits(branch2, 2, false)
-            .Build();
-
-        repo.RebaseCommits(branch1, sourceBranch);
-        repo.RebaseCommits(branch2, branch1);
-
-        var tipOfBranch1 = repo.GetTipOfBranch(branch1);
-        var tipOfBranch2 = repo.GetTipOfBranch(branch2);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(repo.RemoteUri)
+                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = new TestLogger(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.GitClientSettings);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
