@@ -9,7 +9,6 @@ namespace Stack.Commands;
 
 public class OpenConfigCommand : Command
 {
-    private readonly IAnsiConsole console;
     private readonly IStackConfig stackConfig;
 
     public OpenConfigCommand(
@@ -18,10 +17,8 @@ public class OpenConfigCommand : Command
         IInputProvider inputProvider,
         IGitClientSettingsUpdater gitClientSettingsUpdater,
         IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        IAnsiConsole console,
         IStackConfig stackConfig) : base("open", "Open the configuration file in the default editor.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
-        this.console = console;
         this.stackConfig = stackConfig;
     }
 
@@ -33,7 +30,7 @@ public class OpenConfigCommand : Command
 
         if (!File.Exists(configPath))
         {
-            console.WriteLine("No config file found.");
+            StdErrLogger.Information("No config file found.");
             return;
         }
 

@@ -14,10 +14,10 @@ public static class ServiceConfiguration
 {
     public static IHost CreateHost()
     {
-        var builder = Host.CreateDefaultBuilder()
-            .ConfigureServices(ConfigureServices)
-            .UseConsoleLifetime();
+        var settings = new HostApplicationBuilderSettings();
 
+        var builder = Host.CreateEmptyApplicationBuilder(settings);
+        ConfigureServices(builder.Services);
         return builder.Build();
     }
 
@@ -27,7 +27,7 @@ public static class ServiceConfiguration
         services.AddMemoryCache();
 
         // Register console components
-        services.AddSingleton<IAnsiConsole>(provider =>
+        services.AddSingleton(provider =>
         {
             return AnsiConsole.Create(new AnsiConsoleSettings
             {
@@ -36,7 +36,6 @@ public static class ServiceConfiguration
                 Out = new AnsiConsoleOutput(Console.Error),
             });
         });
-
         services.AddSingleton<IStdOutLogger, StdOutLogger>();
         services.AddSingleton<IStdErrLogger, StdErrLogger>();
         services.AddSingleton<ILogger>(provider => provider.GetRequiredService<IStdErrLogger>());
@@ -58,10 +57,10 @@ public static class ServiceConfiguration
         services.AddSingleton<MutableGitHubClientSettings>();
         services.AddSingleton<IGitHubClientSettings>(provider => provider.GetRequiredService<MutableGitHubClientSettings>());
         services.AddSingleton<IGitHubClientSettingsUpdater>(provider => provider.GetRequiredService<MutableGitHubClientSettings>());
-        
+
         // Register GitHub client with caching
         services.AddSingleton<GitHubClient>();
-        services.AddSingleton<IGitHubClient>(provider => 
+        services.AddSingleton<IGitHubClient>(provider =>
         {
             var gitHubClient = provider.GetRequiredService<GitHubClient>();
             var cache = provider.GetRequiredService<IMemoryCache>();
@@ -88,17 +87,17 @@ public static class ServiceConfiguration
         services.AddTransient<CleanupStackCommandHandler>();
         services.AddTransient<StackStatusCommandHandler>();
         services.AddTransient<StackSwitchCommandHandler>();
-        
+
         // Branch command handlers
         services.AddTransient<AddBranchCommandHandler>();
         services.AddTransient<NewBranchCommandHandler>();
         services.AddTransient<RemoveBranchCommandHandler>();
-        
+
         // Stack operation handlers
         services.AddTransient<PullStackCommandHandler>();
         services.AddTransient<PushStackCommandHandler>();
         services.AddTransient<SyncStackCommandHandler>();
-        
+
         // Pull request handlers
         services.AddTransient<CreatePullRequestsCommandHandler>();
         services.AddTransient<OpenPullRequestsCommandHandler>();
@@ -108,7 +107,7 @@ public static class ServiceConfiguration
     {
         // Root command
         services.AddSingleton<StackRootCommand>();
-        
+
         // Individual commands
         services.AddTransient<NewStackCommand>();
         services.AddTransient<UpdateStackCommand>();
@@ -117,23 +116,23 @@ public static class ServiceConfiguration
         services.AddTransient<CleanupStackCommand>();
         services.AddTransient<StackStatusCommand>();
         services.AddTransient<StackSwitchCommand>();
-        
+
         // Branch commands
         services.AddTransient<BranchCommand>();
         services.AddTransient<AddBranchCommand>();
         services.AddTransient<NewBranchCommand>();
         services.AddTransient<RemoveBranchCommand>();
-        
+
         // Stack operation commands
         services.AddTransient<PullStackCommand>();
         services.AddTransient<PushStackCommand>();
         services.AddTransient<SyncStackCommand>();
-        
+
         // Pull request commands
         services.AddTransient<PullRequestsCommand>();
         services.AddTransient<CreatePullRequestsCommand>();
         services.AddTransient<OpenPullRequestsCommand>();
-        
+
         // Config commands
         services.AddTransient<ConfigCommand>();
         services.AddTransient<OpenConfigCommand>();
