@@ -1,10 +1,11 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -12,8 +13,14 @@ public class StackSwitchCommand : Command
 {
     private readonly StackSwitchCommandHandler handler;
 
-    public StackSwitchCommand(IServiceProvider serviceProvider, StackSwitchCommandHandler handler) 
-        : base("switch", "Switch to a branch in a stack.", serviceProvider)
+    public StackSwitchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        StackSwitchCommandHandler handler) 
+        : base("switch", "Switch to a branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Branch);

@@ -1,26 +1,38 @@
 using System.CommandLine;
 using System.CommandLine.Help;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Stack.Commands;
 
 public class StackRootCommand : RootCommand
 {
-    public StackRootCommand(IServiceProvider serviceProvider) : base("A tool to help manage multiple Git branches that stack on top of each other.")
+    public StackRootCommand(
+        BranchCommand branchCommand,
+        CleanupStackCommand cleanupStackCommand,
+        ConfigCommand configCommand,
+        DeleteStackCommand deleteStackCommand,
+        ListStacksCommand listStacksCommand,
+        NewStackCommand newStackCommand,
+        PullRequestsCommand pullRequestsCommand,
+        PullStackCommand pullStackCommand,
+        PushStackCommand pushStackCommand,
+        StackStatusCommand stackStatusCommand,
+        StackSwitchCommand stackSwitchCommand,
+        SyncStackCommand syncStackCommand,
+        UpdateStackCommand updateStackCommand) : base("A tool to help manage multiple Git branches that stack on top of each other.")
     {
-        Add(serviceProvider.GetRequiredService<BranchCommand>());
-        Add(serviceProvider.GetRequiredService<CleanupStackCommand>());
-        Add(serviceProvider.GetRequiredService<ConfigCommand>());
-        Add(serviceProvider.GetRequiredService<DeleteStackCommand>());
-        Add(serviceProvider.GetRequiredService<ListStacksCommand>());
-        Add(serviceProvider.GetRequiredService<NewStackCommand>());
-        Add(serviceProvider.GetRequiredService<PullRequestsCommand>());
-        Add(serviceProvider.GetRequiredService<PullStackCommand>());
-        Add(serviceProvider.GetRequiredService<PushStackCommand>());
-        Add(serviceProvider.GetRequiredService<StackStatusCommand>());
-        Add(serviceProvider.GetRequiredService<StackSwitchCommand>());
-        Add(serviceProvider.GetRequiredService<SyncStackCommand>());
-        Add(serviceProvider.GetRequiredService<UpdateStackCommand>());
+        Add(branchCommand);
+        Add(cleanupStackCommand);
+        Add(configCommand);
+        Add(deleteStackCommand);
+        Add(listStacksCommand);
+        Add(newStackCommand);
+        Add(pullRequestsCommand);
+        Add(pullStackCommand);
+        Add(pushStackCommand);
+        Add(stackStatusCommand);
+        Add(stackSwitchCommand);
+        Add(syncStackCommand);
+        Add(updateStackCommand);
 
         SetAction(async (parseResult, cancellationToken) =>
         {

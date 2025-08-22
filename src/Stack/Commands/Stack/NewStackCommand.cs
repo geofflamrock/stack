@@ -1,13 +1,12 @@
 
-
 using System.CommandLine;
 using System.ComponentModel;
-using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -42,8 +41,14 @@ public class NewStackCommand : Command
 
     private readonly NewStackCommandHandler handler;
 
-    public NewStackCommand(IServiceProvider serviceProvider, NewStackCommandHandler handler) 
-        : base("new", "Create a new stack.", serviceProvider)
+    public NewStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        NewStackCommandHandler handler) 
+        : base("new", "Create a new stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(StackName);

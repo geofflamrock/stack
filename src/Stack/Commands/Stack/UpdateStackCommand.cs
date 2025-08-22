@@ -1,9 +1,9 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -11,8 +11,14 @@ public class UpdateStackCommand : Command
 {
     private readonly UpdateStackCommandHandler handler;
 
-    public UpdateStackCommand(IServiceProvider serviceProvider, UpdateStackCommandHandler handler) 
-        : base("update", "Update the branches in a stack.", serviceProvider)
+    public UpdateStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        UpdateStackCommandHandler handler) 
+        : base("update", "Update the branches in a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

@@ -1,9 +1,10 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -16,8 +17,14 @@ public class PushStackCommand : Command
 
     private readonly PushStackCommandHandler handler;
 
-    public PushStackCommand(IServiceProvider serviceProvider, PushStackCommandHandler handler) 
-        : base("push", "Push changes to the remote repository for a stack.", serviceProvider)
+    public PushStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        PushStackCommandHandler handler) 
+        : base("push", "Push changes to the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

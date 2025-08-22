@@ -37,7 +37,9 @@ public static class ServiceConfiguration
             });
         });
 
-        services.AddSingleton<ILogger, ConsoleLogger>();
+        services.AddSingleton<IStdOutLogger, StdOutLogger>();
+        services.AddSingleton<IStdErrLogger, StdErrLogger>();
+        services.AddSingleton<ILogger>(provider => provider.GetRequiredService<IStdErrLogger>());
         services.AddSingleton<IInputProvider, ConsoleInputProvider>();
 
         // Register config

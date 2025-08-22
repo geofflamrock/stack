@@ -1,9 +1,9 @@
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Stack.Commands;
 
@@ -11,8 +11,14 @@ public class CleanupStackCommand : Command
 {
     private readonly CleanupStackCommandHandler handler;
 
-    public CleanupStackCommand(IServiceProvider serviceProvider, CleanupStackCommandHandler handler) 
-        : base("cleanup", "Clean up branches in a stack that are no longer needed.", serviceProvider)
+    public CleanupStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        CleanupStackCommandHandler handler) 
+        : base("cleanup", "Clean up branches in a stack that are no longer needed.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

@@ -1,9 +1,10 @@
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 
 namespace Stack.Commands;
 
@@ -11,8 +12,14 @@ public class DeleteStackCommand : Command
 {
     private readonly DeleteStackCommandHandler handler;
 
-    public DeleteStackCommand(IServiceProvider serviceProvider, DeleteStackCommandHandler handler) 
-        : base("delete", "Delete a stack.", serviceProvider)
+    public DeleteStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        DeleteStackCommandHandler handler) 
+        : base("delete", "Delete a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

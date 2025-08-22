@@ -1,13 +1,14 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
+
 using MoreLinq.Extensions;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -94,8 +95,14 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     private readonly StackStatusCommandHandler handler;
 
-    public StackStatusCommand(IServiceProvider serviceProvider, StackStatusCommandHandler handler) 
-        : base("status", "Show the status of the current stack or all stacks in the repository.", serviceProvider)
+    public StackStatusCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        StackStatusCommandHandler handler) 
+        : base("status", "Show the status of the current stack or all stacks in the repository.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

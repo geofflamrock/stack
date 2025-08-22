@@ -1,22 +1,33 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using Spectre.Console;
 using Stack.Config;
+using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class OpenConfigCommand : Command
 {
-    public OpenConfigCommand(IServiceProvider serviceProvider) : base("open", "Open the configuration file in the default editor.", serviceProvider)
+    private readonly IAnsiConsole console;
+    private readonly IStackConfig stackConfig;
+
+    public OpenConfigCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        IAnsiConsole console,
+        IStackConfig stackConfig) : base("open", "Open the configuration file in the default editor.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
+        this.console = console;
+        this.stackConfig = stackConfig;
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var console = ServiceProvider.GetRequiredService<IAnsiConsole>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
 
         var configPath = stackConfig.GetConfigPath();
 

@@ -1,6 +1,4 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
-using Spectre.Console;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -9,29 +7,28 @@ namespace Stack.Commands;
 
 public abstract class Command : System.CommandLine.Command
 {
-    protected ILogger StdOutLogger;
-    protected ILogger StdErrLogger;
+    protected IStdOutLogger StdOutLogger;
+    protected IStdErrLogger StdErrLogger;
     protected IInputProvider InputProvider;
+    protected IGitClientSettingsUpdater GitClientSettingsUpdater;
+    protected IGitHubClientSettingsUpdater GitHubClientSettingsUpdater;
     protected string? WorkingDirectory;
     protected bool Verbose;
-    protected IServiceProvider ServiceProvider;
 
-    public Command(string name, string? description, IServiceProvider serviceProvider) : base(name, description)
+    public Command(
+        string name, 
+        string? description,
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater) : base(name, description)
     {
-        ServiceProvider = serviceProvider;
-
-        // Get services from DI
-        var stdErrAnsiConsole = ServiceProvider.GetRequiredService<IAnsiConsole>();
-        var stdOutAnsiConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.Detect,
-            ColorSystem = ColorSystemSupport.Detect,
-            Out = new AnsiConsoleOutput(Console.Out),
-        });
-        
-        StdOutLogger = new ConsoleLogger(stdOutAnsiConsole);
-        StdErrLogger = ServiceProvider.GetRequiredService<ILogger>();
-        InputProvider = ServiceProvider.GetRequiredService<IInputProvider>();
+        StdOutLogger = stdOutLogger;
+        StdErrLogger = stdErrLogger;
+        InputProvider = inputProvider;
+        GitClientSettingsUpdater = gitClientSettingsUpdater;
+        GitHubClientSettingsUpdater = gitHubClientSettingsUpdater;
 
         Add(CommonOptions.WorkingDirectory);
         Add(CommonOptions.Verbose);
@@ -42,11 +39,8 @@ public abstract class Command : System.CommandLine.Command
             Verbose = parseResult.GetValue(CommonOptions.Verbose);
 
             // Update the settings for Git clients
-            var gitClientUpdater = ServiceProvider.GetRequiredService<IGitClientSettingsUpdater>();
-            gitClientUpdater.UpdateSettings(Verbose, WorkingDirectory);
-
-            var gitHubClientUpdater = ServiceProvider.GetRequiredService<IGitHubClientSettingsUpdater>();
-            gitHubClientUpdater.UpdateSettings(Verbose, WorkingDirectory);
+            GitClientSettingsUpdater.UpdateSettings(Verbose, WorkingDirectory);
+            GitHubClientSettingsUpdater.UpdateSettings(Verbose, WorkingDirectory);
 
             try
             {

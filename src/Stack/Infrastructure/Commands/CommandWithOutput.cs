@@ -1,11 +1,20 @@
 using System.CommandLine;
 using System.Text.Json;
+using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public abstract class CommandWithOutput<TResponse> : Command where TResponse : notnull
 {
-    protected CommandWithOutput(string name, string? description, IServiceProvider serviceProvider) : base(name, description, serviceProvider)
+    protected CommandWithOutput(
+        string name, 
+        string? description,
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater) : base(name, description, stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         Add(CommonOptions.Json);
     }

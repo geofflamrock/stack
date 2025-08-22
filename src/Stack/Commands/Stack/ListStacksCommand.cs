@@ -1,11 +1,12 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
+
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -20,8 +21,14 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
     private readonly ListStacksCommandHandler handler;
 
-    public ListStacksCommand(IServiceProvider serviceProvider, ListStacksCommandHandler handler) 
-        : base("list", "List stacks.", serviceProvider)
+    public ListStacksCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        ListStacksCommandHandler handler) 
+        : base("list", "List stacks.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
     }

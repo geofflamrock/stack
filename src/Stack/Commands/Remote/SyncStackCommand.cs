@@ -1,9 +1,10 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -16,8 +17,14 @@ public class SyncStackCommand : Command
 
     private readonly SyncStackCommandHandler handler;
 
-    public SyncStackCommand(IServiceProvider serviceProvider, SyncStackCommandHandler handler) 
-        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", serviceProvider)
+    public SyncStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        SyncStackCommandHandler handler) 
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

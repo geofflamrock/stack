@@ -1,9 +1,10 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -11,8 +12,14 @@ public class AddBranchCommand : Command
 {
     private readonly AddBranchCommandHandler handler;
 
-    public AddBranchCommand(IServiceProvider serviceProvider, AddBranchCommandHandler handler) 
-        : base("add", "Add an existing branch to a stack.", serviceProvider)
+    public AddBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        AddBranchCommandHandler handler) 
+        : base("add", "Add an existing branch to a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

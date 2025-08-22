@@ -1,11 +1,12 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using MoreLinq;
 using MoreLinq.Extensions;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -13,8 +14,14 @@ public class NewBranchCommand : Command
 {
     private readonly NewBranchCommandHandler handler;
 
-    public NewBranchCommand(IServiceProvider serviceProvider, NewBranchCommandHandler handler) 
-        : base("new", "Create a new branch in a stack.", serviceProvider)
+    public NewBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        NewBranchCommandHandler handler) 
+        : base("new", "Create a new branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

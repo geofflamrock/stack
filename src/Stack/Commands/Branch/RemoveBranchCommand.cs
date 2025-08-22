@@ -1,10 +1,11 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using System.ComponentModel;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -22,8 +23,14 @@ public class RemoveBranchCommand : Command
 
     private readonly RemoveBranchCommandHandler handler;
 
-    public RemoveBranchCommand(IServiceProvider serviceProvider, RemoveBranchCommandHandler handler) 
-        : base("remove", "Remove a branch from a stack.", serviceProvider)
+    public RemoveBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        RemoveBranchCommandHandler handler) 
+        : base("remove", "Remove a branch from a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

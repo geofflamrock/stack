@@ -1,9 +1,10 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -11,8 +12,14 @@ public class PullStackCommand : Command
 {
     private readonly PullStackCommandHandler handler;
 
-    public PullStackCommand(IServiceProvider serviceProvider, PullStackCommandHandler handler) 
-        : base("pull", "Pull changes from the remote repository for a stack.", serviceProvider)
+    public PullStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        PullStackCommandHandler handler) 
+        : base("pull", "Pull changes from the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

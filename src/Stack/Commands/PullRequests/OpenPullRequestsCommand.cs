@@ -1,9 +1,10 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -11,8 +12,14 @@ public class OpenPullRequestsCommand : Command
 {
     private readonly OpenPullRequestsCommandHandler handler;
 
-    public OpenPullRequestsCommand(IServiceProvider serviceProvider, OpenPullRequestsCommandHandler handler) 
-        : base("open", "Open pull requests for a stack in the default browser.", serviceProvider)
+    public OpenPullRequestsCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        OpenPullRequestsCommandHandler handler) 
+        : base("open", "Open pull requests for a stack in the default browser.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

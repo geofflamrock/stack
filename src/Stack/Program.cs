@@ -13,7 +13,7 @@ try
     var commandLineConfig = new CommandLineConfiguration(rootCommand);
     
     var result = await commandLineConfig.InvokeAsync(args);
-    Environment.Exit(result);
+    return result;
 }
 finally
 {

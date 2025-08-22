@@ -1,11 +1,12 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
+
 using MoreLinq;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -13,8 +14,14 @@ public class CreatePullRequestsCommand : Command
 {
     private readonly CreatePullRequestsCommandHandler handler;
 
-    public CreatePullRequestsCommand(IServiceProvider serviceProvider, CreatePullRequestsCommandHandler handler) 
-        : base("create", "Create pull requests for a stack.", serviceProvider)
+    public CreatePullRequestsCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        IGitClientSettingsUpdater gitClientSettingsUpdater,
+        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
+        CreatePullRequestsCommandHandler handler) 
+        : base("create", "Create pull requests for a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

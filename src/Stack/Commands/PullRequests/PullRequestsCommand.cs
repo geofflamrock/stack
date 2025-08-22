@@ -1,12 +1,12 @@
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Stack.Commands;
 
 public class PullRequestsCommand : GroupCommand
 {
-    public PullRequestsCommand(IServiceProvider serviceProvider) : base("pr", "Manage pull requests for a stack.", serviceProvider)
+    public PullRequestsCommand(
+        CreatePullRequestsCommand createPullRequestsCommand,
+        OpenPullRequestsCommand openPullRequestsCommand) : base("pr", "Manage pull requests for a stack.")
     {
-        Add(serviceProvider.GetRequiredService<CreatePullRequestsCommand>());
-        Add(serviceProvider.GetRequiredService<OpenPullRequestsCommand>());
+        Add(createPullRequestsCommand);
+        Add(openPullRequestsCommand);
     }
 }
