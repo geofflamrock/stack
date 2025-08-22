@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Stack.Git;
 using Stack.Infrastructure;
@@ -12,24 +13,26 @@ public abstract class Command : System.CommandLine.Command
     protected IInputProvider InputProvider;
     protected string? WorkingDirectory;
     protected bool Verbose;
+    protected IServiceProvider ServiceProvider;
 
     public Command(string name, string? description = null) : base(name, description)
     {
+        // Create a host to get the service provider
+        var host = ServiceConfiguration.CreateHost();
+        ServiceProvider = host.Services;
+
+        // Get services from DI
+        var stdErrAnsiConsole = ServiceProvider.GetRequiredService<IAnsiConsole>();
         var stdOutAnsiConsole = AnsiConsole.Create(new AnsiConsoleSettings
         {
             Ansi = AnsiSupport.Detect,
             ColorSystem = ColorSystemSupport.Detect,
             Out = new AnsiConsoleOutput(Console.Out),
         });
-        var stdErrAnsiConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.Detect,
-            ColorSystem = ColorSystemSupport.Detect,
-            Out = new AnsiConsoleOutput(Console.Error),
-        });
+        
         StdOutLogger = new ConsoleLogger(stdOutAnsiConsole);
-        StdErrLogger = new ConsoleLogger(stdErrAnsiConsole);
-        InputProvider = new ConsoleInputProvider(stdErrAnsiConsole);
+        StdErrLogger = ServiceProvider.GetRequiredService<ILogger>();
+        InputProvider = ServiceProvider.GetRequiredService<IInputProvider>();
 
         Add(CommonOptions.WorkingDirectory);
         Add(CommonOptions.Verbose);
@@ -38,6 +41,13 @@ public abstract class Command : System.CommandLine.Command
         {
             WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
             Verbose = parseResult.GetValue(CommonOptions.Verbose);
+
+            // Update the settings for Git clients
+            var gitClientUpdater = ServiceProvider.GetRequiredService<IGitClientSettingsUpdater>();
+            gitClientUpdater.UpdateSettings(Verbose, WorkingDirectory);
+
+            var gitHubClientUpdater = ServiceProvider.GetRequiredService<IGitHubClientSettingsUpdater>();
+            gitHubClientUpdater.UpdateSettings(Verbose, WorkingDirectory);
 
             try
             {

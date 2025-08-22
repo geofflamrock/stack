@@ -2,6 +2,7 @@
 
 using System.CommandLine;
 using System.ComponentModel;
+using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -48,11 +49,14 @@ public class NewStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new NewStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            gitClient,
+            stackConfig);
 
         await handler.Handle(new NewStackCommandInputs(
             parseResult.GetValue(StackName),
