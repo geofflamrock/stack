@@ -10,21 +10,17 @@ namespace Stack.Commands;
 
 public class StackSwitchCommand : Command
 {
-    public StackSwitchCommand() : base("switch", "Switch to a branch in a stack.")
+    private readonly StackSwitchCommandHandler handler;
+
+    public StackSwitchCommand(IServiceProvider serviceProvider, StackSwitchCommandHandler handler) 
+        : base("switch", "Switch to a branch in a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Branch);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new StackSwitchCommandHandler(
-            InputProvider,
-            gitClient,
-            stackConfig);
-
         await handler.Handle(new StackSwitchCommandInputs(
             parseResult.GetValue(CommonOptions.Branch)));
     }

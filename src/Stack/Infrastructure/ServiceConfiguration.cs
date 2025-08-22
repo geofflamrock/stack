@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure.Settings;
+using Stack.Commands;
 
 namespace Stack.Infrastructure;
 
@@ -67,5 +68,72 @@ public static class ServiceConfiguration
 
         // Register stack actions
         services.AddSingleton<IStackActions, StackActions>();
+
+        // Register command handlers
+        RegisterCommandHandlers(services);
+
+        // Register commands 
+        RegisterCommands(services);
+    }
+
+    private static void RegisterCommandHandlers(IServiceCollection services)
+    {
+        // Individual command handlers
+        services.AddTransient<NewStackCommandHandler>();
+        services.AddTransient<UpdateStackCommandHandler>();
+        services.AddTransient<DeleteStackCommandHandler>();
+        services.AddTransient<ListStacksCommandHandler>();
+        services.AddTransient<CleanupStackCommandHandler>();
+        services.AddTransient<StackStatusCommandHandler>();
+        services.AddTransient<StackSwitchCommandHandler>();
+        
+        // Branch command handlers
+        services.AddTransient<AddBranchCommandHandler>();
+        services.AddTransient<NewBranchCommandHandler>();
+        services.AddTransient<RemoveBranchCommandHandler>();
+        
+        // Stack operation handlers
+        services.AddTransient<PullStackCommandHandler>();
+        services.AddTransient<PushStackCommandHandler>();
+        services.AddTransient<SyncStackCommandHandler>();
+        
+        // Pull request handlers
+        services.AddTransient<CreatePullRequestsCommandHandler>();
+        services.AddTransient<OpenPullRequestsCommandHandler>();
+    }
+
+    private static void RegisterCommands(IServiceCollection services)
+    {
+        // Root command
+        services.AddSingleton<StackRootCommand>();
+        
+        // Individual commands
+        services.AddTransient<NewStackCommand>();
+        services.AddTransient<UpdateStackCommand>();
+        services.AddTransient<DeleteStackCommand>();
+        services.AddTransient<ListStacksCommand>();
+        services.AddTransient<CleanupStackCommand>();
+        services.AddTransient<StackStatusCommand>();
+        services.AddTransient<StackSwitchCommand>();
+        
+        // Branch commands
+        services.AddTransient<BranchCommand>();
+        services.AddTransient<AddBranchCommand>();
+        services.AddTransient<NewBranchCommand>();
+        services.AddTransient<RemoveBranchCommand>();
+        
+        // Stack operation commands
+        services.AddTransient<PullStackCommand>();
+        services.AddTransient<PushStackCommand>();
+        services.AddTransient<SyncStackCommand>();
+        
+        // Pull request commands
+        services.AddTransient<PullRequestsCommand>();
+        services.AddTransient<CreatePullRequestsCommand>();
+        services.AddTransient<OpenPullRequestsCommand>();
+        
+        // Config commands
+        services.AddTransient<ConfigCommand>();
+        services.AddTransient<OpenConfigCommand>();
     }
 }

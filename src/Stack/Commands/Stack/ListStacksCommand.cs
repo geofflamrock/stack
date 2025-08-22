@@ -18,19 +18,16 @@ internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerCo
 
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
-    public ListStacksCommand() : base("list", "List stacks.")
+    private readonly ListStacksCommandHandler handler;
+
+    public ListStacksCommand(IServiceProvider serviceProvider, ListStacksCommandHandler handler) 
+        : base("list", "List stacks.", serviceProvider)
     {
+        this.handler = handler;
     }
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-
-        var handler = new ListStacksCommandHandler(
-            stackConfig,
-            gitClient);
-
         return await handler.Handle(new ListStacksCommandInputs());
     }
 

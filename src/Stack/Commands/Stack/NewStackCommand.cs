@@ -40,8 +40,12 @@ public class NewStackCommand : Command
         Description = "The name of the branch to create within the stack."
     };
 
-    public NewStackCommand() : base("new", "Create a new stack.")
+    private readonly NewStackCommandHandler handler;
+
+    public NewStackCommand(IServiceProvider serviceProvider, NewStackCommandHandler handler) 
+        : base("new", "Create a new stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(StackName);
         Add(SourceBranch);
         Add(BranchName);
@@ -49,15 +53,6 @@ public class NewStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new NewStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig);
-
         await handler.Handle(new NewStackCommandInputs(
             parseResult.GetValue(StackName),
             parseResult.GetValue(SourceBranch),

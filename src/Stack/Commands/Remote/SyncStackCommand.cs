@@ -14,8 +14,12 @@ public class SyncStackCommand : Command
         Description = "Don't push changes to the remote repository"
     };
 
-    public SyncStackCommand() : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.")
+    private readonly SyncStackCommandHandler handler;
+
+    public SyncStackCommand(IServiceProvider serviceProvider, SyncStackCommandHandler handler) 
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.MaxBatchSize);
         Add(CommonOptions.Rebase);
@@ -26,19 +30,6 @@ public class SyncStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-        var stackActions = ServiceProvider.GetRequiredService<IStackActions>();
-
-        var handler = new SyncStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            stackConfig,
-            stackActions);
-
         await handler.Handle(new SyncStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.MaxBatchSize),

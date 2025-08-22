@@ -8,7 +8,7 @@ namespace Stack.Commands;
 
 public class OpenConfigCommand : Command
 {
-    public OpenConfigCommand() : base("open", "Open the configuration file in the default editor.")
+    public OpenConfigCommand(IServiceProvider serviceProvider) : base("open", "Open the configuration file in the default editor.", serviceProvider)
     {
     }
 

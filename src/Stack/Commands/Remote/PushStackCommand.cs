@@ -14,8 +14,12 @@ public class PushStackCommand : Command
         Description = "Force push changes with lease."
     };
 
-    public PushStackCommand() : base("push", "Push changes to the remote repository for a stack.")
+    private readonly PushStackCommandHandler handler;
+
+    public PushStackCommand(IServiceProvider serviceProvider, PushStackCommandHandler handler) 
+        : base("push", "Push changes to the remote repository for a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.MaxBatchSize);
         Add(ForceWithLease);
@@ -23,17 +27,6 @@ public class PushStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-        var stackActions = ServiceProvider.GetRequiredService<IStackActions>();
-
-        var handler = new PushStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig,
-            stackActions);
-
         await handler.Handle(new PushStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.MaxBatchSize),

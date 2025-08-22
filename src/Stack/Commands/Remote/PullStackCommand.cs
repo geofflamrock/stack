@@ -9,24 +9,17 @@ namespace Stack.Commands;
 
 public class PullStackCommand : Command
 {
-    public PullStackCommand() : base("pull", "Pull changes from the remote repository for a stack.")
+    private readonly PullStackCommandHandler handler;
+
+    public PullStackCommand(IServiceProvider serviceProvider, PullStackCommandHandler handler) 
+        : base("pull", "Pull changes from the remote repository for a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-        var stackActions = ServiceProvider.GetRequiredService<IStackActions>();
-
-        var handler = new PullStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig,
-            stackActions);
-
         await handler.Handle(new PullStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
     }

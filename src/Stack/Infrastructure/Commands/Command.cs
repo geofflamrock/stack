@@ -16,11 +16,9 @@ public abstract class Command : System.CommandLine.Command
     protected bool Verbose;
     protected IServiceProvider ServiceProvider;
 
-    public Command(string name, string? description = null) : base(name, description)
+    public Command(string name, string? description, IServiceProvider serviceProvider) : base(name, description)
     {
-        // Create a host to get the service provider
-        var host = ServiceConfiguration.CreateHost();
-        ServiceProvider = host.Services;
+        ServiceProvider = serviceProvider;
 
         // Get services from DI
         var stdErrAnsiConsole = ServiceProvider.GetRequiredService<IAnsiConsole>();

@@ -11,26 +11,17 @@ namespace Stack.Commands;
 
 public class CreatePullRequestsCommand : Command
 {
-    public CreatePullRequestsCommand() : base("create", "Create pull requests for a stack.")
+    private readonly CreatePullRequestsCommandHandler handler;
+
+    public CreatePullRequestsCommand(IServiceProvider serviceProvider, CreatePullRequestsCommandHandler handler) 
+        : base("create", "Create pull requests for a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var fileOperations = ServiceProvider.GetRequiredService<IFileOperations>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new CreatePullRequestsCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            fileOperations,
-            stackConfig);
-
         await handler.Handle(new CreatePullRequestsCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
     }

@@ -1,9 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Stack.Commands;
 
 public class ConfigCommand : GroupCommand
 {
-    public ConfigCommand() : base("config", "Manage stack configuration.")
+    public ConfigCommand(IServiceProvider serviceProvider) : base("config", "Manage stack configuration.", serviceProvider)
     {
-        Add(new OpenConfigCommand());
+        Add(serviceProvider.GetRequiredService<OpenConfigCommand>());
     }
 }

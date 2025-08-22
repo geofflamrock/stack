@@ -9,24 +9,17 @@ namespace Stack.Commands;
 
 public class OpenPullRequestsCommand : Command
 {
-    public OpenPullRequestsCommand() : base("open", "Open pull requests for a stack in the default browser.")
+    private readonly OpenPullRequestsCommandHandler handler;
+
+    public OpenPullRequestsCommand(IServiceProvider serviceProvider, OpenPullRequestsCommandHandler handler) 
+        : base("open", "Open pull requests for a stack in the default browser.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new OpenPullRequestsCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            stackConfig);
-
         await handler.Handle(new OpenPullRequestsCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
     }

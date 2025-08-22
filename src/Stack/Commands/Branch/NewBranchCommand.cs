@@ -11,8 +11,12 @@ namespace Stack.Commands;
 
 public class NewBranchCommand : Command
 {
-    public NewBranchCommand() : base("new", "Create a new branch in a stack.")
+    private readonly NewBranchCommandHandler handler;
+
+    public NewBranchCommand(IServiceProvider serviceProvider, NewBranchCommandHandler handler) 
+        : base("new", "Create a new branch in a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.ParentBranch);
@@ -20,15 +24,6 @@ public class NewBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new NewBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig);
-
         await handler.Handle(new NewBranchCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.Branch),

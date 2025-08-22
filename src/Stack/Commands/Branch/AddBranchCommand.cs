@@ -9,8 +9,12 @@ namespace Stack.Commands;
 
 public class AddBranchCommand : Command
 {
-    public AddBranchCommand() : base("add", "Add an existing branch to a stack.")
+    private readonly AddBranchCommandHandler handler;
+
+    public AddBranchCommand(IServiceProvider serviceProvider, AddBranchCommandHandler handler) 
+        : base("add", "Add an existing branch to a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.ParentBranch);
@@ -18,15 +22,6 @@ public class AddBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new AddBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig);
-
         await handler.Handle(new AddBranchCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.Branch),

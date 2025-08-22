@@ -9,8 +9,12 @@ namespace Stack.Commands;
 
 public class UpdateStackCommand : Command
 {
-    public UpdateStackCommand() : base("update", "Update the branches in a stack.")
+    private readonly UpdateStackCommandHandler handler;
+
+    public UpdateStackCommand(IServiceProvider serviceProvider, UpdateStackCommandHandler handler) 
+        : base("update", "Update the branches in a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
@@ -18,18 +22,6 @@ public class UpdateStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-        var stackActions = ServiceProvider.GetRequiredService<IStackActions>();
-
-        var handler = new UpdateStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig,
-            stackActions);
-
         await handler.Handle(new UpdateStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.Rebase),

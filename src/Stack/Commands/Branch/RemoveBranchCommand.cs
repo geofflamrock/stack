@@ -20,8 +20,12 @@ public class RemoveBranchCommand : Command
         Description = "Move children branches to the parent branch."
     };
 
-    public RemoveBranchCommand() : base("remove", "Remove a branch from a stack.")
+    private readonly RemoveBranchCommandHandler handler;
+
+    public RemoveBranchCommand(IServiceProvider serviceProvider, RemoveBranchCommandHandler handler) 
+        : base("remove", "Remove a branch from a stack.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.Confirm);
@@ -31,15 +35,6 @@ public class RemoveBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new RemoveBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            stackConfig);
-
         var removeChildren = parseResult.GetValue(RemoveChildren);
         var moveChildrenToParent = parseResult.GetValue(MoveChildrenToParent);
 

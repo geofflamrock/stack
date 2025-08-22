@@ -9,25 +9,18 @@ namespace Stack.Commands;
 
 public class CleanupStackCommand : Command
 {
-    public CleanupStackCommand() : base("cleanup", "Clean up branches in a stack that are no longer needed.")
+    private readonly CleanupStackCommandHandler handler;
+
+    public CleanupStackCommand(IServiceProvider serviceProvider, CleanupStackCommandHandler handler) 
+        : base("cleanup", "Clean up branches in a stack that are no longer needed.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Confirm);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new CleanupStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            stackConfig);
-
         await handler.Handle(new CleanupStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(CommonOptions.Confirm)));

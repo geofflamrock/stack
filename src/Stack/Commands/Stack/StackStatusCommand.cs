@@ -92,8 +92,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         Description = "Show full status including pull requests."
     };
 
-    public StackStatusCommand() : base("status", "Show the status of the current stack or all stacks in the repository.")
+    private readonly StackStatusCommandHandler handler;
+
+    public StackStatusCommand(IServiceProvider serviceProvider, StackStatusCommandHandler handler) 
+        : base("status", "Show the status of the current stack or all stacks in the repository.", serviceProvider)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(All);
         Add(Full);
@@ -101,17 +105,6 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
-        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
-        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
-
-        var handler = new StackStatusCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            stackConfig);
-
         return await handler.Handle(new StackStatusCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),
             parseResult.GetValue(All),

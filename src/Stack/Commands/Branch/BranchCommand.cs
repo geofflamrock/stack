@@ -1,12 +1,14 @@
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Stack.Commands;
 
 public class BranchCommand : GroupCommand
 {
-    public BranchCommand() : base("branch", "Manage branches within a stack.")
+    public BranchCommand(IServiceProvider serviceProvider) : base("branch", "Manage branches within a stack.", serviceProvider)
     {
-        Add(new AddBranchCommand());
-        Add(new NewBranchCommand());
-        Add(new RemoveBranchCommand());
+        Add(serviceProvider.GetRequiredService<AddBranchCommand>());
+        Add(serviceProvider.GetRequiredService<NewBranchCommand>());
+        Add(serviceProvider.GetRequiredService<RemoveBranchCommand>());
     }
 }
 
