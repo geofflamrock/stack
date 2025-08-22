@@ -44,8 +44,11 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             return new StackData(SchemaVersion.V2, LoadStacksFromV2Format(jsonString));
         }
 
-        // If no schema version, this means v1 format, which we need to convert to v2.
-        return new StackData(SchemaVersion.V1, LoadStacksFromV1Format(jsonString));
+        // If no schema version, this means v1 format - migrate to v2 format and re-save before returning
+        var stacksV1 = LoadStacksFromV1Format(jsonString);
+        var stacks = new StackData(SchemaVersion.V2, stacksV1);
+        Save(stacks);
+        return stacks;
     }
 
     public void Save(StackData stackData)

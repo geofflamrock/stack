@@ -431,18 +431,3 @@ Options:
   --verbose       Show verbose output.
   -?, -h, --help  Show help and usage information
 ```
-
-#### `stack config migrate` <!-- omit from toc -->
-
-Migrate the configuration file from v1 to v2 format.
-
-```shell
-Usage:
-  stack config migrate [options]
-
-Options:
-  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
-  --verbose       Show verbose output.
-  -y, --yes       Confirm the command without prompting.
-  -?, -h, --help  Show help and usage information
-```
