@@ -3,10 +3,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
 
-public record GitHubClientSettings(bool Verbose, string? WorkingDirectory)
+public record GitHubClientSettings(bool Verbose, string? WorkingDirectory) : IGitHubClientSettings
 {
     public static GitHubClientSettings Default => new(false, null);
 }
@@ -72,7 +73,7 @@ internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
 {
 }
 
-public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitHubClient
+public class GitHubClient(ILogger logger, IGitHubClientSettings settings) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {

@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using Spectre.Console;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
 
-public record GitClientSettings(bool Verbose, string? WorkingDirectory)
+public record GitClientSettings(bool Verbose, string? WorkingDirectory) : IGitClientSettings
 {
     public static GitClientSettings Default => new(false, null);
 }
@@ -55,7 +56,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
+public class GitClient(ILogger logger, IGitClientSettings settings) : IGitClient
 {
     public string GetCurrentBranch()
     {
