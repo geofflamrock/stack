@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using Spectre.Console;
 using Stack.Config;
@@ -14,8 +15,8 @@ public class OpenConfigCommand : Command
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var console = AnsiConsole.Console;
-        var stackConfig = new FileStackConfig();
+        var console = ServiceProvider.GetRequiredService<IAnsiConsole>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
 
         var configPath = stackConfig.GetConfigPath();
 

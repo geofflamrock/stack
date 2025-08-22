@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -22,19 +23,16 @@ public class PushStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
-        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+        var stackActions = ServiceProvider.GetRequiredService<IStackActions>();
 
         var handler = new PushStackCommandHandler(
             InputProvider,
             StdErrLogger,
             gitClient,
-            new FileStackConfig(),
-            new StackActions(
-                gitClient,
-                gitHubClient,
-                InputProvider,
-                StdErrLogger));
+            stackConfig,
+            stackActions);
 
         await handler.Handle(new PushStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),

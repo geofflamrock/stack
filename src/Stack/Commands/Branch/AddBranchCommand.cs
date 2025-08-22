@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -17,11 +18,14 @@ public class AddBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new AddBranchCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            gitClient,
+            stackConfig);
 
         await handler.Handle(new AddBranchCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),

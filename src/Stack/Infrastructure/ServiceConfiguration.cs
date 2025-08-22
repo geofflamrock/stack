@@ -41,6 +41,9 @@ public static class ServiceConfiguration
         // Register config
         services.AddSingleton<IStackConfig, FileStackConfig>();
 
+        // Register file operations
+        services.AddSingleton<IFileOperations, FileOperations>();
+
         // Register Git clients with wrapper pattern for runtime settings
         services.AddSingleton<GitClientWrapper>();
         services.AddSingleton<IGitClient>(provider => provider.GetRequiredService<GitClientWrapper>());

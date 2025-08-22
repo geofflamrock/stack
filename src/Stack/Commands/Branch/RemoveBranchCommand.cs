@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using System.ComponentModel;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -30,11 +31,14 @@ public class RemoveBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new RemoveBranchCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
+            gitClient,
+            stackConfig);
 
         var removeChildren = parseResult.GetValue(RemoveChildren);
         var moveChildrenToParent = parseResult.GetValue(MoveChildrenToParent);

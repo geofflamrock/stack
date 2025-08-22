@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 using MoreLinq;
 using Spectre.Console;
 using Stack.Commands.Helpers;
@@ -17,13 +18,18 @@ public class CreatePullRequestsCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
+        var fileOperations = ServiceProvider.GetRequiredService<IFileOperations>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new CreatePullRequestsCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileOperations(),
-            new FileStackConfig());
+            gitClient,
+            gitHubClient,
+            fileOperations,
+            stackConfig);
 
         await handler.Handle(new CreatePullRequestsCommandInputs(
             parseResult.GetValue(CommonOptions.Stack)));
