@@ -13,7 +13,7 @@ namespace Stack.Tests.Commands.Branch;
 public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
-    public async Task WhenNoInputsProvided_AsksForStackAndBranchAndConfirms_RemovesBranchFromStack()
+    public async Task WhenNoInputsProvided_AsksForAllInputsAndConfirms_RemovesBranchFromStack()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -41,6 +41,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+            .Returns(RemoveBranchChildAction.RemoveChildren);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
 
         // Act
@@ -291,7 +293,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenSchemaIsV2_AndChildActionIsMoveChildrenToParent_RemovesBranchAndMovesChildrenToParent()
+    public async Task WhenChildActionIsMoveChildrenToParent_RemovesBranchAndMovesChildrenToParent()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -300,7 +302,6 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder()
-            .WithSchemaVersion(SchemaVersion.V2)
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -332,7 +333,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenSchemaIsV2_AndChildActionIsRemoveChildren_RemovesBranchAndDeletesChildren()
+    public async Task WhenChildActionIsRemoveChildren_RemovesBranchAndDeletesChildren()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -341,7 +342,6 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder()
-            .WithSchemaVersion(SchemaVersion.V2)
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -373,7 +373,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenSchemaIsV1_RemovesBranchAndMovesChildrenToParent()
+    public async Task WhenRemoveChildrenIsProvided_RemovesBranchAndDeletesChildren()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -382,46 +382,6 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder()
-            .WithSchemaVersion(SchemaVersion.V1)
-            .WithStack(stack => stack
-                .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
-                .WithSourceBranch(sourceBranch)
-                .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
-            .Build();
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
-        var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
-
-        // Act
-        await handler.Handle(RemoveBranchCommandInputs.Empty);
-
-        // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
-        {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
-        });
-    }
-
-    [Fact]
-    public async Task WhenSchemaIsV2_AndRemoveChildrenIsProvided_RemovesBranchAndDeletesChildren()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var branchToRemove = Some.BranchName();
-        var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
-
-        var stackConfig = new TestStackConfigBuilder()
-            .WithSchemaVersion(SchemaVersion.V2)
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -455,7 +415,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WhenSchemaIsV2_AndMoveChildrenToParentIsProvided_RemovesBranchAndMovesChildrenToParent()
+    public async Task WhenMoveChildrenToParentIsProvided_RemovesBranchAndMovesChildrenToParent()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -464,7 +424,6 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var stackConfig = new TestStackConfigBuilder()
-            .WithSchemaVersion(SchemaVersion.V2)
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)

@@ -115,7 +115,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.SchemaVersion, response.Stacks, StdOutLogger);
+        StackHelpers.OutputStackStatus(response.Stacks, StdOutLogger);
 
         if (response.Stacks.Count == 1)
         {
@@ -188,7 +188,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 }
 
 public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
-public record StackStatusCommandResponse(SchemaVersion SchemaVersion, List<StackStatus> Stacks);
+public record StackStatusCommandResponse(List<StackStatus> Stacks);
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
@@ -233,6 +233,6 @@ public class StackStatusCommandHandler(
             gitHubClient,
             inputs.Full);
 
-        return new StackStatusCommandResponse(stackData.SchemaVersion, stackStatusResults);
+        return new StackStatusCommandResponse(stackStatusResults);
     }
 }

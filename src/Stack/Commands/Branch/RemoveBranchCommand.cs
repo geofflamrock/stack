@@ -87,17 +87,12 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
-        var action = RemoveBranchChildAction.MoveChildrenToParent;
-
-        if (stackData.SchemaVersion == SchemaVersion.V2)
-        {
-            action =
-                inputs.RemoveChildrenAction ??
-                inputProvider.Select(
-                    Questions.RemoveBranchChildAction,
-                    [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
-                    (action) => action.Humanize());
-        }
+        var action =
+            inputs.RemoveChildrenAction ??
+            inputProvider.Select(
+                Questions.RemoveBranchChildAction,
+                [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
+                (action) => action.Humanize());
 
         if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
         {

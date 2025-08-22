@@ -239,19 +239,17 @@ public static class StackHelpers
     }
 
     public static void OutputStackStatus(
-        SchemaVersion schemaVersion,
         List<StackStatus> statuses,
         ILogger logger)
     {
         foreach (var status in statuses)
         {
-            OutputStackStatus(schemaVersion, status, logger);
+            OutputStackStatus(status, logger);
             logger.NewLine();
         }
     }
 
     public static void OutputStackStatus(
-        SchemaVersion schemaVersion,
         StackStatus status,
         ILogger logger,
         Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
@@ -262,11 +260,6 @@ public static class StackHelpers
         foreach (var branch in status.Branches)
         {
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
-        }
-
-        if (schemaVersion == SchemaVersion.V1 && items.Count > 0)
-        {
-            items = [.. MoreEnumerable.TraverseDepthFirst(items.First(), i => i.Children).Select(i => new TreeItem<string>(i.Value, []))];
         }
 
         logger.Information(status.Name.Stack());

@@ -97,7 +97,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(stackData.SchemaVersion, status, logger);
+        StackHelpers.OutputStackStatus(status, logger);
 
         logger.NewLine();
 
@@ -128,7 +128,7 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            OutputUpdatedStackStatus(logger, stackData.SchemaVersion, stack, status, pullRequestInformation);
+            OutputUpdatedStackStatus(logger, stack, status, pullRequestInformation);
 
             logger.NewLine();
 
@@ -191,13 +191,11 @@ public class CreatePullRequestsCommandHandler(
 
     private static void OutputUpdatedStackStatus(
         ILogger logger,
-        SchemaVersion schemaVersion,
         Config.Stack stack,
         StackStatus status,
         List<PullRequestInformation> pullRequestInformation)
     {
         StackHelpers.OutputStackStatus(
-            schemaVersion,
             status,
             logger,
             (branch) =>
