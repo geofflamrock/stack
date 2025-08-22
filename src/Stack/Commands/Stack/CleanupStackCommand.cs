@@ -3,6 +3,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Commands.Helpers;
 using System.CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Stack.Commands;
 
@@ -16,12 +17,16 @@ public class CleanupStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new CleanupStackCommandHandler(
             InputProvider,
             StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
+            gitClient,
+            gitHubClient,
+            stackConfig);
 
         await handler.Handle(new CleanupStackCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),

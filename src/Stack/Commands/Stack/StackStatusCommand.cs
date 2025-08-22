@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 using MoreLinq.Extensions;
 using Spectre.Console;
 using Stack.Commands.Helpers;
@@ -100,12 +101,16 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+        var gitHubClient = ServiceProvider.GetRequiredService<IGitHubClient>();
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+
         var handler = new StackStatusCommandHandler(
             InputProvider,
             StdErrLogger,
-                new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-                new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
+            gitClient,
+            gitHubClient,
+            stackConfig);
 
         return await handler.Handle(new StackStatusCommandInputs(
             parseResult.GetValue(CommonOptions.Stack),

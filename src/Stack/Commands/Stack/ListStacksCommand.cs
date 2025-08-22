@@ -1,6 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -23,9 +24,12 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
+        var stackConfig = ServiceProvider.GetRequiredService<IStackConfig>();
+        var gitClient = ServiceProvider.GetRequiredService<IGitClient>();
+
         var handler = new ListStacksCommandHandler(
-            new FileStackConfig(),
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)));
+            stackConfig,
+            gitClient);
 
         return await handler.Handle(new ListStacksCommandInputs());
     }
