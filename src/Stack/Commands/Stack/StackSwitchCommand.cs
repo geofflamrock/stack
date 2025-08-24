@@ -17,10 +17,9 @@ public class StackSwitchCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        StackSwitchCommandHandler handler) 
-        : base("switch", "Switch to a branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        StackSwitchCommandHandler handler)
+    : base("switch", "Switch to a branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Branch);

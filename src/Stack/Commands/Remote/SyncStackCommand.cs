@@ -21,10 +21,9 @@ public class SyncStackCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        SyncStackCommandHandler handler) 
-        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        SyncStackCommandHandler handler)
+    : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

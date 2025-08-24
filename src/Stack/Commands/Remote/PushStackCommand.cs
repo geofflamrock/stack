@@ -21,10 +21,9 @@ public class PushStackCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        PushStackCommandHandler handler) 
-        : base("push", "Push changes to the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        PushStackCommandHandler handler)
+    : base("push", "Push changes to the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

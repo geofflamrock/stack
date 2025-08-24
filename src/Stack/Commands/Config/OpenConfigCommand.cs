@@ -15,9 +15,8 @@ public class OpenConfigCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        IStackConfig stackConfig) : base("open", "Open the configuration file in the default editor.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        IStackConfig stackConfig) : base("open", "Open the configuration file in the default editor.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.stackConfig = stackConfig;
     }

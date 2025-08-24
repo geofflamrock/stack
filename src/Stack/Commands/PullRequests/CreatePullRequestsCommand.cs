@@ -18,10 +18,9 @@ public class CreatePullRequestsCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        CreatePullRequestsCommandHandler handler) 
-        : base("create", "Create pull requests for a stack.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        CreatePullRequestsCommandHandler handler)
+    : base("create", "Create pull requests for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

@@ -15,10 +15,9 @@ public class CleanupStackCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        CleanupStackCommandHandler handler) 
-        : base("cleanup", "Clean up branches in a stack that are no longer needed.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        CleanupStackCommandHandler handler)
+    : base("cleanup", "Clean up branches in a stack that are no longer needed.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

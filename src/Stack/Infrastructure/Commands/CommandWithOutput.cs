@@ -8,13 +8,12 @@ namespace Stack.Commands;
 public abstract class CommandWithOutput<TResponse> : Command where TResponse : notnull
 {
     protected CommandWithOutput(
-        string name, 
+        string name,
         string? description,
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater) : base(name, description, stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext) : base(name, description, stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         Add(CommonOptions.Json);
     }

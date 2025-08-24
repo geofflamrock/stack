@@ -5,11 +5,6 @@ using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
 
-public record GitClientSettings(bool Verbose, string? WorkingDirectory) : IGitClientSettings
-{
-    public static GitClientSettings Default => new(false, null);
-}
-
 public record Commit(string Sha, string Message);
 
 public record GitBranchStatus(
@@ -56,7 +51,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger logger, IGitClientSettings settings) : IGitClient
+public class GitClient(ILogger logger, CliExecutionContext settings) : IGitClient
 {
     public string GetCurrentBranch()
     {

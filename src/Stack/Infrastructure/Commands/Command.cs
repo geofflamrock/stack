@@ -10,25 +10,20 @@ public abstract class Command : System.CommandLine.Command
     protected IStdOutLogger StdOutLogger;
     protected IStdErrLogger StdErrLogger;
     protected IInputProvider InputProvider;
-    protected IGitClientSettingsUpdater GitClientSettingsUpdater;
-    protected IGitHubClientSettingsUpdater GitHubClientSettingsUpdater;
     protected string? WorkingDirectory;
     protected bool Verbose;
 
     public Command(
-        string name, 
+        string name,
         string? description,
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater) : base(name, description)
+        CliExecutionContext executionContext) : base(name, description)
     {
         StdOutLogger = stdOutLogger;
         StdErrLogger = stdErrLogger;
         InputProvider = inputProvider;
-        GitClientSettingsUpdater = gitClientSettingsUpdater;
-        GitHubClientSettingsUpdater = gitHubClientSettingsUpdater;
 
         Add(CommonOptions.WorkingDirectory);
         Add(CommonOptions.Verbose);
@@ -38,9 +33,8 @@ public abstract class Command : System.CommandLine.Command
             WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
             Verbose = parseResult.GetValue(CommonOptions.Verbose);
 
-            // Update the settings for Git clients
-            GitClientSettingsUpdater.UpdateSettings(Verbose, WorkingDirectory);
-            GitHubClientSettingsUpdater.UpdateSettings(Verbose, WorkingDirectory);
+            executionContext.Verbose = Verbose;
+            executionContext.WorkingDirectory = WorkingDirectory;
 
             try
             {

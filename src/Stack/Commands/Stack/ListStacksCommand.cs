@@ -25,10 +25,9 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        ListStacksCommandHandler handler) 
-        : base("list", "List stacks.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        ListStacksCommandHandler handler)
+    : base("list", "List stacks.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
     }

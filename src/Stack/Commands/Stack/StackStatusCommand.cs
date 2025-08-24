@@ -99,10 +99,9 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        StackStatusCommandHandler handler) 
-        : base("status", "Show the status of the current stack or all stacks in the repository.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        StackStatusCommandHandler handler)
+    : base("status", "Show the status of the current stack or all stacks in the repository.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

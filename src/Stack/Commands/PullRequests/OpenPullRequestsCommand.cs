@@ -16,10 +16,9 @@ public class OpenPullRequestsCommand : Command
         IStdOutLogger stdOutLogger,
         IStdErrLogger stdErrLogger,
         IInputProvider inputProvider,
-        IGitClientSettingsUpdater gitClientSettingsUpdater,
-        IGitHubClientSettingsUpdater gitHubClientSettingsUpdater,
-        OpenPullRequestsCommandHandler handler) 
-        : base("open", "Open pull requests for a stack in the default browser.", stdOutLogger, stdErrLogger, inputProvider, gitClientSettingsUpdater, gitHubClientSettingsUpdater)
+        CliExecutionContext executionContext,
+        OpenPullRequestsCommandHandler handler)
+    : base("open", "Open pull requests for a stack in the default browser.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

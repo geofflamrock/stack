@@ -47,18 +47,10 @@ public static class ServiceConfiguration
         // Register file operations
         services.AddSingleton<IFileOperations, FileOperations>();
 
-        // Register Git client settings
-        services.AddSingleton<MutableGitClientSettings>();
-        services.AddSingleton<IGitClientSettings>(provider => provider.GetRequiredService<MutableGitClientSettings>());
-        services.AddSingleton<IGitClientSettingsUpdater>(provider => provider.GetRequiredService<MutableGitClientSettings>());
+        services.AddSingleton<CliExecutionContext>();
+
+        // Register Git and GitHub services
         services.AddSingleton<IGitClient, GitClient>();
-
-        // Register GitHub client settings
-        services.AddSingleton<MutableGitHubClientSettings>();
-        services.AddSingleton<IGitHubClientSettings>(provider => provider.GetRequiredService<MutableGitHubClientSettings>());
-        services.AddSingleton<IGitHubClientSettingsUpdater>(provider => provider.GetRequiredService<MutableGitHubClientSettings>());
-
-        // Register GitHub client with caching
         services.AddSingleton<GitHubClient>();
         services.AddSingleton<IGitHubClient>(provider =>
         {
