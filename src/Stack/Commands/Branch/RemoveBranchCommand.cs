@@ -1,9 +1,11 @@
 using System.CommandLine;
+
 using System.ComponentModel;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -19,8 +21,17 @@ public class RemoveBranchCommand : Command
         Description = "Move children branches to the parent branch."
     };
 
-    public RemoveBranchCommand() : base("remove", "Remove a branch from a stack.")
+    private readonly RemoveBranchCommandHandler handler;
+
+    public RemoveBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        RemoveBranchCommandHandler handler)
+    : base("remove", "Remove a branch from a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.Confirm);
@@ -30,12 +41,6 @@ public class RemoveBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new RemoveBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
-
         var removeChildren = parseResult.GetValue(RemoveChildren);
         var moveChildrenToParent = parseResult.GetValue(MoveChildrenToParent);
 

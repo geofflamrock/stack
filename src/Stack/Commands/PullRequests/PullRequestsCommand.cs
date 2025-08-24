@@ -2,9 +2,11 @@ namespace Stack.Commands;
 
 public class PullRequestsCommand : GroupCommand
 {
-    public PullRequestsCommand() : base("pr", "Manage pull requests for a stack.")
+    public PullRequestsCommand(
+        CreatePullRequestsCommand createPullRequestsCommand,
+        OpenPullRequestsCommand openPullRequestsCommand) : base("pr", "Manage pull requests for a stack.")
     {
-        Add(new CreatePullRequestsCommand());
-        Add(new OpenPullRequestsCommand());
+        Add(createPullRequestsCommand);
+        Add(openPullRequestsCommand);
     }
 }

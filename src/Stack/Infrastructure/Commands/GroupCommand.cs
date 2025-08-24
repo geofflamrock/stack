@@ -1,5 +1,5 @@
 namespace Stack.Commands;
 
-public abstract class GroupCommand(string name, string? description = null) : System.CommandLine.Command(name, description)
+public abstract class GroupCommand(string name, string? description) : System.CommandLine.Command(name, description)
 {
 }

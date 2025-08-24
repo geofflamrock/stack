@@ -1,11 +1,19 @@
 using System.CommandLine;
 using System.Text.Json;
+using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public abstract class CommandWithOutput<TResponse> : Command where TResponse : notnull
 {
-    protected CommandWithOutput(string name, string? description = null) : base(name, description)
+    protected CommandWithOutput(
+        string name,
+        string? description,
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext) : base(name, description, stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
         Add(CommonOptions.Json);
     }
@@ -15,13 +23,11 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    protected override async Task<int> Execute(ParseResult parseResult, CancellationToken cancellationToken)
+    protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         var json = parseResult.GetValue(CommonOptions.Json);
         var response = await ExecuteAndReturnResponse(parseResult, cancellationToken);
         WriteOutput(json, response);
-
-        return 0;
     }
 
     protected abstract Task<TResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken);

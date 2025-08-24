@@ -5,21 +5,34 @@ namespace Stack.Commands;
 
 public class StackRootCommand : RootCommand
 {
-    public StackRootCommand() : base("A tool to help manage multiple Git branches that stack on top of each other.")
+    public StackRootCommand(
+        BranchCommand branchCommand,
+        CleanupStackCommand cleanupStackCommand,
+        ConfigCommand configCommand,
+        DeleteStackCommand deleteStackCommand,
+        ListStacksCommand listStacksCommand,
+        NewStackCommand newStackCommand,
+        PullRequestsCommand pullRequestsCommand,
+        PullStackCommand pullStackCommand,
+        PushStackCommand pushStackCommand,
+        StackStatusCommand stackStatusCommand,
+        StackSwitchCommand stackSwitchCommand,
+        SyncStackCommand syncStackCommand,
+        UpdateStackCommand updateStackCommand) : base("A tool to help manage multiple Git branches that stack on top of each other.")
     {
-        Add(new BranchCommand());
-        Add(new CleanupStackCommand());
-        Add(new ConfigCommand());
-        Add(new DeleteStackCommand());
-        Add(new ListStacksCommand());
-        Add(new NewStackCommand());
-        Add(new PullRequestsCommand());
-        Add(new PullStackCommand());
-        Add(new PushStackCommand());
-        Add(new StackStatusCommand());
-        Add(new StackSwitchCommand());
-        Add(new SyncStackCommand());
-        Add(new UpdateStackCommand());
+        Add(branchCommand);
+        Add(cleanupStackCommand);
+        Add(configCommand);
+        Add(deleteStackCommand);
+        Add(listStacksCommand);
+        Add(newStackCommand);
+        Add(pullRequestsCommand);
+        Add(pullStackCommand);
+        Add(pushStackCommand);
+        Add(stackStatusCommand);
+        Add(stackSwitchCommand);
+        Add(syncStackCommand);
+        Add(updateStackCommand);
 
         SetAction(async (parseResult, cancellationToken) =>
         {
