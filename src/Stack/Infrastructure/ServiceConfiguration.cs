@@ -83,6 +83,7 @@ public static class ServiceConfiguration
         services.AddTransient<AddBranchCommandHandler>();
         services.AddTransient<NewBranchCommandHandler>();
         services.AddTransient<RemoveBranchCommandHandler>();
+        services.AddTransient<MoveBranchCommandHandler>();
 
         // Remote operation handlers
         services.AddTransient<PullStackCommandHandler>();
@@ -113,6 +114,7 @@ public static class ServiceConfiguration
         services.AddTransient<AddBranchCommand>();
         services.AddTransient<NewBranchCommand>();
         services.AddTransient<RemoveBranchCommand>();
+        services.AddTransient<MoveBranchCommand>();
 
         // Remote commands
         services.AddTransient<PullStackCommand>();

@@ -22,6 +22,16 @@ public static class HumanizeEnumExtensionMethods
             _ => throw new ArgumentOutOfRangeException(nameof(action)),
         };
     }
+
+    public static string Humanize(this Stack.Config.MoveBranchChildrenAction action)
+    {
+        return action switch
+        {
+            Stack.Config.MoveBranchChildrenAction.KeepChildrenWithOldParent => "Keep children with existing parent",
+            Stack.Config.MoveBranchChildrenAction.MoveChildrenWithBranch => "Move children with branch",
+            _ => throw new ArgumentOutOfRangeException(nameof(action)),
+        };
+    }
 }
 
 
