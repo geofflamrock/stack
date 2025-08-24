@@ -15,7 +15,6 @@ public static class ServiceConfiguration
     public static IHost CreateHost()
     {
         var settings = new HostApplicationBuilderSettings();
-
         var builder = Host.CreateEmptyApplicationBuilder(settings);
         ConfigureServices(builder.Services);
         return builder.Build();
@@ -49,7 +48,7 @@ public static class ServiceConfiguration
 
         services.AddSingleton<CliExecutionContext>();
 
-        // Register Git and GitHub services
+        // Register Git and GitHub clients
         services.AddSingleton<IGitClient, GitClient>();
         services.AddSingleton<GitHubClient>();
         services.AddSingleton<IGitHubClient>(provider =>
@@ -71,7 +70,7 @@ public static class ServiceConfiguration
 
     private static void RegisterCommandHandlers(IServiceCollection services)
     {
-        // Individual command handlers
+        // Stack command handlers
         services.AddTransient<NewStackCommandHandler>();
         services.AddTransient<UpdateStackCommandHandler>();
         services.AddTransient<DeleteStackCommandHandler>();
@@ -85,7 +84,7 @@ public static class ServiceConfiguration
         services.AddTransient<NewBranchCommandHandler>();
         services.AddTransient<RemoveBranchCommandHandler>();
 
-        // Stack operation handlers
+        // Remote operation handlers
         services.AddTransient<PullStackCommandHandler>();
         services.AddTransient<PushStackCommandHandler>();
         services.AddTransient<SyncStackCommandHandler>();
@@ -115,7 +114,7 @@ public static class ServiceConfiguration
         services.AddTransient<NewBranchCommand>();
         services.AddTransient<RemoveBranchCommand>();
 
-        // Stack operation commands
+        // Remote commands
         services.AddTransient<PullStackCommand>();
         services.AddTransient<PushStackCommand>();
         services.AddTransient<SyncStackCommand>();

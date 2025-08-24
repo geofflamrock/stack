@@ -51,7 +51,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger logger, CliExecutionContext settings) : IGitClient
+public class GitClient(ILogger logger, CliExecutionContext context) : IGitClient
 {
     public string GetCurrentBranch()
     {
@@ -267,9 +267,9 @@ public class GitClient(ILogger logger, CliExecutionContext settings) : IGitClien
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
-            settings.WorkingDirectory,
+            context.WorkingDirectory,
             logger,
-            settings.Verbose,
+            context.Verbose,
             captureStandardError,
             exceptionHandler
         );
@@ -282,7 +282,7 @@ public class GitClient(ILogger logger, CliExecutionContext settings) : IGitClien
     {
         var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
 
-        if (!settings.Verbose && output.Length > 0)
+        if (!context.Verbose && output.Length > 0)
         {
             // We want to write the output of commands that perform
             // changes to the Git repository as the output might be important.

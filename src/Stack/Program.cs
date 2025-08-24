@@ -4,17 +4,16 @@ using Stack.Commands;
 using Stack.Infrastructure;
 
 var host = ServiceConfiguration.CreateHost();
-await host.StartAsync();
+await host.StartAsync().ConfigureAwait(false);
 
 try
 {
     var rootCommand = host.Services.GetRequiredService<StackRootCommand>();
     var commandLineConfig = new CommandLineConfiguration(rootCommand);
 
-    var result = await commandLineConfig.InvokeAsync(args);
-    return result;
+    return await commandLineConfig.InvokeAsync(args);
 }
 finally
 {
-    await host.StopAsync();
+    await host.StopAsync().ConfigureAwait(false);
 }

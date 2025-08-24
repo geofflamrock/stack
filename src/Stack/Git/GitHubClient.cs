@@ -68,7 +68,7 @@ internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
 {
 }
 
-public class GitHubClient(ILogger logger, CliExecutionContext settings) : IGitHubClient
+public class GitHubClient(ILogger logger, CliExecutionContext context) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
@@ -113,9 +113,9 @@ public class GitHubClient(ILogger logger, CliExecutionContext settings) : IGitHu
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "gh",
             command,
-            settings.WorkingDirectory,
+            context.WorkingDirectory,
             logger,
-            settings.Verbose,
+            context.Verbose,
             false,
             null
         );
@@ -123,7 +123,7 @@ public class GitHubClient(ILogger logger, CliExecutionContext settings) : IGitHu
 
     private void ExecuteGitHubCommand(string command)
     {
-        if (settings.Verbose)
+        if (context.Verbose)
             logger.Debug($"gh {command}");
 
         ExecuteGitHubCommandAndReturnOutput(command);
