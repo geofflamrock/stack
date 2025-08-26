@@ -34,7 +34,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        return await handler.Handle(new ListStacksCommandInputs());
+        return await handler.Handle(new ListStacksCommandInputs(), cancellationToken);
     }
 
     protected override void WriteDefaultOutput(ListStacksCommandResponse response)
@@ -65,7 +65,7 @@ public record ListStacksCommandResponseItem(string Name, string SourceBranch, in
 public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitClient)
     : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
 {
-    public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs)
+    public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 

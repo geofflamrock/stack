@@ -27,10 +27,12 @@ public class UpdateStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new UpdateStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.Rebase),
-            parseResult.GetValue(CommonOptions.Merge)));
+        await handler.Handle(
+            new UpdateStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.Rebase),
+                parseResult.GetValue(CommonOptions.Merge)),
+            cancellationToken);
     }
 }
 
@@ -49,7 +51,7 @@ public class UpdateStackCommandHandler(
     IStackActions stackActions)
     : CommandHandlerBase<UpdateStackCommandInputs>
 {
-    public override async Task Handle(UpdateStackCommandInputs inputs)
+    public override async Task Handle(UpdateStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
@@ -69,16 +71,16 @@ public class UpdateStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        var updateStrategy = StackHelpers.GetUpdateStrategy(
+        var updateStrategy = await StackHelpers.GetUpdateStrategy(
             inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-            gitClient, inputProvider, logger);
+            gitClient, inputProvider, logger, cancellationToken);
 
-        stackActions.UpdateStack(stack, updateStrategy);
+        await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))

@@ -47,11 +47,11 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         inputProvider
-            .SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>())
+            .SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>())
             .Returns(branchToSwitchTo);
 
         // Act
-        await handler.Handle(new StackSwitchCommandInputs(null));
+        await handler.Handle(new StackSwitchCommandInputs(null), CancellationToken.None);
 
         // Assert
         currentBranch.Should().Be(branchToSwitchTo);
@@ -92,7 +92,7 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
 
         // Act
-        await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo));
+        await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo), CancellationToken.None);
 
         // Assert
         currentBranch.Should().Be(branchToSwitchTo);
@@ -136,7 +136,7 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var invalidBranchName = Some.BranchName();
         gitClient.DoesLocalBranchExist(invalidBranchName).Returns(false);
 
-        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs(invalidBranchName)))
+        await handler.Invoking(h => h.Handle(new StackSwitchCommandInputs(invalidBranchName), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{invalidBranchName}' does not exist.");
     }

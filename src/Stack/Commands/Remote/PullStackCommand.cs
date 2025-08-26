@@ -26,8 +26,10 @@ public class PullStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new PullStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack)));
+        await handler.Handle(
+            new PullStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack)),
+            cancellationToken);
     }
 }
 
@@ -40,7 +42,7 @@ public class PullStackCommandHandler(
     IStackActions stackActions)
     : CommandHandlerBase<PullStackCommandInputs>
 {
-    public override async Task Handle(PullStackCommandInputs inputs)
+    public override async Task Handle(PullStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -56,7 +58,7 @@ public class PullStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");

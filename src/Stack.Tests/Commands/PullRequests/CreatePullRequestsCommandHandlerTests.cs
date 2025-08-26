@@ -53,15 +53,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -123,15 +123,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPullRequestList = $@"{StackConstants.StackMarkerStart}
@@ -182,15 +182,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var pullRequestUrls = gitHubClient.PullRequests.Values.Select(pr => $"- {pr.Url}").ToArray();
@@ -240,15 +240,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(new CreatePullRequestsCommandInputs("Stack1"));
+        await handler.Handle(new CreatePullRequestsCommandInputs("Stack1"), CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -300,13 +300,13 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
 
 
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -320,7 +320,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         };
 
         gitHubClient.PullRequests.Should().BeEquivalentTo(expectedPullRequests, ExcludeUnimportantPullRequestProperties);
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -364,7 +364,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(h => h.Handle(new CreatePullRequestsCommandInputs(invalidStackName)))
+        await handler.Invoking(h => h.Handle(new CreatePullRequestsCommandInputs(invalidStackName), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -414,15 +414,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch2, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -480,15 +480,15 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         File.WriteAllText(Path.Join(tempRepo.DirectoryPath, ".github", "PULL_REQUEST_TEMPLATE.md"), "This is the PR template");
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -541,15 +541,15 @@ This is the PR template";
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}
@@ -605,16 +605,16 @@ This is the PR template";
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch), new PullRequestCreateAction(branch2, branch1)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Confirm(Questions.CreatePullRequestAsDraft, Arg.Any<CancellationToken>(), Arg.Any<bool>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         gitHubClient.PullRequests.Should().AllSatisfy(pr => pr.Value.IsDraft.Should().BeTrue());
@@ -659,15 +659,15 @@ This is the PR template";
         var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
-            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<Func<PullRequestCreateAction, string>>())
+            .MultiSelect(Questions.SelectPullRequestsToCreate, Arg.Any<PullRequestCreateAction[]>(), true, Arg.Any<CancellationToken>(), Arg.Any<Func<PullRequestCreateAction, string>>())
             .Returns([new PullRequestCreateAction(branch1, sourceBranch)]);
-        inputProvider.Confirm(Questions.ConfirmCreatePullRequests).Returns(true);
-        inputProvider.Text(Questions.PullRequestTitle).Returns("PR Title");
+        inputProvider.Confirm(Questions.ConfirmCreatePullRequests, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Text(Questions.PullRequestTitle, Arg.Any<CancellationToken>()).Returns("PR Title");
 
         // Act
-        await handler.Handle(CreatePullRequestsCommandInputs.Empty);
+        await handler.Handle(CreatePullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         var expectedPrBody = $@"{StackConstants.StackMarkerStart}

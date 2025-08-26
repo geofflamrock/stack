@@ -27,9 +27,11 @@ public class DeleteStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new DeleteStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.Confirm)));
+        await handler.Handle(
+            new DeleteStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.Confirm)),
+            cancellationToken);
     }
 }
 
@@ -48,7 +50,7 @@ public class DeleteStackCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<DeleteStackCommandInputs>
 {
-    public override async Task Handle(DeleteStackCommandInputs inputs)
+    public override async Task Handle(DeleteStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -58,14 +60,14 @@ public class DeleteStackCommandHandler(
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {
             throw new InvalidOperationException("Stack not found.");
         }
 
-        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteStack))
+        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteStack, cancellationToken))
         {
             var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
 
@@ -73,7 +75,7 @@ public class DeleteStackCommandHandler(
             {
                 StackHelpers.OutputBranchesNeedingCleanup(logger, branchesNeedingCleanup);
 
-                if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+                if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteBranches, cancellationToken))
                 {
                     StackHelpers.CleanupBranches(gitClient, logger, branchesNeedingCleanup);
                 }

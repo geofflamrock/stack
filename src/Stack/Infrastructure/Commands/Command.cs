@@ -46,6 +46,10 @@ public abstract class Command : System.CommandLine.Command
                 StdErrLogger.Error(processException.Message);
                 return processException.ExitCode;
             }
+            catch (OperationCanceledException)
+            {
+                return 0;
+            }
             catch (Exception ex)
             {
                 StdErrLogger.Error(ex.Message);

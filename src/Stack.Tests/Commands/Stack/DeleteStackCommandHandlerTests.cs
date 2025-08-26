@@ -41,11 +41,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(DeleteStackCommandInputs.Empty);
+        await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -82,11 +82,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(false);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
-        await handler.Handle(DeleteStackCommandInputs.Empty);
+        await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -124,10 +124,10 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
+        await handler.Handle(new DeleteStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -135,7 +135,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack2", remoteUri, sourceBranch, [])
         });
 
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -166,11 +166,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act and assert
         await handler
-            .Invoking(h => h.Handle(new DeleteStackCommandInputs(Some.Name(), false)))
+            .Invoking(h => h.Handle(new DeleteStackCommandInputs(Some.Name(), false), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>();
     }
@@ -224,12 +224,12 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(DeleteStackCommandInputs.Empty);
+        await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -264,15 +264,15 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteStack).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new DeleteStackCommandInputs("Stack1", false));
+        await handler.Handle(new DeleteStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEmpty();
 
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -303,10 +303,10 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new DeleteStackCommandInputs(null, true));
+        await handler.Handle(new DeleteStackCommandInputs(null, true), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -314,7 +314,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack2", remoteUri, sourceBranch, [])
         });
 
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack);
+        await inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>());
     }
 
     private static Dictionary<string, GitBranchStatus> CreateBranchStatuses(string[] branches, string sourceBranch)

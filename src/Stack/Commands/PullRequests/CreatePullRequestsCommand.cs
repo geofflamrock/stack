@@ -28,8 +28,10 @@ public class CreatePullRequestsCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new CreatePullRequestsCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack)));
+        await handler.Handle(
+            new CreatePullRequestsCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack)),
+            cancellationToken);
     }
 }
 
@@ -47,7 +49,7 @@ public class CreatePullRequestsCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<CreatePullRequestsCommandInputs>
 {
-    public override async Task Handle(CreatePullRequestsCommandInputs inputs)
+    public override async Task Handle(CreatePullRequestsCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
@@ -64,7 +66,7 @@ public class CreatePullRequestsCommandHandler(
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {
@@ -106,12 +108,12 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestCreateActions.Count > 0)
         {
-            var selectedPullRequestActions = inputProvider.MultiSelect(
+            var selectedPullRequestActions = (await inputProvider.MultiSelect(
                 Questions.SelectPullRequestsToCreate,
                 pullRequestCreateActions.ToArray(),
                 true,
-                action => $"{action.Branch} -> {action.BaseBranch}")
-                .ToList();
+                cancellationToken,
+                action => $"{action.Branch} -> {action.BaseBranch}")).ToList();
 
             logger.Information("Select branches to create pull requests for:");
 
@@ -127,7 +129,8 @@ public class CreatePullRequestsCommandHandler(
                 logger,
                 gitClient,
                 fileOperations,
-                selectedPullRequestActions);
+                selectedPullRequestActions,
+                cancellationToken);
 
             logger.NewLine();
 
@@ -135,7 +138,7 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            if (inputProvider.Confirm(Questions.ConfirmCreatePullRequests))
+            if (await inputProvider.Confirm(Questions.ConfirmCreatePullRequests, cancellationToken))
             {
                 var newPullRequests = CreatePullRequests(logger, gitHubClient, status, pullRequestInformation);
 
@@ -150,7 +153,7 @@ public class CreatePullRequestsCommandHandler(
                     StackHelpers.UpdateStackPullRequestList(logger, gitHubClient, stack, pullRequestsInStack);
                 }
 
-                if (inputProvider.Confirm(Questions.OpenPullRequests))
+                if (await inputProvider.Confirm(Questions.OpenPullRequests, cancellationToken))
                 {
                     foreach (var pullRequest in newPullRequests)
                     {
@@ -219,7 +222,8 @@ public class CreatePullRequestsCommandHandler(
         ILogger logger,
         IGitClient gitClient,
         IFileOperations fileOperations,
-        List<PullRequestCreateAction> pullRequestCreateActions)
+        List<PullRequestCreateAction> pullRequestCreateActions,
+        CancellationToken cancellationToken)
     {
         var pullRequestActions = new List<PullRequestInformation>();
         var pullRequestTemplateFileNames = new List<string>(["PULL_REQUEST_TEMPLATE.md", "pull_request_template.md"]);
@@ -239,7 +243,7 @@ public class CreatePullRequestsCommandHandler(
             var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
             logger.Rule(pullRequestHeader);
 
-            var title = inputProvider.Text(Questions.PullRequestTitle);
+            var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
 
             fileOperations.Create(bodyFilePath);
@@ -254,7 +258,7 @@ public class CreatePullRequestsCommandHandler(
 
 {StackConstants.StackMarkerEnd}");
 
-            var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, false);
+            var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, cancellationToken).Result;
 
             pullRequestActions.Add(new PullRequestInformation(
                 action.Branch,

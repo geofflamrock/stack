@@ -26,9 +26,11 @@ public class CleanupStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new CleanupStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.Confirm)));
+        await handler.Handle(
+            new CleanupStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.Confirm)),
+            cancellationToken);
     }
 }
 
@@ -45,7 +47,7 @@ public class CleanupStackCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<CleanupStackCommandInputs>
 {
-    public override async Task Handle(CleanupStackCommandInputs inputs)
+    public override async Task Handle(CleanupStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -55,7 +57,7 @@ public class CleanupStackCommandHandler(
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {
@@ -72,7 +74,7 @@ public class CleanupStackCommandHandler(
 
         StackHelpers.OutputBranchesNeedingCleanup(logger, branchesToCleanUp);
 
-        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmDeleteBranches))
+        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteBranches, cancellationToken))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
             logger.Information($"Stack {stack.Name.Stack()} cleaned up");

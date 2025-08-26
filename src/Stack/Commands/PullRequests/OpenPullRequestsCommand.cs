@@ -26,8 +26,10 @@ public class OpenPullRequestsCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        await handler.Handle(new OpenPullRequestsCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack)));
+        await handler.Handle(
+            new OpenPullRequestsCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack)),
+            cancellationToken);
     }
 }
 
@@ -44,7 +46,7 @@ public class OpenPullRequestsCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<OpenPullRequestsCommandInputs>
 {
-    public override async Task Handle(OpenPullRequestsCommandInputs inputs)
+    public override async Task Handle(OpenPullRequestsCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -60,7 +62,7 @@ public class OpenPullRequestsCommandHandler(
         }
 
         var currentBranch = gitClient.GetCurrentBranch();
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {

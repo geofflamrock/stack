@@ -111,10 +111,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        return await handler.Handle(new StackStatusCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(All),
-            parseResult.GetValue(Full)));
+        return await handler.Handle(
+            new StackStatusCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(All),
+                parseResult.GetValue(Full)),
+            cancellationToken);
     }
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)
@@ -202,7 +204,7 @@ public class StackStatusCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<StackStatusCommandInputs, StackStatusCommandResponse>
 {
-    public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs)
+    public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -219,7 +221,7 @@ public class StackStatusCommandHandler(
         }
         else
         {
-            var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+            var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
             if (stack is null)
             {

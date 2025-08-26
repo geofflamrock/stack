@@ -49,11 +49,13 @@ public class RemoveBranchCommand : Command
             throw new InvalidOperationException("Cannot specify both --remove-children and --move-children-to-parent options.");
         }
 
-        await handler.Handle(new RemoveBranchCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.Branch),
-            parseResult.GetValue(CommonOptions.Confirm),
-            removeChildren ? RemoveBranchChildAction.RemoveChildren : moveChildrenToParent ? RemoveBranchChildAction.MoveChildrenToParent : null));
+        await handler.Handle(
+            new RemoveBranchCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.Branch),
+                parseResult.GetValue(CommonOptions.Confirm),
+                removeChildren ? RemoveBranchChildAction.RemoveChildren : moveChildrenToParent ? RemoveBranchChildAction.MoveChildrenToParent : null),
+            cancellationToken);
     }
 }
 
@@ -69,7 +71,7 @@ public class RemoveBranchCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<RemoveBranchCommandInputs>
 {
-    public override async Task Handle(RemoveBranchCommandInputs inputs)
+    public override async Task Handle(RemoveBranchCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -78,14 +80,14 @@ public class RemoveBranchCommandHandler(
         var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
-        var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.AllBranchNames]);
+        var branchName = await inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.AllBranchNames], cancellationToken);
 
         if (!stack.AllBranchNames.Contains(branchName))
         {
@@ -94,12 +96,13 @@ public class RemoveBranchCommandHandler(
 
         var action =
             inputs.RemoveChildrenAction ??
-            inputProvider.Select(
+            await inputProvider.Select(
                 Questions.RemoveBranchChildAction,
-                [RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren],
+                new[] { RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren },
+                cancellationToken,
                 (action) => action.Humanize());
 
-        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmRemoveBranch))
+        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmRemoveBranch, cancellationToken))
         {
             stack.RemoveBranch(branchName, action);
             stackConfig.Save(stackData);
