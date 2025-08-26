@@ -41,7 +41,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -59,7 +59,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch2, branch1).Returns((1, 0));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -109,7 +109,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -127,7 +127,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch2, branch1).Returns((1, 0));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false, true));
+        var response = await handler.Handle(new StackStatusCommandInputs("Stack1", false, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -203,7 +203,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch3, sourceBranch).Returns((3, 5));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -289,7 +289,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch3, sourceBranch).Returns((3, 5));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, true, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -353,7 +353,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Act and assert
         var incorrectStackName = Some.Name();
         await handler
-            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false, false)))
+            .Invoking(async h => await h.Handle(new StackStatusCommandInputs(incorrectStackName, false, false), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{incorrectStackName}' not found.");
     }
@@ -389,7 +389,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch2);
 
@@ -410,7 +410,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch2, sourceBranch).Returns((11, 0));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -461,7 +461,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch2);
 
@@ -480,7 +480,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch2, sourceBranch).Returns((1, 0));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -542,7 +542,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.CompareBranches(branch2, branch1).Returns((1, 0));
 
         // Act
-        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true));
+        var response = await handler.Handle(new StackStatusCommandInputs(null, false, true), CancellationToken.None);
 
         // Assert
         var expectedSourceBranch = new SourceBranchDetail(sourceBranch, true,
@@ -562,6 +562,6 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var expectedStackDetail = new StackStatus("Stack1", expectedSourceBranch, [expectedBranch1]);
         response.Stacks.Should().BeEquivalentTo([expectedStackDetail]);
 
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 }

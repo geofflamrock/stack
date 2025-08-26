@@ -8,7 +8,7 @@ namespace Stack.Commands.Helpers
     {
         void PullChanges(Config.Stack stack);
         void PushChanges(Config.Stack stack, int maxBatchSize, bool forceWithLease);
-        void UpdateStack(Config.Stack stack, UpdateStrategy strategy);
+        Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
     }
 
     public class StackActions(IGitClient gitClient, IGitHubClient gitHubClient, IInputProvider inputProvider, ILogger logger) : IStackActions
@@ -103,7 +103,7 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        public void UpdateStack(Config.Stack stack, UpdateStrategy strategy)
+        public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken)
         {
             var currentBranch = gitClient.GetCurrentBranch();
 
@@ -117,17 +117,18 @@ namespace Stack.Commands.Helpers
 
             if (strategy == UpdateStrategy.Rebase)
             {
-                UpdateStackUsingRebase(stack, status);
+                await UpdateStackUsingRebase(stack, status, cancellationToken);
             }
             else
             {
-                UpdateStackUsingMerge(stack, status);
+                await UpdateStackUsingMerge(stack, status, cancellationToken);
             }
         }
 
-        private void UpdateStackUsingMerge(
+        private async Task UpdateStackUsingMerge(
             Config.Stack stack,
-            StackStatus status)
+            StackStatus status,
+            CancellationToken cancellationToken)
         {
             logger.Information($"Updating stack {status.Name.Stack()} using merge...");
 
@@ -135,20 +136,21 @@ namespace Stack.Commands.Helpers
 
             foreach (var branchLine in allBranchLines)
             {
-                UpdateBranchLineUsingMerge(branchLine, status.SourceBranch);
+                await UpdateBranchLineUsingMerge(branchLine, status.SourceBranch, cancellationToken);
             }
         }
 
-        public void UpdateBranchLineUsingMerge(
+        private async Task UpdateBranchLineUsingMerge(
             List<BranchDetail> branchLine,
-            BranchDetailBase parentBranch)
+            BranchDetailBase parentBranch,
+            CancellationToken cancellationToken)
         {
             var currentParentBranch = parentBranch;
             foreach (var branch in branchLine)
             {
                 if (branch.IsActive)
                 {
-                    MergeFromSourceBranch(branch.Name, currentParentBranch.Name);
+                    await MergeFromSourceBranch(branch.Name, currentParentBranch.Name, cancellationToken);
                     currentParentBranch = branch;
                 }
                 else
@@ -158,7 +160,7 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private void MergeFromSourceBranch(string branch, string sourceBranchName)
+        private async Task MergeFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
             logger.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
             gitClient.ChangeBranch(branch);
@@ -169,15 +171,16 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                var action = inputProvider.Select(
-                    Questions.ContinueOrAbortMerge,
-                    [MergeConflictAction.Continue, MergeConflictAction.Abort],
-                    a => a switch
-                    {
-                        MergeConflictAction.Continue => "Continue",
-                        MergeConflictAction.Abort => "Abort",
-                        _ => throw new InvalidOperationException("Invalid merge conflict action.")
-                    }); ;
+                var action = await inputProvider.Select(
+                            Questions.ContinueOrAbortMerge,
+                            [MergeConflictAction.Continue, MergeConflictAction.Abort],
+                            cancellationToken,
+                            a => a switch
+                            {
+                                MergeConflictAction.Continue => "Continue",
+                                MergeConflictAction.Abort => "Abort",
+                                _ => throw new InvalidOperationException("Invalid merge conflict action.")
+                            }); ;
 
                 if (action == MergeConflictAction.Abort)
                 {
@@ -187,9 +190,10 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private void UpdateStackUsingRebase(
+        private async Task UpdateStackUsingRebase(
             Config.Stack stack,
-            StackStatus status)
+            StackStatus status,
+            CancellationToken cancellationToken)
         {
             logger.Information($"Updating stack {status.Name.Stack()} using rebase...");
 
@@ -197,11 +201,11 @@ namespace Stack.Commands.Helpers
 
             foreach (var branchLine in allBranchLines)
             {
-                UpdateBranchLineUsingRebase(status, branchLine);
+                await UpdateBranchLineUsingRebase(status, branchLine, cancellationToken);
             }
         }
 
-        private void UpdateBranchLineUsingRebase(StackStatus status, List<BranchDetail> branchLine)
+        private async Task UpdateBranchLineUsingRebase(StackStatus status, List<BranchDetail> branchLine, CancellationToken cancellationToken)
         {
             //
             // When rebasing the stack, we'll use `git rebase --update-refs` from the
@@ -272,11 +276,11 @@ namespace Stack.Commands.Helpers
 
                     if (shouldRebaseOntoParent)
                     {
-                        RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!);
+                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!, cancellationToken);
                     }
                     else
                     {
-                        RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name);
+                        await RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name, cancellationToken);
                     }
                 }
                 else if (lowestInactiveBranchToReParentFrom is null)
@@ -286,7 +290,7 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private void RebaseFromSourceBranch(string branch, string sourceBranchName)
+        private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
             logger.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
             gitClient.ChangeBranch(branch);
@@ -297,14 +301,15 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                HandleConflictsDuringRebase();
+                await HandleConflictsDuringRebase(cancellationToken);
             }
         }
 
-        private void RebaseOntoNewParent(
+        private async Task RebaseOntoNewParent(
             string branch,
             string newParentBranchName,
-            string oldParentBranchName)
+            string oldParentBranchName,
+            CancellationToken cancellationToken)
         {
             logger.Information($"Rebasing {branch.Branch()} onto new parent {newParentBranchName.Branch()}");
             gitClient.ChangeBranch(branch);
@@ -315,15 +320,16 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                HandleConflictsDuringRebase();
+                await HandleConflictsDuringRebase(cancellationToken);
             }
         }
 
-        private void HandleConflictsDuringRebase()
+        private async Task HandleConflictsDuringRebase(CancellationToken cancellationToken)
         {
-            var action = inputProvider.Select(
+            var action = await inputProvider.Select(
                 Questions.ContinueOrAbortRebase,
                 [MergeConflictAction.Continue, MergeConflictAction.Abort],
+                cancellationToken,
                 a => a switch
                 {
                     MergeConflictAction.Continue => "Continue",
@@ -344,7 +350,7 @@ namespace Stack.Commands.Helpers
                 }
                 catch (ConflictException)
                 {
-                    HandleConflictsDuringRebase();
+                    await HandleConflictsDuringRebase(cancellationToken);
                 }
             }
         }

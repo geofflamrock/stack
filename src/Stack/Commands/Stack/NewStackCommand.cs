@@ -54,10 +54,12 @@ public class NewStackCommand : Command
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new NewStackCommandInputs(
-            parseResult.GetValue(StackName),
-            parseResult.GetValue(SourceBranch),
-            parseResult.GetValue(BranchName)));
+        await handler.Handle(
+            new NewStackCommandInputs(
+                parseResult.GetValue(StackName),
+                parseResult.GetValue(SourceBranch),
+                parseResult.GetValue(BranchName)),
+            cancellationToken);
     }
 }
 
@@ -73,15 +75,15 @@ public class NewStackCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<NewStackCommandInputs>
 {
-    public override async Task Handle(NewStackCommandInputs inputs)
+    public override async Task Handle(NewStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
-        var name = inputProvider.Text(logger, Questions.StackName, inputs.Name);
+        var name = await inputProvider.Text(logger, Questions.StackName, inputs.Name, cancellationToken);
 
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var sourceBranch = inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches);
+        var sourceBranch = await inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches, cancellationToken);
 
         var stackData = stackConfig.Load();
         var remoteUri = gitClient.GetRemoteUri();
@@ -95,9 +97,10 @@ public class NewStackCommandHandler(
         }
         else
         {
-            var selectedBranchAction = inputProvider.Select(
+            var selectedBranchAction = await inputProvider.Select(
                 Questions.AddOrCreateBranch,
-                [BranchAction.Create, BranchAction.Add, BranchAction.None],
+                new[] { BranchAction.Create, BranchAction.Add, BranchAction.None },
+                cancellationToken,
                 action => action.Humanize());
 
             logger.Information($"{Questions.AddOrCreateBranch} {selectedBranchAction.Humanize()}");
@@ -106,7 +109,7 @@ public class NewStackCommandHandler(
 
         if (branchAction == BranchAction.Create)
         {
-            branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName);
+            branchName = await inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, cancellationToken);
 
             gitClient.CreateNewBranch(branchName, sourceBranch);
 
@@ -122,7 +125,7 @@ public class NewStackCommandHandler(
         }
         else if (branchAction == BranchAction.Add)
         {
-            branchName = inputs.BranchName ?? inputProvider.SelectBranch(logger, null, branches);
+            branchName = inputs.BranchName ?? await inputProvider.SelectBranch(logger, null, branches, cancellationToken);
         }
 
         if (branchName is not null)

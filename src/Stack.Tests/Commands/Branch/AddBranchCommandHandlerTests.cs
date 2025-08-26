@@ -42,12 +42,12 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(firstBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs(null, null, null));
+        await handler.Handle(new AddBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -83,14 +83,14 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs("Stack1", null, null));
+        await handler.Handle(new AddBranchCommandInputs("Stack1", null, null), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
@@ -123,14 +123,14 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs(null, null, null));
+        await handler.Handle(new AddBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])])
@@ -165,7 +165,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(invalidStackName, null, null)))
+        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(invalidStackName, null, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -197,11 +197,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs(null, branchToAdd, null));
+        await handler.Handle(new AddBranchCommandInputs(null, branchToAdd, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -209,7 +209,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
         });
-        inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -238,12 +238,12 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act and assert
         var invalidBranchName = Some.BranchName();
         gitClient.DoesLocalBranchExist(invalidBranchName).Returns(false);
-        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, invalidBranchName, null)))
+        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, invalidBranchName, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{invalidBranchName}' does not exist locally.");
@@ -277,10 +277,10 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act and assert
-        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, branchToAdd, null)))
+        await handler.Invoking(async h => await h.Handle(new AddBranchCommandInputs(null, branchToAdd, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{branchToAdd}' already exists in stack 'Stack1'.");
@@ -313,7 +313,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd, anotherBranch));
+        await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd, anotherBranch), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -354,11 +354,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToAdd);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
 
         // Act
-        await handler.Handle(new AddBranchCommandInputs(null, null, firstBranch));
+        await handler.Handle(new AddBranchCommandInputs(null, null, firstBranch), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -367,6 +367,6 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack2", remoteUri, sourceBranch, [])
         });
 
-        inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 }

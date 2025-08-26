@@ -36,13 +36,15 @@ public class SyncStackCommand : Command
             new FileStackConfig(),
             new StackActions(gitClient, gitHubClient, InputProvider, StdErrLogger));
 
-        await handler.Handle(new SyncStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.MaxBatchSize),
-            parseResult.GetValue(CommonOptions.Rebase),
-            parseResult.GetValue(CommonOptions.Merge),
-            parseResult.GetValue(CommonOptions.Confirm),
-            parseResult.GetValue(NoPush)));
+        await handler.Handle(
+            new SyncStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.MaxBatchSize),
+                parseResult.GetValue(CommonOptions.Rebase),
+                parseResult.GetValue(CommonOptions.Merge),
+                parseResult.GetValue(CommonOptions.Confirm),
+                parseResult.GetValue(NoPush)),
+            cancellationToken);
     }
 }
 
@@ -66,7 +68,7 @@ public class SyncStackCommandHandler(
     IStackActions stackActions)
     : CommandHandlerBase<SyncStackCommandInputs>
 {
-    public override async Task Handle(SyncStackCommandInputs inputs)
+    public override async Task Handle(SyncStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
@@ -86,7 +88,7 @@ public class SyncStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
@@ -105,17 +107,17 @@ public class SyncStackCommandHandler(
 
         logger.NewLine();
 
-        if (inputs.Confirm || inputProvider.Confirm(Questions.ConfirmSyncStack))
+        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
         {
             logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
             stackActions.PullChanges(stack);
 
-            var updateStrategy = StackHelpers.GetUpdateStrategy(
+            var updateStrategy = await StackHelpers.GetUpdateStrategy(
                 inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-                gitClient, inputProvider, logger);
+                gitClient, inputProvider, logger, cancellationToken);
 
-            stackActions.UpdateStack(stack, updateStrategy);
+            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
 
             var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
 

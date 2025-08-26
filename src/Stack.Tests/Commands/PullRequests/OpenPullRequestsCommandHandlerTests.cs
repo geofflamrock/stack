@@ -42,7 +42,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
 
         gitClient.GetRemoteUri().Returns(remoteUri);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -55,7 +55,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
             .Returns(prForBranch2);
 
         // Act
-        await handler.Handle(OpenPullRequestsCommandInputs.Empty);
+        await handler.Handle(OpenPullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert        
         gitHubClient.Received().OpenPullRequest(prForBranch1);
@@ -92,7 +92,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
 
         gitClient.GetRemoteUri().Returns(remoteUri);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -102,7 +102,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var prForBranch2 = new GitHubPullRequest(2, "PR Title", string.Empty, GitHubPullRequestStates.Closed, Some.HttpsUri(), false, branch2);
 
         // Act
-        await handler.Handle(OpenPullRequestsCommandInputs.Empty);
+        await handler.Handle(OpenPullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert        
         gitHubClient.Received().OpenPullRequest(prForBranch1);
@@ -150,7 +150,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
             .Returns(prForBranch2);
 
         // Act
-        await handler.Handle(new OpenPullRequestsCommandInputs("Stack1"));
+        await handler.Handle(new OpenPullRequestsCommandInputs("Stack1"), CancellationToken.None);
 
         // Assert        
         gitHubClient.Received().OpenPullRequest(prForBranch1);
@@ -194,7 +194,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
             .Returns(prForBranch2);
 
         // Act
-        await handler.Handle(OpenPullRequestsCommandInputs.Empty);
+        await handler.Handle(OpenPullRequestsCommandInputs.Empty, CancellationToken.None);
 
         // Assert        
         gitHubClient.Received().OpenPullRequest(prForBranch1);
@@ -233,7 +233,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(h => h.Handle(new OpenPullRequestsCommandInputs(invalidStackName)))
+        await handler.Invoking(h => h.Handle(new OpenPullRequestsCommandInputs(invalidStackName), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");

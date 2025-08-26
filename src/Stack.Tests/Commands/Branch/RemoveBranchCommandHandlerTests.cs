@@ -39,14 +39,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
             .Returns(RemoveBranchChildAction.RemoveChildren);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(RemoveBranchCommandInputs.Empty);
+        await handler.Handle(RemoveBranchCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -83,14 +83,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs("Stack1", null, false));
+        await handler.Handle(new RemoveBranchCommandInputs("Stack1", null, false), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, []),
@@ -127,7 +127,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(invalidStackName, null, false)))
+        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(invalidStackName, null, false), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -160,11 +160,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, branchToRemove, false));
+        await handler.Handle(new RemoveBranchCommandInputs(null, branchToRemove, false), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -172,7 +172,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, []),
             new("Stack2", remoteUri, sourceBranch, [])
         });
-        inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -202,11 +202,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act and assert
         var invalidBranchName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(null, invalidBranchName, false)))
+        await handler.Invoking(async h => await h.Handle(new RemoveBranchCommandInputs(null, invalidBranchName, false), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{invalidBranchName}' not found in stack 'Stack1'.");
@@ -235,11 +235,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(RemoveBranchCommandInputs.Empty);
+        await handler.Handle(RemoveBranchCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -247,7 +247,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, [])
         });
 
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -277,11 +277,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, true));
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, true), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -289,7 +289,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, []),
             new("Stack2", remoteUri, sourceBranch, [])
         });
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch);
+        await inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -316,14 +316,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
             .Returns(RemoveBranchChildAction.MoveChildrenToParent);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(RemoveBranchCommandInputs.Empty);
+        await handler.Handle(RemoveBranchCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -356,14 +356,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
             .Returns(RemoveBranchChildAction.RemoveChildren);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(RemoveBranchCommandInputs.Empty);
+        await handler.Handle(RemoveBranchCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -396,14 +396,12 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
-            .Returns(RemoveBranchChildAction.RemoveChildren);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.RemoveChildren));
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.RemoveChildren), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -411,7 +409,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, [])
         });
 
-        inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
+        await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
     }
 
     [Fact]
@@ -438,14 +436,12 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>()).Returns(branchToRemove);
-        inputProvider.Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>())
-            .Returns(RemoveBranchChildAction.MoveChildrenToParent);
-        inputProvider.Confirm(Questions.ConfirmRemoveBranch).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.MoveChildrenToParent));
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.MoveChildrenToParent), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -453,6 +449,6 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
         });
 
-        inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
+        await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
     }
 }

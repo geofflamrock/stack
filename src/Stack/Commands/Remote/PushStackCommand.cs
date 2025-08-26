@@ -36,10 +36,12 @@ public class PushStackCommand : Command
                 InputProvider,
                 StdErrLogger));
 
-        await handler.Handle(new PushStackCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.MaxBatchSize),
-            parseResult.GetValue(ForceWithLease)));
+        await handler.Handle(
+            new PushStackCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.MaxBatchSize),
+                parseResult.GetValue(ForceWithLease)),
+            cancellationToken);
     }
 }
 
@@ -56,7 +58,7 @@ public class PushStackCommandHandler(
     IStackActions stackActions)
     : CommandHandlerBase<PushStackCommandInputs>
 {
-    public override async Task Handle(PushStackCommandInputs inputs)
+    public override async Task Handle(PushStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -72,7 +74,7 @@ public class PushStackCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stack = inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
