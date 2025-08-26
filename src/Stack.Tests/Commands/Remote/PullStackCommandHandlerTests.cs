@@ -41,10 +41,10 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new PullStackCommandInputs(null));
+        await handler.Handle(new PullStackCommandInputs(null), CancellationToken.None);
 
         // Assert
         var expectedStack = stackConfig.Load().Stacks.First(s => s.Name == "Stack1");
@@ -83,13 +83,13 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
-        await handler.Handle(new PullStackCommandInputs("Stack1"));
+        await handler.Handle(new PullStackCommandInputs("Stack1"), CancellationToken.None);
 
         // Assert
         var expectedStack = stackConfig.Load().Stacks.First(s => s.Name == "Stack1");
         stackActions.Received(1).PullChanges(expectedStack);
         gitClient.Received(1).ChangeBranch(branch1);
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new PullStackCommandInputs(invalidStackName)))
+        await handler.Invoking(async h => await h.Handle(new PullStackCommandInputs(invalidStackName), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }

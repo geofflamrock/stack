@@ -41,7 +41,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branch without remote tracking should not be cleaned up
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -50,12 +50,12 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             [branchToKeep] = new(branchToKeep, $"origin/{branchToKeep}", true, false, 0, 0, new Commit("ghi789", "keep commit"))
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
-        
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(CleanupStackCommandInputs.Empty);
+        await handler.Handle(CleanupStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert - branch without remote tracking should not be deleted
         gitClient.DidNotReceive().DeleteLocalBranch(branchWithoutRemoteTracking);
@@ -90,7 +90,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -100,11 +100,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(CleanupStackCommandInputs.Empty);
+        await handler.Handle(CleanupStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         gitClient.Received().DeleteLocalBranch(branchToCleanup);
@@ -139,7 +139,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - all branches exist in remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -149,11 +149,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(CleanupStackCommandInputs.Empty);
+        await handler.Handle(CleanupStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         gitClient.DidNotReceive().DeleteLocalBranch(branchToKeep);
@@ -189,7 +189,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -199,11 +199,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(false);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(false);
 
         // Act
-        await handler.Handle(CleanupStackCommandInputs.Empty);
+        await handler.Handle(CleanupStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         gitClient.DidNotReceive().DeleteLocalBranch(branchToCleanup);
@@ -238,7 +238,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -248,13 +248,13 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new CleanupStackCommandInputs("Stack1", false));
+        await handler.Handle(new CleanupStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -287,11 +287,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new CleanupStackCommandInputs(invalidStackName, false)))
+        await handler.Invoking(async h => await h.Handle(new CleanupStackCommandInputs(invalidStackName, false), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -322,7 +322,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -332,13 +332,13 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(new CleanupStackCommandInputs(null, false));
+        await handler.Handle(new CleanupStackCommandInputs(null, false), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -370,7 +370,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -380,13 +380,13 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new CleanupStackCommandInputs(null, true));
+        await handler.Handle(new CleanupStackCommandInputs(null, true), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteBranches);
+        await inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>());
         gitClient.Received().DeleteLocalBranch(branchToCleanup);
     }
 
@@ -420,7 +420,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        
+
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -431,11 +431,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Confirm(Questions.ConfirmDeleteBranches).Returns(true);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
         // Act
-        await handler.Handle(CleanupStackCommandInputs.Empty);
+        await handler.Handle(CleanupStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
         gitClient.Received().DeleteLocalBranch(branchToCleanup);

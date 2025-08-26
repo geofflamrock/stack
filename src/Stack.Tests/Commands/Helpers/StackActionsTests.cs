@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
 using Stack.Commands;
@@ -11,7 +12,7 @@ namespace Stack.Tests.Helpers;
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
-    public void UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
+    public async Task UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -41,6 +42,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .Select(
                 Questions.ContinueOrAbortMerge,
                 Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<CancellationToken>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Continue);
 
@@ -56,7 +58,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
 
         // Assert
         gitClient.Received().ChangeBranch(branch2);
@@ -64,7 +66,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
+    public async Task UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -97,6 +99,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .Select(
                 Questions.ContinueOrAbortMerge,
                 Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<CancellationToken>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Abort);
 
@@ -108,17 +111,17 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         // Act
-        var updateAction = () => stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+        var updateAction = async () => await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
 
         // Assert
-        updateAction.Should().Throw<Exception>().WithMessage("Merge aborted due to conflicts.");
+        await updateAction.Should().ThrowAsync<Exception>().WithMessage("Merge aborted due to conflicts.");
         gitClient.Received().AbortMerge();
         gitClient.DidNotReceive().ChangeBranch(branch2);
         gitClient.DidNotReceive().MergeFromLocalSourceBranch(branch1);
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
+    public async Task UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -148,6 +151,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .Select(
                 Questions.ContinueOrAbortRebase,
                 Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<CancellationToken>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Continue);
 
@@ -163,7 +167,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
         gitClient.Received().ChangeBranch(branch2);
@@ -171,7 +175,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
+    public async Task UpdateStack_UsingRebase_WhenThereAreConflictsMergingBranches_AndUpdateIsAborted_AnExceptionIsThrown()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -204,6 +208,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .Select(
                 Questions.ContinueOrAbortRebase,
                 Arg.Any<MergeConflictAction[]>(),
+                Arg.Any<CancellationToken>(),
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Abort);
 
@@ -215,15 +220,15 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         // Act
-        var updateAction = () => stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        var updateAction = async () => await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
-        updateAction.Should().Throw<Exception>().WithMessage("Rebase aborted due to conflicts.");
+        await updateAction.Should().ThrowAsync<Exception>().WithMessage("Rebase aborted due to conflicts.");
         gitClient.Received().AbortRebase();
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_RebasesOntoTheParentBranchToAvoidConflicts()
+    public async Task UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_RebasesOntoTheParentBranchToAvoidConflicts()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -258,7 +263,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
         gitClient.Received().ChangeBranch(branch2);
@@ -266,7 +271,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_ButTheTargetBranchHasAlreadyHadAdditionalCommitsMergedInto_DoesNotRebaseOntoTheParentBranch()
+    public async Task UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_ButTheTargetBranchHasAlreadyHadAdditionalCommitsMergedInto_DoesNotRebaseOntoTheParentBranch()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -298,7 +303,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
         gitClient.Received().ChangeBranch(branch2);
@@ -306,7 +311,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_AndLocalBranchIsDeleted_DoesNotRebaseOntoTheParentBranch()
+    public async Task UpdateStack_UsingRebase_WhenARemoteBranchIsDeleted_AndLocalBranchIsDeleted_DoesNotRebaseOntoTheParentBranch()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -336,14 +341,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.Fetch(true);
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
         gitClient.Received().ChangeBranch(branch2);
     }
 
     [Fact]
-    public void UpdateStack_UsingRebase_WhenStackHasATreeStructure_RebasesAllBranchesCorrectly()
+    public async Task UpdateStack_UsingRebase_WhenStackHasATreeStructure_RebasesAllBranchesCorrectly()
     {
         // Arrange
         var sourceBranch = "source-branch";
@@ -374,7 +379,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Rebase);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
         Received.InOrder(() =>
@@ -391,7 +396,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public void UpdateStack_UsingMerge_WhenStackHasATreeStructure_MergesAllBranchesCorrectly()
+    public async Task UpdateStack_UsingMerge_WhenStackHasATreeStructure_MergesAllBranchesCorrectly()
     {
         // Arrange
         var sourceBranch = "source-branch";
@@ -422,7 +427,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
 
         // Act
-        stackActions.UpdateStack(stack, UpdateStrategy.Merge);
+        await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
 
         // Assert that merges were attempted
         Received.InOrder(() =>

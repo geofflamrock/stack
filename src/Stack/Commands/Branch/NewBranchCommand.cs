@@ -25,10 +25,12 @@ public class NewBranchCommand : Command
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new NewBranchCommandInputs(
-            parseResult.GetValue(CommonOptions.Stack),
-            parseResult.GetValue(CommonOptions.Branch),
-            parseResult.GetValue(CommonOptions.ParentBranch)));
+        await handler.Handle(
+            new NewBranchCommandInputs(
+                parseResult.GetValue(CommonOptions.Stack),
+                parseResult.GetValue(CommonOptions.Branch),
+                parseResult.GetValue(CommonOptions.ParentBranch)),
+            cancellationToken);
     }
 }
 
@@ -44,7 +46,7 @@ public class NewBranchCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<NewBranchCommandInputs>
 {
-    public override async Task Handle(NewBranchCommandInputs inputs)
+    public override async Task Handle(NewBranchCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
@@ -62,14 +64,14 @@ public class NewBranchCommandHandler(
             return;
         }
 
-        var stack = inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch);
+        var stack = await inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
         {
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = inputProvider.Text(logger, Questions.BranchName, inputs.BranchName);
+        var branchName = await inputProvider.Text(logger, Questions.BranchName, inputs.BranchName, cancellationToken);
 
         if (stack.AllBranchNames.Contains(branchName))
         {
@@ -83,7 +85,7 @@ public class NewBranchCommandHandler(
 
         Branch? sourceBranch = null;
 
-        var parentBranchName = inputProvider.SelectParentBranch(logger, inputs.ParentBranchName, stack);
+        var parentBranchName = await inputProvider.SelectParentBranch(logger, inputs.ParentBranchName, stack, cancellationToken);
 
         if (parentBranchName != stack.SourceBranch)
         {

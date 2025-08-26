@@ -38,16 +38,16 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(firstBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, firstBranch, childBranch });
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -84,8 +84,8 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -93,10 +93,10 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs("Stack1", null, null));
+        await handler.Handle(new NewBranchCommandInputs("Stack1", null, null), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(newBranch, [])])]),
@@ -125,8 +125,8 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -134,10 +134,10 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(newBranch, [])])]),
@@ -175,7 +175,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(invalidStackName, null, null)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(invalidStackName, null, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
@@ -206,8 +206,8 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -215,7 +215,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, newBranch, null));
+        await handler.Handle(new NewBranchCommandInputs(null, newBranch, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -223,7 +223,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(newBranch, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
         });
-        inputProvider.DidNotReceive().Text(Questions.BranchName);
+        await inputProvider.DidNotReceive().Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>());
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch });
@@ -257,7 +257,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidBranchName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, anotherBranch, null)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, anotherBranch, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{anotherBranch}' already exists locally.");
@@ -289,14 +289,14 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch });
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act and assert
-        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, newBranch, null)))
+        await handler.Invoking(async h => await h.Handle(new NewBranchCommandInputs(null, newBranch, null), CancellationToken.None))
             .Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage($"Branch '{newBranch}' already exists in stack 'Stack1'.");
@@ -329,9 +329,9 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClient.When(gc => gc.PushNewBranch(newBranch)).Do(_ => { throw new Exception("Failed to push branch"); });
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(anotherBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -339,7 +339,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -377,16 +377,16 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
-        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>()).Returns(firstBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, firstBranch, childBranch });
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null, null));
+        await handler.Handle(new NewBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -424,15 +424,15 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>()).Returns("Stack1");
-        inputProvider.Text(Questions.BranchName, Arg.Any<string>()).Returns(newBranch);
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, firstBranch, childBranch });
         gitClient.DoesLocalBranchExist(newBranch).Returns(false);
 
         // Act
-        await handler.Handle(new NewBranchCommandInputs(null, null, firstBranch));
+        await handler.Handle(new NewBranchCommandInputs(null, null, firstBranch), CancellationToken.None);
 
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
@@ -443,6 +443,6 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.Received().CreateNewBranch(newBranch, firstBranch);
         gitClient.Received().ChangeBranch(newBranch);
 
-        inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>());
+        await inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 }

@@ -21,8 +21,9 @@ public class StackSwitchCommand : Command
             new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
             new FileStackConfig());
 
-        await handler.Handle(new StackSwitchCommandInputs(
-            parseResult.GetValue(CommonOptions.Branch)));
+        await handler.Handle(
+            new StackSwitchCommandInputs(parseResult.GetValue(CommonOptions.Branch)),
+            cancellationToken);
     }
 }
 
@@ -34,7 +35,7 @@ public class StackSwitchCommandHandler(
     IStackConfig stackConfig)
     : CommandHandlerBase<StackSwitchCommandInputs>
 {
-    public override async Task Handle(StackSwitchCommandInputs inputs)
+    public override async Task Handle(StackSwitchCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
@@ -46,12 +47,13 @@ public class StackSwitchCommandHandler(
         var allBranchesInStacks = stacksForRemote.SelectMany(s => s.AllBranchNames).Distinct().ToArray();
         var branchesThatExistLocally = gitClient.GetBranchesThatExistLocally(allBranchesInStacks);
 
-        var branchSelection = inputs.Branch ?? inputProvider.SelectGrouped(
-            Questions.SelectBranch,
-            stacksForRemote
-                .OrderByCurrentStackThenByName(currentBranch)
-                .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.AllBranchNames.Where(b => branchesThatExistLocally.Contains(b))]))
-                .ToArray());
+        var branchSelection = inputs.Branch ?? await inputProvider.SelectGrouped(
+                Questions.SelectBranch,
+                stacksForRemote
+                    .OrderByCurrentStackThenByName(currentBranch)
+                    .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.AllBranchNames.Where(b => branchesThatExistLocally.Contains(b))]))
+            .ToArray(),
+            cancellationToken);
 
         if (inputs.Branch is not null && !gitClient.DoesLocalBranchExist(branchSelection))
             throw new InvalidOperationException($"Branch '{branchSelection}' does not exist.");

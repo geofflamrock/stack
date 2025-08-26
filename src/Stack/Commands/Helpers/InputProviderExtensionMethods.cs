@@ -7,12 +7,12 @@ namespace Stack.Commands.Helpers;
 
 public static class InputProviderExtensionMethods
 {
-    public static string Text(
+    public static async Task<string> Text(
         this IInputProvider inputProvider,
         ILogger logger,
         string prompt,
         string? presetValue,
-        string? defaultValue = null)
+        CancellationToken cancellationToken)
     {
         if (presetValue is not null)
         {
@@ -21,50 +21,53 @@ public static class InputProviderExtensionMethods
             return presetValue;
         }
 
-        return inputProvider.Text(prompt, defaultValue);
+        return await inputProvider.Text(prompt, cancellationToken);
     }
 
-    public static string Select(
+    public static async Task<string> Select(
         this IInputProvider inputProvider,
         ILogger logger,
         string prompt,
         string? presetValue,
-        string[] choices)
+        string[] choices,
+        CancellationToken cancellationToken)
     {
-        var selection = presetValue ?? inputProvider.Select(prompt, choices);
+        var selection = presetValue ?? await inputProvider.Select(prompt, choices, cancellationToken);
 
         logger.Information($"{prompt} {selection}");
 
         return selection;
     }
 
-    public static string[] MultiSelect(
+    public static async Task<string[]> MultiSelect(
         this IInputProvider inputProvider,
         ILogger logger,
         string prompt,
         string[] choices,
         bool required,
+        CancellationToken cancellationToken,
         string[]? presetValues = null)
     {
-        var selection = presetValues ?? inputProvider.MultiSelect(prompt, choices, required);
+        var selection = presetValues ?? (await inputProvider.MultiSelect(prompt, choices, required, cancellationToken)).ToArray();
 
         logger.Information($"{prompt} {string.Join(", ", selection)}");
 
         return [.. selection];
     }
 
-    public static Config.Stack? SelectStack(
+    public static async Task<Config.Stack?> SelectStack(
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
         List<Config.Stack> stacks,
-        string currentBranch)
+        string currentBranch,
+        CancellationToken cancellationToken)
     {
         var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
         var stackSelection =
             name ??
             (stacks.Count == 1 ? stacks.First().Name : null) ??
-            inputProvider.Select(Questions.SelectStack, stackNames);
+            await inputProvider.Select(Questions.SelectStack, stackNames, cancellationToken);
         var stack = stacks.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is not null)
@@ -75,20 +78,22 @@ public static class InputProviderExtensionMethods
         return stack;
     }
 
-    public static string SelectBranch(
+    public static Task<string> SelectBranch(
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        string[] branches)
+        string[] branches,
+        CancellationToken cancellationToken)
     {
-        return inputProvider.Select(logger, Questions.SelectBranch, name, branches);
+        return inputProvider.Select(logger, Questions.SelectBranch, name, branches, cancellationToken);
     }
 
-    public static string SelectParentBranch(
+    public static async Task<string> SelectParentBranch(
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        Config.Stack stack)
+        Config.Stack stack,
+        CancellationToken cancellationToken)
     {
         void GetBranchNamesWithIndentation(Branch branch, List<string> names, int level = 0)
         {
@@ -105,7 +110,7 @@ public static class InputProviderExtensionMethods
             GetBranchNamesWithIndentation(branch, allBranchNamesWithLevel, 1);
         }
 
-        var branchSelection = name ?? inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel]).Trim();
+        var branchSelection = (name ?? await inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel], cancellationToken)).Trim();
 
         logger.Information($"{Questions.SelectParentBranch} {branchSelection}");
 
