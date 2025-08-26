@@ -1,17 +1,28 @@
 using System.CommandLine;
+
 using MoreLinq;
 using MoreLinq.Extensions;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class NewBranchCommand : Command
 {
-    public NewBranchCommand() : base("new", "Create a new branch in a stack.")
+    private readonly NewBranchCommandHandler handler;
+
+    public NewBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        NewBranchCommandHandler handler)
+    : base("new", "Create a new branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.ParentBranch);
@@ -19,12 +30,6 @@ public class NewBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new NewBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
-
         await handler.Handle(
             new NewBranchCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

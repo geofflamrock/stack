@@ -1,5 +1,4 @@
 
-
 using System.CommandLine;
 using System.ComponentModel;
 using Spectre.Console;
@@ -7,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -39,8 +39,17 @@ public class NewStackCommand : Command
         Description = "The name of the branch to create within the stack."
     };
 
-    public NewStackCommand() : base("new", "Create a new stack.")
+    private readonly NewStackCommandHandler handler;
+
+    public NewStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        NewStackCommandHandler handler)
+    : base("new", "Create a new stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(StackName);
         Add(SourceBranch);
         Add(BranchName);
@@ -48,12 +57,6 @@ public class NewStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new NewStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
-
         await handler.Handle(
             new NewStackCommandInputs(
                 parseResult.GetValue(StackName),

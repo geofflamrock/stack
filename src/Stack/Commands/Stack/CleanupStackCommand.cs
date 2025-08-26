@@ -1,6 +1,7 @@
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using System.CommandLine;
 
@@ -8,21 +9,23 @@ namespace Stack.Commands;
 
 public class CleanupStackCommand : Command
 {
-    public CleanupStackCommand() : base("cleanup", "Clean up branches in a stack that are no longer needed.")
+    private readonly CleanupStackCommandHandler handler;
+
+    public CleanupStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        CleanupStackCommandHandler handler)
+    : base("cleanup", "Clean up branches in a stack that are no longer needed.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Confirm);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new CleanupStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
-
         await handler.Handle(
             new CleanupStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

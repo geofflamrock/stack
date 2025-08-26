@@ -1,30 +1,31 @@
 using System.CommandLine;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class PullStackCommand : Command
 {
-    public PullStackCommand() : base("pull", "Pull changes from the remote repository for a stack.")
+    private readonly PullStackCommandHandler handler;
+
+    public PullStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        PullStackCommandHandler handler)
+    : base("pull", "Pull changes from the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
-        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
-
-        var handler = new PullStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            new FileStackConfig(),
-            new StackActions(gitClient, gitHubClient, InputProvider, StdErrLogger));
-
         await handler.Handle(
             new PullStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack)),

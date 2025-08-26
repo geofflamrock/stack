@@ -3,13 +3,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
-
-public record GitHubClientSettings(bool Verbose, string? WorkingDirectory)
-{
-    public static GitHubClientSettings Default => new(false, null);
-}
 
 public static class GitHubPullRequestStates
 {
@@ -72,7 +68,7 @@ internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
 {
 }
 
-public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitHubClient
+public class GitHubClient(ILogger logger, CliExecutionContext context) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
@@ -117,9 +113,9 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "gh",
             command,
-            settings.WorkingDirectory,
+            context.WorkingDirectory,
             logger,
-            settings.Verbose,
+            context.Verbose,
             false,
             null
         );
@@ -127,7 +123,7 @@ public class GitHubClient(ILogger logger, GitHubClientSettings settings) : IGitH
 
     private void ExecuteGitHubCommand(string command)
     {
-        if (settings.Verbose)
+        if (context.Verbose)
             logger.Debug($"gh {command}");
 
         ExecuteGitHubCommandAndReturnOutput(command);

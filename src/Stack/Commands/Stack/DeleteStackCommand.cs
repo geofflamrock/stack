@@ -1,28 +1,32 @@
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using System.CommandLine;
+
 
 namespace Stack.Commands;
 
 public class DeleteStackCommand : Command
 {
-    public DeleteStackCommand() : base("delete", "Delete a stack.")
+    private readonly DeleteStackCommandHandler handler;
+
+    public DeleteStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        DeleteStackCommandHandler handler)
+    : base("delete", "Delete a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Confirm);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new DeleteStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
-
         await handler.Handle(
             new DeleteStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

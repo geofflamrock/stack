@@ -1,8 +1,10 @@
 using System.CommandLine;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -13,8 +15,17 @@ public class PushStackCommand : Command
         Description = "Force push changes with lease."
     };
 
-    public PushStackCommand() : base("push", "Push changes to the remote repository for a stack.")
+    private readonly PushStackCommandHandler handler;
+
+    public PushStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        PushStackCommandHandler handler)
+    : base("push", "Push changes to the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.MaxBatchSize);
         Add(ForceWithLease);
@@ -22,20 +33,6 @@ public class PushStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
-        var gitHubClient = new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory));
-
-        var handler = new PushStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            new FileStackConfig(),
-            new StackActions(
-                gitClient,
-                gitHubClient,
-                InputProvider,
-                StdErrLogger));
-
         await handler.Handle(
             new PushStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

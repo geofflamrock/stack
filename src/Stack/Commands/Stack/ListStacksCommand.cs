@@ -1,10 +1,12 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -17,16 +19,21 @@ internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerCo
 
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
-    public ListStacksCommand() : base("list", "List stacks.")
+    private readonly ListStacksCommandHandler handler;
+
+    public ListStacksCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        ListStacksCommandHandler handler)
+    : base("list", "List stacks.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
     }
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new ListStacksCommandHandler(
-            new FileStackConfig(),
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)));
-
         return await handler.Handle(new ListStacksCommandInputs(), cancellationToken);
     }
 

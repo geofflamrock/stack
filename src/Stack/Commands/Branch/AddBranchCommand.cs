@@ -1,15 +1,26 @@
 using System.CommandLine;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class AddBranchCommand : Command
 {
-    public AddBranchCommand() : base("add", "Add an existing branch to a stack.")
+    private readonly AddBranchCommandHandler handler;
+
+    public AddBranchCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        AddBranchCommandHandler handler)
+    : base("add", "Add an existing branch to a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Branch);
         Add(CommonOptions.ParentBranch);
@@ -17,12 +28,6 @@ public class AddBranchCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new AddBranchCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new FileStackConfig());
-
         await handler.Handle(
             new AddBranchCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

@@ -1,30 +1,33 @@
 using System.CommandLine;
+
 using MoreLinq;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class CreatePullRequestsCommand : Command
 {
-    public CreatePullRequestsCommand() : base("create", "Create pull requests for a stack.")
+    private readonly CreatePullRequestsCommandHandler handler;
+
+    public CreatePullRequestsCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        CreatePullRequestsCommandHandler handler)
+    : base("create", "Create pull requests for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new CreatePullRequestsCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileOperations(),
-            new FileStackConfig());
-
         await handler.Handle(
             new CreatePullRequestsCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack)),

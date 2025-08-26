@@ -1,8 +1,10 @@
 using System.CommandLine;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -13,8 +15,17 @@ public class SyncStackCommand : Command
         Description = "Don't push changes to the remote repository"
     };
 
-    public SyncStackCommand() : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.")
+    private readonly SyncStackCommandHandler handler;
+
+    public SyncStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        SyncStackCommandHandler handler)
+    : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.MaxBatchSize);
         Add(CommonOptions.Rebase);
@@ -25,17 +36,6 @@ public class SyncStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
-        var gitHubClient = new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)));
-
-        var handler = new SyncStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            gitHubClient,
-            new FileStackConfig(),
-            new StackActions(gitClient, gitHubClient, InputProvider, StdErrLogger));
-
         await handler.Handle(
             new SyncStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

@@ -1,12 +1,14 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using MoreLinq.Extensions;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
@@ -91,8 +93,17 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         Description = "Show full status including pull requests."
     };
 
-    public StackStatusCommand() : base("status", "Show the status of the current stack or all stacks in the repository.")
+    private readonly StackStatusCommandHandler handler;
+
+    public StackStatusCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        StackStatusCommandHandler handler)
+    : base("status", "Show the status of the current stack or all stacks in the repository.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(All);
         Add(Full);
@@ -100,13 +111,6 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new StackStatusCommandHandler(
-            InputProvider,
-            StdErrLogger,
-                new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-                new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
-
         return await handler.Handle(
             new StackStatusCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

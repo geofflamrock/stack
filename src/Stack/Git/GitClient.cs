@@ -1,13 +1,9 @@
 using System.Diagnostics;
 using Spectre.Console;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
-
-public record GitClientSettings(bool Verbose, string? WorkingDirectory)
-{
-    public static GitClientSettings Default => new(false, null);
-}
 
 public record Commit(string Sha, string Message);
 
@@ -55,7 +51,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
+public class GitClient(ILogger logger, CliExecutionContext context) : IGitClient
 {
     public string GetCurrentBranch()
     {
@@ -271,9 +267,9 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
-            settings.WorkingDirectory,
+            context.WorkingDirectory,
             logger,
-            settings.Verbose,
+            context.Verbose,
             captureStandardError,
             exceptionHandler
         );
@@ -286,7 +282,7 @@ public class GitClient(ILogger logger, GitClientSettings settings) : IGitClient
     {
         var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
 
-        if (!settings.Verbose && output.Length > 0)
+        if (!context.Verbose && output.Length > 0)
         {
             // We want to write the output of commands that perform
             // changes to the Git repository as the output might be important.

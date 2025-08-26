@@ -3,13 +3,23 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class UpdateStackCommand : Command
 {
-    public UpdateStackCommand() : base("update", "Update the branches in a stack.")
+    private readonly UpdateStackCommandHandler handler;
+
+    public UpdateStackCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        UpdateStackCommandHandler handler)
+    : base("update", "Update the branches in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
@@ -17,21 +27,6 @@ public class UpdateStackCommand : Command
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var gitClient = new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory));
-        var gitHubClient = new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory)));
-
-        var handler = new UpdateStackCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            gitClient,
-            new FileStackConfig(),
-            new StackActions(
-                gitClient,
-                gitHubClient,
-                InputProvider,
-                StdErrLogger
-            ));
-
         await handler.Handle(
             new UpdateStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),

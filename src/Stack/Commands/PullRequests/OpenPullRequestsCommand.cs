@@ -1,27 +1,31 @@
 using System.CommandLine;
+
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Commands;
 
 public class OpenPullRequestsCommand : Command
 {
-    public OpenPullRequestsCommand() : base("open", "Open pull requests for a stack in the default browser.")
+    private readonly OpenPullRequestsCommandHandler handler;
+
+    public OpenPullRequestsCommand(
+        IStdOutLogger stdOutLogger,
+        IStdErrLogger stdErrLogger,
+        IInputProvider inputProvider,
+        CliExecutionContext executionContext,
+        OpenPullRequestsCommandHandler handler)
+    : base("open", "Open pull requests for a stack in the default browser.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
     {
+        this.handler = handler;
         Add(CommonOptions.Stack);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var handler = new OpenPullRequestsCommandHandler(
-            InputProvider,
-            StdErrLogger,
-            new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory)),
-            new CachingGitHubClient(new GitHubClient(StdErrLogger, new GitHubClientSettings(Verbose, WorkingDirectory))),
-            new FileStackConfig());
-
         await handler.Handle(
             new OpenPullRequestsCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack)),
