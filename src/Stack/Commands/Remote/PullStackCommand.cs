@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -13,12 +13,12 @@ public class PullStackCommand : Command
     private readonly PullStackCommandHandler handler;
 
     public PullStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<PullStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         PullStackCommandHandler handler)
-    : base("pull", "Pull changes from the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("pull", "Pull changes from the remote repository for a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -36,7 +36,7 @@ public class PullStackCommand : Command
 public record PullStackCommandInputs(string? Stack);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<PullStackCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -52,7 +52,7 @@ public class PullStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 

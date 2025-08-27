@@ -1,6 +1,7 @@
 using FluentAssertions;
 using FluentAssertions.Equivalency;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -37,7 +38,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -50,8 +52,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
-
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
@@ -107,7 +108,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -120,7 +122,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -167,7 +169,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -180,7 +183,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
@@ -224,7 +227,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -237,7 +241,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -283,7 +287,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithBranch(branch => branch.WithName(branch2)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -296,7 +301,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider
@@ -346,7 +351,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -359,7 +365,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         // Act and assert
@@ -398,7 +404,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -411,7 +418,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -461,7 +468,8 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -475,7 +483,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
         Directory.CreateDirectory(Path.Join(tempRepo.DirectoryPath, ".github"));
         File.WriteAllText(Path.Join(tempRepo.DirectoryPath, ".github", "PULL_REQUEST_TEMPLATE.md"), "This is the PR template");
 
@@ -526,19 +534,18 @@ This is the PR template";
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -589,7 +596,8 @@ This is the PR template";
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -602,7 +610,7 @@ This is the PR template";
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -643,7 +651,8 @@ This is the PR template";
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CreatePullRequestsCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var fileOperations = new FileOperations();
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -656,7 +665,7 @@ This is the PR template";
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, gitClient, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, fileOperations, stackConfig);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");

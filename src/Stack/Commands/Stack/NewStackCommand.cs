@@ -1,6 +1,7 @@
 
 using System.CommandLine;
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -42,12 +43,12 @@ public class NewStackCommand : Command
     private readonly NewStackCommandHandler handler;
 
     public NewStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<NewStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         NewStackCommandHandler handler)
-    : base("new", "Create a new stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("new", "Create a new stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(StackName);
@@ -73,7 +74,7 @@ public record NewStackCommandInputs(string? Name, string? SourceBranch, string? 
 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<NewStackCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewStackCommandInputs>
@@ -106,7 +107,7 @@ public class NewStackCommandHandler(
                 cancellationToken,
                 action => action.Humanize());
 
-            logger.Information($"{Questions.AddOrCreateBranch} {selectedBranchAction.Humanize()}");
+            logger.LogInformation($"{Questions.AddOrCreateBranch} {selectedBranchAction.Humanize()}");
             branchAction = selectedBranchAction;
         }
 
@@ -118,12 +119,12 @@ public class NewStackCommandHandler(
 
             try
             {
-                logger.Information($"Pushing branch {branchName.Branch()} to remote repository");
+                logger.LogInformation($"Pushing branch {branchName.Branch()} to remote repository");
                 gitClient.PushNewBranch(branchName);
             }
             catch (Exception)
             {
-                logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                logger.LogWarning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
             }
         }
         else if (branchAction == BranchAction.Add)
@@ -148,21 +149,21 @@ public class NewStackCommandHandler(
             }
             catch (Exception ex)
             {
-                logger.Warning($"An error has occurred changing to branch {branchName.Branch()}. Use {$"stack switch --branch \"{branchName}\"".Example()} to switch to the branch. Error: {ex.Message}");
+                logger.LogWarning($"An error has occurred changing to branch {branchName.Branch()}. Use {$"stack switch --branch \"{branchName}\"".Example()} to switch to the branch. Error: {ex.Message}");
             }
         }
 
         if (branchAction is BranchAction.Create)
         {
-            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
         }
         else if (branchAction is BranchAction.Add)
         {
-            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
+            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
         }
         else
         {
-            logger.Information($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
+            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
         }
     }
 }

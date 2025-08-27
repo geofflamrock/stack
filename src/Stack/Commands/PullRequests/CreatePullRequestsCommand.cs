@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Spectre.Console;
 using Stack.Commands.Helpers;
@@ -15,12 +15,12 @@ public class CreatePullRequestsCommand : Command
     private readonly CreatePullRequestsCommandHandler handler;
 
     public CreatePullRequestsCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<CreatePullRequestsCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         CreatePullRequestsCommandHandler handler)
-    : base("create", "Create pull requests for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("create", "Create pull requests for a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -42,7 +42,8 @@ public record CreatePullRequestsCommandInputs(string? Stack)
 
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<CreatePullRequestsCommandHandler> logger,
+    IAnsiConsoleWriter console,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
@@ -61,7 +62,7 @@ public class CreatePullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 
@@ -77,6 +78,7 @@ public class CreatePullRequestsCommandHandler(
             stack,
             currentBranch,
             logger,
+            console,
             gitClient,
             gitHubClient);
 
@@ -102,7 +104,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(status, logger);
+        StackHelpers.OutputStackStatus(status, logger, console);
 
         logger.NewLine();
 
@@ -115,11 +117,11 @@ public class CreatePullRequestsCommandHandler(
                 cancellationToken,
                 action => $"{action.Branch} -> {action.BaseBranch}")).ToList();
 
-            logger.Information("Select branches to create pull requests for:");
+            logger.LogInformation("Select branches to create pull requests for:");
 
             foreach (var action in selectedPullRequestActions)
             {
-                logger.Information($"  {action.Branch} -> {action.BaseBranch}");
+                logger.LogInformation($"  {action.Branch} -> {action.BaseBranch}");
             }
 
             logger.NewLine();
@@ -127,6 +129,7 @@ public class CreatePullRequestsCommandHandler(
             var pullRequestInformation = GetPullRequestInformation(
                 inputProvider,
                 logger,
+                console,
                 gitClient,
                 fileOperations,
                 selectedPullRequestActions,
@@ -134,7 +137,7 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            OutputUpdatedStackStatus(logger, stack, status, pullRequestInformation);
+            OutputUpdatedStackStatus(logger, console, stack, status, pullRequestInformation);
 
             logger.NewLine();
 
@@ -164,7 +167,7 @@ public class CreatePullRequestsCommandHandler(
         }
         else
         {
-            logger.Information("No new pull requests to create.");
+            logger.LogInformation("No new pull requests to create.");
         }
     }
 
@@ -177,7 +180,7 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            logger.Information($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+            logger.LogInformation($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
                 action.BaseBranch,
@@ -187,7 +190,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequest is not null)
             {
-                logger.Information($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+                logger.LogInformation($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
                 pullRequests.Add(pullRequest);
             }
         }
@@ -197,6 +200,7 @@ public class CreatePullRequestsCommandHandler(
 
     private static void OutputUpdatedStackStatus(
         ILogger logger,
+        IAnsiConsoleWriter console,
         Config.Stack stack,
         StackStatus status,
         List<PullRequestInformation> pullRequestInformation)
@@ -204,6 +208,7 @@ public class CreatePullRequestsCommandHandler(
         StackHelpers.OutputStackStatus(
             status,
             logger,
+            console,
             (branch) =>
             {
                 var pr = pullRequestInformation.FirstOrDefault(pr => pr.HeadBranch == branch.Name);
@@ -220,6 +225,7 @@ public class CreatePullRequestsCommandHandler(
     private static List<PullRequestInformation> GetPullRequestInformation(
         IInputProvider inputProvider,
         ILogger logger,
+        IAnsiConsoleWriter console,
         IGitClient gitClient,
         IFileOperations fileOperations,
         List<PullRequestCreateAction> pullRequestCreateActions,
@@ -234,14 +240,14 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestTemplatePath is not null)
         {
-            logger.Information($"Found pull request template in repository, this will be used as the default body for each pull request.");
+            logger.LogInformation($"Found pull request template in repository, this will be used as the default body for each pull request.");
         }
 
         foreach (var action in pullRequestCreateActions)
         {
             logger.NewLine();
             var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
-            logger.Rule(pullRequestHeader);
+            console.Rule(pullRequestHeader);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");

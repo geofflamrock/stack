@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
+using Microsoft.Extensions.Logging;
 using MoreLinq.Extensions;
 using Spectre.Console;
 using Stack.Commands.Helpers;
@@ -96,12 +96,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
     private readonly StackStatusCommandHandler handler;
 
     public StackStatusCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<StackStatusCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         StackStatusCommandHandler handler)
-    : base("status", "Show the status of the current stack or all stacks in the repository.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("status", "Show the status of the current stack or all stacks in the repository.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -121,12 +121,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override void WriteDefaultOutput(StackStatusCommandResponse response)
     {
-        StackHelpers.OutputStackStatus(response.Stacks, StdOutLogger);
+        StackHelpers.OutputStackStatus(response.Stacks, Logger, Console);
 
         if (response.Stacks.Count == 1)
         {
             var stack = response.Stacks.First();
-            StackHelpers.OutputBranchAndStackActions(stack, StdOutLogger);
+            StackHelpers.OutputBranchAndStackActions(stack, Logger);
         }
     }
 
@@ -198,7 +198,8 @@ public record StackStatusCommandResponse(List<StackStatus> Stacks);
 
 public class StackStatusCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<StackStatusCommandHandler> logger,
+    IAnsiConsoleWriter console,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -235,6 +236,7 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor,
             currentBranch,
             logger,
+            console,
             gitClient,
             gitHubClient,
             inputs.Full);

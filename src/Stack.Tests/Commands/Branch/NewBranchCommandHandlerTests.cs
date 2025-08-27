@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Meziantou.Extensions.Logging.Xunit;
 using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
@@ -23,7 +24,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -69,7 +70,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -114,7 +115,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -154,7 +155,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -191,7 +192,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -235,7 +236,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -273,7 +274,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -312,7 +313,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -362,7 +363,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
@@ -409,7 +410,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack

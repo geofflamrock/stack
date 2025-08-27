@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -68,7 +69,7 @@ internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
 {
 }
 
-public class GitHubClient(ILogger logger, CliExecutionContext context) : IGitHubClient
+public class GitHubClient(ILogger<GitHubClient> logger, CliExecutionContext context) : IGitHubClient
 {
     public GitHubPullRequest? GetPullRequest(string branch)
     {
@@ -115,7 +116,6 @@ public class GitHubClient(ILogger logger, CliExecutionContext context) : IGitHub
             command,
             context.WorkingDirectory,
             logger,
-            context.Verbose,
             false,
             null
         );
@@ -123,9 +123,6 @@ public class GitHubClient(ILogger logger, CliExecutionContext context) : IGitHub
 
     private void ExecuteGitHubCommand(string command)
     {
-        if (context.Verbose)
-            logger.Debug($"gh {command}");
-
         ExecuteGitHubCommandAndReturnOutput(command);
     }
 

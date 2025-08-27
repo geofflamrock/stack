@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.Logging;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -7,22 +8,22 @@ namespace Stack.Commands;
 
 public abstract class Command : System.CommandLine.Command
 {
-    protected IStdOutLogger StdOutLogger;
-    protected IStdErrLogger StdErrLogger;
+    protected ILogger Logger;
     protected IInputProvider InputProvider;
+    protected IAnsiConsoleWriter Console;
     protected string? WorkingDirectory;
     protected bool Verbose;
 
     public Command(
         string name,
         string? description,
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext) : base(name, description)
     {
-        StdOutLogger = stdOutLogger;
-        StdErrLogger = stdErrLogger;
+        Logger = logger;
+        Console = console;
         InputProvider = inputProvider;
 
         Add(CommonOptions.WorkingDirectory);
@@ -31,9 +32,7 @@ public abstract class Command : System.CommandLine.Command
         SetAction(async (parseResult, cancellationToken) =>
         {
             WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
-            Verbose = parseResult.GetValue(CommonOptions.Verbose);
 
-            executionContext.Verbose = Verbose;
             executionContext.WorkingDirectory = WorkingDirectory;
 
             try
@@ -43,7 +42,7 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (ProcessException processException)
             {
-                StdErrLogger.Error(processException.Message);
+                Logger.LogError(processException.Message);
                 return processException.ExitCode;
             }
             catch (OperationCanceledException)
@@ -52,14 +51,13 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (Exception ex)
             {
-                StdErrLogger.Error(ex.Message);
+                Logger.LogError(ex.Message);
                 return 1;
             }
         });
     }
 
-    protected TextWriter StdOut => Console.Out;
-    protected TextWriter StdErr => Console.Error;
+    protected TextWriter StdOut => System.Console.Out;
 
     protected abstract Task Execute(ParseResult parseResult, CancellationToken cancellationToken);
 }

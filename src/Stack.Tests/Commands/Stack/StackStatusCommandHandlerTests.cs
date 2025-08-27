@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Meziantou.Extensions.Logging.Xunit;
 using NSubstitute;
 using Stack.Commands;
 using Stack.Config;
@@ -36,10 +37,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -104,10 +106,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -178,10 +181,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branch3)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -266,10 +270,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(Some.BranchName())))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -342,10 +347,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(aThirdBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -384,10 +390,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branch3)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -456,10 +463,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branch3)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -519,10 +527,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackStatusCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -51,7 +52,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger logger, CliExecutionContext context) : IGitClient
+public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) : IGitClient
 {
     public string GetCurrentBranch()
     {
@@ -269,7 +270,6 @@ public class GitClient(ILogger logger, CliExecutionContext context) : IGitClient
             command,
             context.WorkingDirectory,
             logger,
-            context.Verbose,
             captureStandardError,
             exceptionHandler
         );
@@ -282,13 +282,13 @@ public class GitClient(ILogger logger, CliExecutionContext context) : IGitClient
     {
         var output = ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
 
-        if (!context.Verbose && output.Length > 0)
+        if (output.Length > 0)
         {
             // We want to write the output of commands that perform
             // changes to the Git repository as the output might be important.
             // In verbose mode we would have already written the output
             // of the command so don't write it again.
-            logger.Debug(Markup.Escape(output));
+            logger.LogDebug(Markup.Escape(output));
         }
     }
 }

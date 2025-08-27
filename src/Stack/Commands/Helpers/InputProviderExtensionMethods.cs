@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -16,7 +17,7 @@ public static class InputProviderExtensionMethods
     {
         if (presetValue is not null)
         {
-            logger.Information($"{prompt} {presetValue}");
+            logger.LogInformation($"{prompt} {presetValue}");
 
             return presetValue;
         }
@@ -34,7 +35,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValue ?? await inputProvider.Select(prompt, choices, cancellationToken);
 
-        logger.Information($"{prompt} {selection}");
+        logger.LogInformation($"{prompt} {selection}");
 
         return selection;
     }
@@ -50,7 +51,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValues ?? (await inputProvider.MultiSelect(prompt, choices, required, cancellationToken)).ToArray();
 
-        logger.Information($"{prompt} {string.Join(", ", selection)}");
+        logger.LogInformation($"{prompt} {string.Join(", ", selection)}");
 
         return [.. selection];
     }
@@ -72,7 +73,7 @@ public static class InputProviderExtensionMethods
 
         if (stack is not null)
         {
-            logger.Information($"{Questions.SelectStack} {stack.Name}");
+            logger.LogInformation($"{Questions.SelectStack} {stack.Name}");
         }
 
         return stack;
@@ -112,7 +113,7 @@ public static class InputProviderExtensionMethods
 
         var branchSelection = (name ?? await inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel], cancellationToken)).Trim();
 
-        logger.Information($"{Questions.SelectParentBranch} {branchSelection}");
+        logger.LogInformation($"{Questions.SelectParentBranch} {branchSelection}");
 
         return branchSelection;
     }

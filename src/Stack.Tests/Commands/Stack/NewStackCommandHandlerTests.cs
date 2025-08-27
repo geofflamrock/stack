@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -23,7 +24,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -57,7 +58,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -89,7 +90,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -121,7 +122,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -154,7 +155,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -189,7 +190,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -223,7 +224,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 

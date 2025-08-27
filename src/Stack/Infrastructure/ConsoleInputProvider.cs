@@ -16,8 +16,6 @@ public interface IInputProvider
 
 public class ConsoleInputProvider(IAnsiConsole console) : IInputProvider
 {
-    private readonly IAnsiConsole console = console;
-
     public async Task<string> Text(string prompt, CancellationToken cancellationToken, string? defaultValue = null)
     {
         cancellationToken.ThrowIfCancellationRequested();

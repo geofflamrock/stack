@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -18,12 +18,12 @@ public class PushStackCommand : Command
     private readonly PushStackCommandHandler handler;
 
     public PushStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<PushStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         PushStackCommandHandler handler)
-    : base("push", "Push changes to the remote repository for a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("push", "Push changes to the remote repository for a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -49,7 +49,7 @@ public record PushStackCommandInputs(string? Stack, int MaxBatchSize, bool Force
 
 public class PushStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<PushStackCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -65,7 +65,7 @@ public class PushStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 

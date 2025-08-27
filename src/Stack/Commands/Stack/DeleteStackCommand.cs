@@ -4,6 +4,7 @@ using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using System.CommandLine;
+using Microsoft.Extensions.Logging;
 
 
 namespace Stack.Commands;
@@ -13,12 +14,12 @@ public class DeleteStackCommand : Command
     private readonly DeleteStackCommandHandler handler;
 
     public DeleteStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<DeleteStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         DeleteStackCommandHandler handler)
-    : base("delete", "Delete a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("delete", "Delete a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -44,7 +45,8 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<DeleteStackCommandHandler> logger,
+    IAnsiConsoleWriter console,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -69,7 +71,7 @@ public class DeleteStackCommandHandler(
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteStack, cancellationToken))
         {
-            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
+            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, console, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {
@@ -84,7 +86,7 @@ public class DeleteStackCommandHandler(
             stackData.Stacks.Remove(stack);
             stackConfig.Save(stackData);
 
-            logger.Information($"Stack {stack.Name.Stack()} deleted");
+            logger.LogInformation($"Stack {stack.Name.Stack()} deleted");
         }
     }
 }

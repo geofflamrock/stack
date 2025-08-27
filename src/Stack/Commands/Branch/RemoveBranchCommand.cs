@@ -1,6 +1,7 @@
 using System.CommandLine;
 
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -24,12 +25,12 @@ public class RemoveBranchCommand : Command
     private readonly RemoveBranchCommandHandler handler;
 
     public RemoveBranchCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<RemoveBranchCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         RemoveBranchCommandHandler handler)
-    : base("remove", "Remove a branch from a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("remove", "Remove a branch from a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -66,7 +67,7 @@ public record RemoveBranchCommandInputs(string? StackName, string? BranchName, b
 
 public class RemoveBranchCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<RemoveBranchCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<RemoveBranchCommandInputs>
@@ -107,7 +108,7 @@ public class RemoveBranchCommandHandler(
             stack.RemoveBranch(branchName, action);
             stackConfig.Save(stackData);
 
-            logger.Information($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
+            logger.LogInformation($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
         }
     }
 }

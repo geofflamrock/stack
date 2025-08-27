@@ -1,7 +1,7 @@
 using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
@@ -22,12 +22,12 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
     private readonly ListStacksCommandHandler handler;
 
     public ListStacksCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<ListStacksCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         ListStacksCommandHandler handler)
-    : base("list", "List stacks.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("list", "List stacks.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
     }
@@ -41,13 +41,13 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
     {
         if (response.Stacks.Count == 0)
         {
-            StdErr.WriteLine("No stacks found for current repository.");
+            Logger.LogInformation("No stacks found for current repository.");
             return;
         }
 
         foreach (var stack in response.Stacks)
         {
-            StdOutLogger.Information($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}");
+            Console.WriteLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}");
         }
     }
 

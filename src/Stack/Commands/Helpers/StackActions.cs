@@ -1,6 +1,7 @@
 using Stack.Config;
 using Stack.Infrastructure;
 using Stack.Git;
+using Microsoft.Extensions.Logging;
 
 namespace Stack.Commands.Helpers
 {
@@ -11,7 +12,12 @@ namespace Stack.Commands.Helpers
         Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
     }
 
-    public class StackActions(IGitClient gitClient, IGitHubClient gitHubClient, IInputProvider inputProvider, ILogger logger) : IStackActions
+    public class StackActions(
+        IGitClient gitClient,
+        IGitHubClient gitHubClient,
+        IInputProvider inputProvider,
+        ILogger<StackActions> logger,
+        IAnsiConsoleWriter console) : IStackActions
     {
         public void PullChanges(Config.Stack stack)
         {
@@ -47,7 +53,7 @@ namespace Stack.Commands.Helpers
 
             if (shouldPullCurrent)
             {
-                logger.Information($"Pulling changes for {currentBranch.Branch()} from remote");
+                logger.LogInformation($"Pulling changes for {currentBranch.Branch()} from remote");
                 gitClient.PullBranch(currentBranch);
             }
 
@@ -55,13 +61,13 @@ namespace Stack.Commands.Helpers
             foreach (var branch in branchesInOtherWorktrees)
             {
                 var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
-                logger.Information($"Pulling changes for {branch.Branch()} (worktree: {worktreePath}) from remote");
+                logger.LogInformation($"Pulling changes for {branch.Branch()} (worktree: {worktreePath}) from remote");
                 gitClient.PullBranchForWorktree(branch, worktreePath);
             }
 
             if (nonCurrentBranches.Length > 0)
             {
-                logger.Information($"Fetching changes for {string.Join(", ", nonCurrentBranches.Select(b => b.Branch()))} from remote");
+                logger.LogInformation($"Fetching changes for {string.Join(", ", nonCurrentBranches.Select(b => b.Branch()))} from remote");
                 gitClient.FetchBranchRefSpecs(nonCurrentBranches);
             }
         }
@@ -80,7 +86,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
             {
-                logger.Information($"Pushing new branch {branch.Branch()} to remote");
+                logger.LogInformation($"Pushing new branch {branch.Branch()} to remote");
                 gitClient.PushNewBranch(branch);
             }
 
@@ -97,7 +103,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branches in branchGroupsToPush)
             {
-                logger.Information($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
+                logger.LogInformation($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
 
                 gitClient.PushBranches([.. branches], forceWithLease);
             }
@@ -111,6 +117,7 @@ namespace Stack.Commands.Helpers
                 stack,
                 currentBranch,
                 logger,
+                console,
                 gitClient,
                 gitHubClient,
                 true);
@@ -130,7 +137,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.Information($"Updating stack {status.Name.Stack()} using merge...");
+            logger.LogInformation($"Updating stack {status.Name.Stack()} using merge...");
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -155,14 +162,14 @@ namespace Stack.Commands.Helpers
                 }
                 else
                 {
-                    logger.Debug($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+                    logger.LogTrace($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
                 }
             }
         }
 
         private async Task MergeFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.Information($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+            logger.LogInformation($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
             gitClient.ChangeBranch(branch);
 
             try
@@ -195,7 +202,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.Information($"Updating stack {status.Name.Stack()} using rebase...");
+            logger.LogInformation($"Updating stack {status.Name.Stack()} using rebase...");
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -235,7 +242,7 @@ namespace Stack.Commands.Helpers
             // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
             // which will include the squashed commit.
             //
-            logger.Information($"Rebasing stack {status.Name.Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
+            logger.LogInformation($"Rebasing stack {status.Name.Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
 
             BranchDetail? lowestActionBranch = null;
             foreach (var branch in branchLine)
@@ -248,7 +255,7 @@ namespace Stack.Commands.Helpers
 
             if (lowestActionBranch is null)
             {
-                logger.Warning("No active branches found in the stack.");
+                logger.LogWarning("No active branches found in the stack.");
                 return;
             }
 
@@ -292,7 +299,7 @@ namespace Stack.Commands.Helpers
 
         private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.Information($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
+            logger.LogInformation($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
             gitClient.ChangeBranch(branch);
 
             try
@@ -311,7 +318,7 @@ namespace Stack.Commands.Helpers
             string oldParentBranchName,
             CancellationToken cancellationToken)
         {
-            logger.Information($"Rebasing {branch.Branch()} onto new parent {newParentBranchName.Branch()}");
+            logger.LogInformation($"Rebasing {branch.Branch()} onto new parent {newParentBranchName.Branch()}");
             gitClient.ChangeBranch(branch);
 
             try

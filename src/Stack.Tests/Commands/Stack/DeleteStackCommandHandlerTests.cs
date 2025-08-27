@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -31,7 +32,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -39,7 +41,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
@@ -72,7 +74,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -80,7 +83,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(false);
@@ -114,7 +117,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -122,7 +126,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -156,7 +160,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -164,7 +169,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -197,7 +202,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -222,7 +228,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 return dict;
             });
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
@@ -254,7 +260,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -262,7 +269,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -293,7 +300,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -301,7 +309,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 

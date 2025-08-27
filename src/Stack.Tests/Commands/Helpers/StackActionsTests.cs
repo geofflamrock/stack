@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
@@ -19,7 +20,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
 
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -54,7 +56,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             inputProvider,
-            logger
+            logger,
+            console
         );
 
         // Act
@@ -76,7 +79,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var stack = new Config.Stack(
             "Stack1",
@@ -107,7 +111,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             inputProvider,
-            logger
+            logger,
+            console
         );
 
         // Act
@@ -128,7 +133,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
 
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -163,7 +169,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             inputProvider,
-            logger
+            logger,
+            console
         );
 
         // Act
@@ -185,7 +192,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var stack = new Config.Stack(
             "Stack1",
@@ -216,7 +224,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             inputProvider,
-            logger
+            logger,
+            console
         );
 
         // Act
@@ -237,7 +246,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         // Setup branch statuses to simulate the scenario
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -259,7 +269,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             inputProvider,
-            logger
+            logger,
+            console
         );
 
         // Act
@@ -282,7 +293,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         // Setup branch statuses to simulate the scenario
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -300,7 +312,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -320,7 +332,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -336,7 +348,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         gitClient.Fetch(true);
 
@@ -359,7 +372,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -376,7 +390,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -407,7 +421,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -424,7 +439,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -454,6 +469,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -470,7 +487,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchWithoutRemoteChanges))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -491,6 +508,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -507,7 +526,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -529,6 +548,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var statuses = new Dictionary<string, GitBranchStatus>
         {
@@ -544,7 +565,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch2))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -563,6 +584,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var statuses = new Dictionary<string, GitBranchStatus>
         {
@@ -572,7 +595,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -591,6 +614,9 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         var statuses = new Dictionary<string, GitBranchStatus>
         {
@@ -604,7 +630,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(otherBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -623,6 +649,9 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         var statuses = new Dictionary<string, GitBranchStatus>
         {
@@ -632,7 +661,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).WithBranch(b => b.WithName(otherBranch)).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -653,6 +682,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         var statuses = new Dictionary<string, GitBranchStatus>
@@ -668,7 +699,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchInOtherWorktree))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
@@ -690,6 +721,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -712,7 +745,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchNotAheadOfRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -732,6 +765,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -754,7 +789,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemoteButIsAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -774,6 +809,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -801,7 +838,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(newBranchWithNoRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -823,6 +860,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -847,7 +886,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch3))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 2, forceWithLease: false);
@@ -869,6 +908,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -883,7 +924,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: true);
@@ -903,6 +944,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
 
         var branchStatus = new Dictionary<string, GitBranchStatus>
         {
@@ -919,7 +962,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchBehind))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, new TestLogger(testOutputHelper));
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);
