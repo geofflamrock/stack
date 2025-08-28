@@ -17,13 +17,7 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
         CliExecutionContext executionContext)
         : base(name, description, logger, displayProvider, inputProvider, executionContext)
     {
-        Add(CommonOptions.Json);
     }
-
-    readonly JsonSerializerOptions jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
