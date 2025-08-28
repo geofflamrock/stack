@@ -31,7 +31,14 @@ public static class HostApplicationBuilderExtensions
 
         builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
         builder.Logging.ClearProviders();
-        builder.Services.AddSingleton<ILoggerProvider, AnsiConsoleLoggerProvider>();
+        if (args.Contains("--json"))
+        {
+            builder.Logging.AddJsonConsole();
+        }
+        else
+        {
+            builder.Services.AddSingleton<ILoggerProvider, AnsiConsoleLoggerProvider>();
+        }
 
         return builder;
     }

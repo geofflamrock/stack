@@ -28,6 +28,7 @@ public abstract class Command : System.CommandLine.Command
 
         Add(CommonOptions.WorkingDirectory);
         Add(CommonOptions.Verbose);
+        Add(CommonOptions.Json);
 
         SetAction(async (parseResult, cancellationToken) =>
         {
