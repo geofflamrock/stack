@@ -14,11 +14,11 @@ public class UpdateStackCommand : Command
 
     public UpdateStackCommand(
         ILogger<UpdateStackCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         UpdateStackCommandHandler handler)
-        : base("update", "Update the branches in a stack.", logger, console, inputProvider, executionContext)
+        : base("update", "Update the branches in a stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

@@ -39,7 +39,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -92,7 +92,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -131,7 +131,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         // We are on a specific branch in the stack
@@ -181,7 +181,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -234,7 +234,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -285,7 +285,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -335,7 +335,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -386,7 +386,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -437,7 +437,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -488,7 +488,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -539,7 +539,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -591,7 +591,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -628,7 +628,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         // Act and assert
@@ -664,7 +664,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -716,7 +716,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new SyncStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);

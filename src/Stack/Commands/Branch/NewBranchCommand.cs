@@ -16,11 +16,11 @@ public class NewBranchCommand : Command
 
     public NewBranchCommand(
         ILogger<NewBranchCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         NewBranchCommandHandler handler)
-        : base("new", "Create a new branch in a stack.", logger, console, inputProvider, executionContext)
+        : base("new", "Create a new branch in a stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

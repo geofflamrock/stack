@@ -23,11 +23,11 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
     public ListStacksCommand(
         ILogger<ListStacksCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         ListStacksCommandHandler handler)
-        : base("list", "List stacks.", logger, console, inputProvider, executionContext)
+        : base("list", "List stacks.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
     }
@@ -37,7 +37,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
         return await handler.Handle(new ListStacksCommandInputs(), cancellationToken);
     }
 
-    protected override void WriteDefaultOutput(ListStacksCommandResponse response)
+    protected override async Task WriteDefaultOutput(ListStacksCommandResponse response, CancellationToken cancellationToken)
     {
         if (response.Stacks.Count == 0)
         {
@@ -47,14 +47,14 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            Console.WriteLine($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}");
+            await DisplayProvider.DisplayMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 
-    protected override void WriteJsonOutput(ListStacksCommandResponse response)
+    protected override async Task WriteJsonOutput(ListStacksCommandResponse response, CancellationToken cancellationToken)
     {
         var json = JsonSerializer.Serialize(response, typeof(ListStacksCommandResponse), ListStacksCommandJsonSerializerContext.Default);
-        StdOut.WriteLine(json);
+        await StdOut.WriteLineAsync(json.AsMemory(), cancellationToken);
     }
 }
 

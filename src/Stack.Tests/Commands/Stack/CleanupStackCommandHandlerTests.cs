@@ -36,7 +36,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
@@ -86,7 +86,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
@@ -136,7 +136,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
@@ -189,7 +189,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -239,7 +239,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -288,7 +288,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -325,7 +325,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -374,7 +374,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -425,7 +425,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);

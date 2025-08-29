@@ -44,11 +44,11 @@ public class NewStackCommand : Command
 
     public NewStackCommand(
         ILogger<NewStackCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         NewStackCommandHandler handler)
-        : base("new", "Create a new stack.", logger, console, inputProvider, executionContext)
+        : base("new", "Create a new stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(StackName);

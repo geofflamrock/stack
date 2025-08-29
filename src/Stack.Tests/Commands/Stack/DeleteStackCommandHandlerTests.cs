@@ -33,7 +33,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -75,7 +75,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -118,7 +118,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -161,7 +161,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -203,7 +203,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -261,7 +261,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 
@@ -301,7 +301,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
-        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
 

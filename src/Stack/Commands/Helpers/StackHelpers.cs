@@ -104,7 +104,7 @@ public static class StackHelpers
         List<Config.Stack> stacks,
         string currentBranch,
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -123,7 +123,11 @@ public static class StackHelpers
 
         if (includePullRequestStatus)
         {
-            console.Status("Checking status of GitHub pull requests...", () => EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses));
+            displayProvider.DisplayStatus("Checking status of GitHub pull requests...", async (ct) =>
+            {
+                await Task.CompletedTask;
+                EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses);
+            });
         }
         else
         {
@@ -225,7 +229,7 @@ public static class StackHelpers
         Config.Stack stack,
         string currentBranch,
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -234,7 +238,7 @@ public static class StackHelpers
             [stack],
             currentBranch,
             logger,
-            console,
+            displayProvider,
             gitClient,
             gitHubClient,
             includePullRequestStatus);
@@ -244,20 +248,18 @@ public static class StackHelpers
 
     public static void OutputStackStatus(
         List<StackStatus> statuses,
-        ILogger logger,
-        IAnsiConsoleWriter console)
+        IDisplayProvider displayProvider)
     {
         foreach (var status in statuses)
         {
-            OutputStackStatus(status, logger, console);
-            logger.NewLine();
+            OutputStackStatus(status, displayProvider);
+            displayProvider.DisplayNewLine();
         }
     }
 
     public static void OutputStackStatus(
         StackStatus status,
-        ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
     {
         var header = GetBranchStatusOutput(status.SourceBranch);
@@ -268,8 +270,8 @@ public static class StackHelpers
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }
 
-        logger.LogInformation(status.Name.Stack());
-        console.Tree(new Tree<string>(header, [.. items]));
+        displayProvider.DisplayMessage(status.Name.Stack());
+        displayProvider.DisplayTree(header, [.. items]);
     }
 
     public static TreeItem<string> GetBranchAndPullRequestStatusOutput(
@@ -526,10 +528,10 @@ public static class StackHelpers
         return strategy;
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IAnsiConsoleWriter console, IGitClient gitClient, IGitHubClient gitHubClient)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IDisplayProvider displayProvider, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var currentBranch = gitClient.GetCurrentBranch();
-        var stackStatus = GetStackStatus(stack, currentBranch, logger, console, gitClient, gitHubClient, true);
+        var stackStatus = GetStackStatus(stack, currentBranch, logger, displayProvider, gitClient, gitHubClient, true);
 
         return [.. stackStatus.GetAllBranches().Where(b => b.CouldBeCleanedUp).Select(b => b.Name)];
     }

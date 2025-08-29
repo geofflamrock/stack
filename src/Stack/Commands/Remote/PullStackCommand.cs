@@ -14,11 +14,11 @@ public class PullStackCommand : Command
 
     public PullStackCommand(
         ILogger<PullStackCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         PullStackCommandHandler handler)
-        : base("pull", "Pull changes from the remote repository for a stack.", logger, console, inputProvider, executionContext)
+        : base("pull", "Pull changes from the remote repository for a stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
