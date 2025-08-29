@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -34,10 +35,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -83,10 +85,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -132,10 +135,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -182,10 +186,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -231,10 +236,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -279,10 +285,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -315,10 +322,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(branchToKeep)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -363,10 +371,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -413,10 +422,11 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<CleanupStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var console = new TestAnsiConsoleWriter(testOutputHelper);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);

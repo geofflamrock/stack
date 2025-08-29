@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Meziantou.Extensions.Logging.Xunit;
 using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
@@ -23,7 +24,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
+
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -75,7 +77,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -115,7 +117,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -155,7 +157,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -189,7 +191,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -230,7 +232,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -269,7 +271,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -304,7 +306,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .WithStack(stack => stack.WithName("Stack2").WithRemoteUri(remoteUri).WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -335,7 +337,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<AddBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);

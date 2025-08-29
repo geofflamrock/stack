@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -12,12 +13,12 @@ public class UpdateStackCommand : Command
     private readonly UpdateStackCommandHandler handler;
 
     public UpdateStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<UpdateStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         UpdateStackCommandHandler handler)
-    : base("update", "Update the branches in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("update", "Update the branches in a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -45,7 +46,7 @@ public record UpdateStackCommandResponse();
 
 public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<UpdateStackCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)

@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
 
@@ -10,10 +11,11 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
     protected CommandWithOutput(
         string name,
         string? description,
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
-        CliExecutionContext executionContext) : base(name, description, stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        CliExecutionContext executionContext)
+        : base(name, description, logger, console, inputProvider, executionContext)
     {
         Add(CommonOptions.Json);
     }

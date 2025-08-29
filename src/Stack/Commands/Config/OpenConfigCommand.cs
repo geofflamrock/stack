@@ -1,6 +1,6 @@
 using System.CommandLine;
 using System.Diagnostics;
-using Spectre.Console;
+using Microsoft.Extensions.Logging;
 using Stack.Config;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -9,14 +9,15 @@ namespace Stack.Commands;
 
 public class OpenConfigCommand : Command
 {
-    private readonly IStackConfig stackConfig;
+    readonly IStackConfig stackConfig;
 
     public OpenConfigCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<OpenConfigCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
-        IStackConfig stackConfig) : base("open", "Open the configuration file in the default editor.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        IStackConfig stackConfig)
+        : base("open", "Open the configuration file in the default editor.", logger, console, inputProvider, executionContext)
     {
         this.stackConfig = stackConfig;
     }
@@ -29,7 +30,7 @@ public class OpenConfigCommand : Command
 
         if (!File.Exists(configPath))
         {
-            StdErrLogger.Information("No config file found.");
+            Logger.LogInformation("No config file found.");
             return;
         }
 

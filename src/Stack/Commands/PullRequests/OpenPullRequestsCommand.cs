@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -13,12 +13,12 @@ public class OpenPullRequestsCommand : Command
     private readonly OpenPullRequestsCommandHandler handler;
 
     public OpenPullRequestsCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<OpenPullRequestsCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         OpenPullRequestsCommandHandler handler)
-    : base("open", "Open pull requests for a stack in the default browser.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("open", "Open pull requests for a stack in the default browser.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -40,7 +40,7 @@ public record OpenPullRequestsCommandInputs(string? Stack)
 
 public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<OpenPullRequestsCommandHandler> logger,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -57,7 +57,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 
@@ -83,7 +83,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            logger.Information($"No pull requests found for stack {stack.Name.Branch()}");
+            logger.LogInformation($"No pull requests found for stack {stack.Name.Branch()}");
             return;
         }
 

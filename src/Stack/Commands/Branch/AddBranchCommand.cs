@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -13,12 +13,12 @@ public class AddBranchCommand : Command
     private readonly AddBranchCommandHandler handler;
 
     public AddBranchCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<AddBranchCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         AddBranchCommandHandler handler)
-    : base("add", "Add an existing branch to a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("add", "Add an existing branch to a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -44,7 +44,7 @@ public record AddBranchCommandInputs(string? StackName, string? BranchName, stri
 
 public class AddBranchCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<AddBranchCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<AddBranchCommandInputs>
@@ -63,7 +63,7 @@ public class AddBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 
@@ -99,7 +99,7 @@ public class AddBranchCommandHandler(
             }
         }
 
-        logger.Information($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
+        logger.LogInformation($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
 
         if (sourceBranch is not null)
         {
@@ -113,6 +113,6 @@ public class AddBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.Information($"Branch added");
+        logger.LogInformation($"Branch added");
     }
 }

@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Config;
 using Stack.Git;
@@ -33,7 +34,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -70,7 +71,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -106,7 +107,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -141,7 +142,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -178,7 +179,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -215,7 +216,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -252,7 +253,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -290,7 +291,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -328,7 +329,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -366,7 +367,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -405,7 +406,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -439,7 +440,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);

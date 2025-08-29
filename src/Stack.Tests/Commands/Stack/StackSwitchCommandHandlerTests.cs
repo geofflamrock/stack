@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -33,7 +34,7 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackSwitchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -78,7 +79,7 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackSwitchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -120,7 +121,7 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<StackSwitchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);

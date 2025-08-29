@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Infrastructure;
 
@@ -12,12 +13,10 @@ public static class ProcessHelpers
         string command,
         string? workingDirectory,
         ILogger logger,
-        bool verbose = false,
         bool captureStandardError = false,
         Func<int, Exception?>? exceptionHandler = null)
     {
-        if (verbose)
-            logger.Debug($"{fileName} {command}");
+        logger.LogTrace($"{fileName} {command}");
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -54,8 +53,7 @@ public static class ProcessHelpers
 
         if (result != 0)
         {
-            if (verbose)
-                logger.Debug($"Failed to execute command: {fileName} {command}. Exit code: {result}. Error: {errorBuilder}.");
+            logger.LogTrace($"Failed to execute command: {fileName} {command}. Exit code: {result}. Error: {errorBuilder}.");
 
             if (exceptionHandler != null)
             {
@@ -71,9 +69,9 @@ public static class ProcessHelpers
             }
         }
 
-        if (verbose && infoBuilder.Length > 0)
+        if (infoBuilder.Length > 0)
         {
-            logger.Debug(Markup.Escape(infoBuilder.ToString()));
+            logger.LogTrace(Markup.Escape(infoBuilder.ToString()));
         }
 
         var output = infoBuilder.ToString();

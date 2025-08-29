@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -32,7 +33,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -76,7 +77,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -118,7 +119,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -153,7 +154,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -195,7 +196,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -228,7 +229,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -270,7 +271,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -309,7 +310,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -349,7 +350,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -389,7 +390,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
@@ -429,7 +430,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
 

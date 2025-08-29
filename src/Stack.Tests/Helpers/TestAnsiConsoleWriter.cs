@@ -3,19 +3,9 @@ using Xunit.Abstractions;
 
 namespace Stack.Tests.Helpers;
 
-public class TestLogger(ITestOutputHelper testOutputHelper) : ILogger
+public class TestAnsiConsoleWriter(ITestOutputHelper testOutputHelper) : IAnsiConsoleWriter
 {
-    public void Debug(string message)
-    {
-        testOutputHelper.WriteLine($"DEBUG: {message}");
-    }
-
-    public void Error(string message)
-    {
-        testOutputHelper.WriteLine($"ERROR: {message}");
-    }
-
-    public void Information(string message)
+    public void WriteLine(string message)
     {
         testOutputHelper.WriteLine($"INFO: {message}");
     }
@@ -38,11 +28,6 @@ public class TestLogger(ITestOutputHelper testOutputHelper) : ILogger
         {
             testOutputHelper.WriteLine($"  {item}");
         }
-    }
-
-    public void Warning(string message)
-    {
-        testOutputHelper.WriteLine($"WARNING: {message}");
     }
 
     public void Tree(Tree<string> tree)

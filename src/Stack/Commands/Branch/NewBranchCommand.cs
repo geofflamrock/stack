@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using MoreLinq;
 using MoreLinq.Extensions;
 using Stack.Commands.Helpers;
@@ -15,12 +15,12 @@ public class NewBranchCommand : Command
     private readonly NewBranchCommandHandler handler;
 
     public NewBranchCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<NewBranchCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         NewBranchCommandHandler handler)
-    : base("new", "Create a new branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("new", "Create a new branch in a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -46,7 +46,7 @@ public record NewBranchCommandInputs(string? StackName, string? BranchName, stri
 
 public class NewBranchCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<NewBranchCommandHandler> logger,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewBranchCommandInputs>
@@ -65,7 +65,7 @@ public class NewBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.Information("No stacks found for current repository.");
+            logger.LogInformation("No stacks found for current repository.");
             return;
         }
 
@@ -103,7 +103,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
 
-        logger.Information($"Creating branch {branchName.Branch()} from {sourceBranchName.Branch()} in stack {stack.Name.Stack()}");
+        logger.LogInformation($"Creating branch {branchName.Branch()} from {sourceBranchName.Branch()} in stack {stack.Name.Stack()}");
 
         gitClient.CreateNewBranch(branchName, sourceBranchName);
 
@@ -119,16 +119,16 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.Information($"Branch {branchName.Branch()} created.");
+        logger.LogInformation($"Branch {branchName.Branch()} created.");
 
         try
         {
-            logger.Information($"Pushing branch {branchName.Branch()} to remote repository");
+            logger.LogInformation($"Pushing branch {branchName.Branch()} to remote repository");
             gitClient.PushNewBranch(branchName);
         }
         catch (Exception)
         {
-            logger.Warning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            logger.LogWarning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
         }
 
         gitClient.ChangeBranch(branchName);

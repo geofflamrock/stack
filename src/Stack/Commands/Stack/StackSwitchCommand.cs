@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -14,12 +14,12 @@ public class StackSwitchCommand : Command
     private readonly StackSwitchCommandHandler handler;
 
     public StackSwitchCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<StackSwitchCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         StackSwitchCommandHandler handler)
-    : base("switch", "Switch to a branch in a stack.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("switch", "Switch to a branch in a stack.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Branch);

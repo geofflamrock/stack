@@ -1,5 +1,6 @@
 using FluentAssertions;
 using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands;
 using Stack.Config;
 using Stack.Git;
@@ -37,7 +38,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -79,7 +80,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -122,7 +123,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -164,7 +165,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
@@ -206,7 +207,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
-        var logger = new TestLogger(testOutputHelper);
+        var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
         var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);

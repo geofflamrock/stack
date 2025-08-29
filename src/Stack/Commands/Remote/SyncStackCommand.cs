@@ -1,5 +1,5 @@
 using System.CommandLine;
-
+using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -18,12 +18,12 @@ public class SyncStackCommand : Command
     private readonly SyncStackCommandHandler handler;
 
     public SyncStackCommand(
-        IStdOutLogger stdOutLogger,
-        IStdErrLogger stdErrLogger,
+        ILogger<SyncStackCommand> logger,
+        IAnsiConsoleWriter console,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         SyncStackCommandHandler handler)
-    : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", stdOutLogger, stdErrLogger, inputProvider, executionContext)
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", logger, console, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -61,7 +61,8 @@ public record SyncStackCommandInputs(
 
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
-    ILogger logger,
+    ILogger<SyncStackCommandHandler> logger,
+    IAnsiConsoleWriter console,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
@@ -99,17 +100,18 @@ public class SyncStackCommandHandler(
             stack,
             currentBranch,
             logger,
+            console,
             gitClient,
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(status, logger);
+        StackHelpers.OutputStackStatus(status, logger, console);
 
         logger.NewLine();
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
         {
-            logger.Information($"Syncing stack {stack.Name.Stack()} with the remote repository");
+            logger.LogInformation($"Syncing stack {stack.Name.Stack()} with the remote repository");
 
             stackActions.PullChanges(stack);
 
@@ -134,7 +136,7 @@ public class SyncStackCommandHandler(
 
     private void FetchChanges()
     {
-        logger.Status("Fetching changes from remote repository", () =>
+        console.Status("Fetching changes from remote repository", () =>
         {
             gitClient.Fetch(true);
         });
