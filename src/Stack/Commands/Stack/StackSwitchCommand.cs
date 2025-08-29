@@ -15,11 +15,11 @@ public class StackSwitchCommand : Command
 
     public StackSwitchCommand(
         ILogger<StackSwitchCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         StackSwitchCommandHandler handler)
-        : base("switch", "Switch to a branch in a stack.", logger, console, inputProvider, executionContext)
+        : base("switch", "Switch to a branch in a stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Branch);

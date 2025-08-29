@@ -14,11 +14,11 @@ public class CleanupStackCommand : Command
 
     public CleanupStackCommand(
         ILogger<CleanupStackCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         CleanupStackCommandHandler handler)
-        : base("cleanup", "Clean up branches in a stack that are no longer needed.", logger, console, inputProvider, executionContext)
+        : base("cleanup", "Clean up branches in a stack that are no longer needed.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -43,7 +43,7 @@ public record CleanupStackCommandInputs(string? Stack, bool Confirm)
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<CleanupStackCommandHandler> logger,
-    IAnsiConsoleWriter console,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -66,7 +66,7 @@ public class CleanupStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
         }
 
-        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, logger, console, gitClient, gitHubClient);
+        var branchesToCleanUp = StackHelpers.GetBranchesNeedingCleanup(stack, logger, displayProvider, gitClient, gitHubClient);
 
         if (branchesToCleanUp.Length == 0)
         {

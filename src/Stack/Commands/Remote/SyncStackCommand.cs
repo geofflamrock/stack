@@ -19,11 +19,11 @@ public class SyncStackCommand : Command
 
     public SyncStackCommand(
         ILogger<SyncStackCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         SyncStackCommandHandler handler)
-        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", logger, console, inputProvider, executionContext)
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -62,7 +62,7 @@ public record SyncStackCommandInputs(
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<SyncStackCommandHandler> logger,
-    IAnsiConsoleWriter console,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
@@ -100,12 +100,12 @@ public class SyncStackCommandHandler(
             stack,
             currentBranch,
             logger,
-            console,
+            displayProvider,
             gitClient,
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(status, logger, console);
+        StackHelpers.OutputStackStatus(status, displayProvider);
 
         logger.NewLine();
 
@@ -136,8 +136,9 @@ public class SyncStackCommandHandler(
 
     private void FetchChanges()
     {
-        console.Status("Fetching changes from remote repository", () =>
+        displayProvider.DisplayStatus("Fetching changes from remote repository", async (ct) =>
         {
+            await Task.CompletedTask;
             gitClient.Fetch(true);
         });
     }

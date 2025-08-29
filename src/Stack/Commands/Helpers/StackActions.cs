@@ -17,7 +17,7 @@ namespace Stack.Commands.Helpers
         IGitHubClient gitHubClient,
         IInputProvider inputProvider,
         ILogger<StackActions> logger,
-        IAnsiConsoleWriter console) : IStackActions
+        IDisplayProvider displayProvider) : IStackActions
     {
         public void PullChanges(Config.Stack stack)
         {
@@ -117,7 +117,7 @@ namespace Stack.Commands.Helpers
                 stack,
                 currentBranch,
                 logger,
-                console,
+                displayProvider,
                 gitClient,
                 gitHubClient,
                 true);
