@@ -16,11 +16,11 @@ public class CreatePullRequestsCommand : Command
 
     public CreatePullRequestsCommand(
         ILogger<CreatePullRequestsCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         CreatePullRequestsCommandHandler handler)
-        : base("create", "Create pull requests for a stack.", logger, console, inputProvider, executionContext)
+        : base("create", "Create pull requests for a stack.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -43,7 +43,7 @@ public record CreatePullRequestsCommandInputs(string? Stack)
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger<CreatePullRequestsCommandHandler> logger,
-    IAnsiConsoleWriter console,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
@@ -78,7 +78,7 @@ public class CreatePullRequestsCommandHandler(
             stack,
             currentBranch,
             logger,
-            console,
+            displayProvider,
             gitClient,
             gitHubClient);
 
@@ -104,7 +104,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(status, logger, console);
+        StackHelpers.OutputStackStatus(status, displayProvider);
 
         logger.NewLine();
 
@@ -126,10 +126,10 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            var pullRequestInformation = GetPullRequestInformation(
+            var pullRequestInformation = await GetPullRequestInformation(
                 inputProvider,
                 logger,
-                console,
+                displayProvider,
                 gitClient,
                 fileOperations,
                 selectedPullRequestActions,
@@ -137,7 +137,7 @@ public class CreatePullRequestsCommandHandler(
 
             logger.NewLine();
 
-            OutputUpdatedStackStatus(logger, console, stack, status, pullRequestInformation);
+            OutputUpdatedStackStatus(logger, displayProvider, stack, status, pullRequestInformation);
 
             logger.NewLine();
 
@@ -200,15 +200,14 @@ public class CreatePullRequestsCommandHandler(
 
     private static void OutputUpdatedStackStatus(
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         Config.Stack stack,
         StackStatus status,
         List<PullRequestInformation> pullRequestInformation)
     {
         StackHelpers.OutputStackStatus(
             status,
-            logger,
-            console,
+            displayProvider,
             (branch) =>
             {
                 var pr = pullRequestInformation.FirstOrDefault(pr => pr.HeadBranch == branch.Name);
@@ -222,10 +221,10 @@ public class CreatePullRequestsCommandHandler(
             });
     }
 
-    private static List<PullRequestInformation> GetPullRequestInformation(
+    private static async Task<List<PullRequestInformation>> GetPullRequestInformation(
         IInputProvider inputProvider,
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IGitClient gitClient,
         IFileOperations fileOperations,
         List<PullRequestCreateAction> pullRequestCreateActions,
@@ -247,7 +246,7 @@ public class CreatePullRequestsCommandHandler(
         {
             logger.NewLine();
             var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
-            console.Rule(pullRequestHeader);
+            await displayProvider.DisplayHeader(pullRequestHeader, cancellationToken);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");

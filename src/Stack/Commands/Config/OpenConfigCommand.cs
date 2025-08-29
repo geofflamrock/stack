@@ -13,11 +13,11 @@ public class OpenConfigCommand : Command
 
     public OpenConfigCommand(
         ILogger<OpenConfigCommand> logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
         IStackConfig stackConfig)
-        : base("open", "Open the configuration file in the default editor.", logger, console, inputProvider, executionContext)
+        : base("open", "Open the configuration file in the default editor.", logger, displayProvider, inputProvider, executionContext)
     {
         this.stackConfig = stackConfig;
     }

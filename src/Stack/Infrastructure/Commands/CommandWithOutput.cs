@@ -12,10 +12,10 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
         string name,
         string? description,
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext)
-        : base(name, description, logger, console, inputProvider, executionContext)
+        : base(name, description, logger, displayProvider, inputProvider, executionContext)
     {
         Add(CommonOptions.Json);
     }
@@ -29,24 +29,24 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
     {
         var json = parseResult.GetValue(CommonOptions.Json);
         var response = await ExecuteAndReturnResponse(parseResult, cancellationToken);
-        WriteOutput(json, response);
+        await WriteOutput(json, response, cancellationToken);
     }
 
     protected abstract Task<TResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken);
 
-    protected abstract void WriteDefaultOutput(TResponse response);
+    protected abstract Task WriteDefaultOutput(TResponse response, CancellationToken cancellationToken);
 
-    protected abstract void WriteJsonOutput(TResponse response);
+    protected abstract Task WriteJsonOutput(TResponse response, CancellationToken cancellationToken);
 
-    private void WriteOutput(bool json, TResponse response)
+    private async Task WriteOutput(bool json, TResponse response, CancellationToken cancellationToken)
     {
         if (json)
         {
-            WriteJsonOutput(response);
+            await WriteJsonOutput(response, cancellationToken);
         }
         else
         {
-            WriteDefaultOutput(response);
+            await WriteDefaultOutput(response, cancellationToken);
         }
     }
 }

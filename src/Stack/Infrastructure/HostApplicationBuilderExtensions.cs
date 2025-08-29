@@ -50,7 +50,7 @@ public static class HostApplicationBuilderExtensions
                 Out = new AnsiConsoleOutput(stream),
             });
         });
-        services.AddSingleton<IAnsiConsoleWriter, AnsiConsoleWriter>();
+        services.AddSingleton<IDisplayProvider, ConsoleDisplayProvider>();
         services.AddSingleton<IInputProvider, ConsoleInputProvider>();
         services.AddSingleton<IStackConfig, FileStackConfig>();
         services.AddSingleton<IFileOperations, FileOperations>();
