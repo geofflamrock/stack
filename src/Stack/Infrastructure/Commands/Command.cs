@@ -10,7 +10,7 @@ public abstract class Command : System.CommandLine.Command
 {
     protected ILogger Logger;
     protected IInputProvider InputProvider;
-    protected IAnsiConsoleWriter Console;
+    protected IDisplayProvider DisplayProvider;
     protected string? WorkingDirectory;
     protected bool Verbose;
 
@@ -18,12 +18,12 @@ public abstract class Command : System.CommandLine.Command
         string name,
         string? description,
         ILogger logger,
-        IAnsiConsoleWriter console,
+        IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext) : base(name, description)
     {
         Logger = logger;
-        Console = console;
+        DisplayProvider = displayProvider;
         InputProvider = inputProvider;
 
         Add(CommonOptions.WorkingDirectory);
