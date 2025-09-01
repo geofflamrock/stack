@@ -165,7 +165,7 @@ public static class StackHelpers
                     stackBranches.Add(branchDetail);
                 }
 
-                stacksToReturnStatusFor.Add(new StackStatus(stack.Name, sourceBranch, [.. stackBranches]));
+                stacksToReturnStatusFor.Add(new StackStatus(stack.Name.ToString(), sourceBranch, [.. stackBranches]));
             }
 
             static BranchDetail AddBranchDetailsForAllChildren(IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, Dictionary<string, GitBranchStatus> branchStatuses, BranchDetailBase parentBranch, Branch branch)

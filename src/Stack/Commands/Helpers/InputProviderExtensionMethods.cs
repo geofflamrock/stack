@@ -17,7 +17,7 @@ public static class InputProviderExtensionMethods
     {
         if (presetValue is not null)
         {
-            logger.LogInformation($"{prompt} {presetValue}");
+            logger.SelectedAnswer(prompt, presetValue);
 
             return presetValue;
         }
@@ -35,7 +35,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValue ?? await inputProvider.Select(prompt, choices, cancellationToken);
 
-        logger.LogInformation($"{prompt} {selection}");
+        logger.SelectedAnswer(prompt, selection);
 
         return selection;
     }
@@ -51,7 +51,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValues ?? (await inputProvider.MultiSelect(prompt, choices, required, cancellationToken)).ToArray();
 
-        logger.LogInformation($"{prompt} {string.Join(", ", selection)}");
+        logger.SelectedAnswer(prompt, string.Join(", ", selection));
 
         return [.. selection];
     }
@@ -64,16 +64,16 @@ public static class InputProviderExtensionMethods
         string currentBranch,
         CancellationToken cancellationToken)
     {
-        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name.ToString()).ToArray();
         var stackSelection =
             name ??
-            (stacks.Count == 1 ? stacks.First().Name : null) ??
+            (stacks.Count == 1 ? stacks.First().Name.ToString() : null) ??
             await inputProvider.Select(Questions.SelectStack, stackNames, cancellationToken);
-        var stack = stacks.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
+        var stack = stacks.FirstOrDefault(s => s.Name.ToString().Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is not null)
         {
-            logger.LogInformation($"{Questions.SelectStack} {stack.Name}");
+            logger.SelectedAnswer(Questions.SelectStack, stack.Name.ToString());
         }
 
         return stack;
@@ -113,7 +113,7 @@ public static class InputProviderExtensionMethods
 
         var branchSelection = (name ?? await inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel], cancellationToken)).Trim();
 
-        logger.LogInformation($"{Questions.SelectParentBranch} {branchSelection}");
+        logger.SelectedAnswer(Questions.SelectParentBranch, branchSelection);
 
         return branchSelection;
     }

@@ -1,9 +1,9 @@
 using Stack.Commands;
-using System.Text.RegularExpressions;
+using Stack.Model;
 
 namespace Stack.Config;
 
-public record Stack(string Name, string RemoteUri, string SourceBranch, List<Branch> Branches)
+public record Stack(StackName Name, string RemoteUri, string SourceBranch, List<Branch> Branches)
 {
     public List<Branch> GetAllBranches()
     {

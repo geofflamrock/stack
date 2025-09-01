@@ -83,7 +83,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            logger.LogInformation($"No pull requests found for stack {stack.Name.Branch()}");
+            logger.LogInformation($"No pull requests found for stack {stack.Name.Stack()}");
             return;
         }
 

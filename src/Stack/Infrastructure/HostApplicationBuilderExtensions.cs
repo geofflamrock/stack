@@ -38,6 +38,19 @@ public static class HostApplicationBuilderExtensions
         else
         {
             builder.Services.AddSingleton<ILoggerProvider, AnsiConsoleLoggerProvider>();
+            builder.Logging.EnableEnrichment();
+            builder.Services.AddServiceLogEnricher(options =>
+            {
+                options.ApplicationName = true; // Choose which values to add to the logs
+                options.BuildVersion = true;
+                options.DeploymentRing = true;
+                options.EnvironmentName = true;
+            });
+            // builder.Services.AddServiceLogEnricher();
+            // builder.Logging.EnableRedaction(options =>
+            // {
+            //     options.ApplyDiscriminator = true;
+            // });
         }
 
         return builder;

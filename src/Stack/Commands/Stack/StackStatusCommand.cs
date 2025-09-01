@@ -9,6 +9,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands;
 
@@ -208,7 +209,6 @@ public class StackStatusCommandHandler(
 {
     public override async Task<StackStatusCommandResponse> Handle(StackStatusCommandInputs inputs, CancellationToken cancellationToken)
     {
-        await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
         var remoteUri = gitClient.GetRemoteUri();

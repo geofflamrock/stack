@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
 using MoreLinq.Extensions;
@@ -7,6 +8,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands;
 
@@ -65,7 +67,7 @@ public class NewBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -103,7 +105,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
 
-        logger.LogInformation($"Creating branch {branchName.Branch()} from {sourceBranchName.Branch()} in stack {stack.Name.Stack()}");
+        logger.CreatingBranch(BranchName.From(branchName), BranchName.From(sourceBranchName), stack.Name);
 
         gitClient.CreateNewBranch(branchName, sourceBranchName);
 
@@ -119,18 +121,37 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.LogInformation($"Branch {branchName.Branch()} created.");
+        logger.BranchCreated(BranchName.From(branchName));
 
         try
         {
-            logger.LogInformation($"Pushing branch {branchName.Branch()} to remote repository");
+            logger.PushingBranch(BranchName.From(branchName));
             gitClient.PushNewBranch(branchName);
         }
         catch (Exception)
         {
-            logger.LogWarning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            logger.NewBranchPushWarning(BranchName.From(branchName), Example.From($"stack push --name \"{stack.Name}\""));
         }
 
         gitClient.ChangeBranch(branchName);
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing branch {BranchName} to remote repository.")]
+    [SuppressMessage("LoggerMessage", "LOGGEN036:A value being logged doesn't have an effective way to be converted into a string", Justification = "Types are generated and have a ToString() method")]
+    public static partial void PushingBranch(this ILogger logger, BranchName branchName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating branch {BranchName} from {SourceBranchName} in stack {StackName}.")]
+    [SuppressMessage("LoggerMessage", "LOGGEN036:A value being logged doesn't have an effective way to be converted into a string", Justification = "Types are generated and have a ToString() method")]
+    public static partial void CreatingBranch(this ILogger logger, BranchName branchName, BranchName sourceBranchName, StackName stackName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {BranchName} created.")]
+    [SuppressMessage("LoggerMessage", "LOGGEN036:A value being logged doesn't have an effective way to be converted into a string", Justification = "Types are generated and have a ToString() method")]
+    public static partial void BranchCreated(this ILogger logger, BranchName branchName);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "An error has occurred pushing branch {BranchName} to remote repository. Use `{Example}` to push the branch to the remote repository.")]
+    [SuppressMessage("LoggerMessage", "LOGGEN036:A value being logged doesn't have an effective way to be converted into a string", Justification = "Types are generated and have a ToString() method")]
+    public static partial void NewBranchPushWarning(this ILogger logger, BranchName branchName, Example example);
 }

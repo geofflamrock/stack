@@ -8,6 +8,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
+using Stack.Model;
 
 namespace Stack.Tests.Commands.Branch;
 
@@ -52,8 +53,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new Config.Stack("Stack1", remoteUri, sourceBranch, []),
-            new Config.Stack("Stack2", remoteUri, sourceBranch, [])
+            new Config.Stack(StackName.From("Stack1"), remoteUri, sourceBranch, []),
+            new Config.Stack(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
     }
 
@@ -94,8 +95,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, []),
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
     }
 
@@ -170,8 +171,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, []),
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -245,7 +246,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -287,8 +288,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, []),
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>());
     }
@@ -329,7 +330,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
         });
     }
 
@@ -369,7 +370,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [])
         });
     }
 
@@ -407,7 +408,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
@@ -447,7 +448,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());

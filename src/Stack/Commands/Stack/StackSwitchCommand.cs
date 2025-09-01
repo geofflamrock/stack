@@ -57,7 +57,7 @@ public class StackSwitchCommandHandler(
                 Questions.SelectBranch,
                 stacksForRemote
                     .OrderByCurrentStackThenByName(currentBranch)
-                    .Select(s => new ChoiceGroup<string>(s.Name, [s.SourceBranch, .. s.AllBranchNames.Where(b => branchesThatExistLocally.Contains(b))]))
+                    .Select(s => new ChoiceGroup<string>(s.Name.ToString(), [s.SourceBranch, .. s.AllBranchNames.Where(b => branchesThatExistLocally.Contains(b))]))
             .ToArray(),
             cancellationToken);
 

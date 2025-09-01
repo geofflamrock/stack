@@ -21,9 +21,8 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
-        var json = parseResult.GetValue(CommonOptions.Json);
         var response = await ExecuteAndReturnResponse(parseResult, cancellationToken);
-        await WriteOutput(json, response, cancellationToken);
+        await WriteOutput(Json, response, cancellationToken);
     }
 
     protected abstract Task<TResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken);

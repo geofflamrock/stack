@@ -12,7 +12,7 @@ public abstract class Command : System.CommandLine.Command
     protected IInputProvider InputProvider;
     protected IDisplayProvider DisplayProvider;
     protected string? WorkingDirectory;
-    protected bool Verbose;
+    protected bool Json;
 
     public Command(
         string name,
@@ -33,6 +33,7 @@ public abstract class Command : System.CommandLine.Command
         SetAction(async (parseResult, cancellationToken) =>
         {
             WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
+            Json = parseResult.GetValue(CommonOptions.Json);
 
             executionContext.WorkingDirectory = WorkingDirectory;
 

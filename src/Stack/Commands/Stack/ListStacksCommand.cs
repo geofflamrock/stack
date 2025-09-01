@@ -41,7 +41,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
     {
         if (response.Stacks.Count == 0)
         {
-            Logger.LogInformation("No stacks found for current repository.");
+            await DisplayProvider.DisplayMessage("No stacks found for current repository.", cancellationToken);
             return;
         }
 
@@ -80,6 +80,6 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitCl
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
+        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name.ToString(), s.SourceBranch, s.Branches.Count))]);
     }
 }

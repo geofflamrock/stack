@@ -8,6 +8,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
+using Stack.Model;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -42,7 +43,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
+            new(StackName.From(stackName), remoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
         });
         gitClient.Received().ChangeBranch(existingBranch);
     }
@@ -75,7 +76,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [])
+            new(StackName.From(stackName), remoteUri, sourceBranch, [])
         });
         gitClient.DidNotReceive().ChangeBranch(Arg.Any<string>());
     }
@@ -108,7 +109,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [])
+            new(StackName.From(stackName), remoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
     }
@@ -140,7 +141,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -173,7 +174,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -208,7 +209,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -245,7 +246,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);

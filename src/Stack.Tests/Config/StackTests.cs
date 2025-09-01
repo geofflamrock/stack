@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Stack.Commands;
+using Stack.Model;
 using Stack.Tests.Helpers;
 
 // Deliberately using a different namespace here to avoid needing to 
@@ -19,7 +21,7 @@ public class StackTests
         //   - F
         //     - G
         var stack = new Config.Stack(
-            "TestStack",
+            StackName.From("TestStack"),
             Some.HttpsUri().ToString(),
             "main",
             [

@@ -8,6 +8,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands;
 
@@ -91,7 +92,7 @@ public class NewStackCommandHandler(
 
         var stackData = stackConfig.Load();
         var remoteUri = gitClient.GetRemoteUri();
-        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Config.Stack(StackName.From(name), remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 
