@@ -263,7 +263,7 @@ public class CreatePullRequestsCommandHandler(
 
 {StackConstants.StackMarkerEnd}");
 
-            var draft = inputProvider.Confirm(Questions.CreatePullRequestAsDraft, cancellationToken).Result;
+            var draft = await inputProvider.Confirm(Questions.CreatePullRequestAsDraft, cancellationToken, false);
 
             pullRequestActions.Add(new PullRequestInformation(
                 action.Branch,
