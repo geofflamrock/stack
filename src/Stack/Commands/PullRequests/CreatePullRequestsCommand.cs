@@ -62,7 +62,7 @@ public class CreatePullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -117,11 +117,11 @@ public class CreatePullRequestsCommandHandler(
                 cancellationToken,
                 action => $"{action.Branch} -> {action.BaseBranch}")).ToList();
 
-            logger.LogInformation("Select branches to create pull requests for:");
+            logger.Question(Questions.SelectPullRequestsToCreate);
 
             foreach (var action in selectedPullRequestActions)
             {
-                logger.LogInformation($"  {action.Branch} -> {action.BaseBranch}");
+                logger.PullRequestSelected(action.Branch, action.BaseBranch);
             }
 
             logger.NewLine();
@@ -167,7 +167,7 @@ public class CreatePullRequestsCommandHandler(
         }
         else
         {
-            logger.LogInformation("No new pull requests to create.");
+            logger.NoPullRequestsToCreate();
         }
     }
 
@@ -180,7 +180,7 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            logger.LogInformation($"Creating pull request for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+            logger.CreatingPullRequest(action.HeadBranch, action.BaseBranch);
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
                 action.BaseBranch,
@@ -190,7 +190,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequest is not null)
             {
-                logger.LogInformation($"Pull request {pullRequest.GetPullRequestDisplay()} created for branch {action.HeadBranch.Branch()} to {action.BaseBranch.Branch()}");
+                logger.PullRequestCreated(pullRequest.GetPullRequestDisplay(), action.HeadBranch, action.BaseBranch);
                 pullRequests.Add(pullRequest);
             }
         }
@@ -239,14 +239,13 @@ public class CreatePullRequestsCommandHandler(
 
         if (pullRequestTemplatePath is not null)
         {
-            logger.LogInformation($"Found pull request template in repository, this will be used as the default body for each pull request.");
+            logger.FoundPullRequestTemplate(pullRequestTemplatePath);
         }
 
         foreach (var action in pullRequestCreateActions)
         {
             logger.NewLine();
-            var pullRequestHeader = $"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}";
-            await displayProvider.DisplayHeader(pullRequestHeader, cancellationToken);
+            await displayProvider.DisplayHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
@@ -284,4 +283,22 @@ public class CreatePullRequestsCommandHandler(
         bool Draft);
 
     public record PullRequestCreateAction(string Branch, string BaseBranch);
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pull request selected: {HeadBranch} -> {BaseBranch}")]
+    public static partial void PullRequestSelected(this ILogger logger, string headBranch, string baseBranch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating pull request for branch {HeadBranch} to {BaseBranch}")]
+    public static partial void CreatingPullRequest(this ILogger logger, string headBranch, string baseBranch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pull request \"{PullRequest}\" created for branch {HeadBranch} to {BaseBranch}")]
+    public static partial void PullRequestCreated(this ILogger logger, string pullRequest, string headBranch, string baseBranch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "No new pull requests to create.")]
+    public static partial void NoPullRequestsToCreate(this ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Found pull request template at \"{TemplatePath}\", this will be used as the default body for each pull request.")]
+    public static partial void FoundPullRequestTemplate(this ILogger logger, string templatePath);
 }

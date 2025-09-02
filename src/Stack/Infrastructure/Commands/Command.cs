@@ -42,7 +42,7 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (ProcessException processException)
             {
-                Logger.LogError(processException.Message);
+                Logger.ErrorMessage(processException.Message);
                 return processException.ExitCode;
             }
             catch (OperationCanceledException)
@@ -51,7 +51,7 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                Logger.ErrorMessage(ex.Message);
                 return 1;
             }
         });
@@ -60,4 +60,10 @@ public abstract class Command : System.CommandLine.Command
     protected TextWriter StdOut => System.Console.Out;
 
     protected abstract Task Execute(ParseResult parseResult, CancellationToken cancellationToken);
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Error, Message = "{Message}")]
+    public static partial void ErrorMessage(this ILogger logger, string message);
 }

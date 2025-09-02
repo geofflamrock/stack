@@ -16,7 +16,7 @@ public static class ProcessHelpers
         bool captureStandardError = false,
         Func<int, Exception?>? exceptionHandler = null)
     {
-        logger.LogTrace($"{fileName} {command}");
+        logger.TraceCommand(fileName, command);
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -53,7 +53,7 @@ public static class ProcessHelpers
 
         if (result != 0)
         {
-            logger.LogTrace($"Failed to execute command: {fileName} {command}. Exit code: {result}. Error: {errorBuilder}.");
+            logger.TraceFailedCommand(fileName, command, result, errorBuilder.ToString());
 
             if (exceptionHandler != null)
             {
@@ -71,7 +71,7 @@ public static class ProcessHelpers
 
         if (infoBuilder.Length > 0)
         {
-            logger.LogTrace(Markup.Escape(infoBuilder.ToString()));
+            logger.TraceInfoOutput(Markup.Escape(infoBuilder.ToString()));
         }
 
         var output = infoBuilder.ToString();
@@ -93,4 +93,16 @@ public class ProcessException : Exception
     {
         ExitCode = exitCode;
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Trace, Message = "{FileName} {Command}")]
+    public static partial void TraceCommand(this ILogger logger, string fileName, string command);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Failed to execute command: {FileName} {Command}. Exit code: {ExitCode}. Error: {Error}.")]
+    public static partial void TraceFailedCommand(this ILogger logger, string fileName, string command, int exitCode, string error);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "{Info}")]
+    public static partial void TraceInfoOutput(this ILogger logger, string info);
 }

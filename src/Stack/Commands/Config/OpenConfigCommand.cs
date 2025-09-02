@@ -30,7 +30,7 @@ public class OpenConfigCommand : Command
 
         if (!File.Exists(configPath))
         {
-            Logger.LogInformation("No config file found.");
+            Logger.NoConfigFileFound();
             return;
         }
 
@@ -42,4 +42,10 @@ public class OpenConfigCommand : Command
 
         return;
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "No config file found.")]
+    public static partial void NoConfigFileFound(this ILogger logger);
 }

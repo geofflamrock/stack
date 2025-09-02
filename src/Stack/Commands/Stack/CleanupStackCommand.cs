@@ -70,7 +70,7 @@ public class CleanupStackCommandHandler(
 
         if (branchesToCleanUp.Length == 0)
         {
-            logger.LogInformation("No branches to clean up");
+            logger.NoBranchesToCleanUp();
             return;
         }
 
@@ -79,7 +79,16 @@ public class CleanupStackCommandHandler(
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteBranches, cancellationToken))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
-            logger.LogInformation($"Stack {stack.Name.Stack()} cleaned up");
+            logger.StackCleanedUp(stack.Name);
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "No branches to clean up")]
+    public static partial void NoBranchesToCleanUp(this ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" cleaned up")]
+    public static partial void StackCleanedUp(this ILogger logger, string stack);
 }

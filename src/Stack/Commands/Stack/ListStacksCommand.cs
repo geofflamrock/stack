@@ -41,7 +41,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
     {
         if (response.Stacks.Count == 0)
         {
-            Logger.LogInformation("No stacks found for current repository.");
+            Logger.NoStacksForRepository();
             return;
         }
 

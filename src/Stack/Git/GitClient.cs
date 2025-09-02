@@ -288,7 +288,13 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
             // changes to the Git repository as the output might be important.
             // In verbose mode we would have already written the output
             // of the command so don't write it again.
-            logger.LogDebug(Markup.Escape(output));
+            logger.DebugCommandOutput(Markup.Escape(output));
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Output}")]
+    public static partial void DebugCommandOutput(this ILogger logger, string output);
 }

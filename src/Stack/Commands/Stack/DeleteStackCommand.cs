@@ -86,7 +86,13 @@ public class DeleteStackCommandHandler(
             stackData.Stacks.Remove(stack);
             stackConfig.Save(stackData);
 
-            logger.LogInformation($"Stack {stack.Name.Stack()} deleted");
+            logger.StackDeleted(stack.Name);
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" deleted")]
+    public static partial void StackDeleted(this ILogger logger, string stack);
 }

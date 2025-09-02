@@ -111,7 +111,7 @@ public class SyncStackCommandHandler(
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
         {
-            logger.LogInformation($"Syncing stack {stack.Name.Stack()} with the remote repository");
+            logger.SyncingStackWithRemote(stack.Name);
 
             stackActions.PullChanges(stack);
 
@@ -142,4 +142,10 @@ public class SyncStackCommandHandler(
             gitClient.Fetch(true);
         });
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Syncing stack \"{Stack}\" with the remote repository")]
+    public static partial void SyncingStackWithRemote(this ILogger logger, string stack);
 }

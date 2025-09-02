@@ -107,7 +107,7 @@ public class NewStackCommandHandler(
                 cancellationToken,
                 action => action.Humanize());
 
-            logger.LogInformation($"{Questions.AddOrCreateBranch} {selectedBranchAction.Humanize()}");
+            logger.Answer(Questions.AddOrCreateBranch, selectedBranchAction.Humanize());
             branchAction = selectedBranchAction;
         }
 
@@ -119,12 +119,12 @@ public class NewStackCommandHandler(
 
             try
             {
-                logger.LogInformation($"Pushing branch {branchName.Branch()} to remote repository");
+                logger.PushingBranch(branchName);
                 gitClient.PushNewBranch(branchName);
             }
             catch (Exception)
             {
-                logger.LogWarning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{name}\"".Example()} to push the branch to the remote repository.");
+                logger.NewBranchPushWarning(branchName, name);
             }
         }
         else if (branchAction == BranchAction.Add)
@@ -149,23 +149,35 @@ public class NewStackCommandHandler(
             }
             catch (Exception ex)
             {
-                logger.LogWarning($"An error has occurred changing to branch {branchName.Branch()}. Use {$"stack switch --branch \"{branchName}\"".Example()} to switch to the branch. Error: {ex.Message}");
+                logger.ChangeBranchWarning(branchName, ex.Message);
             }
         }
 
         if (branchAction is BranchAction.Create)
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+            logger.NewStackWithNewBranch(name, sourceBranch, branchName!);
         }
         else if (branchAction is BranchAction.Add)
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
+            logger.NewStackWithExistingBranch(name, sourceBranch, branchName!);
         }
         else
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
+            logger.NewStackWithNoBranch(name, sourceBranch);
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" created from source branch {SourceBranch} with new branch {Branch}.")]
+    public static partial void NewStackWithNewBranch(this ILogger logger, string stack, string sourceBranch, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" created from source branch {SourceBranch} with existing branch {Branch}.")]
+    public static partial void NewStackWithExistingBranch(this ILogger logger, string stack, string sourceBranch, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" created from source branch {SourceBranch}.")]
+    public static partial void NewStackWithNoBranch(this ILogger logger, string stack, string sourceBranch);
 }
 
 
