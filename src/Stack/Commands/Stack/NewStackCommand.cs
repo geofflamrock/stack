@@ -8,6 +8,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands;
 
@@ -91,7 +92,7 @@ public class NewStackCommandHandler(
 
         var stackData = stackConfig.Load();
         var remoteUri = gitClient.GetRemoteUri();
-        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Config.Stack(StackName.From(name), remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 
@@ -155,15 +156,15 @@ public class NewStackCommandHandler(
 
         if (branchAction is BranchAction.Create)
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
+            logger.LogInformation($"Stack {StackName.From(name).Stack()} created from source branch {sourceBranch.Branch()} with new branch {branchName!.Branch()}");
         }
         else if (branchAction is BranchAction.Add)
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
+            logger.LogInformation($"Stack {StackName.From(name).Stack()} created from source branch {sourceBranch.Branch()} with existing branch {branchName!.Branch()}");
         }
         else
         {
-            logger.LogInformation($"Stack {name.Stack()} created from source branch {sourceBranch.Branch()}");
+            logger.LogInformation($"Stack {StackName.From(name).Stack()} created from source branch {sourceBranch.Branch()}");
         }
     }
 }

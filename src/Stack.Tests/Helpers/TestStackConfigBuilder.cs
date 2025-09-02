@@ -1,6 +1,7 @@
 using System;
 using NSubstitute;
 using Stack.Config;
+using Stack.Model;
 
 namespace Stack.Tests.Helpers;
 
@@ -68,7 +69,7 @@ public class TestStackBuilder
             })
             .ToList();
 
-        var stack = new Config.Stack(name ?? Some.Name(), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
+        var stack = new Config.Stack(StackName.From(name ?? Some.Name()), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
 
         return stack;
     }

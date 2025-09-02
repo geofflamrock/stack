@@ -7,6 +7,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands;
 
@@ -47,7 +48,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            await DisplayProvider.DisplayMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
+            await DisplayProvider.DisplayMessage($"{StackName.From(stack.Name).Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 
@@ -80,6 +81,6 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitCl
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
+        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name.Value, s.SourceBranch, s.Branches.Count))]);
     }
 }

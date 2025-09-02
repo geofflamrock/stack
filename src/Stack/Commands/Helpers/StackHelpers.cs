@@ -5,6 +5,7 @@ using Spectre.Console;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Model;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
 
 namespace Stack.Commands.Helpers;
@@ -165,7 +166,7 @@ public static class StackHelpers
                     stackBranches.Add(branchDetail);
                 }
 
-                stacksToReturnStatusFor.Add(new StackStatus(stack.Name, sourceBranch, [.. stackBranches]));
+                stacksToReturnStatusFor.Add(new StackStatus(stack.Name.Value, sourceBranch, [.. stackBranches]));
             }
 
             static BranchDetail AddBranchDetailsForAllChildren(IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, Dictionary<string, GitBranchStatus> branchStatuses, BranchDetailBase parentBranch, Branch branch)
@@ -270,7 +271,7 @@ public static class StackHelpers
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }
 
-        displayProvider.DisplayMessage(status.Name.Stack());
+        displayProvider.DisplayMessage(StackName.From(status.Name).Stack());
         displayProvider.DisplayTree(header, [.. items]);
     }
 

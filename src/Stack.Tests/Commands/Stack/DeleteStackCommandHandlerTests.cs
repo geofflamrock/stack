@@ -8,6 +8,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
+using Stack.Model;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -52,7 +53,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
     }
 
@@ -94,8 +95,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack1"), remoteUri, sourceBranch, []),
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
     }
 
@@ -136,7 +137,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -240,7 +241,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
         gitClient.Received(1).DeleteLocalBranch(branchToCleanup);
         gitClient.DidNotReceive().DeleteLocalBranch(branchToKeep);
@@ -319,7 +320,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack2", remoteUri, sourceBranch, [])
+            new(StackName.From("Stack2"), remoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>());

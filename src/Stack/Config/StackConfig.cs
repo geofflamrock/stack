@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Stack.Model;
 
 namespace Stack.Config;
 
@@ -114,7 +115,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     private static StackV2 MapToV2Format(Stack stack)
     {
         var branchesV2 = stack.Branches.Select(MapToV2Format).ToList();
-        return new StackV2(stack.Name, stack.RemoteUri, stack.SourceBranch, branchesV2);
+        return new StackV2(stack.Name.Value, stack.RemoteUri, stack.SourceBranch, branchesV2);
     }
 
     private static StackV2Branch MapToV2Format(Branch branch)
@@ -136,7 +137,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
     private static Stack MapFromV2Format(StackV2 stackV2)
     {
         var branches = stackV2.Branches.Select(b => new Branch(b.Name, [.. b.Children.Select(MapFromV2Format)])).ToList();
-        return new Stack(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
+        return new Stack(StackName.From(stackV2.Name), stackV2.RemoteUri, stackV2.SourceBranch, branches);
     }
 
     private static Branch MapFromV2Format(StackV2Branch branchV2)
@@ -146,7 +147,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
 
     private static StackV1 MapToV1Format(Stack stack)
     {
-        return new StackV1(stack.Name, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames);
+        return new StackV1(stack.Name.Value, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames);
     }
 
     private static Stack MapFromV1Format(StackV1 stackV1)
@@ -169,7 +170,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             currentParent = newBranch;
         }
 
-        return new Stack(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
+        return new Stack(StackName.From(stackV1.Name), stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
     }
 }
 

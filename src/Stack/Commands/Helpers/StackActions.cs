@@ -2,6 +2,7 @@ using Stack.Config;
 using Stack.Infrastructure;
 using Stack.Git;
 using Microsoft.Extensions.Logging;
+using Stack.Model;
 
 namespace Stack.Commands.Helpers
 {
@@ -137,7 +138,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Updating stack {status.Name.Stack()} using merge...");
+            logger.LogInformation($"Updating stack {stack.Name.Stack()} using merge...");
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -202,7 +203,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Updating stack {status.Name.Stack()} using rebase...");
+            logger.LogInformation($"Updating stack {stack.Name.Stack()} using rebase...");
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -242,7 +243,7 @@ namespace Stack.Commands.Helpers
             // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
             // which will include the squashed commit.
             //
-            logger.LogInformation($"Rebasing stack {status.Name.Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
+            logger.LogInformation($"Rebasing stack {StackName.From(status.Name).Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
 
             BranchDetail? lowestActionBranch = null;
             foreach (var branch in branchLine)

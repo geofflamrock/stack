@@ -6,6 +6,7 @@ using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Model;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Helpers;
@@ -27,7 +28,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -83,7 +84,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -140,7 +141,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -196,7 +197,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -259,7 +260,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.IsAncestor(branch2, branch1).Returns(true);
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -306,7 +307,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.IsAncestor(branch2, branch1).Returns(false);
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -342,7 +343,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         });
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
@@ -384,7 +385,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         });
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
@@ -433,7 +434,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         });
 
         var stack = new Config.Stack(
-            "Stack1",
+            StackName.From("Stack1"),
             Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }

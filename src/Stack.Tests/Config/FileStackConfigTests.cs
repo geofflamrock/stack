@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using FluentAssertions;
 using Stack.Config;
+using Stack.Model;
 using Stack.Tests.Helpers;
 
 // Deliberately using a different namespace here to avoid needing to 
@@ -53,7 +54,7 @@ public class FileStackConfigTests
 
         var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
         var expectedStack = new Config.Stack(
-            stackName,
+            StackName.From(stackName),
             remoteUri,
             sourceBranch,
             [
@@ -150,7 +151,7 @@ public class FileStackConfigTests
         var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
 
         var expectedStack = new Config.Stack(
-            stackName,
+            StackName.From(stackName),
             remoteUri,
             sourceBranch,
             [
@@ -192,7 +193,7 @@ public class FileStackConfigTests
         File.WriteAllText(configPath, v1Json);
 
         var stack = new Config.Stack(
-            stackName,
+            StackName.From(stackName),
             remoteUri,
             sourceBranch,
             [
