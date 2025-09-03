@@ -105,9 +105,9 @@ public class SyncStackCommandHandler(
             gitHubClient,
             true);
 
-        StackHelpers.OutputStackStatus(status, displayProvider);
+        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
 
-        logger.NewLine();
+        await displayProvider.DisplayNewLine(cancellationToken);
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
         {
