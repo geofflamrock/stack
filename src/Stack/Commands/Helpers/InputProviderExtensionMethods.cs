@@ -17,7 +17,7 @@ public static class InputProviderExtensionMethods
     {
         if (presetValue is not null)
         {
-            logger.LogInformation($"{prompt} {presetValue}");
+            logger.Answer(prompt, presetValue);
 
             return presetValue;
         }
@@ -35,7 +35,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValue ?? await inputProvider.Select(prompt, choices, cancellationToken);
 
-        logger.LogInformation($"{prompt} {selection}");
+        logger.Answer(prompt, selection);
 
         return selection;
     }
@@ -51,7 +51,7 @@ public static class InputProviderExtensionMethods
     {
         var selection = presetValues ?? (await inputProvider.MultiSelect(prompt, choices, required, cancellationToken)).ToArray();
 
-        logger.LogInformation($"{prompt} {string.Join(", ", selection)}");
+        logger.Answer(prompt, string.Join(", ", selection));
 
         return [.. selection];
     }
@@ -73,7 +73,7 @@ public static class InputProviderExtensionMethods
 
         if (stack is not null)
         {
-            logger.LogInformation($"{Questions.SelectStack} {stack.Name}");
+            logger.Answer(Questions.SelectStack, stack.Name);
         }
 
         return stack;
@@ -113,7 +113,7 @@ public static class InputProviderExtensionMethods
 
         var branchSelection = (name ?? await inputProvider.Select(Questions.SelectParentBranch, [stack.SourceBranch, .. allBranchNamesWithLevel], cancellationToken)).Trim();
 
-        logger.LogInformation($"{Questions.SelectParentBranch} {branchSelection}");
+        logger.Answer(Questions.SelectParentBranch, branchSelection);
 
         return branchSelection;
     }

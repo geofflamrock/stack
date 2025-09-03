@@ -53,7 +53,7 @@ namespace Stack.Commands.Helpers
 
             if (shouldPullCurrent)
             {
-                logger.LogInformation($"Pulling changes for {currentBranch.Branch()} from remote");
+                logger.PullingCurrentBranch(currentBranch.Branch());
                 gitClient.PullBranch(currentBranch);
             }
 
@@ -61,13 +61,13 @@ namespace Stack.Commands.Helpers
             foreach (var branch in branchesInOtherWorktrees)
             {
                 var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
-                logger.LogInformation($"Pulling changes for {branch.Branch()} (worktree: {worktreePath}) from remote");
+                logger.PullingWorktreeBranch(branch.Branch(), worktreePath);
                 gitClient.PullBranchForWorktree(branch, worktreePath);
             }
 
             if (nonCurrentBranches.Length > 0)
             {
-                logger.LogInformation($"Fetching changes for {string.Join(", ", nonCurrentBranches.Select(b => b.Branch()))} from remote");
+                logger.FetchingNonCurrentBranches(string.Join(", ", nonCurrentBranches.Select(b => b.Branch())));
                 gitClient.FetchBranchRefSpecs(nonCurrentBranches);
             }
         }
@@ -86,7 +86,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
             {
-                logger.LogInformation($"Pushing new branch {branch.Branch()} to remote");
+                logger.PushingNewBranch(branch.Branch());
                 gitClient.PushNewBranch(branch);
             }
 
@@ -103,8 +103,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branches in branchGroupsToPush)
             {
-                logger.LogInformation($"Pushing changes for {string.Join(", ", branches.Select(b => b.Branch()))} to remote");
-
+                logger.PushingBranches(string.Join(", ", branches.Select(b => b.Branch())));
                 gitClient.PushBranches([.. branches], forceWithLease);
             }
         }
@@ -137,7 +136,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Updating stack {status.Name.Stack()} using merge...");
+            logger.UpdatingStackUsingMerge(status.Name.Stack());
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -162,14 +161,14 @@ namespace Stack.Commands.Helpers
                 }
                 else
                 {
-                    logger.LogTrace($"Branch '{branch}' no longer exists on the remote repository or the associated pull request is no longer open. Skipping...");
+                    logger.TraceSkippingInactiveBranch(branch.Name);
                 }
             }
         }
 
         private async Task MergeFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Merging {sourceBranchName.Branch()} into {branch.Branch()}");
+            logger.MergingBranch(sourceBranchName.Branch(), branch.Branch());
             gitClient.ChangeBranch(branch);
 
             try
@@ -202,7 +201,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Updating stack {status.Name.Stack()} using rebase...");
+            logger.UpdatingStackUsingRebase(status.Name.Stack());
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -242,7 +241,7 @@ namespace Stack.Commands.Helpers
             // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
             // which will include the squashed commit.
             //
-            logger.LogInformation($"Rebasing stack {status.Name.Stack()} for branch line: {status.SourceBranch.Name.Branch()} --> {string.Join(" -> ", branchLine.Select(b => b.Name.Branch()))}");
+            logger.RebasingStackForBranchLine(status.Name.Stack(), status.SourceBranch.Name.Branch(), string.Join(" -> ", branchLine.Select(b => b.Name.Branch())));
 
             BranchDetail? lowestActionBranch = null;
             foreach (var branch in branchLine)
@@ -255,7 +254,7 @@ namespace Stack.Commands.Helpers
 
             if (lowestActionBranch is null)
             {
-                logger.LogWarning("No active branches found in the stack.");
+                logger.NoActiveBranchesFound();
                 return;
             }
 
@@ -299,7 +298,7 @@ namespace Stack.Commands.Helpers
 
         private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Rebasing {branch.Branch()} onto {sourceBranchName.Branch()}");
+            logger.RebasingBranchOnto(branch.Branch(), sourceBranchName.Branch());
             gitClient.ChangeBranch(branch);
 
             try
@@ -318,7 +317,7 @@ namespace Stack.Commands.Helpers
             string oldParentBranchName,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation($"Rebasing {branch.Branch()} onto new parent {newParentBranchName.Branch()}");
+            logger.RebasingBranchOntoNewParent(branch.Branch(), newParentBranchName.Branch());
             gitClient.ChangeBranch(branch);
 
             try
@@ -362,4 +361,46 @@ namespace Stack.Commands.Helpers
             }
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pulling changes for {Branch} from remote")]
+    public static partial void PullingCurrentBranch(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pulling changes for {Branch} (worktree: \"{WorktreePath}\") from remote")]
+    public static partial void PullingWorktreeBranch(this ILogger logger, string branch, string worktreePath);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Fetching changes for {Branches} from remote")]
+    public static partial void FetchingNonCurrentBranches(this ILogger logger, string branches);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing new branch {Branch} to remote")]
+    public static partial void PushingNewBranch(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing changes for {Branches} to remote")]
+    public static partial void PushingBranches(this ILogger logger, string branches);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Updating stack \"{Stack}\" using merge...")]
+    public static partial void UpdatingStackUsingMerge(this ILogger logger, string stack);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Branch {Branch} no longer exists on the remote repository or the associated pull request is no longer open. Skipping...")]
+    public static partial void TraceSkippingInactiveBranch(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Merging {SourceBranch} into {Branch}")]
+    public static partial void MergingBranch(this ILogger logger, string sourceBranch, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Updating stack \"{Stack}\" using rebase...")]
+    public static partial void UpdatingStackUsingRebase(this ILogger logger, string stack);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing stack \"{Stack}\" for branch line: {SourceBranch} --> {BranchLine}")]
+    public static partial void RebasingStackForBranchLine(this ILogger logger, string stack, string sourceBranch, string branchLine);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "No active branches found for branch line.")]
+    public static partial void NoActiveBranchesFound(this ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing {Branch} onto {SourceBranch}")]
+    public static partial void RebasingBranchOnto(this ILogger logger, string branch, string sourceBranch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing {Branch} onto new parent {NewParentBranch}")]
+    public static partial void RebasingBranchOntoNewParent(this ILogger logger, string branch, string newParentBranch);
 }

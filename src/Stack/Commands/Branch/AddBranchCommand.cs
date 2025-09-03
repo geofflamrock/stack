@@ -63,7 +63,7 @@ public class AddBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -99,7 +99,7 @@ public class AddBranchCommandHandler(
             }
         }
 
-        logger.LogInformation($"Adding branch {branchName.Branch()} to stack {stack.Name.Stack()}");
+        logger.AddingBranchToStack(branchName.Branch(), stack.Name.Stack());
 
         if (sourceBranch is not null)
         {
@@ -113,6 +113,15 @@ public class AddBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.LogInformation($"Branch added");
+        logger.BranchAdded(branchName.Branch(), stack.Name.Stack());
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Adding branch {Branch} to stack \"{Stack}\".")]
+    public static partial void AddingBranchToStack(this ILogger logger, string branch, string stack);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} added to stack \"{Stack}\".")]
+    public static partial void BranchAdded(this ILogger logger, string branch, string stack);
 }

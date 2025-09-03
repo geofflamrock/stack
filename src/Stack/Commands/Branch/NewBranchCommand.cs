@@ -65,7 +65,7 @@ public class NewBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -103,7 +103,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
 
-        logger.LogInformation($"Creating branch {branchName.Branch()} from {sourceBranchName.Branch()} in stack {stack.Name.Stack()}");
+        logger.CreatingBranch(branchName.Branch(), sourceBranchName.Branch(), stack.Name.Stack());
 
         gitClient.CreateNewBranch(branchName, sourceBranchName);
 
@@ -119,18 +119,30 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.LogInformation($"Branch {branchName.Branch()} created.");
+        logger.BranchCreated(branchName.Branch());
 
         try
         {
-            logger.LogInformation($"Pushing branch {branchName.Branch()} to remote repository");
+            logger.PushingBranchToRemote(branchName.Branch());
             gitClient.PushNewBranch(branchName);
         }
         catch (Exception)
         {
-            logger.LogWarning($"An error has occurred pushing branch {branchName.Branch()} to remote repository. Use {$"stack push --name \"{stack.Name}\"".Example()} to push the branch to the remote repository.");
+            logger.NewBranchPushWarning(branchName.Branch(), stack.Name);
         }
 
         gitClient.ChangeBranch(branchName);
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Creating branch {Branch} from {SourceBranch} in stack \"{Stack}\"")]
+    public static partial void CreatingBranch(this ILogger logger, string branch, string sourceBranch, string stack);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} created.")]
+    public static partial void BranchCreated(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing branch {Branch} to remote repository")]
+    public static partial void PushingBranchToRemote(this ILogger logger, string branch);
 }

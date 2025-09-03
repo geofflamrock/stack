@@ -52,7 +52,7 @@ public class PullStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 

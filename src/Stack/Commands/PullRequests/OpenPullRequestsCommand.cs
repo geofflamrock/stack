@@ -57,7 +57,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            logger.LogInformation("No stacks found for current repository.");
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -83,7 +83,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            logger.LogInformation($"No pull requests found for stack {stack.Name.Branch()}");
+            logger.NoPullRequestsForStack(stack.Name.Stack());
             return;
         }
 
@@ -92,4 +92,10 @@ public class OpenPullRequestsCommandHandler(
             gitHubClient.OpenPullRequest(pullRequest);
         }
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "No pull requests found for stack \"{Stack}\"")]
+    public static partial void NoPullRequestsForStack(this ILogger logger, string stack);
 }

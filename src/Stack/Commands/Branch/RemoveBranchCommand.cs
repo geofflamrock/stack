@@ -108,7 +108,7 @@ public class RemoveBranchCommandHandler(
             stack.RemoveBranch(branchName, action);
             stackConfig.Save(stackData);
 
-            logger.LogInformation($"Branch {branchName.Branch()} removed from stack {stack.Name.Stack()}");
+            logger.BranchRemovedFromStack(branchName.Branch(), stack.Name.Stack());
         }
     }
 }
@@ -120,5 +120,11 @@ public enum RemoveBranchChildAction
 
     [Description("Remove children branches")]
     RemoveChildren
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} removed from stack \"{Stack}\"")]
+    public static partial void BranchRemovedFromStack(this ILogger logger, string branch, string stack);
 }
 
