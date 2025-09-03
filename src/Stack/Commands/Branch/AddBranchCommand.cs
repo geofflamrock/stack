@@ -99,7 +99,7 @@ public class AddBranchCommandHandler(
             }
         }
 
-        logger.AddingBranchToStack(branchName, stack.Name);
+        logger.AddingBranchToStack(branchName.Branch(), stack.Name.Stack());
 
         if (sourceBranch is not null)
         {
@@ -113,7 +113,7 @@ public class AddBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.BranchAdded(branchName, stack.Name);
+        logger.BranchAdded(branchName.Branch(), stack.Name.Stack());
     }
 }
 

@@ -180,7 +180,7 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            logger.CreatingPullRequest(action.HeadBranch, action.BaseBranch);
+            logger.CreatingPullRequest(action.HeadBranch.Branch(), action.BaseBranch.Branch());
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
                 action.BaseBranch,
@@ -190,7 +190,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequest is not null)
             {
-                logger.PullRequestCreated(pullRequest.GetPullRequestDisplay(), action.HeadBranch, action.BaseBranch);
+                logger.PullRequestCreated(pullRequest.GetPullRequestDisplay(), action.HeadBranch.Branch(), action.BaseBranch.Branch());
                 pullRequests.Add(pullRequest);
             }
         }

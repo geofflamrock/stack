@@ -119,12 +119,12 @@ public class NewStackCommandHandler(
 
             try
             {
-                logger.PushingBranch(branchName);
+                logger.PushingBranch(branchName.Branch());
                 gitClient.PushNewBranch(branchName);
             }
             catch (Exception)
             {
-                logger.NewBranchPushWarning(branchName, name);
+                logger.NewBranchPushWarning(branchName.Branch(), name);
             }
         }
         else if (branchAction == BranchAction.Add)
@@ -149,21 +149,21 @@ public class NewStackCommandHandler(
             }
             catch (Exception ex)
             {
-                logger.ChangeBranchWarning(branchName, ex.Message);
+                logger.ChangeBranchWarning(branchName.Branch(), ex.Message);
             }
         }
 
         if (branchAction is BranchAction.Create)
         {
-            logger.NewStackWithNewBranch(name, sourceBranch, branchName!);
+            logger.NewStackWithNewBranch(name.Stack(), sourceBranch.Branch(), branchName!.Branch());
         }
         else if (branchAction is BranchAction.Add)
         {
-            logger.NewStackWithExistingBranch(name, sourceBranch, branchName!);
+            logger.NewStackWithExistingBranch(name.Stack(), sourceBranch.Branch(), branchName!.Branch());
         }
         else
         {
-            logger.NewStackWithNoBranch(name, sourceBranch);
+            logger.NewStackWithNoBranch(name.Stack(), sourceBranch.Branch());
         }
     }
 }

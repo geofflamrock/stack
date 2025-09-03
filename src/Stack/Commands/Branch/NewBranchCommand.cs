@@ -103,7 +103,7 @@ public class NewBranchCommandHandler(
 
         var sourceBranchName = sourceBranch?.Name ?? stack.SourceBranch;
 
-        logger.CreatingBranch(branchName, sourceBranchName, stack.Name);
+        logger.CreatingBranch(branchName.Branch(), sourceBranchName.Branch(), stack.Name.Stack());
 
         gitClient.CreateNewBranch(branchName, sourceBranchName);
 
@@ -119,16 +119,16 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.BranchCreated(branchName);
+        logger.BranchCreated(branchName.Branch());
 
         try
         {
-            logger.PushingBranchToRemote(branchName);
+            logger.PushingBranchToRemote(branchName.Branch());
             gitClient.PushNewBranch(branchName);
         }
         catch (Exception)
         {
-            logger.NewBranchPushWarning(branchName, stack.Name);
+            logger.NewBranchPushWarning(branchName.Branch(), stack.Name);
         }
 
         gitClient.ChangeBranch(branchName);

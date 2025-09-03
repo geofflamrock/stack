@@ -108,7 +108,7 @@ public class RemoveBranchCommandHandler(
             stack.RemoveBranch(branchName, action);
             stackConfig.Save(stackData);
 
-            logger.BranchRemovedFromStack(branchName, stack.Name);
+            logger.BranchRemovedFromStack(branchName.Branch(), stack.Name.Stack());
         }
     }
 }

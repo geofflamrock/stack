@@ -142,7 +142,7 @@ public static class StackHelpers
             {
                 if (!branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
                 {
-                    logger.SourceBranchDoesNotExist(stack.SourceBranch);
+                    logger.SourceBranchDoesNotExist(stack.SourceBranch.Branch());
                     continue;
                 }
 
@@ -542,7 +542,7 @@ public static class StackHelpers
 
         foreach (var branch in branches)
         {
-            logger.BranchToCleanup(branch);
+            logger.BranchToCleanup(branch.Branch());
         }
     }
 
@@ -550,7 +550,7 @@ public static class StackHelpers
     {
         foreach (var branch in branches)
         {
-            logger.DeletingLocalBranch(branch);
+            logger.DeletingLocalBranch(branch.Branch());
             gitClient.DeleteLocalBranch(branch);
         }
     }
