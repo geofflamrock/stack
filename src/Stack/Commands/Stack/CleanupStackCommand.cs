@@ -79,7 +79,7 @@ public class CleanupStackCommandHandler(
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteBranches, cancellationToken))
         {
             StackHelpers.CleanupBranches(gitClient, logger, branchesToCleanUp);
-            logger.StackCleanedUp(stack.Name.Stack());
+            logger.StackCleanedUp(stack.Name);
         }
     }
 }

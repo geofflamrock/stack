@@ -83,7 +83,7 @@ public class OpenPullRequestsCommandHandler(
 
         if (pullRequestsInStack.Count == 0)
         {
-            logger.NoPullRequestsForStack(stack.Name.Stack());
+            logger.NoPullRequestsForStack(stack.Name);
             return;
         }
 

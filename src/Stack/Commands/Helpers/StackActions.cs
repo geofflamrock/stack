@@ -53,7 +53,7 @@ namespace Stack.Commands.Helpers
 
             if (shouldPullCurrent)
             {
-                logger.PullingCurrentBranch(currentBranch.Branch());
+                logger.PullingCurrentBranch(currentBranch);
                 gitClient.PullBranch(currentBranch);
             }
 
@@ -61,13 +61,13 @@ namespace Stack.Commands.Helpers
             foreach (var branch in branchesInOtherWorktrees)
             {
                 var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
-                logger.PullingWorktreeBranch(branch.Branch(), worktreePath);
+                logger.PullingWorktreeBranch(branch, worktreePath);
                 gitClient.PullBranchForWorktree(branch, worktreePath);
             }
 
             if (nonCurrentBranches.Length > 0)
             {
-                logger.FetchingNonCurrentBranches(string.Join(", ", nonCurrentBranches.Select(b => b.Branch())));
+                logger.FetchingNonCurrentBranches(string.Join(", ", nonCurrentBranches.Select(b => b)));
                 gitClient.FetchBranchRefSpecs(nonCurrentBranches);
             }
         }
@@ -86,7 +86,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branch in branchesThatHaveNotBeenPushedToRemote)
             {
-                logger.PushingNewBranch(branch.Branch());
+                logger.PushingNewBranch(branch);
                 gitClient.PushNewBranch(branch);
             }
 
@@ -103,7 +103,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branches in branchGroupsToPush)
             {
-                logger.PushingBranches(string.Join(", ", branches.Select(b => b.Branch())));
+                logger.PushingBranches(string.Join(", ", branches.Select(b => b)));
                 gitClient.PushBranches([.. branches], forceWithLease);
             }
         }
@@ -136,7 +136,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.UpdatingStackUsingMerge(status.Name.Stack());
+            logger.UpdatingStackUsingMerge(status.Name);
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -168,7 +168,7 @@ namespace Stack.Commands.Helpers
 
         private async Task MergeFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.MergingBranch(sourceBranchName.Branch(), branch.Branch());
+            logger.MergingBranch(sourceBranchName, branch);
             gitClient.ChangeBranch(branch);
 
             try
@@ -201,7 +201,7 @@ namespace Stack.Commands.Helpers
             StackStatus status,
             CancellationToken cancellationToken)
         {
-            logger.UpdatingStackUsingRebase(status.Name.Stack());
+            logger.UpdatingStackUsingRebase(status.Name);
 
             var allBranchLines = status.GetAllBranchLines();
 
@@ -241,7 +241,7 @@ namespace Stack.Commands.Helpers
             // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
             // which will include the squashed commit.
             //
-            logger.RebasingStackForBranchLine(status.Name.Stack(), status.SourceBranch.Name.Branch(), string.Join(" -> ", branchLine.Select(b => b.Name.Branch())));
+            logger.RebasingStackForBranchLine(status.Name, status.SourceBranch.Name, string.Join(" -> ", branchLine.Select(b => b.Name)));
 
             BranchDetail? lowestActionBranch = null;
             foreach (var branch in branchLine)
@@ -298,7 +298,7 @@ namespace Stack.Commands.Helpers
 
         private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.RebasingBranchOnto(branch.Branch(), sourceBranchName.Branch());
+            logger.RebasingBranchOnto(branch, sourceBranchName);
             gitClient.ChangeBranch(branch);
 
             try
@@ -317,7 +317,7 @@ namespace Stack.Commands.Helpers
             string oldParentBranchName,
             CancellationToken cancellationToken)
         {
-            logger.RebasingBranchOntoNewParent(branch.Branch(), newParentBranchName.Branch());
+            logger.RebasingBranchOntoNewParent(branch, newParentBranchName);
             gitClient.ChangeBranch(branch);
 
             try

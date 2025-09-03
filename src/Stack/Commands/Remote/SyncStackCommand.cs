@@ -111,7 +111,7 @@ public class SyncStackCommandHandler(
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
         {
-            logger.SyncingStackWithRemote(stack.Name.Stack());
+            logger.SyncingStackWithRemote(stack.Name);
 
             stackActions.PullChanges(stack);
 
