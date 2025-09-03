@@ -1,5 +1,6 @@
 using System.CommandLine;
 using Microsoft.Extensions.Logging;
+using Spectre.Console;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -42,7 +43,10 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (ProcessException processException)
             {
-                Logger.ErrorMessage(processException.Message);
+                Logger.ProcessExceptionCommandDetails(
+                    Markup.Escape(processException.FilePath),
+                    Markup.Escape(processException.Command));
+                Logger.ProcessExceptionErrorMessage(Markup.Escape(processException.Message));
                 return processException.ExitCode;
             }
             catch (OperationCanceledException)
@@ -51,7 +55,7 @@ public abstract class Command : System.CommandLine.Command
             }
             catch (Exception ex)
             {
-                Logger.ErrorMessage(ex.Message);
+                Logger.ErrorMessage(Markup.Escape(ex.Message));
                 return 1;
             }
         });
@@ -64,6 +68,12 @@ public abstract class Command : System.CommandLine.Command
 
 internal static partial class LoggerExtensionMethods
 {
+    [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred running command \"{FilePath} {Command}\"")]
+    public static partial void ProcessExceptionCommandDetails(this ILogger logger, string filePath, string command);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Message}")]
+    public static partial void ProcessExceptionErrorMessage(this ILogger logger, string message);
+
     [LoggerMessage(Level = LogLevel.Error, Message = "{Message}")]
     public static partial void ErrorMessage(this ILogger logger, string message);
 }

@@ -65,7 +65,7 @@ public static class ProcessHelpers
             }
             else
             {
-                throw new ProcessException(errorBuilder.ToString(), result);
+                throw new ProcessException(errorBuilder.ToString(), fileName, command, result);
             }
         }
 
@@ -85,14 +85,11 @@ public static class ProcessHelpers
     }
 }
 
-public class ProcessException : Exception
+public class ProcessException(string message, string filePath, string command, int exitCode) : Exception(message)
 {
-    public int ExitCode { get; }
-
-    public ProcessException(string message, int exitCode) : base(message)
-    {
-        ExitCode = exitCode;
-    }
+    public string FilePath { get; } = filePath;
+    public string Command { get; } = command;
+    public int ExitCode { get; } = exitCode;
 }
 
 internal static partial class LoggerExtensionMethods
