@@ -250,7 +250,7 @@ public static class StackHelpers
     public static async Task OutputStackStatus(
         List<StackStatus> statuses,
         IDisplayProvider displayProvider,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         foreach (var status in statuses)
         {

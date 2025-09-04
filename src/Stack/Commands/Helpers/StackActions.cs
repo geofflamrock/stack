@@ -67,7 +67,7 @@ namespace Stack.Commands.Helpers
 
             if (nonCurrentBranches.Length > 0)
             {
-                logger.FetchingNonCurrentBranches(string.Join(", ", nonCurrentBranches.Select(b => b)));
+                logger.FetchingNonCurrentBranches(string.Join(", ", nonCurrentBranches));
                 gitClient.FetchBranchRefSpecs(nonCurrentBranches);
             }
         }
@@ -103,7 +103,7 @@ namespace Stack.Commands.Helpers
 
             foreach (var branches in branchGroupsToPush)
             {
-                logger.PushingBranches(string.Join(", ", branches.Select(b => b)));
+                logger.PushingBranches(string.Join(", ", branches));
                 gitClient.PushBranches([.. branches], forceWithLease);
             }
         }
