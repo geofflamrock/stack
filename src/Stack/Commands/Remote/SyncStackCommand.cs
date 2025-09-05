@@ -95,7 +95,7 @@ public class SyncStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        await displayProvider.DisplayStatusWithSuccess("Fetching changes from remote repository...", async (ct) =>
+        await displayProvider.DisplayStatus("Fetching changes from remote repository...", async (ct) =>
         {
             await Task.CompletedTask;
             gitClient.Fetch(true);
@@ -125,7 +125,7 @@ public class SyncStackCommandHandler(
             }
         }
 
-        await displayProvider.DisplayStatusWithSuccess("Pulling changes from remote repository...", async (ct) =>
+        await displayProvider.DisplayStatus("Pulling changes from remote repository...", async (ct) =>
         {
             await Task.CompletedTask;
             stackActions.PullChanges(stack);
@@ -144,7 +144,7 @@ public class SyncStackCommandHandler(
 
         if (!inputs.NoPush)
         {
-            await displayProvider.DisplayStatusWithSuccess("Pushing changes to remote repository...", async (ct) =>
+            await displayProvider.DisplayStatus("Pushing changes to remote repository...", async (ct) =>
             {
                 await Task.CompletedTask;
                 stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);

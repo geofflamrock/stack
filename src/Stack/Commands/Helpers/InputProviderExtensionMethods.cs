@@ -64,11 +64,6 @@ public static class InputProviderExtensionMethods
         string currentBranch,
         CancellationToken cancellationToken)
     {
-        if (stacks.Count == 0)
-        {
-            return null;
-        }
-
         if (name is not null)
         {
             return stacks.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));

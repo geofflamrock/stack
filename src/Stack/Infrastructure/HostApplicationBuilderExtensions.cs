@@ -24,11 +24,11 @@ public static class HostApplicationBuilderExtensions
     {
         builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-        if (args.Contains(CommonOptions.Debug.Name) || args.Any(CommonOptions.Debug.Aliases.Contains))
+        if (args.Contains(CommonOptions.Debug.Name) || args.Any(a => CommonOptions.Debug.Aliases.Contains(a)))
         {
             builder.Logging.SetMinimumLevel(LogLevel.Debug);
         }
-        else if (args.Contains(CommonOptions.Verbose.Name) || args.Any(CommonOptions.Verbose.Aliases.Contains))
+        else if (args.Contains(CommonOptions.Verbose.Name) || args.Any(a => CommonOptions.Verbose.Aliases.Contains(a)))
         {
             builder.Logging.SetMinimumLevel(LogLevel.Trace);
         }
