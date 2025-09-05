@@ -86,7 +86,7 @@ public class DeleteStackCommandHandler(
             stackData.Stacks.Remove(stack);
             stackConfig.Save(stackData);
 
-            logger.StackDeleted(stack.Name.Stack());
+            logger.StackDeleted(stack.Name);
         }
     }
 }

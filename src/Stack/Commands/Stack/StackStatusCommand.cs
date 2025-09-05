@@ -121,13 +121,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task WriteDefaultOutput(StackStatusCommandResponse response, CancellationToken cancellationToken)
     {
-        await Task.CompletedTask;
-        StackHelpers.OutputStackStatus(response.Stacks, DisplayProvider);
+        await StackHelpers.OutputStackStatus(response.Stacks, DisplayProvider, cancellationToken);
 
         if (response.Stacks.Count == 1)
         {
             var stack = response.Stacks.First();
-            StackHelpers.OutputBranchAndStackActions(stack, Logger);
+            await StackHelpers.OutputBranchAndStackActions(stack, DisplayProvider, cancellationToken);
         }
     }
 

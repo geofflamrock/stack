@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Spectre.Console;
@@ -142,7 +143,7 @@ public static class StackHelpers
             {
                 if (!branchStatuses.TryGetValue(stack.SourceBranch, out var sourceBranchStatus))
                 {
-                    logger.SourceBranchDoesNotExist(stack.SourceBranch.Branch());
+                    logger.SourceBranchDoesNotExist(stack.SourceBranch);
                     continue;
                 }
 
@@ -246,20 +247,22 @@ public static class StackHelpers
         return statuses.First();
     }
 
-    public static void OutputStackStatus(
+    public static async Task OutputStackStatus(
         List<StackStatus> statuses,
-        IDisplayProvider displayProvider)
+        IDisplayProvider displayProvider,
+        CancellationToken cancellationToken)
     {
         foreach (var status in statuses)
         {
-            OutputStackStatus(status, displayProvider);
-            displayProvider.DisplayNewLine();
+            await OutputStackStatus(status, displayProvider, cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
     }
 
-    public static void OutputStackStatus(
+    public static async Task OutputStackStatus(
         StackStatus status,
         IDisplayProvider displayProvider,
+        CancellationToken cancellationToken,
         Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
     {
         var header = GetBranchStatusOutput(status.SourceBranch);
@@ -270,8 +273,8 @@ public static class StackHelpers
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }
 
-        displayProvider.DisplayMessage(status.Name.Stack());
-        displayProvider.DisplayTree(header, [.. items]);
+        await displayProvider.DisplayMessage(status.Name.Stack(), cancellationToken);
+        await displayProvider.DisplayTree(header, [.. items], cancellationToken: cancellationToken);
     }
 
     public static TreeItem<string> GetBranchAndPullRequestStatusOutput(
@@ -434,49 +437,50 @@ public static class StackHelpers
         return branchNameBuilder.ToString();
     }
 
-    public static void OutputBranchAndStackActions(
+    public static async Task OutputBranchAndStackActions(
         StackStatus status,
-        ILogger logger)
+        IDisplayProvider displayProvider,
+        CancellationToken cancellationToken)
     {
         var allBranches = status.GetAllBranches();
         if (allBranches.All(branch => branch.CouldBeCleanedUp))
         {
-            logger.AllBranchesMightBeDeleted();
-            logger.NewLine();
-            logger.RunDeleteStackCommand(status.Name);
-            logger.NewLine();
+            await displayProvider.DisplayMessage("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
         else if (allBranches.Any(branch => branch.CouldBeCleanedUp))
         {
-            logger.SomeBranchesCouldBeCleanedUp();
-            logger.NewLine();
-            logger.RunCleanupStackCommand(status.Name);
-            logger.NewLine();
+            await displayProvider.DisplayMessage("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack cleanup --stack \"{status.Name}\"".Example()} to clean up the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
         else if (allBranches.All(branch => !branch.Exists))
         {
-            logger.NoLocalBranchesStackMightBeDeleted();
-            logger.NewLine();
-            logger.RunDeleteStackCommand(status.Name);
-            logger.NewLine();
+            await displayProvider.DisplayMessage("No branches exist locally. This stack might be able to be deleted.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
 
         if (allBranches.Any(branch => branch.Exists && (branch.RemoteTrackingBranch is null || branch.RemoteTrackingBranch.Ahead > 0)))
         {
-            logger.ChangesNotPushedToRemote();
-            logger.NewLine();
-            logger.RunPushStackCommand(status.Name);
-            logger.NewLine();
+            await displayProvider.DisplayMessage("There are changes in local branches that have not been pushed to the remote repository.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
 
         if (allBranches.Any(branch => branch.Exists && branch.RemoteTrackingBranch is not null && branch.RemoteTrackingBranch.Behind > 0))
         {
-            logger.SourceChangesNotApplied();
-            logger.NewLine();
-            logger.RunUpdateStackCommand(status.Name);
-            logger.NewLine();
-            logger.RunSyncStackCommand(status.Name);
-            logger.NewLine();
+            await displayProvider.DisplayMessage("There are changes in source branches that have not been applied to the stack.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.", cancellationToken);
+            await displayProvider.DisplayNewLine(cancellationToken);
         }
     }
 
@@ -542,7 +546,7 @@ public static class StackHelpers
 
         foreach (var branch in branches)
         {
-            logger.BranchToCleanup(branch.Branch());
+            logger.BranchToCleanup(branch);
         }
     }
 
@@ -550,7 +554,7 @@ public static class StackHelpers
     {
         foreach (var branch in branches)
         {
-            logger.DeletingLocalBranch(branch.Branch());
+            logger.DeletingLocalBranch(branch);
             gitClient.DeleteLocalBranch(branch);
         }
     }
@@ -629,36 +633,6 @@ internal static partial class LoggerExtensionMethods
 {
     [LoggerMessage(Level = LogLevel.Warning, Message = "Source branch {SourceBranch} does not exist locally or in the remote repository.")]
     public static partial void SourceBranchDoesNotExist(this ILogger logger, string sourceBranch);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.")]
-    public static partial void AllBranchesMightBeDeleted(this ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack delete --stack \"{Stack}\"' to delete the stack if it's no longer needed.")]
-    public static partial void RunDeleteStackCommand(this ILogger logger, string stack);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.")]
-    public static partial void SomeBranchesCouldBeCleanedUp(this ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack cleanup --stack \"{Stack}\"' to clean up local branches.")]
-    public static partial void RunCleanupStackCommand(this ILogger logger, string stack);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "No branches exist locally. This stack might be able to be deleted.")]
-    public static partial void NoLocalBranchesStackMightBeDeleted(this ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "There are changes in local branches that have not been pushed to the remote repository.")]
-    public static partial void ChangesNotPushedToRemote(this ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack push --stack \"{Stack}\"' to push the changes to the remote repository.")]
-    public static partial void RunPushStackCommand(this ILogger logger, string stack);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "There are changes in source branches that have not been applied to the stack.")]
-    public static partial void SourceChangesNotApplied(this ILogger logger);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack update --stack \"{Stack}\"' to update the stack locally.")]
-    public static partial void RunUpdateStackCommand(this ILogger logger, string stack);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack sync --stack \"{Stack}\"' to sync the stack with the remote repository.")]
-    public static partial void RunSyncStackCommand(this ILogger logger, string stack);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "The following branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open:")]
     public static partial void BranchesToCleanupHeader(this ILogger logger);

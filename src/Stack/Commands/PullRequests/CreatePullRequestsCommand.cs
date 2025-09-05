@@ -104,9 +104,9 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        StackHelpers.OutputStackStatus(status, displayProvider);
+        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
 
-        logger.NewLine();
+        await displayProvider.DisplayNewLine(cancellationToken);
 
         if (pullRequestCreateActions.Count > 0)
         {
@@ -124,7 +124,7 @@ public class CreatePullRequestsCommandHandler(
                 logger.PullRequestSelected(action.Branch, action.BaseBranch);
             }
 
-            logger.NewLine();
+            await displayProvider.DisplayNewLine(cancellationToken);
 
             var pullRequestInformation = await GetPullRequestInformation(
                 inputProvider,
@@ -135,11 +135,11 @@ public class CreatePullRequestsCommandHandler(
                 selectedPullRequestActions,
                 cancellationToken);
 
-            logger.NewLine();
+            await displayProvider.DisplayNewLine(cancellationToken);
 
-            OutputUpdatedStackStatus(logger, displayProvider, stack, status, pullRequestInformation);
+            await OutputUpdatedStackStatus(logger, displayProvider, stack, status, pullRequestInformation, cancellationToken);
 
-            logger.NewLine();
+            await displayProvider.DisplayNewLine(cancellationToken);
 
             if (await inputProvider.Confirm(Questions.ConfirmCreatePullRequests, cancellationToken))
             {
@@ -180,7 +180,7 @@ public class CreatePullRequestsCommandHandler(
         var pullRequests = new List<GitHubPullRequest>();
         foreach (var action in pullRequestCreateActions)
         {
-            logger.CreatingPullRequest(action.HeadBranch.Branch(), action.BaseBranch.Branch());
+            logger.CreatingPullRequest(action.HeadBranch, action.BaseBranch);
             var pullRequest = gitHubClient.CreatePullRequest(
                 action.HeadBranch,
                 action.BaseBranch,
@@ -190,7 +190,7 @@ public class CreatePullRequestsCommandHandler(
 
             if (pullRequest is not null)
             {
-                logger.PullRequestCreated(pullRequest.GetPullRequestDisplay(), action.HeadBranch.Branch(), action.BaseBranch.Branch());
+                logger.PullRequestCreated(pullRequest.GetPullRequestDisplay(), action.HeadBranch, action.BaseBranch);
                 pullRequests.Add(pullRequest);
             }
         }
@@ -198,16 +198,18 @@ public class CreatePullRequestsCommandHandler(
         return pullRequests;
     }
 
-    private static void OutputUpdatedStackStatus(
+    private static async Task OutputUpdatedStackStatus(
         ILogger logger,
         IDisplayProvider displayProvider,
         Config.Stack stack,
         StackStatus status,
-        List<PullRequestInformation> pullRequestInformation)
+        List<PullRequestInformation> pullRequestInformation,
+        CancellationToken cancellationToken)
     {
-        StackHelpers.OutputStackStatus(
+        await StackHelpers.OutputStackStatus(
             status,
             displayProvider,
+            cancellationToken,
             (branch) =>
             {
                 var pr = pullRequestInformation.FirstOrDefault(pr => pr.HeadBranch == branch.Name);
@@ -244,7 +246,7 @@ public class CreatePullRequestsCommandHandler(
 
         foreach (var action in pullRequestCreateActions)
         {
-            logger.NewLine();
+            await displayProvider.DisplayNewLine(cancellationToken);
             await displayProvider.DisplayHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;

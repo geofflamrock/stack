@@ -5,8 +5,6 @@ namespace Stack.Infrastructure;
 
 public static partial class LoggerExtensionMethods
 {
-    public static void NewLine(this ILogger logger) => logger.LogInformation(string.Empty);
-
     [LoggerMessage(Level = LogLevel.Information, Message = "{Question}")]
     public static partial void Question(this ILogger logger, string question);
 
