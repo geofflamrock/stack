@@ -1,5 +1,41 @@
 # Changelog
 
+# v0.14.0 (2025-09-05)
+
+### 🚀 New Features
+* Make v2 schema the default by @geofflamrock in https://github.com/geofflamrock/stack/pull/343
+* Pull changes without changing branch by @geofflamrock in https://github.com/geofflamrock/stack/pull/322
+* Automatically migrate to v2 schema on load by @geofflamrock in https://github.com/geofflamrock/stack/pull/344
+* Remove support for different schema versions in commands by @geofflamrock in https://github.com/geofflamrock/stack/pull/345
+### Other changes
+* Cleanup unused methods in GitClient by @geofflamrock in https://github.com/geofflamrock/stack/pull/323
+* Add more GitClient tests by @Copilot in https://github.com/geofflamrock/stack/pull/324
+* Move PullChanges to separate interface to improve testing by @geofflamrock in https://github.com/geofflamrock/stack/pull/326
+* Move PushChanges to separate interface to improve testing by @geofflamrock in https://github.com/geofflamrock/stack/pull/327
+* Move UpdateStack to separate interface to improve testing by @geofflamrock in https://github.com/geofflamrock/stack/pull/328
+* Cache GitHub pull requests to improve performance by @geofflamrock in https://github.com/geofflamrock/stack/pull/329
+* Refactor new stack tests to not use full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/332
+* Refactor delete stack tests to not need a full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/330
+* Refactor stack switch tests to not use full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/333
+* Refactor add branch tests to not use full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/341
+* Refactor new branch tests to not use full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/342
+* Refactor command handler tests to use IGitClient substitutes instead of TestGitRepositoryBuilder by @Copilot in https://github.com/geofflamrock/stack/pull/334
+* Refactor stack status tests to not use a full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/346
+* Change more push stack tests to not use a full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/347
+* Change create pull requests tests to not use full Git repo by @geofflamrock in https://github.com/geofflamrock/stack/pull/349
+* Make IInputProvider async by @geofflamrock in https://github.com/geofflamrock/stack/pull/352
+* Use generic host for dependency injection by @Copilot in https://github.com/geofflamrock/stack/pull/348
+* Convert to Microsoft.Extensions.Logging by @geofflamrock in https://github.com/geofflamrock/stack/pull/353
+* Refactor console writer to display provider by @geofflamrock in https://github.com/geofflamrock/stack/pull/354
+* Fix default for creating PR as draft by @geofflamrock in https://github.com/geofflamrock/stack/pull/355
+* Convert to source generation for logging by @geofflamrock in https://github.com/geofflamrock/stack/pull/356
+* Fix issue with markup in process exception logging by @geofflamrock in https://github.com/geofflamrock/stack/pull/358
+* Remove specific formatting of parts of log messages by @geofflamrock in https://github.com/geofflamrock/stack/pull/357
+
+## New Contributors
+* @Copilot made their first contribution in https://github.com/geofflamrock/stack/pull/324
+
+
 # v0.13.1 (2025-08-13)
 
 ### 🐛 Bug Fixes
