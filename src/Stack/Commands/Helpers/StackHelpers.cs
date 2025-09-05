@@ -447,21 +447,21 @@ public static class StackHelpers
         {
             await displayProvider.DisplayMessage("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
         }
         else if (allBranches.Any(branch => branch.CouldBeCleanedUp))
         {
             await displayProvider.DisplayMessage("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack cleanup --stack \"{status.Name}\"".Example()} to clean up the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack cleanup --stack \"{status.Name}\"".Example()} to clean up the stack if it's no longer needed.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
         }
         else if (allBranches.All(branch => !branch.Exists))
         {
             await displayProvider.DisplayMessage("No branches exist locally. This stack might be able to be deleted.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
         }
 
@@ -469,7 +469,7 @@ public static class StackHelpers
         {
             await displayProvider.DisplayMessage("There are changes in local branches that have not been pushed to the remote repository.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
         }
 
@@ -477,9 +477,9 @@ public static class StackHelpers
         {
             await displayProvider.DisplayMessage("There are changes in source branches that have not been applied to the stack.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.", cancellationToken);
+            await displayProvider.DisplayMessage($"Run {$"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.", cancellationToken);
             await displayProvider.DisplayNewLine(cancellationToken);
         }
     }
