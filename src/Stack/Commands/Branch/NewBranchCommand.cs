@@ -47,6 +47,7 @@ public record NewBranchCommandInputs(string? StackName, string? BranchName, stri
 public class NewBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<NewBranchCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewBranchCommandInputs>
@@ -119,12 +120,13 @@ public class NewBranchCommandHandler(
 
         stackConfig.Save(stackData);
 
-        logger.BranchCreated(branchName);
-
         try
         {
-            logger.PushingBranchToRemote(branchName);
-            gitClient.PushNewBranch(branchName);
+            await displayProvider.DisplayStatus($"Pushing branch '{branchName}' to remote repository...", async (ct) =>
+            {
+                await Task.CompletedTask;
+                gitClient.PushNewBranch(branchName);
+            }, cancellationToken);
         }
         catch (Exception)
         {
@@ -132,17 +134,16 @@ public class NewBranchCommandHandler(
         }
 
         gitClient.ChangeBranch(branchName);
+
+        logger.BranchCreated(branchName, stack.Name);
     }
 }
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "Creating branch {Branch} from {SourceBranch} in stack \"{Stack}\"")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Creating branch {Branch} from {SourceBranch} in stack \"{Stack}\"")]
     public static partial void CreatingBranch(this ILogger logger, string branch, string sourceBranch, string stack);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} created.")]
-    public static partial void BranchCreated(this ILogger logger, string branch);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing branch {Branch} to remote repository")]
-    public static partial void PushingBranchToRemote(this ILogger logger, string branch);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} created in stack \"{Stack}\".")]
+    public static partial void BranchCreated(this ILogger logger, string branch, string stack);
 }

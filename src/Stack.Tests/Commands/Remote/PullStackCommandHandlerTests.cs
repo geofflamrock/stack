@@ -35,9 +35,10 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PullStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -76,9 +77,10 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PullStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -116,9 +118,10 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PullStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PullStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);

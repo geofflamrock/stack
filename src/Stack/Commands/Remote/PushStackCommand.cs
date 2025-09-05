@@ -50,6 +50,7 @@ public record PushStackCommandInputs(string? Stack, int MaxBatchSize, bool Force
 public class PushStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<PushStackCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -76,7 +77,18 @@ public class PushStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        stackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease);
-        return;
+        await displayProvider.DisplayStatus($"Pushing changes to remote repository...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            stackActions.PushChanges(stack, inputs.MaxBatchSize, inputs.ForceWithLease);
+        }, cancellationToken);
+
+        logger.PushedStack(stack.Name);
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(1, LogLevel.Information, "Pushed changes for stack '{Stack}'.")]
+    public static partial void PushedStack(this ILogger logger, string stack);
 }

@@ -8,7 +8,13 @@ public static class CommonOptions
         Required = false
     };
 
-    public static Option<bool> Verbose { get; } = new Option<bool>("--verbose")
+    public static Option<bool> Debug { get; } = new Option<bool>("--debug", "-d")
+    {
+        Description = "Show debug output.",
+        Required = false
+    };
+
+    public static Option<bool> Verbose { get; } = new Option<bool>("--verbose", "-v")
     {
         Description = "Show verbose output.",
         Required = false

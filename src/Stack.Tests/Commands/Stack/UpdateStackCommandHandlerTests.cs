@@ -35,9 +35,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -72,9 +73,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -108,9 +110,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         // We are on a specific branch in the stack
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -143,9 +146,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -180,9 +184,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -217,9 +222,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -254,9 +260,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -292,9 +299,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -330,9 +338,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -368,9 +377,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>(), Arg.Any<CancellationToken>()).Returns(UpdateStrategy.Rebase);
@@ -407,9 +417,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>(), Arg.Any<CancellationToken>()).Returns(UpdateStrategy.Merge);
@@ -441,9 +452,10 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
 
