@@ -298,17 +298,20 @@ namespace Stack.Commands.Helpers
 
         private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            logger.RebasingBranchOnto(branch, sourceBranchName);
-            gitClient.ChangeBranch(branch);
+            await displayProvider.DisplayStatus($"Rebasing {branch} onto {sourceBranchName}", async ct =>
+            {
+                // logger.RebasingBranchOnto(branch, sourceBranchName);
+                gitClient.ChangeBranch(branch);
 
-            try
-            {
-                gitClient.RebaseFromLocalSourceBranch(sourceBranchName);
-            }
-            catch (ConflictException)
-            {
-                await HandleConflictsDuringRebase(cancellationToken);
-            }
+                try
+                {
+                    gitClient.RebaseFromLocalSourceBranch(sourceBranchName);
+                }
+                catch (ConflictException)
+                {
+                    await HandleConflictsDuringRebase(cancellationToken);
+                }
+            }, cancellationToken);
         }
 
         private async Task RebaseOntoNewParent(
@@ -365,42 +368,42 @@ namespace Stack.Commands.Helpers
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "Pulling changes for {Branch} from remote")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Pulling changes for {Branch} from remote")]
     public static partial void PullingCurrentBranch(this ILogger logger, string branch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Pulling changes for {Branch} (worktree: \"{WorktreePath}\") from remote")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Pulling changes for {Branch} (worktree: \"{WorktreePath}\") from remote")]
     public static partial void PullingWorktreeBranch(this ILogger logger, string branch, string worktreePath);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Fetching changes for {Branches} from remote")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Fetching changes for {Branches} from remote")]
     public static partial void FetchingNonCurrentBranches(this ILogger logger, string branches);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing new branch {Branch} to remote")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Pushing new branch {Branch} to remote")]
     public static partial void PushingNewBranch(this ILogger logger, string branch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Pushing changes for {Branches} to remote")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Pushing changes for {Branches} to remote")]
     public static partial void PushingBranches(this ILogger logger, string branches);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Updating stack \"{Stack}\" using merge...")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Updating stack \"{Stack}\" using merge...")]
     public static partial void UpdatingStackUsingMerge(this ILogger logger, string stack);
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "Branch {Branch} no longer exists on the remote repository or the associated pull request is no longer open. Skipping...")]
     public static partial void TraceSkippingInactiveBranch(this ILogger logger, string branch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Merging {SourceBranch} into {Branch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Merging {SourceBranch} into {Branch}")]
     public static partial void MergingBranch(this ILogger logger, string sourceBranch, string branch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Updating stack \"{Stack}\" using rebase...")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Updating stack \"{Stack}\" using rebase...")]
     public static partial void UpdatingStackUsingRebase(this ILogger logger, string stack);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing stack \"{Stack}\" for branch line: {SourceBranch} --> {BranchLine}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Rebasing stack \"{Stack}\" for branch line: {SourceBranch} --> {BranchLine}")]
     public static partial void RebasingStackForBranchLine(this ILogger logger, string stack, string sourceBranch, string branchLine);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "No active branches found for branch line.")]
     public static partial void NoActiveBranchesFound(this ILogger logger);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing {Branch} onto {SourceBranch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Rebasing {Branch} onto {SourceBranch}")]
     public static partial void RebasingBranchOnto(this ILogger logger, string branch, string sourceBranch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Rebasing {Branch} onto new parent {NewParentBranch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Rebasing {Branch} onto new parent {NewParentBranch}")]
     public static partial void RebasingBranchOntoNewParent(this ILogger logger, string branch, string newParentBranch);
 }

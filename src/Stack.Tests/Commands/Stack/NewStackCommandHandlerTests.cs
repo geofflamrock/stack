@@ -25,8 +25,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -59,8 +60,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -91,8 +93,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -123,8 +126,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -156,8 +160,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -191,8 +196,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -225,8 +231,9 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackConfig = new TestStackConfigBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);

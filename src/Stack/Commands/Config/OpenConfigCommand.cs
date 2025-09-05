@@ -46,6 +46,6 @@ public class OpenConfigCommand : Command
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "No config file found.")]
+    [LoggerMessage(Level = LogLevel.Warning, Message = "No config file found.")]
     public static partial void NoConfigFileFound(this ILogger logger);
 }

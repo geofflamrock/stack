@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -94,58 +95,74 @@ public class SyncStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        FetchChanges();
-
-        var status = StackHelpers.GetStackStatus(
-            stack,
-            currentBranch,
-            logger,
-            displayProvider,
-            gitClient,
-            gitHubClient,
-            true);
-
-        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
-
-        await displayProvider.DisplayNewLine(cancellationToken);
-
-        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
-        {
-            logger.SyncingStackWithRemote(stack.Name);
-
-            stackActions.PullChanges(stack);
-
-            var updateStrategy = await StackHelpers.GetUpdateStrategy(
-                inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-                gitClient, inputProvider, logger, cancellationToken);
-
-            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
-
-            var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
-
-            if (!inputs.NoPush)
-                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
-
-            if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
-                stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-            {
-                gitClient.ChangeBranch(currentBranch);
-            }
-        }
-    }
-
-    private void FetchChanges()
-    {
-        displayProvider.DisplayStatus("Fetching changes from remote repository", async (ct) =>
+        await displayProvider.DisplayStatus("Fetching changes from remote repository...", async (ct) =>
         {
             await Task.CompletedTask;
             gitClient.Fetch(true);
         });
+
+        if (!inputs.Confirm)
+        {
+            await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+            {
+                var status = StackHelpers.GetStackStatus(
+                    stack,
+                    currentBranch,
+                    logger,
+                    displayProvider,
+                    gitClient,
+                    gitHubClient,
+                    true);
+
+                await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
+            }, cancellationToken);
+
+            await displayProvider.DisplayNewLine(cancellationToken);
+
+            if (!await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
+            {
+                return;
+            }
+        }
+
+        await displayProvider.DisplayStatus("Pulling changes from remote repository...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            stackActions.PullChanges(stack);
+        }, cancellationToken);
+
+        var updateStrategy = await StackHelpers.GetUpdateStrategy(
+            inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
+            gitClient, inputProvider, logger, cancellationToken);
+
+        await displayProvider.DisplayStatus("Updating stack...", async (ct) =>
+        {
+            await stackActions.UpdateStack(stack, updateStrategy, ct);
+        }, cancellationToken);
+
+        var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
+
+        if (!inputs.NoPush)
+        {
+            await displayProvider.DisplayStatus("Pushing changes to remote repository...", async (ct) =>
+            {
+                await Task.CompletedTask;
+                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
+            }, cancellationToken);
+        }
+
+        if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
+            stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+        {
+            gitClient.ChangeBranch(currentBranch);
+        }
+
+        logger.StackSyncedWithRemote(stack.Name);
     }
 }
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "Syncing stack \"{Stack}\" with the remote repository")]
-    public static partial void SyncingStackWithRemote(this ILogger logger, string stack);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" synced with the remote repository")]
+    public static partial void StackSyncedWithRemote(this ILogger logger, string stack);
 }

@@ -292,7 +292,7 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Information, Message = "Pull request selected: {HeadBranch} -> {BaseBranch}")]
     public static partial void PullRequestSelected(this ILogger logger, string headBranch, string baseBranch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Creating pull request for branch {HeadBranch} to {BaseBranch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Creating pull request for branch {HeadBranch} to {BaseBranch}")]
     public static partial void CreatingPullRequest(this ILogger logger, string headBranch, string baseBranch);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Pull request \"{PullRequest}\" created for branch {HeadBranch} to {BaseBranch}")]
@@ -301,6 +301,6 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Information, Message = "No new pull requests to create.")]
     public static partial void NoPullRequestsToCreate(this ILogger logger);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Found pull request template at \"{TemplatePath}\", this will be used as the default body for each pull request.")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found pull request template at \"{TemplatePath}\", this will be used as the default body for each pull request.")]
     public static partial void FoundPullRequestTemplate(this ILogger logger, string templatePath);
 }
