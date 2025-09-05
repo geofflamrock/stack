@@ -39,9 +39,10 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -81,9 +82,10 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -124,9 +126,10 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -166,9 +169,10 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
 
@@ -208,9 +212,10 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<PushStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, gitClient, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
 
         gitClient.ChangeBranch(branch1);
 

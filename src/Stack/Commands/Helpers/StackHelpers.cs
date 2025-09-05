@@ -121,19 +121,7 @@ public static class StackHelpers
             .ToArray();
 
         var branchStatuses = gitClient.GetBranchStatuses(allBranchesInStacks);
-
-        if (includePullRequestStatus)
-        {
-            displayProvider.DisplayStatus("Checking status of GitHub pull requests...", async (ct) =>
-            {
-                await Task.CompletedTask;
-                EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses);
-            });
-        }
-        else
-        {
-            EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses);
-        }
+        EvaluateBranchStatusDetails(logger, gitClient, gitHubClient, includePullRequestStatus, stacksToReturnStatusFor, stacksOrderedByCurrentBranch, branchStatuses);
 
         return stacksToReturnStatusFor;
 
@@ -640,7 +628,7 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Information, Message = "  {Branch}")]
     public static partial void BranchToCleanup(this ILogger logger, string branch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Deleting local branch {Branch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Deleting local branch {Branch}")]
     public static partial void DeletingLocalBranch(this ILogger logger, string branch);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Updating pull request {PullRequest} with stack details")]
