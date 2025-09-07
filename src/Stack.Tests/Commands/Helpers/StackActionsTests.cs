@@ -7,11 +7,19 @@ using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
 using Xunit.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Stack.Tests.Helpers;
 
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
+    private static IGitClientFactory CreateMockGitClientFactory()
+    {
+        var factory = Substitute.For<IGitClientFactory>();
+        var mockWorktreeGitClient = Substitute.For<IGitClient>();
+        factory.CreateForWorktree(Arg.Any<string>()).Returns(mockWorktreeGitClient);
+        return factory;
+    }
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenThereAreConflictsMergingBranches_AndUpdateIsContinued_TheUpdateCompletesSuccessfully()
     {
@@ -57,7 +65,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitHubClient,
             inputProvider,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -112,7 +121,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitHubClient,
             inputProvider,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -170,7 +180,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitHubClient,
             inputProvider,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -225,7 +236,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitHubClient,
             inputProvider,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -270,7 +282,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitHubClient,
             inputProvider,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -312,7 +325,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -349,7 +362,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         var console = new TestDisplayProvider(testOutputHelper);
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         gitClient.Fetch(true);
 
@@ -390,7 +403,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -439,7 +452,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -487,7 +500,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchWithoutRemoteChanges))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -526,7 +539,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -565,7 +578,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch2))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -595,7 +608,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -630,7 +643,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(otherBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -661,7 +674,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).WithBranch(b => b.WithName(otherBranch)).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
@@ -699,14 +712,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchInOtherWorktree))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.Received(1).PullBranchForWorktree(branchInOtherWorktree, worktreePath);
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        // Should not call the old worktree-specific method or fetch for this branch
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(arr => arr.Contains(branchInOtherWorktree)));
         gitClient.DidNotReceive().PullBranch(branchInOtherWorktree);
     }
 
@@ -745,7 +758,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchNotAheadOfRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -789,7 +802,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemoteButIsAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -838,7 +851,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(newBranchWithNoRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -886,7 +899,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch3))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 2, forceWithLease: false);
@@ -924,7 +937,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: true);
@@ -962,7 +975,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchBehind))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);
@@ -970,5 +983,93 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Assert
         gitClient.DidNotReceive().PushBranches(Arg.Any<string[]>(), Arg.Any<bool>());
         gitClient.DidNotReceive().PushNewBranch(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingMerge_WhenBranchIsInWorktree_UsesWorktreeGitClient()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var worktreeGitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            { branchInWorktree, new GitBranchStatus(branchInWorktree, $"origin/{branchInWorktree}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert
+        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        worktreeGitClient.Received(1).MergeFromLocalSourceBranch(sourceBranch);
+        gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingRebase_WhenBranchIsInWorktree_UsesWorktreeGitClient()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var worktreeGitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            { branchInWorktree, new GitBranchStatus(branchInWorktree, $"origin/{branchInWorktree}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
+        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        worktreeGitClient.Received(1).RebaseFromLocalSourceBranch(sourceBranch);
+        gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
     }
 }
