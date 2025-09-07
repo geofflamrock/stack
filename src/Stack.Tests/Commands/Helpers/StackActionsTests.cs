@@ -7,11 +7,19 @@ using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
 using Xunit.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Stack.Tests.Helpers;
 
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
+    private static IGitClientFactory CreateMockGitClientFactory()
+    {
+        var factory = Substitute.For<IGitClientFactory>();
+        var mockWorktreeGitClient = Substitute.For<IGitClient>();
+        factory.CreateForWorktree(Arg.Any<string>()).Returns(mockWorktreeGitClient);
+        return factory;
+    }
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenConflictAbortedBeforeProgressRecorded_ThrowsAbortException()
     {
@@ -183,7 +191,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             gitClient,
             gitHubClient,
             logger,
-            console
+            console,
+            CreateMockGitClientFactory()
         );
 
         // Act
@@ -607,8 +616,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         stackActions.PullChanges(stack);
 
         // Assert
-        gitClient.Received(1).PullBranchForWorktree(branchInOtherWorktree, worktreePath);
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        // Should not call the old worktree-specific method or fetch for this branch
+        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(arr => arr.Contains(branchInOtherWorktree)));
         gitClient.DidNotReceive().PullBranch(branchInOtherWorktree);
     }
 
@@ -866,5 +875,93 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Assert
         gitClient.DidNotReceive().PushBranches(Arg.Any<string[]>(), Arg.Any<bool>());
         gitClient.DidNotReceive().PushNewBranch(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingMerge_WhenBranchIsInWorktree_UsesWorktreeGitClient()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var worktreeGitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            { branchInWorktree, new GitBranchStatus(branchInWorktree, $"origin/{branchInWorktree}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert
+        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        worktreeGitClient.Received(1).MergeFromLocalSourceBranch(sourceBranch);
+        gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingRebase_WhenBranchIsInWorktree_UsesWorktreeGitClient()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchInWorktree = Some.BranchName();
+        var worktreePath = $"C:/temp/{Some.Name()}";
+
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var console = new TestDisplayProvider(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var worktreeGitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
+            { branchInWorktree, new GitBranchStatus(branchInWorktree, $"origin/{branchInWorktree}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name()), worktreePath) }
+        };
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+        );
+
+        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
+        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        worktreeGitClient.Received(1).RebaseFromLocalSourceBranch(sourceBranch);
+        gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
     }
 }
