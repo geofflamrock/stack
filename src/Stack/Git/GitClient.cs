@@ -45,7 +45,6 @@ public interface IGitClient
     void PushNewBranch(string branchName);
     void PullBranch(string branchName);
     void FetchBranchRefSpecs(string[] branchNames);
-    void PullBranchForWorktree(string branchName, string worktreePath);
     void PushBranches(string[] branches, bool forceWithLease);
     void DeleteLocalBranch(string branchName);
 
@@ -226,12 +225,6 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
 
         var refSpecs = string.Join(" ", branchNames.Select(b => $"{b}:{b}"));
         ExecuteGitCommand($"fetch origin {refSpecs}");
-    }
-
-    public void PullBranchForWorktree(string branchName, string worktreePath)
-    {
-        // Execute the pull within the specified worktree without changing the current working directory
-        ExecuteGitCommand($"-C \"{worktreePath}\" pull origin {branchName}");
     }
 
     public void PushBranches(string[] branches, bool forceWithLease)
