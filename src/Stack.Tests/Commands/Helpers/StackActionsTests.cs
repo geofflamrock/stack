@@ -6,6 +6,7 @@ using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Xunit.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -17,7 +18,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     {
         var factory = Substitute.For<IGitClientFactory>();
         var mockWorktreeGitClient = Substitute.For<IGitClient>();
-        factory.CreateForWorktree(Arg.Any<string>()).Returns(mockWorktreeGitClient);
+        factory.Create(Arg.Any<string>()).Returns(mockWorktreeGitClient);
         return factory;
     }
     [Fact]
@@ -894,7 +895,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var worktreeGitClient = Substitute.For<IGitClient>();
 
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+        gitClientFactory.Create(worktreePath).Returns(worktreeGitClient);
 
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -916,7 +917,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
 
         // Assert
-        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        gitClientFactory.Received(1).Create(worktreePath);
         worktreeGitClient.Received(1).MergeFromLocalSourceBranch(sourceBranch);
         gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
     }
@@ -938,7 +939,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var worktreeGitClient = Substitute.For<IGitClient>();
 
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClientFactory.CreateForWorktree(worktreePath).Returns(worktreeGitClient);
+        gitClientFactory.Create(worktreePath).Returns(worktreeGitClient);
 
         var branchStatuses = new Dictionary<string, GitBranchStatus>
         {
@@ -960,7 +961,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
 
         // Assert
-        gitClientFactory.Received(1).CreateForWorktree(worktreePath);
+        gitClientFactory.Received(1).Create(worktreePath);
         worktreeGitClient.Received(1).RebaseFromLocalSourceBranch(sourceBranch);
         gitClient.DidNotReceive().ChangeBranch(branchInWorktree); // Should not change branch since it's in a worktree
     }
