@@ -95,6 +95,11 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         }
         return allLines;
     }
+
+    public Stack ChangeName(string newName)
+    {
+        return this with { Name = newName };
+    }
 }
 
 public record Branch(string Name, List<Branch> Children)

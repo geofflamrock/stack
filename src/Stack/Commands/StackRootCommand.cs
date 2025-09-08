@@ -15,6 +15,7 @@ public class StackRootCommand : RootCommand
         PullRequestsCommand pullRequestsCommand,
         PullStackCommand pullStackCommand,
         PushStackCommand pushStackCommand,
+        RenameStackCommand renameStackCommand,
         StackStatusCommand stackStatusCommand,
         StackSwitchCommand stackSwitchCommand,
         SyncStackCommand syncStackCommand,
@@ -29,6 +30,7 @@ public class StackRootCommand : RootCommand
         Add(pullRequestsCommand);
         Add(pullStackCommand);
         Add(pushStackCommand);
+        Add(renameStackCommand);
         Add(stackStatusCommand);
         Add(stackSwitchCommand);
         Add(syncStackCommand);

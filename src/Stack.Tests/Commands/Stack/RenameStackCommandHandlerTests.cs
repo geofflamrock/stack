@@ -1,0 +1,247 @@
+using FluentAssertions;
+using NSubstitute;
+using Meziantou.Extensions.Logging.Xunit;
+using Stack.Commands;
+using Stack.Commands.Helpers;
+using Stack.Config;
+using Stack.Git;
+using Stack.Infrastructure;
+using Stack.Tests.Helpers;
+using Xunit.Abstractions;
+
+namespace Stack.Tests.Commands.Stack;
+
+public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
+{
+    [Fact]
+    public async Task WhenNoInputsAreProvided_AsksForStackAndNewName_RenamesStack()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Text(Questions.NewStackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
+
+        // Act
+        await handler.Handle(RenameStackCommandInputs.Empty, CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().HaveCount(2);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack2");
+        stackConfig.Stacks.Should().NotContain(s => s.Name == "Stack1");
+    }
+
+    [Fact]
+    public async Task WhenStackNameProvided_AsksOnlyForNewName_RenamesStack()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Text(Questions.NewStackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
+
+        // Act
+        await handler.Handle(new RenameStackCommandInputs("Stack1", null), CancellationToken.None);
+
+        // Assert
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
+        stackConfig.Stacks.Should().HaveCount(1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+    }
+
+    [Fact]
+    public async Task WhenNewNameProvided_AsksOnlyForStack_RenamesStack()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+
+        // Act
+        await handler.Handle(new RenameStackCommandInputs(null, "RenamedStack"), CancellationToken.None);
+
+        // Assert
+        await inputProvider.DidNotReceive().Text(Questions.NewStackName, Arg.Any<CancellationToken>());
+        stackConfig.Stacks.Should().HaveCount(1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+    }
+
+    [Fact]
+    public async Task WhenBothInputsProvided_DoesNotAskForAnything_RenamesStack()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act
+        await handler.Handle(new RenameStackCommandInputs("Stack1", "RenamedStack"), CancellationToken.None);
+
+        // Assert
+        await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
+        await inputProvider.DidNotReceive().Text(Questions.NewStackName, Arg.Any<CancellationToken>());
+        stackConfig.Stacks.Should().HaveCount(1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+    }
+
+    [Fact]
+    public async Task WhenStackDoesNotExist_ThrowsException()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act & Assert
+        var act = async () => await handler.Handle(new RenameStackCommandInputs("NonExistentStack", "NewName"), CancellationToken.None);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Stack not found.");
+    }
+
+    [Fact]
+    public async Task WhenNewNameAlreadyExists_ThrowsException()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .WithStack(stack => stack
+                .WithName("Stack2")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act & Assert
+        var act = async () => await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack2"), CancellationToken.None);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("A stack with the name 'Stack2' already exists for this remote.");
+    }
+
+    [Fact]
+    public async Task WhenRenamingToSameName_DoesNotThrowException()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act
+        await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack1"), CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().HaveCount(1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack1");
+    }
+}
