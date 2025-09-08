@@ -89,17 +89,26 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
     public void MoveBranch(string branchName, string newParentBranchName, MoveBranchChildAction childAction)
     {
         // First, find and extract the branch being moved
-        var (branchToMove, childrenToReParent) = ExtractBranch(branchName, childAction);
+        var (branchToMove, originalParentName, childrenToReParent) = ExtractBranch(branchName, childAction);
         if (branchToMove is null)
         {
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack.");
         }
 
-        // Then, add it to the new parent location
-        AddBranchToParent(branchToMove, newParentBranchName, childrenToReParent);
+        // Add the moved branch to the new parent location
+        AddBranchToParent(branchToMove, newParentBranchName);
+
+        // Re-parent children to their original location if needed
+        if (childrenToReParent.Count > 0)
+        {
+            foreach (var child in childrenToReParent)
+            {
+                AddBranchToParent(child, originalParentName);
+            }
+        }
     }
 
-    private (Branch? branchToMove, List<Branch> childrenToReParent) ExtractBranch(string branchName, MoveBranchChildAction childAction)
+    private (Branch? branchToMove, string originalParentName, List<Branch> childrenToReParent) ExtractBranch(string branchName, MoveBranchChildAction childAction)
     {
         // Check root level branches
         for (int i = 0; i < Branches.Count; i++)
@@ -111,13 +120,13 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
 
                 if (childAction == MoveBranchChildAction.ReParentChildren)
                 {
-                    // Move children to root level
+                    // Children should be re-parented to the source branch (root level)
                     var childrenToReParent = branch.Children.ToList();
-                    return (new Branch(branch.Name, new List<Branch>()), childrenToReParent);
+                    return (new Branch(branch.Name, new List<Branch>()), SourceBranch, childrenToReParent);
                 }
                 else
                 {
-                    return (branch, new List<Branch>());
+                    return (branch, SourceBranch, new List<Branch>());
                 }
             }
         }
@@ -132,10 +141,10 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
             }
         }
 
-        return (null, new List<Branch>());
+        return (null, string.Empty, new List<Branch>());
     }
 
-    private static (Branch? branchToMove, List<Branch> childrenToReParent) ExtractBranchFromChildren(Branch parentBranch, string branchName, MoveBranchChildAction childAction)
+    private static (Branch? branchToMove, string originalParentName, List<Branch> childrenToReParent) ExtractBranchFromChildren(Branch parentBranch, string branchName, MoveBranchChildAction childAction)
     {
         for (int i = 0; i < parentBranch.Children.Count; i++)
         {
@@ -146,14 +155,13 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
 
                 if (childAction == MoveBranchChildAction.ReParentChildren)
                 {
-                    // Re-parent children to the current parent
+                    // Children should be re-parented to the original parent
                     var childrenToReParent = childBranch.Children.ToList();
-                    parentBranch.Children.AddRange(childrenToReParent);
-                    return (new Branch(childBranch.Name, new List<Branch>()), new List<Branch>());
+                    return (new Branch(childBranch.Name, new List<Branch>()), parentBranch.Name, childrenToReParent);
                 }
                 else
                 {
-                    return (childBranch, new List<Branch>());
+                    return (childBranch, parentBranch.Name, new List<Branch>());
                 }
             }
         }
@@ -167,43 +175,41 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
             }
         }
 
-        return (null, new List<Branch>());
+        return (null, string.Empty, new List<Branch>());
     }
 
-    private void AddBranchToParent(Branch branchToMove, string newParentBranchName, List<Branch> childrenToReParent)
+    private void AddBranchToParent(Branch branchToMove, string parentBranchName)
     {
-        // If the new parent is the source branch, add to root level
-        if (newParentBranchName.Equals(SourceBranch, StringComparison.OrdinalIgnoreCase))
+        // If the parent is the source branch, add to root level
+        if (parentBranchName.Equals(SourceBranch, StringComparison.OrdinalIgnoreCase))
         {
             Branches.Add(branchToMove);
-            Branches.AddRange(childrenToReParent);
             return;
         }
 
-        // Find the new parent branch and add as child
+        // Find the parent branch and add as child
         foreach (var branch in Branches)
         {
-            if (AddBranchToParentInChildren(branch, branchToMove, newParentBranchName, childrenToReParent))
+            if (AddBranchToParentInChildren(branch, branchToMove, parentBranchName))
             {
                 return;
             }
         }
 
-        throw new InvalidOperationException($"Parent branch '{newParentBranchName}' not found in stack.");
+        throw new InvalidOperationException($"Parent branch '{parentBranchName}' not found in stack.");
     }
 
-    private static bool AddBranchToParentInChildren(Branch currentBranch, Branch branchToMove, string newParentBranchName, List<Branch> childrenToReParent)
+    private static bool AddBranchToParentInChildren(Branch currentBranch, Branch branchToMove, string parentBranchName)
     {
-        if (currentBranch.Name.Equals(newParentBranchName, StringComparison.OrdinalIgnoreCase))
+        if (currentBranch.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase))
         {
             currentBranch.Children.Add(branchToMove);
-            currentBranch.Children.AddRange(childrenToReParent);
             return true;
         }
 
         foreach (var child in currentBranch.Children)
         {
-            if (AddBranchToParentInChildren(child, branchToMove, newParentBranchName, childrenToReParent))
+            if (AddBranchToParentInChildren(child, branchToMove, parentBranchName))
             {
                 return true;
             }

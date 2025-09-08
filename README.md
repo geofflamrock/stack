@@ -370,6 +370,25 @@ Options:
   -?, -h, --help             Show help and usage information
 ```
 
+#### `stack branch move` <!-- omit from toc -->
+
+Move a branch to another location in a stack.
+
+```shell
+Usage:
+  stack branch move [options]
+
+Options:
+  --working-dir         The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose             Show verbose output.
+  -s, --stack           The name of the stack.
+  -b, --branch          The name of the branch.
+  -p, --parent          The name of the parent branch to put the branch under.
+  --re-parent-children  Re-parent children branches to the previous location.
+  --move-children       Move children branches with the branch being moved.
+  -?, -h, --help        Show help and usage information
+```
+
 ### Remote commands <!-- omit from toc -->
 
 #### `stack pull` <!-- omit from toc -->
