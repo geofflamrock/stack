@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -26,7 +27,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -60,7 +65,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -92,7 +101,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -124,7 +137,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -157,7 +174,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -192,7 +213,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -226,7 +251,11 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new NewStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
         gitClient.GetRemoteUri().Returns(remoteUri);
