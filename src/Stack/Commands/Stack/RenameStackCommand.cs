@@ -71,7 +71,7 @@ public class RenameStackCommandHandler(
             throw new InvalidOperationException("Stack not found.");
         }
 
-        var newName = await inputProvider.Text(logger, Questions.NewStackName, inputs.Name, cancellationToken);
+        var newName = await inputProvider.Text(logger, Questions.StackName, inputs.Name, cancellationToken);
 
         // Validate that there's not another stack with the same name for the same remote
         var existingStackWithSameName = stacksForRemote.FirstOrDefault(s => 

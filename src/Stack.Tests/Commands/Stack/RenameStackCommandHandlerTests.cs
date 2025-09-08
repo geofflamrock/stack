@@ -41,7 +41,7 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Text(Questions.NewStackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
+        inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
 
         // Act
         await handler.Handle(RenameStackCommandInputs.Empty, CancellationToken.None);
@@ -76,7 +76,7 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
 
-        inputProvider.Text(Questions.NewStackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
+        inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", null), CancellationToken.None);
@@ -116,7 +116,7 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new RenameStackCommandInputs(null, "RenamedStack"), CancellationToken.None);
 
         // Assert
-        await inputProvider.DidNotReceive().Text(Questions.NewStackName, Arg.Any<CancellationToken>());
+        await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().HaveCount(1);
         stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
     }
@@ -149,7 +149,7 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        await inputProvider.DidNotReceive().Text(Questions.NewStackName, Arg.Any<CancellationToken>());
+        await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
         stackConfig.Stacks.Should().HaveCount(1);
         stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
     }
