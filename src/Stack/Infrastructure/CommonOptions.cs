@@ -26,11 +26,7 @@ public static class CommonOptions
         Required = false
     };
 
-    public static Option<string?> Name { get; } = new Option<string?>("--name", "-n")
-    {
-        Description = "The new name for the stack.",
-        Required = false
-    };
+
 
     public static Option<int> MaxBatchSize { get; } = new Option<int>("--max-batch-size")
     {

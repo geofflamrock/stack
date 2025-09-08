@@ -244,4 +244,42 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Stacks.Should().HaveCount(1);
         stackConfig.Stacks.Should().Contain(s => s.Name == "Stack1");
     }
+
+    [Fact]
+    public async Task WhenStacksWithSameNameExistAcrossDifferentRemotes_AllowsRename()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri1 = Some.HttpsUri().ToString();
+        var remoteUri2 = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri1)
+                .WithSourceBranch(sourceBranch))
+            .WithStack(stack => stack
+                .WithName("ExistingName")
+                .WithRemoteUri(remoteUri2)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri1);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act - Rename Stack1 to ExistingName (which exists on a different remote)
+        await handler.Handle(new RenameStackCommandInputs("Stack1", "ExistingName"), CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().HaveCount(2);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri2);
+        stackConfig.Stacks.Should().NotContain(s => s.Name == "Stack1");
+    }
 }

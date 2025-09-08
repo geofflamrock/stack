@@ -10,6 +10,12 @@ namespace Stack.Commands;
 
 public class RenameStackCommand : Command
 {
+    static new readonly Option<string?> Name = new("--name", "-n")
+    {
+        Description = "The new name for the stack.",
+        Required = false
+    };
+    
     private readonly RenameStackCommandHandler handler;
 
     public RenameStackCommand(
@@ -22,7 +28,7 @@ public class RenameStackCommand : Command
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
-        Add(CommonOptions.Name);
+        Add(Name);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
@@ -30,7 +36,7 @@ public class RenameStackCommand : Command
         await handler.Handle(
             new RenameStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),
-                parseResult.GetValue(CommonOptions.Name)),
+                parseResult.GetValue(Name)),
             cancellationToken);
     }
 }
