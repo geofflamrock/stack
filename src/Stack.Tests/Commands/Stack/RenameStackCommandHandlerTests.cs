@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using Microsoft.Extensions.Logging;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -281,5 +282,39 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri1);
         stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri2);
         stackConfig.Stacks.Should().NotContain(s => s.Name == "Stack1");
+    }
+
+    [Fact]
+    public async Task WhenNoStacksExistForRemote_LogsNoStacksMessageAndReturns()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var remoteUri1 = Some.HttpsUri().ToString();
+        var remoteUri2 = Some.HttpsUri().ToString();
+
+        // Create a stack config with stacks only for a different remote
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri2)
+                .WithSourceBranch(sourceBranch))
+            .Build();
+
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+
+        gitClient.GetRemoteUri().Returns(remoteUri1); // Different remote than the stack
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+
+        // Act
+        await handler.Handle(new RenameStackCommandInputs("Stack1", "NewName"), CancellationToken.None);
+
+        // Assert
+        // Verify the stack config was not modified
+        stackConfig.Stacks.Should().HaveCount(1);
+        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack1" && s.RemoteUri == remoteUri2);
     }
 }

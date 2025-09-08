@@ -64,6 +64,12 @@ public class RenameStackCommandHandler(
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
+        if (stacksForRemote.Count == 0)
+        {
+            logger.NoStacksForRepository();
+            return;
+        }
+
         var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
