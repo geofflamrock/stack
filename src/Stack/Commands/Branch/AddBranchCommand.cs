@@ -45,7 +45,8 @@ public record AddBranchCommandInputs(string? StackName, string? BranchName, stri
 public class AddBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<AddBranchCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<AddBranchCommandInputs>
 {
@@ -53,6 +54,7 @@ public class AddBranchCommandHandler(
     {
         await Task.CompletedTask;
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
