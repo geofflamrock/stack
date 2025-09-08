@@ -26,7 +26,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -58,7 +58,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         var relativeFilePath1 = Some.Name();
         var filePath1 = Path.Join(repo.LocalDirectoryPath, relativeFilePath1);
@@ -94,7 +94,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(expectedBranch);
 
@@ -115,7 +115,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var exists = gitClient.DoesLocalBranchExist(existingBranch);
@@ -133,7 +133,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var exists = gitClient.DoesLocalBranchExist(nonExistentBranch);
@@ -156,7 +156,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         var branchesToCheck = new[] { existingBranch1, nonExistentBranch, existingBranch2 };
 
@@ -183,7 +183,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create a commit on the feature branch to make it 1 ahead
         gitClient.ChangeBranch(featureBranch);
@@ -208,7 +208,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var remoteUri = gitClient.GetRemoteUri();
@@ -225,7 +225,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var root = gitClient.GetRootOfRepository();
@@ -247,7 +247,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var configValue = gitClient.GetConfigValue(configKey);
@@ -266,7 +266,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         var configValue = gitClient.GetConfigValue(nonExistentKey);
@@ -288,7 +288,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create commits on both branches independently
         gitClient.ChangeBranch(branch1);
@@ -320,7 +320,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         gitClient.ChangeBranch(targetBranch);
@@ -341,7 +341,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act
         gitClient.CreateNewBranch(newBranch, sourceBranch);
@@ -363,7 +363,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Switch to a different branch before deleting
         gitClient.ChangeBranch(otherBranch);
@@ -384,7 +384,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act & Assert
         var fetch = () => gitClient.Fetch(false);
@@ -399,7 +399,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Act & Assert
         var fetch = () => gitClient.Fetch(true);
@@ -421,7 +421,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -452,7 +452,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Make a commit on the base branch and push it to remote
         gitClient.ChangeBranch(baseBranch);
@@ -498,7 +498,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create conflicting commits on newParent and childBranch
         gitClient.ChangeBranch(newParent);
@@ -533,7 +533,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Add a commit to the new parent branch
         gitClient.ChangeBranch(newParent);
@@ -568,7 +568,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -610,7 +610,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -651,7 +651,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch1);
         File.WriteAllText(filePath, Some.Name());
@@ -694,7 +694,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Make branch2 behind by resetting it to previous commit
         gitClient.ChangeBranch(branch2);
@@ -748,7 +748,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create commits on branches with some delay to ensure different commit times
         gitClient.ChangeBranch(branch1);
@@ -786,7 +786,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(newBranch);
 
@@ -807,7 +807,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(branch);
 
@@ -839,7 +839,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create changes on each branch
         gitClient.ChangeBranch(branch1);
@@ -883,7 +883,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         // Create changes on remote branches (simulate someone else pushed)
         var remoteCommitMessage1 = Some.Name();
@@ -939,7 +939,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
         // Make a new commit on the target branch and push it so remote is ahead
         gitClient.ChangeBranch(targetBranch);
         var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
@@ -983,7 +983,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var gitClient = new GitClient(logger, repo.ExecutionContext);
+        var gitClient = new GitClient(logger, repo.ExecutionContext.WorkingDirectory);
 
         gitClient.ChangeBranch(otherBranch);
         var originalLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
