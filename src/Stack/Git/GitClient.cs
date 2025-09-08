@@ -51,7 +51,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) : IGitClient
+public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGitClient
 {
     public string GetCurrentBranch()
     {
@@ -261,7 +261,7 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
-            context.WorkingDirectory,
+            workingDirectory,
             logger,
             captureStandardError,
             exceptionHandler
