@@ -37,7 +37,8 @@ public record StackSwitchCommandInputs(string? Branch);
 
 public class StackSwitchCommandHandler(
     IInputProvider inputProvider,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<StackSwitchCommandInputs>
 {
@@ -46,6 +47,7 @@ public class StackSwitchCommandHandler(
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 

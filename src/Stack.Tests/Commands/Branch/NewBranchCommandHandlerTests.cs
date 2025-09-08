@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -38,7 +39,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
@@ -85,7 +90,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -127,7 +136,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(anotherBranch)))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -172,7 +185,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -210,7 +227,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -254,7 +275,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -295,7 +320,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -334,7 +363,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.When(gc => gc.PushNewBranch(newBranch)).Do(_ => { throw new Exception("Failed to push branch"); });
 
@@ -385,7 +418,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
@@ -433,7 +470,11 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);

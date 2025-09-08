@@ -43,7 +43,9 @@ public record CleanupStackCommandInputs(string? Stack, bool Confirm)
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<CleanupStackCommandHandler> logger,
-    IGitClient gitClient,
+    IDisplayProvider displayProvider,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<CleanupStackCommandInputs>
@@ -53,6 +55,7 @@ public class CleanupStackCommandHandler(
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 

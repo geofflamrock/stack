@@ -6,6 +6,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using Xunit.Abstractions;
 
@@ -38,7 +39,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -76,7 +81,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -113,7 +122,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // We are on a specific branch in the stack
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -149,7 +162,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
@@ -187,7 +204,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -225,7 +246,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -263,7 +288,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -302,7 +331,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -341,7 +374,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -380,7 +417,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>(), Arg.Any<CancellationToken>()).Returns(UpdateStrategy.Rebase);
@@ -420,7 +461,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>(), Arg.Any<CancellationToken>()).Returns(UpdateStrategy.Merge);
@@ -455,7 +500,11 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
 
