@@ -75,7 +75,8 @@ public record NewStackCommandInputs(string? Name, string? SourceBranch, string? 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<NewStackCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewStackCommandInputs>
 {
@@ -83,6 +84,7 @@ public class NewStackCommandHandler(
     {
         await Task.CompletedTask;
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var name = await inputProvider.Text(logger, Questions.StackName, inputs.Name, cancellationToken);
 
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
