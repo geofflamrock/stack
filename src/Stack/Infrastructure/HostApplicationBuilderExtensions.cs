@@ -82,7 +82,6 @@ public static class HostApplicationBuilderExtensions
         services.AddSingleton<IFileOperations, FileOperations>();
         services.AddSingleton<CliExecutionContext>();
 
-        services.AddSingleton<IGitClient, GitClient>();
         services.AddSingleton<IGitClientFactory, GitClientFactory>();
         services.AddSingleton<GitHubClient>();
         services.AddSingleton<IGitHubClient>(provider =>
