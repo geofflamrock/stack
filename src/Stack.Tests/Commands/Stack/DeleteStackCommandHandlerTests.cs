@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -40,7 +41,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
@@ -81,7 +86,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(false);
@@ -123,7 +132,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -165,7 +178,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -223,7 +240,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 return dict;
             });
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
@@ -263,7 +284,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -302,7 +327,11 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 

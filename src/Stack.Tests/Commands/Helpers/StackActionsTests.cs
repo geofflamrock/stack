@@ -911,7 +911,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -955,7 +958,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
