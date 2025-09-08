@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
@@ -62,7 +63,7 @@ public record ListStacksCommandInputs;
 public record ListStacksCommandResponse(List<ListStacksCommandResponseItem> Stacks);
 public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount);
 
-public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitClient)
+public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClientFactory gitClientFactory, CliExecutionContext executionContext)
     : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
 {
     public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs, CancellationToken cancellationToken)
@@ -71,6 +72,7 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClient gitCl
 
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
 
         if (remoteUri is null)
