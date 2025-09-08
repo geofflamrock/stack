@@ -61,14 +61,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .When(g => g.MergeFromLocalSourceBranch(sourceBranch))
             .Throws(new ConflictException());
 
-        var stackActions = new StackActions(
-            gitClient,
-            gitHubClient,
-            inputProvider,
-            logger,
-            console,
-            CreateMockGitClientFactory()
-        );
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -117,14 +114,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Abort);
 
-        var stackActions = new StackActions(
-            gitClient,
-            gitHubClient,
-            inputProvider,
-            logger,
-            console,
-            CreateMockGitClientFactory()
-        );
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         var updateAction = async () => await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -176,14 +170,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .When(g => g.RebaseFromLocalSourceBranch(sourceBranch))
             .Throws(new ConflictException());
 
-        var stackActions = new StackActions(
-            gitClient,
-            gitHubClient,
-            inputProvider,
-            logger,
-            console,
-            CreateMockGitClientFactory()
-        );
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -232,14 +223,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
                 Arg.Any<Func<MergeConflictAction, string>>())
             .Returns(MergeConflictAction.Abort);
 
-        var stackActions = new StackActions(
-            gitClient,
-            gitHubClient,
-            inputProvider,
-            logger,
-            console,
-            CreateMockGitClientFactory()
-        );
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         var updateAction = async () => await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -278,14 +266,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(
-            gitClient,
-            gitHubClient,
-            inputProvider,
-            logger,
-            console,
-            CreateMockGitClientFactory()
-        );
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -326,7 +311,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -363,7 +352,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         var console = new TestDisplayProvider(testOutputHelper);
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.Fetch(true);
 
@@ -404,7 +397,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -453,7 +450,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branch1, new List<Config.Branch> { new Config.Branch(branch2, new List<Config.Branch>()), new Config.Branch(branch3, new List<Config.Branch>()) }) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -501,7 +502,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchWithoutRemoteChanges))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -540,7 +545,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -579,7 +588,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch2))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -609,7 +622,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -644,7 +661,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(otherBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -675,7 +696,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).WithBranch(b => b.WithName(otherBranch)).Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -713,7 +738,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchInOtherWorktree))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PullChanges(stack);
@@ -759,7 +788,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchNotAheadOfRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -803,7 +836,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchThatDoesNotExistInRemoteButIsAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -852,7 +889,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(newBranchWithNoRemote))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -900,7 +941,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branch3))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 2, forceWithLease: false);
@@ -938,7 +983,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchAhead))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: true);
@@ -976,7 +1025,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(branchBehind))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, CreateMockGitClientFactory());
+        var gitClientFactory = CreateMockGitClientFactory();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);
@@ -1019,7 +1072,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -1063,7 +1119,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
         );
 
-        var stackActions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console, gitClientFactory);
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var stackActions = new StackActions(gitClientFactory, executionContext, gitHubClient, inputProvider, logger, console);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
