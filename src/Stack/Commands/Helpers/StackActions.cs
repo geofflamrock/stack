@@ -1,5 +1,6 @@
 using Stack.Config;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Git;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
@@ -15,26 +16,33 @@ namespace Stack.Commands.Helpers
 
     public interface IGitClientFactory
     {
-        IGitClient CreateForWorktree(string worktreePath);
+        IGitClient Create(string path);
     }
 
     public class GitClientFactory(ILoggerFactory loggerFactory) : IGitClientFactory
     {
-        public IGitClient CreateForWorktree(string worktreePath)
+        public IGitClient Create(string path)
         {
-            var worktreeContext = new Infrastructure.Settings.CliExecutionContext { WorkingDirectory = worktreePath };
             var gitLogger = loggerFactory.CreateLogger<GitClient>();
-            return new GitClient(gitLogger, worktreeContext);
+            return new GitClient(gitLogger, path);
         }
     }
 
     public class StackActions(
-        IGitClient gitClient,
+        IGitClientFactory gitClientFactory,
+        CliExecutionContext executionContext,
         IGitHubClient gitHubClient,
         ILogger<StackActions> logger,
-        IDisplayProvider displayProvider,
-        IGitClientFactory gitClientFactory) : IStackActions
+        IDisplayProvider displayProvider) : IStackActions
     {
+        /// <summary>
+        /// Gets the default GitClient for the current working directory
+        /// </summary>
+        private IGitClient GetDefaultGitClient()
+        {
+            return gitClientFactory.Create(executionContext.WorkingDirectory);
+        }
+
         /// <summary>
         /// Gets the appropriate GitClient for operating on a branch, either in the current working directory
         /// or in the branch's worktree if it's checked out in another worktree
@@ -44,14 +52,15 @@ namespace Stack.Commands.Helpers
             if (branchStatuses.TryGetValue(branchName, out var branchStatus) && branchStatus.WorktreePath != null)
             {
                 // Branch is checked out in another worktree, create a GitClient for that worktree
-                return gitClientFactory.CreateForWorktree(branchStatus.WorktreePath);
+                return gitClientFactory.Create(branchStatus.WorktreePath);
             }
 
             // Use the default GitClient for the current working directory
-            return gitClient;
+            return GetDefaultGitClient();
         }
         public void PullChanges(Config.Stack stack)
         {
+            var gitClient = GetDefaultGitClient();
             List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
             var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
@@ -110,6 +119,7 @@ namespace Stack.Commands.Helpers
             int maxBatchSize,
             bool forceWithLease)
         {
+            var gitClient = GetDefaultGitClient();
             var branchStatus = gitClient.GetBranchStatuses([.. stack.AllBranchNames]);
 
             var branchesThatHaveNotBeenPushedToRemote = branchStatus
@@ -143,6 +153,7 @@ namespace Stack.Commands.Helpers
 
         public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken)
         {
+            var gitClient = GetDefaultGitClient();
             var currentBranch = gitClient.GetCurrentBranch();
 
             var status = StackHelpers.GetStackStatus(
@@ -208,12 +219,14 @@ namespace Stack.Commands.Helpers
         {
             logger.MergingBranch(sourceBranchName, branch);
 
+            var defaultGitClient = GetDefaultGitClient();
             var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
 
-            // Only change branch if it's not in a worktree (i.e., using the default git client)
-            if (branchGitClient == gitClient)
+            // Only change branch if it's not in a worktree (i.e., using the default git client path)
+            if (branchGitClient == defaultGitClient ||
+                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
             {
-                gitClient.ChangeBranch(branch);
+                defaultGitClient.ChangeBranch(branch);
             }
 
             try
@@ -327,6 +340,7 @@ namespace Stack.Commands.Helpers
 
                     if (shouldRebaseOntoParent)
                     {
+                        var gitClient = GetDefaultGitClient();
                         shouldRebaseOntoParent = gitClient.IsAncestor(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
                     }
 
@@ -351,12 +365,14 @@ namespace Stack.Commands.Helpers
             await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto {sourceBranchName}", async ct =>
             {
 
+                var defaultGitClient = GetDefaultGitClient();
                 var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
 
-                // Only change branch if it's not in a worktree (i.e., using the default git client)
-                if (branchGitClient == gitClient)
+                // Only change branch if it's not in a worktree (i.e., using the default git client path)
+                if (branchGitClient == defaultGitClient ||
+                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
                 {
-                    gitClient.ChangeBranch(branch);
+                    defaultGitClient.ChangeBranch(branch);
                 }
 
                 try
@@ -398,12 +414,14 @@ namespace Stack.Commands.Helpers
         {
             logger.RebasingBranchOntoNewParent(branch, newParentBranchName);
 
+            var defaultGitClient = GetDefaultGitClient();
             var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
 
-            // Only change branch if it's not in a worktree (i.e., using the default git client)
-            if (branchGitClient == gitClient)
+            // Only change branch if it's not in a worktree (i.e., using the default git client path)
+            if (branchGitClient == defaultGitClient ||
+                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
             {
-                gitClient.ChangeBranch(branch);
+                defaultGitClient.ChangeBranch(branch);
             }
 
             try
