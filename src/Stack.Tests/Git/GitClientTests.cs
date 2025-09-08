@@ -12,6 +12,87 @@ namespace Stack.Tests.Git;
 public class GitClientTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
+    public void IsMergeInProgress_WhenMergeConflictActive_ReturnsTrueThenFalseAfterAbort()
+    {
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(branch1))
+            .WithBranch(b => b.WithName(branch2).FromSourceBranch(branch1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var git = new GitClient(logger, repo.ExecutionContext);
+
+        var relativeFilePath = Some.Name();
+        var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
+
+        // Create conflicting change on branch1
+        git.ChangeBranch(branch1);
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(relativeFilePath);
+        repo.Commit();
+
+        // Create conflicting change on branch2
+        git.ChangeBranch(branch2);
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(relativeFilePath);
+        repo.Commit();
+
+        // Start merge that will conflict
+        git.ChangeBranch(branch1);
+        try
+        {
+            git.MergeFromLocalSourceBranch(branch2);
+        }
+        catch (ConflictException)
+        {
+        }
+
+        git.IsMergeInProgress().Should().BeTrue();
+
+        git.AbortMerge();
+        git.IsMergeInProgress().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsRebaseInProgress_WhenRebaseConflictActive_ReturnsTrueThenFalseAfterAbort()
+    {
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(branch1))
+            .WithBranch(b => b.WithName(branch2).FromSourceBranch(branch1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var git = new GitClient(logger, repo.ExecutionContext);
+
+        var relativeFilePath = Some.Name();
+        var filePath = Path.Join(repo.LocalDirectoryPath, relativeFilePath);
+
+        // conflicting commit on branch1
+        git.ChangeBranch(branch1);
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(relativeFilePath);
+        repo.Commit();
+
+        // conflicting commit on branch2
+        git.ChangeBranch(branch2);
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(relativeFilePath);
+        repo.Commit();
+
+        // Start rebase that will conflict
+        try { git.RebaseFromLocalSourceBranch(branch1); } catch (ConflictException) { }
+
+        git.IsRebaseInProgress().Should().BeTrue();
+
+        git.AbortRebase();
+        git.IsRebaseInProgress().Should().BeFalse();
+    }
+
+    [Fact]
     public void MergeFromLocalSourceBranch_WhenConflictsOccur_ThrowsMergeConflictException()
     {
         // Arrange
