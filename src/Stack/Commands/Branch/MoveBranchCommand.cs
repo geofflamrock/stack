@@ -76,6 +76,7 @@ public record MoveBranchCommandInputs(string? StackName, string? BranchName, str
 public class MoveBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<MoveBranchCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<MoveBranchCommandInputs>
@@ -133,7 +134,7 @@ public class MoveBranchCommandHandler(
         stackConfig.Save(stackData);
 
         logger.BranchMovedInStack(branchName, stack.Name);
-        logger.SuggestStackUpdate();
+        await displayProvider.DisplayMessage($"Run {"stack sync".Example()} or {"stack update".Example()} to synchronize the changes with Git.", cancellationToken);
     }
 }
 
@@ -141,7 +142,4 @@ internal static partial class LoggerExtensionMethods
 {
     [LoggerMessage(Level = LogLevel.Information, Message = "Branch {Branch} moved in stack \"{Stack}\"")]
     public static partial void BranchMovedInStack(this ILogger logger, string branch, string stack);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Run 'stack sync' or 'stack update' to synchronize the changes with Git.")]
-    public static partial void SuggestStackUpdate(this ILogger logger);
 }
