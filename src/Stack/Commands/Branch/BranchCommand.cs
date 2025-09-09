@@ -6,7 +6,8 @@ public class BranchCommand : GroupCommand
         AddBranchCommand addBranchCommand,
         NewBranchCommand newBranchCommand,
         RemoveBranchCommand removeBranchCommand,
-        MoveBranchCommand moveBranchCommand) : base("branch", "Manage branches within a stack.")
+        MoveBranchCommand moveBranchCommand)
+        : base("branch", "Manage branches within a stack.")
     {
         Add(addBranchCommand);
         Add(newBranchCommand);

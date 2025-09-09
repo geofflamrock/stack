@@ -11,10 +11,10 @@ namespace Stack.Commands;
 
 public enum MoveBranchChildAction
 {
-    [Description("Move children branches with the branch being moved")]
+    [Description("Move child branches with the branch being moved")]
     MoveChildren,
 
-    [Description("Re-parent children branches to the previous location")]
+    [Description("Re-parent child branches to the previous location")]
     ReParentChildren
 }
 
@@ -22,12 +22,12 @@ public class MoveBranchCommand : Command
 {
     static readonly Option<bool> ReParentChildren = new("--re-parent-children")
     {
-        Description = "Re-parent children branches to the previous location."
+        Description = "Re-parent child branches to the previous location."
     };
 
     static readonly Option<bool> MoveChildren = new("--move-children")
     {
-        Description = "Move children branches with the branch being moved."
+        Description = "Move child branches with the branch being moved."
     };
 
     private readonly MoveBranchCommandHandler handler;
@@ -90,7 +90,8 @@ public class MoveBranchCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
-            throw new InvalidOperationException("No stacks found for this repository.");
+            logger.NoStacksForRepository();
+            return;
         }
 
         var stack = await inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch, cancellationToken);
@@ -118,7 +119,7 @@ public class MoveBranchCommandHandler(
         {
             childAction = await inputProvider.Select(
                 Questions.MoveBranchChildAction,
-                new[] { MoveBranchChildAction.MoveChildren, MoveBranchChildAction.ReParentChildren },
+                [MoveBranchChildAction.MoveChildren, MoveBranchChildAction.ReParentChildren],
                 cancellationToken,
                 (action) => action.Humanize());
         }
