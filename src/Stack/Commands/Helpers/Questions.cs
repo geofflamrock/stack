@@ -4,7 +4,6 @@ public static class Questions
 {
     public const string SelectStack = "Select stack:";
     public const string StackName = "Stack name:";
-    public const string NewStackName = "New stack name:";
     public const string SelectBranch = "Select branch:";
     public const string BranchName = "Branch name:";
     public const string SelectSourceBranch = "Select a branch to start your stack from:";
