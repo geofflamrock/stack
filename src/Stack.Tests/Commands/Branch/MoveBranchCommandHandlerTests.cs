@@ -25,6 +25,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -39,7 +40,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(branchToMove))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -84,7 +85,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(childBranch))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -130,7 +132,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(childBranch))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -175,7 +178,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(branchToMove))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -218,7 +222,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(branchToMove)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         // Act
         await handler.Handle(new MoveBranchCommandInputs("Stack1", branchToMove, firstBranch, MoveBranchChildAction.MoveChildren), CancellationToken.None);
@@ -257,7 +262,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(firstBranch)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(nonExistentBranch);
@@ -293,7 +299,8 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(branchToMove)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
