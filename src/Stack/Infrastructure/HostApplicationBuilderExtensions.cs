@@ -75,6 +75,7 @@ public static class HostApplicationBuilderExtensions
         services.AddTransient<NewStackCommandHandler>();
         services.AddTransient<UpdateStackCommandHandler>();
         services.AddTransient<DeleteStackCommandHandler>();
+        services.AddTransient<RenameStackCommandHandler>();
         services.AddTransient<ListStacksCommandHandler>();
         services.AddTransient<CleanupStackCommandHandler>();
         services.AddTransient<StackStatusCommandHandler>();
@@ -99,6 +100,7 @@ public static class HostApplicationBuilderExtensions
         services.AddTransient<NewStackCommand>();
         services.AddTransient<UpdateStackCommand>();
         services.AddTransient<DeleteStackCommand>();
+        services.AddTransient<RenameStackCommand>();
         services.AddTransient<ListStacksCommand>();
         services.AddTransient<CleanupStackCommand>();
         services.AddTransient<StackStatusCommand>();

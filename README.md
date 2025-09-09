@@ -227,6 +227,22 @@ Options:
   -?, -h, --help  Show help and usage information
 ```
 
+#### `stack rename` <!-- omit from toc -->
+
+Rename a stack.
+
+```shell
+Usage:
+  stack rename [options]
+
+Options:
+  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --verbose       Show verbose output.
+  -s, --stack     The name of the stack.
+  -n, --name      The new name for the stack.
+  -?, -h, --help  Show help and usage information
+```
+
 ### Branch commands <!-- omit from toc -->
 
 #### `stack update` <!-- omit from toc -->
