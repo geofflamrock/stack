@@ -26,8 +26,6 @@ public static class CommonOptions
         Required = false
     };
 
-
-
     public static Option<int> MaxBatchSize { get; } = new Option<int>("--max-batch-size")
     {
         Description = "The maximum number of branches to process at once.",
