@@ -25,7 +25,9 @@ public static class ConflictResolutionDetector
             return ConflictResolutionResult.NotStarted;
         }
 
-        logger.LogInformation("Conflicts detected during {Operation}. Please resolve conflicts to continue...", operationType);
+        var operationTypeLowercase = operationType.ToString().ToLowerInvariant();
+
+        logger.LogInformation("Conflicts detected during {Operation}. Please resolve conflicts to continue or press CTRL+C to abort...", operationTypeLowercase);
 
         // For a rebase, HEAD moves to the upstream branch during conflicts, so comparing
         // current HEAD to the starting HEAD is unreliable. Git stores the previous HEAD
@@ -41,7 +43,7 @@ public static class ConflictResolutionDetector
 
             if (timeout.HasValue && DateTime.UtcNow - startTime >= timeout.Value)
             {
-                logger.LogWarning("Timed out waiting for {Operation} conflict resolution after {Timeout}.", operationType, timeout);
+                logger.LogWarning("Timed out waiting for {Operation} conflict resolution after {Timeout}.", operationTypeLowercase, timeout);
                 return ConflictResolutionResult.Timeout;
             }
 
