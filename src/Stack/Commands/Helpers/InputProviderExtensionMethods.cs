@@ -65,9 +65,12 @@ public static class InputProviderExtensionMethods
         CancellationToken cancellationToken)
     {
         var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stacksContainingCurrentBranch = stacks.Where(s => s.IsCurrentStack(currentBranch)).ToList();
+        
         var stackSelection =
             name ??
             (stacks.Count == 1 ? stacks.First().Name : null) ??
+            (stacksContainingCurrentBranch.Count == 1 ? stacksContainingCurrentBranch.First().Name : null) ??
             await inputProvider.Select(Questions.SelectStack, stackNames, cancellationToken);
         var stack = stacks.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
