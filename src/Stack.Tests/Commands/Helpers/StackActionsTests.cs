@@ -15,102 +15,143 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenConflictAbortedBeforeProgressRecorded_ThrowsAbortException()
     {
+        // Arrange
         var sourceBranch = Some.BranchName();
         var feature = Some.BranchName();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Config.Branch> { new(feature, []) });
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>{
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
             { sourceBranch, new GitBranchStatus(sourceBranch,$"origin/{sourceBranch}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) },
             { feature, new GitBranchStatus(feature,$"origin/{feature}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) }
         });
+
         // Trigger conflict
         gitClient.When(g => g.MergeFromLocalSourceBranch(sourceBranch)).Throws(new ConflictException());
         // Simulate: initial check says merge in progress, then still in progress once, then not in progress with HEAD unchanged => aborted
         gitClient.IsMergeInProgress().Returns(true, true, false);
+
         var head = Some.Sha();
         gitClient.GetHeadSha().Returns(head, head, head); // unchanged
         var actions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+
+        // Act
         var act = async () => await actions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Merge aborted due to conflicts.");
     }
 
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenConflictResolved_CompletesSuccessfully()
     {
+        // Arrange
         var sourceBranch = Some.BranchName();
         var feature = Some.BranchName();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Config.Branch> { new(feature, []) });
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>{
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
             { sourceBranch, new GitBranchStatus(sourceBranch,$"origin/{sourceBranch}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) },
             { feature, new GitBranchStatus(feature,$"origin/{feature}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) }
         });
+
         gitClient.When(g => g.MergeFromLocalSourceBranch(sourceBranch)).Throws(new ConflictException());
+
         // Merge progress -> then resolved (not in progress) with different HEAD
         gitClient.IsMergeInProgress().Returns(true, false);
         gitClient.GetHeadSha().Returns(Some.Sha(), Some.Sha()); // changed
         var actions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+
+        // Act
         await actions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert
         gitClient.Received().ChangeBranch(feature);
     }
 
     [Fact]
     public async Task UpdateStack_UsingRebase_WhenConflictAbortedBeforeProgressRecorded_ThrowsAbortException()
     {
+        // Arrange
         var source = Some.BranchName();
         var feature = Some.BranchName();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Config.Branch> { new(feature, []) });
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>{
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
             { source, new GitBranchStatus(source,$"origin/{source}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) },
             { feature, new GitBranchStatus(feature,$"origin/{feature}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) }
         });
+
         gitClient.When(g => g.RebaseFromLocalSourceBranch(source)).Throws(new ConflictException());
         gitClient.IsRebaseInProgress().Returns(true, true, false);
         var origHead = Some.Sha();
+
         // During rebase conflict HEAD may move; ensure orig head stored and final head equals orig to simulate abort
         gitClient.GetOriginalHeadSha().Returns(origHead);
         gitClient.GetHeadSha().Returns(origHead, origHead, origHead);
         var actions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+
+        // Act
         var act = async () => await actions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("Rebase aborted due to conflicts.");
     }
 
     [Fact]
     public async Task UpdateStack_UsingRebase_WhenConflictResolved_CompletesSuccessfully()
     {
+        // Arrange
         var source = Some.BranchName();
         var feature = Some.BranchName();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var inputProvider = Substitute.For<IInputProvider>();
         var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Config.Branch> { new(feature, []) });
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>{
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
+        {
             { source, new GitBranchStatus(source,$"origin/{source}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) },
             { feature, new GitBranchStatus(feature,$"origin/{feature}",true,false,0,0,new Commit(Some.Sha(), Some.Name())) }
         });
+
         gitClient.When(g => g.RebaseFromLocalSourceBranch(source)).Throws(new ConflictException());
         gitClient.IsRebaseInProgress().Returns(true, false);
+
         var origHead = Some.Sha();
         var newHead = Some.Sha();
         gitClient.GetOriginalHeadSha().Returns(origHead);
         gitClient.GetHeadSha().Returns(newHead, newHead); // changed from original
+
         var actions = new StackActions(gitClient, gitHubClient, inputProvider, logger, console);
+
+        // Act
         await actions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
         gitClient.Received().ChangeBranch(feature);
     }
 
