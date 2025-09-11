@@ -32,11 +32,10 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
-    // Conflict / in-progress state detection
+
     bool IsMergeInProgress();
     bool IsRebaseInProgress();
     string GetHeadSha();
-    // Returns the ORIG_HEAD ref (original HEAD before an in-progress merge/rebase) when available
     string? GetOriginalHeadSha();
 
     void Fetch(bool prune);

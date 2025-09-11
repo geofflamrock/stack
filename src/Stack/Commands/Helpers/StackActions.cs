@@ -18,15 +18,6 @@ namespace Stack.Commands.Helpers
         ILogger<StackActions> logger,
         IDisplayProvider displayProvider) : IStackActions
     {
-        // Backward compatible constructor (includes now-unused IInputProvider)
-        public StackActions(
-            IGitClient gitClient,
-            IGitHubClient gitHubClient,
-            IInputProvider _,
-            ILogger<StackActions> logger,
-            IDisplayProvider displayProvider) : this(gitClient, gitHubClient, logger, displayProvider)
-        {
-        }
         public void PullChanges(Config.Stack stack)
         {
             List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
@@ -379,7 +370,6 @@ namespace Stack.Commands.Helpers
                 }
             }
         }
-        // Removed interactive rebase conflict handler in favor of polling logic
     }
 }
 
