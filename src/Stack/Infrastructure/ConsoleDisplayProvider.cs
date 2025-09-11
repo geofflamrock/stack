@@ -10,6 +10,16 @@ public interface IDisplayProvider
     Task<T> DisplayStatus<T>(string message, Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken = default);
     Task DisplayTree<T>(string header, IEnumerable<TreeItem<T>> items, Func<T, string>? itemFormatter = null, CancellationToken cancellationToken = default) where T : notnull;
     Task DisplayMessage(string message, CancellationToken cancellationToken = default);
+    Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
+        => DisplayMessage($"{Emoji.Known.CheckMark}  {message}", cancellationToken);
+    Task DisplayStatusWithSuccess(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
+    {
+        return DisplayStatus(message, async ct =>
+        {
+            await action(ct);
+            await DisplaySuccess(message, ct);
+        }, cancellationToken);
+    }
     Task DisplayHeader(string header, CancellationToken cancellationToken = default);
     Task DisplayNewLine(CancellationToken cancellationToken = default);
 }
