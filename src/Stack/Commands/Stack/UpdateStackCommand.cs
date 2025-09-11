@@ -47,7 +47,8 @@ public record UpdateStackCommandResponse();
 public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<UpdateStackCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig,
     IStackActions stackActions)
     : CommandHandlerBase<UpdateStackCommandInputs>
@@ -61,6 +62,7 @@ public class UpdateStackCommandHandler(
 
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();

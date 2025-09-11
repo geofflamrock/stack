@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -45,7 +46,11 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .When(g => g.ChangeBranch(Arg.Any<string>()))
             .Do(ci => currentBranch = ci.Arg<string>());
 
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider
             .SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>())
@@ -90,7 +95,11 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .When(g => g.ChangeBranch(Arg.Any<string>()))
             .Do(ci => currentBranch = ci.Arg<string>());
 
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await handler.Handle(new StackSwitchCommandInputs(branchToSwitchTo), CancellationToken.None);
@@ -131,7 +140,11 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .When(g => g.ChangeBranch(Arg.Any<string>()))
             .Do(ci => currentBranch = ci.Arg<string>());
 
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act and assert
         var invalidBranchName = Some.BranchName();

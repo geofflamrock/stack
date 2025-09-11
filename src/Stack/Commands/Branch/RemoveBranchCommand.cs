@@ -68,7 +68,8 @@ public record RemoveBranchCommandInputs(string? StackName, string? BranchName, b
 public class RemoveBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<RemoveBranchCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<RemoveBranchCommandInputs>
 {
@@ -77,6 +78,7 @@ public class RemoveBranchCommandHandler(
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
