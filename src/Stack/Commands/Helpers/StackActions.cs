@@ -15,7 +15,6 @@ namespace Stack.Commands.Helpers
     public class StackActions(
         IGitClient gitClient,
         IGitHubClient gitHubClient,
-        IInputProvider inputProvider,
         ILogger<StackActions> logger,
         IDisplayProvider displayProvider) : IStackActions
     {
@@ -177,21 +176,25 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                var action = await inputProvider.Select(
-                            Questions.ContinueOrAbortMerge,
-                            [MergeConflictAction.Continue, MergeConflictAction.Abort],
-                            cancellationToken,
-                            a => a switch
-                            {
-                                MergeConflictAction.Continue => "Continue",
-                                MergeConflictAction.Abort => "Abort",
-                                _ => throw new InvalidOperationException("Invalid merge conflict action.")
-                            }); ;
+                var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                    gitClient,
+                    logger,
+                    ConflictOperationType.Merge,
+                    TimeSpan.FromSeconds(1),
+                    null,
+                    cancellationToken);
 
-                if (action == MergeConflictAction.Abort)
+                switch (result)
                 {
-                    gitClient.AbortMerge();
-                    throw new Exception("Merge aborted due to conflicts.");
+                    case ConflictResolutionResult.Completed:
+                        break; // proceed
+                    case ConflictResolutionResult.Aborted:
+                        throw new Exception("Merge aborted due to conflicts.");
+                    case ConflictResolutionResult.Timeout:
+                        throw new TimeoutException("Timed out waiting for merge conflict resolution.");
+                    case ConflictResolutionResult.NotStarted:
+                        logger.LogWarning("Expected merge to be in progress but marker not found. Proceeding cautiously.");
+                        break;
                 }
             }
         }
@@ -307,7 +310,26 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                await HandleConflictsDuringRebase(cancellationToken);
+                var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                    gitClient,
+                    logger,
+                    ConflictOperationType.Rebase,
+                    TimeSpan.FromSeconds(1),
+                    null,
+                    cancellationToken);
+
+                switch (result)
+                {
+                    case ConflictResolutionResult.Completed:
+                        break;
+                    case ConflictResolutionResult.Aborted:
+                        throw new Exception("Rebase aborted due to conflicts.");
+                    case ConflictResolutionResult.Timeout:
+                        throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
+                    case ConflictResolutionResult.NotStarted:
+                        logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
+                        break;
+                }
             }
         }
 
@@ -326,37 +348,25 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                await HandleConflictsDuringRebase(cancellationToken);
-            }
-        }
+                var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                    gitClient,
+                    logger,
+                    ConflictOperationType.Rebase,
+                    TimeSpan.FromSeconds(1),
+                    null,
+                    cancellationToken);
 
-        private async Task HandleConflictsDuringRebase(CancellationToken cancellationToken)
-        {
-            var action = await inputProvider.Select(
-                Questions.ContinueOrAbortRebase,
-                [MergeConflictAction.Continue, MergeConflictAction.Abort],
-                cancellationToken,
-                a => a switch
+                switch (result)
                 {
-                    MergeConflictAction.Continue => "Continue",
-                    MergeConflictAction.Abort => "Abort",
-                    _ => throw new InvalidOperationException("Invalid rebase conflict action.")
-                });
-
-            if (action == MergeConflictAction.Abort)
-            {
-                gitClient.AbortRebase();
-                throw new Exception("Rebase aborted due to conflicts.");
-            }
-            else if (action == MergeConflictAction.Continue)
-            {
-                try
-                {
-                    gitClient.ContinueRebase();
-                }
-                catch (ConflictException)
-                {
-                    await HandleConflictsDuringRebase(cancellationToken);
+                    case ConflictResolutionResult.Completed:
+                        break;
+                    case ConflictResolutionResult.Aborted:
+                        throw new Exception("Rebase aborted due to conflicts.");
+                    case ConflictResolutionResult.Timeout:
+                        throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
+                    case ConflictResolutionResult.NotStarted:
+                        logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
+                        break;
                 }
             }
         }

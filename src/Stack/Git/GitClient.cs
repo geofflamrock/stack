@@ -33,6 +33,11 @@ public interface IGitClient
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
 
+    bool IsMergeInProgress();
+    bool IsRebaseInProgress();
+    string GetHeadSha();
+    string? GetOriginalHeadSha();
+
     void Fetch(bool prune);
 
     void ChangeBranch(string branchName);
@@ -138,6 +143,53 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
         });
 
         return isAncestor;
+    }
+
+    public bool IsMergeInProgress()
+    {
+        var inProgress = true;
+        // "git rev-parse -q --verify MERGE_HEAD" returns 0 when a merge is in progress
+        ExecuteGitCommand("rev-parse -q --verify MERGE_HEAD", false, exitCode =>
+        {
+            inProgress = exitCode == 0;
+            return null; // suppress exception
+        });
+        return inProgress;
+    }
+
+    public bool IsRebaseInProgress()
+    {
+        // Detect presence of .git/rebase-merge or .git/rebase-apply directories
+        // Use repo root to build path; Git guarantees these directories during an interactive or normal rebase
+        var root = GetRootOfRepository();
+        var rebaseMerge = Path.Combine(root, ".git", "rebase-merge");
+        var rebaseApply = Path.Combine(root, ".git", "rebase-apply");
+        return Directory.Exists(rebaseMerge) || Directory.Exists(rebaseApply);
+    }
+
+    public string GetHeadSha()
+    {
+        return ExecuteGitCommandAndReturnOutput("rev-parse HEAD").Trim();
+    }
+
+    public string? GetOriginalHeadSha()
+    {
+        // ORIG_HEAD is updated by Git before dangerous operations (merge, rebase, reset).
+        // Use quiet verify; exit code 0 when ref exists, 1 otherwise.
+        string? orig = ExecuteGitCommandAndReturnOutput("rev-parse -q --verify ORIG_HEAD", false, exitCode =>
+        {
+            if (exitCode == 0)
+            {
+                return null; // success
+            }
+            if (exitCode == 1)
+            {
+                return null; // ref not found; treat as null without throwing
+            }
+            return new Exception("Failed to read ORIG_HEAD");
+        })?.Trim();
+
+        return string.IsNullOrWhiteSpace(orig) ? null : orig;
     }
 
     public void Fetch(bool prune)
