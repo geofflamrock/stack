@@ -302,7 +302,7 @@ namespace Stack.Commands.Helpers
 
         private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
         {
-            await displayProvider.DisplayStatus($"Rebasing {branch} onto {sourceBranchName}", async ct =>
+            await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto {sourceBranchName}", async ct =>
             {
                 gitClient.ChangeBranch(branch);
 
@@ -333,8 +333,6 @@ namespace Stack.Commands.Helpers
                             break;
                     }
                 }
-
-                await displayProvider.DisplayMessage($"{Emoji.Known.CheckMark}  Rebasing {branch} onto {sourceBranchName}...", ct);
             }, cancellationToken);
         }
 
