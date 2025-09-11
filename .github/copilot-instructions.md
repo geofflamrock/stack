@@ -9,8 +9,8 @@ Purpose: Enable AI agents to quickly understand and extend the `stack` CLI (bran
 - **Core Domains**:
   1. **Config (`Config/`)**: Persistent model (`Stack`, `Branch`) with schema migration v1→v2 in `FileStackConfig`. Config path is `%AppData%/stack/config.json` (Windows). v1 = linear list, v2 = tree structure. Backward compatibility is critical—use existing mapping helpers.
   2. **Git (`Git/`)**: Thin wrapper over `git` & `gh` CLIs via `ProcessHelpers`. Never re-implement git porcelain—compose existing commands. Conflict detection surfaces as `ConflictException`.
-  3. **Stack orchestration (`Commands/Helpers/StackActions.cs` & `StackHelpers.cs`)**: Implements update strategies (merge vs rebase), batch operations, PR list maintenance, status tree rendering (Spectre.Console).
-  4. **GitHub integration (`GitHubClient`, `CachingGitHubClient`)**: Uses `gh pr` CLI JSON output. Extend by adding fields to the source gen context.
+  3. **Stack orchestration (`Commands/Helpers/StackActions.cs` & `StackHelpers.cs`)**: Implements update strategies (merge vs rebase), batch operations, PR list maintenance, status tree rendering (Spectre.Console). Pull request status lookups are best-effort and may be skipped if the GitHub CLI is unavailable.
+  4. **GitHub integration (`GitHubClient`, `SafeGitHubClient`, `CachingGitHubClient`)**: Uses `gh pr` CLI JSON output. `SafeGitHubClient` swallows failures (missing CLI, auth, network) for status lookups only (`GetPullRequest`) and logs a single warning, ensuring commands still succeed; create/edit/open operations still propagate errors. Extend by adding fields to the source gen context.
 - **UI**: Spectre.Console for colors, trees, emoji. Keep output terse; respect `--verbose` for extra process command output only. All dynamic strings must use `Markup.Escape()`.
 
 ## Key Conventions
