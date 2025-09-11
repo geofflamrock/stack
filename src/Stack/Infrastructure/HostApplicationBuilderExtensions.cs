@@ -60,9 +60,10 @@ public static class HostApplicationBuilderExtensions
         services.AddSingleton<GitHubClient>();
         services.AddSingleton<IGitHubClient>(provider =>
         {
-            var gitHubClient = provider.GetRequiredService<GitHubClient>();
+            var baseClient = provider.GetRequiredService<GitHubClient>();
+            var safe = new SafeGitHubClient(baseClient, provider.GetRequiredService<ILogger<SafeGitHubClient>>());
             var cache = provider.GetRequiredService<IMemoryCache>();
-            return new CachingGitHubClient(gitHubClient, cache);
+            return new CachingGitHubClient(safe, cache);
         });
 
         services.AddSingleton<IStackActions, StackActions>();
