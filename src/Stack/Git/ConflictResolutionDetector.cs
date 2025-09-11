@@ -33,8 +33,15 @@ public static class ConflictResolutionDetector
         // current HEAD to the starting HEAD is unreliable. Git stores the previous HEAD
         // in ORIG_HEAD before starting the rebase; prefer that for detecting abort vs complete.
         var initialHead = operationType == ConflictOperationType.Rebase
-            ? gitClient.GetOriginalHeadSha() ?? gitClient.GetHeadSha()
+            ? gitClient.GetOriginalHeadSha()
             : gitClient.GetHeadSha();
+
+        if (string.IsNullOrEmpty(initialHead))
+        {
+            logger.LogWarning("Could not determine initial HEAD SHA before {Operation}. Unable to detect if operation was completed or aborted.", operationTypeLowercase);
+            return ConflictResolutionResult.NotStarted;
+        }
+
         var pollCount = 0;
 
         while (true)
