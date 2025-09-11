@@ -34,7 +34,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenNotStarted_ReturnsNotStarted()
+    public async Task WaitForConflictResolution_WhenNotStarted_ReturnsNotStarted()
     {
         using var repo = new TestGitRepositoryBuilder().Build();
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
@@ -52,7 +52,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenMergeCompletes_ReturnsCompleted()
+    public async Task WaitForConflictResolution_WhenMergeCompletes_ReturnsCompleted()
     {
         var branchBase = Some.BranchName();
         var branchOther = Some.BranchName();
@@ -112,7 +112,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenMergeAborted_ReturnsAborted()
+    public async Task WaitForConflictResolution_WhenMergeAborted_ReturnsAborted()
     {
         var branchBase = Some.BranchName();
         var branchOther = Some.BranchName();
@@ -157,7 +157,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenTimeoutReached_ReturnsTimeout()
+    public async Task WaitForConflictResolution_WhenTimeoutReached_ReturnsTimeout()
     {
         var branchBase = Some.BranchName();
         var branchOther = Some.BranchName();
@@ -199,7 +199,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenCancelled_Throws()
+    public async Task WaitForConflictResolution_WhenCancelled_Throws()
     {
         var branchBase = Some.BranchName();
         var branchOther = Some.BranchName();
@@ -242,7 +242,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenRebaseCompletes_ReturnsCompleted()
+    public async Task WaitForConflictResolution_WhenRebaseCompletes_ReturnsCompleted()
     {
         var baseBranch = Some.BranchName();
         var featureBranch = Some.BranchName();
@@ -312,7 +312,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task WaitForConflictOperationAsync_WhenRebaseAborted_ReturnsAborted()
+    public async Task WaitForConflictResolution_WhenRebaseAborted_ReturnsAborted()
     {
         var baseBranch = Some.BranchName();
         var featureBranch = Some.BranchName();
