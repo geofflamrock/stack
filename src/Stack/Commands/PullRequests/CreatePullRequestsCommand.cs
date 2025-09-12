@@ -43,6 +43,7 @@ public record CreatePullRequestsCommandInputs(string? Stack)
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger<CreatePullRequestsCommandHandler> logger,
+    IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
@@ -104,9 +105,9 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
+        await StackHelpers.OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
 
-        await displayProvider.DisplayNewLine(cancellationToken);
+        await outputProvider.WriteNewLine(cancellationToken);
 
         if (pullRequestCreateActions.Count > 0)
         {
@@ -124,22 +125,23 @@ public class CreatePullRequestsCommandHandler(
                 logger.PullRequestSelected(action.Branch, action.BaseBranch);
             }
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
             var pullRequestInformation = await GetPullRequestInformation(
                 inputProvider,
                 logger,
+                outputProvider,
                 displayProvider,
                 gitClient,
                 fileOperations,
                 selectedPullRequestActions,
                 cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
-            await OutputUpdatedStackStatus(logger, displayProvider, stack, status, pullRequestInformation, cancellationToken);
+            await OutputUpdatedStackStatus(logger, outputProvider, displayProvider, stack, status, pullRequestInformation, cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
             if (await inputProvider.Confirm(Questions.ConfirmCreatePullRequests, cancellationToken))
             {
@@ -200,6 +202,7 @@ public class CreatePullRequestsCommandHandler(
 
     private static async Task OutputUpdatedStackStatus(
         ILogger logger,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         Config.Stack stack,
         StackStatus status,
@@ -208,6 +211,7 @@ public class CreatePullRequestsCommandHandler(
     {
         await StackHelpers.OutputStackStatus(
             status,
+            outputProvider,
             displayProvider,
             cancellationToken,
             (branch) =>
@@ -226,6 +230,7 @@ public class CreatePullRequestsCommandHandler(
     private static async Task<List<PullRequestInformation>> GetPullRequestInformation(
         IInputProvider inputProvider,
         ILogger logger,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         IGitClient gitClient,
         IFileOperations fileOperations,
@@ -246,8 +251,8 @@ public class CreatePullRequestsCommandHandler(
 
         foreach (var action in pullRequestCreateActions)
         {
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");

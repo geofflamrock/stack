@@ -20,9 +20,11 @@ internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerCo
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
     private readonly ListStacksCommandHandler handler;
+    private readonly IOutputProvider outputProvider;
 
     public ListStacksCommand(
         ILogger<ListStacksCommand> logger,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         IInputProvider inputProvider,
         CliExecutionContext executionContext,
@@ -30,6 +32,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
         : base("list", "List stacks.", logger, displayProvider, inputProvider, executionContext)
     {
         this.handler = handler;
+        this.outputProvider = outputProvider;
     }
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
@@ -47,7 +50,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            await DisplayProvider.DisplayMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
+            await outputProvider.WriteMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 
