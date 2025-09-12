@@ -22,9 +22,13 @@ public static class HostApplicationBuilderExtensions
 
     public static IHostApplicationBuilder ConfigureLogging(this IHostApplicationBuilder builder, string[] args)
     {
-        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        builder.Logging.SetMinimumLevel(LogLevel.Information);
 
-        if (args.Contains("--verbose") || args.Contains("-v"))
+        if (args.Contains(CommonOptions.Debug.Name) || args.Any(CommonOptions.Debug.Aliases.Contains))
+        {
+            builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        }
+        else if (args.Contains(CommonOptions.Verbose.Name) || args.Any(CommonOptions.Verbose.Aliases.Contains))
         {
             builder.Logging.SetMinimumLevel(LogLevel.Trace);
         }

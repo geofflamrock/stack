@@ -232,14 +232,18 @@ public class StackStatusCommandHandler(
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackHelpers.GetStackStatus(
-            stacksToCheckStatusFor,
-            currentBranch,
-            logger,
-            displayProvider,
-            gitClient,
-            gitHubClient,
-            inputs.Full);
+        var stackStatusResults = await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            return StackHelpers.GetStackStatus(
+                stacksToCheckStatusFor,
+                currentBranch,
+                logger,
+                displayProvider,
+                gitClient,
+                gitHubClient,
+                inputs.Full);
+        }, cancellationToken);
 
         return new StackStatusCommandResponse(stackStatusResults);
     }

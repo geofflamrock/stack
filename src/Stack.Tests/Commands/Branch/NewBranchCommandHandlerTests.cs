@@ -26,6 +26,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -37,7 +38,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
@@ -72,6 +73,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -83,7 +85,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -117,6 +119,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -124,7 +127,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(anotherBranch)))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -157,6 +160,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -168,7 +172,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -194,6 +198,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -205,7 +210,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -238,6 +243,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -248,7 +254,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -276,6 +282,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -288,7 +295,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -315,6 +322,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -326,7 +334,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         gitClient.When(gc => gc.PushNewBranch(newBranch)).Do(_ => { throw new Exception("Failed to push branch"); });
 
@@ -365,6 +373,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -376,7 +385,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
@@ -412,6 +421,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
         var stackConfig = new TestStackConfigBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
@@ -423,7 +433,7 @@ public class NewBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new NewBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new NewBranchCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.BranchName, Arg.Any<CancellationToken>(), Arg.Any<string>()).Returns(newBranch);
