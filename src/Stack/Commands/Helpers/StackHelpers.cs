@@ -237,18 +237,19 @@ public static class StackHelpers
 
     public static async Task OutputStackStatus(
         List<StackStatus> statuses,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         CancellationToken cancellationToken)
     {
         foreach (var status in statuses)
         {
-            await OutputStackStatus(status, displayProvider, cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
         }
     }
 
     public static async Task OutputStackStatus(
         StackStatus status,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         CancellationToken cancellationToken,
         Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
@@ -261,8 +262,10 @@ public static class StackHelpers
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }
 
-        await displayProvider.DisplayMessage(status.Name.Stack(), cancellationToken);
-        await displayProvider.DisplayTree(header, [.. items], cancellationToken: cancellationToken);
+        var tree = RenderingHelpers.RenderTree(header, items);
+
+        await outputProvider.WriteMessage(status.Name.Stack(), cancellationToken);
+        await outputProvider.WriteLine(tree, cancellationToken);
     }
 
     public static TreeItem<string> GetBranchAndPullRequestStatusOutput(
@@ -427,48 +430,48 @@ public static class StackHelpers
 
     public static async Task OutputBranchAndStackActions(
         StackStatus status,
-        IDisplayProvider displayProvider,
+        IOutputProvider outputProvider,
         CancellationToken cancellationToken)
     {
         var allBranches = status.GetAllBranches();
         if (allBranches.All(branch => branch.CouldBeCleanedUp))
         {
-            await displayProvider.DisplayMessage("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteMessage("All branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open. This stack might be able to be deleted.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
         }
         else if (allBranches.Any(branch => branch.CouldBeCleanedUp))
         {
-            await displayProvider.DisplayMessage("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack cleanup --stack \"{status.Name}\"".Example()} to clean up the stack if it's no longer needed.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteMessage("Some branches exist locally but are either not in the remote repository or the pull request associated with the branch is no longer open.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack cleanup --stack \"{status.Name}\"".Example()} to clean up the stack if it's no longer needed.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
         }
         else if (allBranches.All(branch => !branch.Exists))
         {
-            await displayProvider.DisplayMessage("No branches exist locally. This stack might be able to be deleted.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteMessage("No branches exist locally. This stack might be able to be deleted.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack delete --stack \"{status.Name}\"".Example()} to delete the stack if it's no longer needed.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
         }
 
         if (allBranches.Any(branch => branch.Exists && (branch.RemoteTrackingBranch is null || branch.RemoteTrackingBranch.Ahead > 0)))
         {
-            await displayProvider.DisplayMessage("There are changes in local branches that have not been pushed to the remote repository.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteMessage("There are changes in local branches that have not been pushed to the remote repository.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack push --stack \"{status.Name}\"".Example()} to push the changes to the remote repository.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
         }
 
         if (allBranches.Any(branch => branch.Exists && branch.RemoteTrackingBranch is not null && branch.RemoteTrackingBranch.Behind > 0))
         {
-            await displayProvider.DisplayMessage("There are changes in source branches that have not been applied to the stack.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayMessage($"Run {$"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.", cancellationToken);
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteMessage("There are changes in source branches that have not been applied to the stack.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack update --stack \"{status.Name}\"".Example()} to update the stack locally.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteMessage($"Run {$"stack sync --stack \"{status.Name}\"".Example()} to sync the stack with the remote repository.", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
         }
     }
 

@@ -63,6 +63,7 @@ public record SyncStackCommandInputs(
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<SyncStackCommandHandler> logger,
+    IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
@@ -114,10 +115,10 @@ public class SyncStackCommandHandler(
                     gitHubClient,
                     true);
 
-                await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
+                await StackHelpers.OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
             }, cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
             if (!await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
             {
