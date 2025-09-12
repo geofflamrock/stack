@@ -46,4 +46,10 @@ public class TestDisplayProvider(ITestOutputHelper testOutputHelper) : IDisplayP
         await Task.CompletedTask;
         testOutputHelper.WriteLine($"HEADER: {header}");
     }
+
+    public async Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
+    {
+        await Task.CompletedTask;
+        testOutputHelper.WriteLine($"SUCCESS: {message}");
+    }
 }

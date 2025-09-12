@@ -10,6 +10,7 @@ using Stack.Infrastructure.Settings;
 using Stack.Commands;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Stack.Infrastructure;
 
@@ -40,6 +41,10 @@ public static class HostApplicationBuilderExtensions
         if (args.Contains(CommonOptions.Json.Name))
         {
             builder.Logging.AddJsonConsole();
+            builder.Services.Configure<ConsoleLoggerOptions>(options =>
+            {
+                options.LogToStandardErrorThreshold = LogLevel.Trace;
+            });
         }
         else
         {
