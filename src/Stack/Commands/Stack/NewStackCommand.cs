@@ -43,12 +43,12 @@ public class NewStackCommand : Command
     private readonly NewStackCommandHandler handler;
 
     public NewStackCommand(
-        ILogger<NewStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        NewStackCommandHandler handler,
         CliExecutionContext executionContext,
-        NewStackCommandHandler handler)
-        : base("new", "Create a new stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<NewStackCommand> logger)
+        : base("new", "Create a new stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(StackName);
