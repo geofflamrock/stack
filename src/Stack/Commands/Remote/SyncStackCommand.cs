@@ -104,9 +104,10 @@ public class SyncStackCommandHandler(
 
         if (!inputs.Confirm)
         {
-            await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+            var status = await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
             {
-                var status = StackHelpers.GetStackStatus(
+                await Task.CompletedTask;
+                return StackHelpers.GetStackStatus(
                     stack,
                     currentBranch,
                     logger,
@@ -114,11 +115,9 @@ public class SyncStackCommandHandler(
                     gitClient,
                     gitHubClient,
                     true);
-
-                await StackHelpers.OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
             }, cancellationToken);
 
-            await outputProvider.WriteNewLine(cancellationToken);
+            await StackHelpers.OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
 
             if (!await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
             {
