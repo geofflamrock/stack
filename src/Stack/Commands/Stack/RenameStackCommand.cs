@@ -15,16 +15,16 @@ public class RenameStackCommand : Command
         Description = "The new name for the stack.",
         Required = false
     };
-    
+
     private readonly RenameStackCommandHandler handler;
 
     public RenameStackCommand(
-        ILogger<RenameStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        RenameStackCommandHandler handler,
         CliExecutionContext executionContext,
-        RenameStackCommandHandler handler)
-        : base("rename", "Rename a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<RenameStackCommand> logger)
+        : base("rename", "Rename a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -80,8 +80,8 @@ public class RenameStackCommandHandler(
         var newName = await inputProvider.Text(logger, Questions.StackName, inputs.Name, cancellationToken);
 
         // Validate that there's not another stack with the same name for the same remote
-        var existingStackWithSameName = stacksForRemote.FirstOrDefault(s => 
-            s.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) && 
+        var existingStackWithSameName = stacksForRemote.FirstOrDefault(s =>
+            s.Name.Equals(newName, StringComparison.OrdinalIgnoreCase) &&
             !s.Name.Equals(stack.Name, StringComparison.OrdinalIgnoreCase));
 
         if (existingStackWithSameName is not null)
@@ -90,11 +90,11 @@ public class RenameStackCommandHandler(
         }
 
         var renamedStack = stack.ChangeName(newName);
-        
+
         // Update the stack in the collection
         var stackIndex = stackData.Stacks.IndexOf(stack);
         stackData.Stacks[stackIndex] = renamedStack;
-        
+
         stackConfig.Save(stackData);
 
         logger.StackRenamed(stack.Name, newName);

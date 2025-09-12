@@ -20,19 +20,16 @@ internal partial class ListStacksCommandJsonSerializerContext : JsonSerializerCo
 public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 {
     private readonly ListStacksCommandHandler handler;
-    private readonly IOutputProvider outputProvider;
 
     public ListStacksCommand(
-        ILogger<ListStacksCommand> logger,
-        IOutputProvider outputProvider,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        ListStacksCommandHandler handler,
         CliExecutionContext executionContext,
-        ListStacksCommandHandler handler)
-        : base("list", "List stacks.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<ListStacksCommand> logger)
+        : base("list", "List stacks.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
-        this.outputProvider = outputProvider;
     }
 
     protected override async Task<ListStacksCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
@@ -50,7 +47,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            await outputProvider.WriteMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
+            await OutputProvider.WriteMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 

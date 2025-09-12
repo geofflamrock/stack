@@ -13,12 +13,12 @@ public class UpdateStackCommand : Command
     private readonly UpdateStackCommandHandler handler;
 
     public UpdateStackCommand(
-        ILogger<UpdateStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        UpdateStackCommandHandler handler,
         CliExecutionContext executionContext,
-        UpdateStackCommandHandler handler)
-        : base("update", "Update the branches in a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<UpdateStackCommand> logger)
+        : base("update", "Update the branches in a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

@@ -13,12 +13,12 @@ public class AddBranchCommand : Command
     private readonly AddBranchCommandHandler handler;
 
     public AddBranchCommand(
-        ILogger<AddBranchCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        AddBranchCommandHandler handler,
         CliExecutionContext executionContext,
-        AddBranchCommandHandler handler)
-        : base("add", "Add an existing branch to a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<AddBranchCommand> logger)
+        : base("add", "Add an existing branch to a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

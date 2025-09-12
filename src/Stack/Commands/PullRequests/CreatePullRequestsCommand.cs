@@ -15,12 +15,12 @@ public class CreatePullRequestsCommand : Command
     private readonly CreatePullRequestsCommandHandler handler;
 
     public CreatePullRequestsCommand(
-        ILogger<CreatePullRequestsCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        CreatePullRequestsCommandHandler handler,
         CliExecutionContext executionContext,
-        CreatePullRequestsCommandHandler handler)
-        : base("create", "Create pull requests for a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<CreatePullRequestsCommand> logger)
+        : base("create", "Create pull requests for a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -79,7 +79,6 @@ public class CreatePullRequestsCommandHandler(
             stack,
             currentBranch,
             logger,
-            displayProvider,
             gitClient,
             gitHubClient);
 
@@ -105,7 +104,7 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        await StackHelpers.OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
+        await StackHelpers.OutputStackStatus(status, outputProvider, cancellationToken);
 
         await outputProvider.WriteNewLine(cancellationToken);
 
@@ -139,7 +138,7 @@ public class CreatePullRequestsCommandHandler(
 
             await outputProvider.WriteNewLine(cancellationToken);
 
-            await OutputUpdatedStackStatus(logger, outputProvider, displayProvider, stack, status, pullRequestInformation, cancellationToken);
+            await OutputUpdatedStackStatus(outputProvider, status, pullRequestInformation, cancellationToken);
 
             await outputProvider.WriteNewLine(cancellationToken);
 
@@ -201,10 +200,7 @@ public class CreatePullRequestsCommandHandler(
     }
 
     private static async Task OutputUpdatedStackStatus(
-        ILogger logger,
         IOutputProvider outputProvider,
-        IDisplayProvider displayProvider,
-        Config.Stack stack,
         StackStatus status,
         List<PullRequestInformation> pullRequestInformation,
         CancellationToken cancellationToken)
@@ -212,7 +208,6 @@ public class CreatePullRequestsCommandHandler(
         await StackHelpers.OutputStackStatus(
             status,
             outputProvider,
-            displayProvider,
             cancellationToken,
             (branch) =>
             {

@@ -105,7 +105,6 @@ public static class StackHelpers
         List<Config.Stack> stacks,
         string currentBranch,
         ILogger logger,
-        IDisplayProvider displayProvider,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -218,7 +217,6 @@ public static class StackHelpers
         Config.Stack stack,
         string currentBranch,
         ILogger logger,
-        IDisplayProvider displayProvider,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
         bool includePullRequestStatus = true)
@@ -227,7 +225,6 @@ public static class StackHelpers
             [stack],
             currentBranch,
             logger,
-            displayProvider,
             gitClient,
             gitHubClient,
             includePullRequestStatus);
@@ -238,19 +235,17 @@ public static class StackHelpers
     public static async Task OutputStackStatus(
         List<StackStatus> statuses,
         IOutputProvider outputProvider,
-        IDisplayProvider displayProvider,
         CancellationToken cancellationToken)
     {
         foreach (var status in statuses)
         {
-            await OutputStackStatus(status, outputProvider, displayProvider, cancellationToken);
+            await OutputStackStatus(status, outputProvider, cancellationToken);
         }
     }
 
     public static async Task OutputStackStatus(
         StackStatus status,
         IOutputProvider outputProvider,
-        IDisplayProvider displayProvider,
         CancellationToken cancellationToken,
         Func<BranchDetail, string?>? getBranchPullRequestDisplay = null)
     {
@@ -523,10 +518,10 @@ public static class StackHelpers
         return strategy;
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IDisplayProvider displayProvider, IGitClient gitClient, IGitHubClient gitHubClient)
+    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var currentBranch = gitClient.GetCurrentBranch();
-        var stackStatus = GetStackStatus(stack, currentBranch, logger, displayProvider, gitClient, gitHubClient, true);
+        var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, true);
 
         return [.. stackStatus.GetAllBranches().Where(b => b.CouldBeCleanedUp).Select(b => b.Name)];
     }

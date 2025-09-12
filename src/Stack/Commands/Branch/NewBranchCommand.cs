@@ -15,12 +15,12 @@ public class NewBranchCommand : Command
     private readonly NewBranchCommandHandler handler;
 
     public NewBranchCommand(
-        ILogger<NewBranchCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        NewBranchCommandHandler handler,
         CliExecutionContext executionContext,
-        NewBranchCommandHandler handler)
-        : base("new", "Create a new branch in a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<NewBranchCommand> logger)
+        : base("new", "Create a new branch in a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
