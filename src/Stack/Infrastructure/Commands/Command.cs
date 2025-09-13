@@ -11,24 +11,26 @@ public abstract class Command : System.CommandLine.Command
 {
     protected ILogger Logger;
     protected IInputProvider InputProvider;
-    protected IDisplayProvider DisplayProvider;
+    protected IOutputProvider OutputProvider;
     protected string? WorkingDirectory;
     protected bool Verbose;
 
     public Command(
         string name,
         string? description,
-        ILogger logger,
-        IDisplayProvider displayProvider,
+        CliExecutionContext executionContext,
         IInputProvider inputProvider,
-        CliExecutionContext executionContext) : base(name, description)
+        IOutputProvider outputProvider,
+        ILogger logger) : base(name, description)
     {
-        Logger = logger;
-        DisplayProvider = displayProvider;
         InputProvider = inputProvider;
+        OutputProvider = outputProvider;
+        Logger = logger;
 
         Add(CommonOptions.WorkingDirectory);
+        Add(CommonOptions.Debug);
         Add(CommonOptions.Verbose);
+        Add(CommonOptions.Json);
 
         SetAction(async (parseResult, cancellationToken) =>
         {
@@ -71,7 +73,7 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred running command \"{FilePath} {Command}\"")]
     public static partial void ProcessExceptionCommandDetails(this ILogger logger, string filePath, string command);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "{Message}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "{Message}")]
     public static partial void ProcessExceptionErrorMessage(this ILogger logger, string message);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "{Message}")]

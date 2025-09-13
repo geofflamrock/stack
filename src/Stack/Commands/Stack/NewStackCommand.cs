@@ -43,12 +43,12 @@ public class NewStackCommand : Command
     private readonly NewStackCommandHandler handler;
 
     public NewStackCommand(
-        ILogger<NewStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        NewStackCommandHandler handler,
         CliExecutionContext executionContext,
-        NewStackCommandHandler handler)
-        : base("new", "Create a new stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<NewStackCommand> logger)
+        : base("new", "Create a new stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(StackName);
@@ -75,6 +75,7 @@ public record NewStackCommandInputs(string? Name, string? SourceBranch, string? 
 public class NewStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<NewStackCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewStackCommandInputs>
@@ -119,8 +120,11 @@ public class NewStackCommandHandler(
 
             try
             {
-                logger.PushingBranch(branchName);
+                await displayProvider.DisplayStatus($"Pushing branch '{branchName}' to remote repository...", async (ct) =>
+            {
+                await Task.CompletedTask;
                 gitClient.PushNewBranch(branchName);
+            }, cancellationToken);
             }
             catch (Exception)
             {

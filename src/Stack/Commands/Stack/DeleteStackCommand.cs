@@ -14,12 +14,12 @@ public class DeleteStackCommand : Command
     private readonly DeleteStackCommandHandler handler;
 
     public DeleteStackCommand(
-        ILogger<DeleteStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        DeleteStackCommandHandler handler,
         CliExecutionContext executionContext,
-        DeleteStackCommandHandler handler)
-        : base("delete", "Delete a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<DeleteStackCommand> logger)
+        : base("delete", "Delete a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -46,7 +46,6 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<DeleteStackCommandHandler> logger,
-    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
@@ -71,7 +70,7 @@ public class DeleteStackCommandHandler(
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmDeleteStack, cancellationToken))
         {
-            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, displayProvider, gitClient, gitHubClient);
+            var branchesNeedingCleanup = StackHelpers.GetBranchesNeedingCleanup(stack, logger, gitClient, gitHubClient);
 
             if (branchesNeedingCleanup.Length > 0)
             {

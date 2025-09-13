@@ -6,9 +6,14 @@ namespace Stack.Tests.Helpers;
 
 public class TestDisplayProvider(ITestOutputHelper testOutputHelper) : IDisplayProvider
 {
+    public async Task<T> DisplayStatus<T>(string message, Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        testOutputHelper.WriteLine($"STATUS: {message}");
+        return await action(cancellationToken);
+    }
+
     public async Task DisplayStatus(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
-        await Task.CompletedTask;
         testOutputHelper.WriteLine($"STATUS: {message}");
         await action(cancellationToken);
     }
@@ -40,5 +45,11 @@ public class TestDisplayProvider(ITestOutputHelper testOutputHelper) : IDisplayP
     {
         await Task.CompletedTask;
         testOutputHelper.WriteLine($"HEADER: {header}");
+    }
+
+    public async Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
+    {
+        await Task.CompletedTask;
+        testOutputHelper.WriteLine($"SUCCESS: {message}");
     }
 }

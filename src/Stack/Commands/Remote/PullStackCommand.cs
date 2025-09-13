@@ -13,12 +13,12 @@ public class PullStackCommand : Command
     private readonly PullStackCommandHandler handler;
 
     public PullStackCommand(
-        ILogger<PullStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        PullStackCommandHandler handler,
         CliExecutionContext executionContext,
-        PullStackCommandHandler handler)
-        : base("pull", "Pull changes from the remote repository for a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<PullStackCommand> logger)
+        : base("pull", "Pull changes from the remote repository for a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -37,6 +37,7 @@ public record PullStackCommandInputs(string? Stack);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<PullStackCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -63,8 +64,20 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        stackActions.PullChanges(stack);
+        await displayProvider.DisplayStatus($"Pulling changes from remote repository...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            stackActions.PullChanges(stack);
+        }, cancellationToken);
 
         gitClient.ChangeBranch(currentBranch);
+
+        logger.PulledStack(stack.Name);
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(2, LogLevel.Information, "Pulled changes for stack '{Stack}'.")]
+    public static partial void PulledStack(this ILogger logger, string stack);
 }

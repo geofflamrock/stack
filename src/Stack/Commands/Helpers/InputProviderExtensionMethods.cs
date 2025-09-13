@@ -64,14 +64,25 @@ public static class InputProviderExtensionMethods
         string currentBranch,
         CancellationToken cancellationToken)
     {
-        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        if (name is not null)
+        {
+            return stacks.FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (stacks.Count == 1)
+        {
+            return stacks.First();
+        }
+
         var stacksContainingCurrentBranch = stacks.Where(s => s.IsCurrentStack(currentBranch)).ToList();
-        
-        var stackSelection =
-            name ??
-            (stacks.Count == 1 ? stacks.First().Name : null) ??
-            (stacksContainingCurrentBranch.Count == 1 ? stacksContainingCurrentBranch.First().Name : null) ??
-            await inputProvider.Select(Questions.SelectStack, stackNames, cancellationToken);
+
+        if (stacksContainingCurrentBranch.Count == 1)
+        {
+            return stacksContainingCurrentBranch.First();
+        }
+
+        var stackNames = stacks.OrderByCurrentStackThenByName(currentBranch).Select(s => s.Name).ToArray();
+        var stackSelection = await inputProvider.Select(Questions.SelectStack, stackNames, cancellationToken);
         var stack = stacks.FirstOrDefault(s => s.Name.Equals(stackSelection, StringComparison.OrdinalIgnoreCase));
 
         if (stack is not null)

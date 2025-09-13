@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
 using Stack.Config;
@@ -18,12 +19,12 @@ public class SyncStackCommand : Command
     private readonly SyncStackCommandHandler handler;
 
     public SyncStackCommand(
-        ILogger<SyncStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        SyncStackCommandHandler handler,
         CliExecutionContext executionContext,
-        SyncStackCommandHandler handler)
-        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<SyncStackCommand> logger)
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -62,6 +63,7 @@ public record SyncStackCommandInputs(
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<SyncStackCommandHandler> logger,
+    IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
@@ -94,58 +96,72 @@ public class SyncStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        FetchChanges();
-
-        var status = StackHelpers.GetStackStatus(
-            stack,
-            currentBranch,
-            logger,
-            displayProvider,
-            gitClient,
-            gitHubClient,
-            true);
-
-        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
-
-        await displayProvider.DisplayNewLine(cancellationToken);
-
-        if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
-        {
-            logger.SyncingStackWithRemote(stack.Name);
-
-            stackActions.PullChanges(stack);
-
-            var updateStrategy = await StackHelpers.GetUpdateStrategy(
-                inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
-                gitClient, inputProvider, logger, cancellationToken);
-
-            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
-
-            var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
-
-            if (!inputs.NoPush)
-                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
-
-            if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
-                stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
-            {
-                gitClient.ChangeBranch(currentBranch);
-            }
-        }
-    }
-
-    private void FetchChanges()
-    {
-        displayProvider.DisplayStatus("Fetching changes from remote repository", async (ct) =>
+        await displayProvider.DisplayStatusWithSuccess("Fetching changes from remote repository...", async (ct) =>
         {
             await Task.CompletedTask;
             gitClient.Fetch(true);
         });
+
+        if (!inputs.Confirm)
+        {
+            var status = await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+            {
+                await Task.CompletedTask;
+                return StackHelpers.GetStackStatus(
+                    stack,
+                    currentBranch,
+                    logger,
+                    gitClient,
+                    gitHubClient,
+                    true);
+            }, cancellationToken);
+
+            await StackHelpers.OutputStackStatus(status, outputProvider, cancellationToken);
+
+            if (!await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
+            {
+                return;
+            }
+        }
+
+        await displayProvider.DisplayStatusWithSuccess("Pulling changes from remote repository...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            stackActions.PullChanges(stack);
+        }, cancellationToken);
+
+        var updateStrategy = await StackHelpers.GetUpdateStrategy(
+            inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
+            gitClient, inputProvider, logger, cancellationToken);
+
+        await displayProvider.DisplayStatus("Updating stack...", async (ct) =>
+        {
+            await stackActions.UpdateStack(stack, updateStrategy, ct);
+        }, cancellationToken);
+
+        var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
+
+        if (!inputs.NoPush)
+        {
+            await displayProvider.DisplayStatusWithSuccess("Pushing changes to remote repository...", async (ct) =>
+            {
+                await Task.CompletedTask;
+                stackActions.PushChanges(stack, inputs.MaxBatchSize, forceWithLease);
+            }, cancellationToken);
+        }
+
+        if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
+            stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
+        {
+            gitClient.ChangeBranch(currentBranch);
+        }
+
+        logger.StackSyncedWithRemote(stack.Name);
     }
 }
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "Syncing stack \"{Stack}\" with the remote repository")]
-    public static partial void SyncingStackWithRemote(this ILogger logger, string stack);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stack \"{Stack}\" synced with the remote repository")]
+    public static partial void StackSyncedWithRemote(this ILogger logger, string stack);
 }

@@ -12,12 +12,12 @@ public class OpenConfigCommand : Command
     readonly IStackConfig stackConfig;
 
     public OpenConfigCommand(
-        ILogger<OpenConfigCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        IStackConfig stackConfig,
         CliExecutionContext executionContext,
-        IStackConfig stackConfig)
-        : base("open", "Open the configuration file in the default editor.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<OpenConfigCommand> logger)
+        : base("open", "Open the configuration file in the default editor.", executionContext, inputProvider, outputProvider, logger)
     {
         this.stackConfig = stackConfig;
     }
@@ -46,6 +46,6 @@ public class OpenConfigCommand : Command
 
 internal static partial class LoggerExtensionMethods
 {
-    [LoggerMessage(Level = LogLevel.Information, Message = "No config file found.")]
+    [LoggerMessage(Level = LogLevel.Warning, Message = "No config file found.")]
     public static partial void NoConfigFileFound(this ILogger logger);
 }

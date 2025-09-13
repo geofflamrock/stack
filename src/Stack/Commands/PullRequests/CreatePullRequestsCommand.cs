@@ -15,12 +15,12 @@ public class CreatePullRequestsCommand : Command
     private readonly CreatePullRequestsCommandHandler handler;
 
     public CreatePullRequestsCommand(
-        ILogger<CreatePullRequestsCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        CreatePullRequestsCommandHandler handler,
         CliExecutionContext executionContext,
-        CreatePullRequestsCommandHandler handler)
-        : base("create", "Create pull requests for a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<CreatePullRequestsCommand> logger)
+        : base("create", "Create pull requests for a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -43,6 +43,7 @@ public record CreatePullRequestsCommandInputs(string? Stack)
 public class CreatePullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger<CreatePullRequestsCommandHandler> logger,
+    IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
@@ -78,7 +79,6 @@ public class CreatePullRequestsCommandHandler(
             stack,
             currentBranch,
             logger,
-            displayProvider,
             gitClient,
             gitHubClient);
 
@@ -104,9 +104,9 @@ public class CreatePullRequestsCommandHandler(
             }
         }
 
-        await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
+        await StackHelpers.OutputStackStatus(status, outputProvider, cancellationToken);
 
-        await displayProvider.DisplayNewLine(cancellationToken);
+        await outputProvider.WriteNewLine(cancellationToken);
 
         if (pullRequestCreateActions.Count > 0)
         {
@@ -124,22 +124,23 @@ public class CreatePullRequestsCommandHandler(
                 logger.PullRequestSelected(action.Branch, action.BaseBranch);
             }
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
             var pullRequestInformation = await GetPullRequestInformation(
                 inputProvider,
                 logger,
+                outputProvider,
                 displayProvider,
                 gitClient,
                 fileOperations,
                 selectedPullRequestActions,
                 cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
-            await OutputUpdatedStackStatus(logger, displayProvider, stack, status, pullRequestInformation, cancellationToken);
+            await OutputUpdatedStackStatus(outputProvider, status, pullRequestInformation, cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
 
             if (await inputProvider.Confirm(Questions.ConfirmCreatePullRequests, cancellationToken))
             {
@@ -199,16 +200,14 @@ public class CreatePullRequestsCommandHandler(
     }
 
     private static async Task OutputUpdatedStackStatus(
-        ILogger logger,
-        IDisplayProvider displayProvider,
-        Config.Stack stack,
+        IOutputProvider outputProvider,
         StackStatus status,
         List<PullRequestInformation> pullRequestInformation,
         CancellationToken cancellationToken)
     {
         await StackHelpers.OutputStackStatus(
             status,
-            displayProvider,
+            outputProvider,
             cancellationToken,
             (branch) =>
             {
@@ -226,6 +225,7 @@ public class CreatePullRequestsCommandHandler(
     private static async Task<List<PullRequestInformation>> GetPullRequestInformation(
         IInputProvider inputProvider,
         ILogger logger,
+        IOutputProvider outputProvider,
         IDisplayProvider displayProvider,
         IGitClient gitClient,
         IFileOperations fileOperations,
@@ -246,8 +246,8 @@ public class CreatePullRequestsCommandHandler(
 
         foreach (var action in pullRequestCreateActions)
         {
-            await displayProvider.DisplayNewLine(cancellationToken);
-            await displayProvider.DisplayHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
+            await outputProvider.WriteNewLine(cancellationToken);
+            await outputProvider.WriteHeader($"New pull request from {action.Branch.Branch()} -> {action.BaseBranch.Branch()}", cancellationToken);
 
             var title = inputProvider.Text(Questions.PullRequestTitle, cancellationToken).Result;
             var bodyFilePath = Path.Join(fileOperations.GetTempPath(), $"stack-pr-{Guid.NewGuid():N}.md");
@@ -292,7 +292,7 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Information, Message = "Pull request selected: {HeadBranch} -> {BaseBranch}")]
     public static partial void PullRequestSelected(this ILogger logger, string headBranch, string baseBranch);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Creating pull request for branch {HeadBranch} to {BaseBranch}")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Creating pull request for branch {HeadBranch} to {BaseBranch}")]
     public static partial void CreatingPullRequest(this ILogger logger, string headBranch, string baseBranch);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Pull request \"{PullRequest}\" created for branch {HeadBranch} to {BaseBranch}")]
@@ -301,6 +301,6 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Information, Message = "No new pull requests to create.")]
     public static partial void NoPullRequestsToCreate(this ILogger logger);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Found pull request template at \"{TemplatePath}\", this will be used as the default body for each pull request.")]
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found pull request template at \"{TemplatePath}\", this will be used as the default body for each pull request.")]
     public static partial void FoundPullRequestTemplate(this ILogger logger, string templatePath);
 }

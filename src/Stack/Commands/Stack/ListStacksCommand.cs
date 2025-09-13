@@ -22,12 +22,12 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
     private readonly ListStacksCommandHandler handler;
 
     public ListStacksCommand(
-        ILogger<ListStacksCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        ListStacksCommandHandler handler,
         CliExecutionContext executionContext,
-        ListStacksCommandHandler handler)
-        : base("list", "List stacks.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<ListStacksCommand> logger)
+        : base("list", "List stacks.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
     }
@@ -47,7 +47,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
         foreach (var stack in response.Stacks)
         {
-            await DisplayProvider.DisplayMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
+            await OutputProvider.WriteMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 

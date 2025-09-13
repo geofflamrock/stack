@@ -13,12 +13,12 @@ public class UpdateStackCommand : Command
     private readonly UpdateStackCommandHandler handler;
 
     public UpdateStackCommand(
-        ILogger<UpdateStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        UpdateStackCommandHandler handler,
         CliExecutionContext executionContext,
-        UpdateStackCommandHandler handler)
-        : base("update", "Update the branches in a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<UpdateStackCommand> logger)
+        : base("update", "Update the branches in a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -47,6 +47,7 @@ public record UpdateStackCommandResponse();
 public class UpdateStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<UpdateStackCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -67,6 +68,7 @@ public class UpdateStackCommandHandler(
 
         if (stacksForRemote.Count == 0)
         {
+            logger.NoStacksForRepository();
             return;
         }
 
@@ -81,14 +83,15 @@ public class UpdateStackCommandHandler(
             inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
             gitClient, inputProvider, logger, cancellationToken);
 
-        await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
+        await displayProvider.DisplayStatus("Updating stack...", async (ct) =>
+        {
+            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
+        }, cancellationToken);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||
             stack.AllBranchNames.Contains(currentBranch, StringComparer.OrdinalIgnoreCase))
         {
             gitClient.ChangeBranch(currentBranch);
         }
-
-        return;
     }
 }
