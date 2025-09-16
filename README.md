@@ -171,6 +171,7 @@ Usage:
 
 Options:
   --working-dir        The path to the directory containing the git repository. Defaults to the current directory.
+  --debug              Show debug output.
   --verbose            Show verbose output.
   -n, --name           The name of the stack. Must be unique within the repository.
   -s, --source-branch  The source branch to use for the new stack. Defaults to the default branch for the repository.
@@ -188,6 +189,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   --json          Output results as JSON.
   -?, -h, --help  Show help and usage information
@@ -203,6 +205,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   --json          Output results as JSON.
   -s, --stack     The name of the stack.
@@ -221,6 +224,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -y, --yes       Confirm the command without prompting.
@@ -237,6 +241,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -n, --name      The new name for the stack.
@@ -255,6 +260,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   --rebase        Use rebase when updating the stack. Overrides any setting in Git configuration.
@@ -272,6 +278,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -b, --branch    The name of the branch.
   -?, -h, --help  Show help and usage information
@@ -287,6 +294,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -y, --yes       Confirm the command without prompting.
@@ -303,6 +311,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -b, --branch    The name of the branch.
@@ -320,6 +329,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -b, --branch    The name of the branch.
@@ -337,6 +347,7 @@ Usage:
 
 Options:
   --working-dir              The path to the directory containing the git repository. Defaults to the current directory.
+  --debug                    Show debug output.
   --verbose                  Show verbose output.
   -s, --stack                The name of the stack.
   -b, --branch               The name of the branch.
@@ -358,6 +369,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
@@ -373,6 +385,7 @@ Usage:
 
 Options:
   --working-dir       The path to the directory containing the git repository. Defaults to the current directory.
+  --debug             Show debug output.
   --verbose           Show verbose output.
   -s, --stack         The name of the stack.
   --max-batch-size    The maximum number of branches to process at once. [default: 5]
@@ -390,6 +403,7 @@ Usage:
 
 Options:
   --working-dir     The path to the directory containing the git repository. Defaults to the current directory.
+  --debug           Show debug output.
   --verbose         Show verbose output.
   -s, --stack       The name of the stack.
   --max-batch-size  The maximum number of branches to process at once. [default: 5]
@@ -412,6 +426,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
@@ -427,6 +442,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
@@ -444,6 +460,7 @@ Usage:
 
 Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
+  --debug         Show debug output.
   --verbose       Show verbose output.
   -?, -h, --help  Show help and usage information
 ```
