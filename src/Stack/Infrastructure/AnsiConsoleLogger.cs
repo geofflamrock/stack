@@ -41,9 +41,13 @@ public class AnsiConsoleLogger(IAnsiConsole console) : ILogger
                     break;
                 }
             case LogLevel.Debug:
+                {
+                    console.MarkupLine($"[grey58]{message}[/]");
+                    break;
+                }
             case LogLevel.Trace:
                 {
-                    console.MarkupLine($"[grey]{message}[/]");
+                    console.MarkupLine($"[grey30]{message}[/]");
                     break;
                 }
         }

@@ -37,6 +37,7 @@ public record PullStackCommandInputs(string? Stack);
 public class PullStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<PullStackCommandHandler> logger,
+    IDisplayProvider displayProvider,
     IGitClient gitClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -63,8 +64,20 @@ public class PullStackCommandHandler(
         if (stack is null)
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
-        stackActions.PullChanges(stack);
+        await displayProvider.DisplayStatus($"Pulling changes from remote repository...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            stackActions.PullChanges(stack);
+        }, cancellationToken);
 
         gitClient.ChangeBranch(currentBranch);
+
+        logger.PulledStack(stack.Name);
     }
+}
+
+internal static partial class LoggerExtensionMethods
+{
+    [LoggerMessage(2, LogLevel.Information, "Pulled changes for stack '{Stack}'.")]
+    public static partial void PulledStack(this ILogger logger, string stack);
 }

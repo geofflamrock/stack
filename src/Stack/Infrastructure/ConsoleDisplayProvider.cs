@@ -7,20 +7,82 @@ namespace Stack.Infrastructure;
 public interface IDisplayProvider
 {
     Task DisplayStatus(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default);
+    Task<T> DisplayStatus<T>(string message, Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken = default);
     Task DisplayTree<T>(string header, IEnumerable<TreeItem<T>> items, Func<T, string>? itemFormatter = null, CancellationToken cancellationToken = default) where T : notnull;
     Task DisplayMessage(string message, CancellationToken cancellationToken = default);
+    Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
+        => DisplayMessage($"{Emoji.Known.CheckMark}  {message}", cancellationToken);
+    Task DisplayStatusWithSuccess(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
+    {
+        return DisplayStatus(message, async ct =>
+        {
+            await action(ct);
+            await DisplaySuccess(message, ct);
+        }, cancellationToken);
+    }
     Task DisplayHeader(string header, CancellationToken cancellationToken = default);
     Task DisplayNewLine(CancellationToken cancellationToken = default);
 }
 
 public class ConsoleDisplayProvider(IAnsiConsole console) : IDisplayProvider
 {
+    readonly AsyncLocal<StatusContext?> _currentStatusContext = new();
+
     public async Task DisplayStatus(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
     {
+        if (_currentStatusContext.Value is not null)
+        {
+            _currentStatusContext.Value.Status(message);
+            await action(cancellationToken);
+            return;
+        }
+
         await console
             .Status()
             .Spinner(Spinner.Known.Dots3)
-            .StartAsync(message, async (_) => await action(cancellationToken));
+            .StartAsync(message, async (context) =>
+            {
+                _currentStatusContext.Value = context;
+                try
+                {
+                    await action(cancellationToken);
+                }
+                finally
+                {
+                    if (ReferenceEquals(_currentStatusContext.Value, context))
+                    {
+                        _currentStatusContext.Value = null;
+                    }
+                }
+            });
+    }
+
+    public async Task<T> DisplayStatus<T>(string message, Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken = default)
+    {
+        if (_currentStatusContext.Value is not null)
+        {
+            _currentStatusContext.Value.Status(message);
+            return await action(cancellationToken);
+        }
+
+        return await console
+            .Status()
+            .Spinner(Spinner.Known.Dots3)
+            .StartAsync(message, async (context) =>
+            {
+                _currentStatusContext.Value = context;
+                try
+                {
+                    return await action(cancellationToken);
+                }
+                finally
+                {
+                    if (ReferenceEquals(_currentStatusContext.Value, context))
+                    {
+                        _currentStatusContext.Value = null;
+                    }
+                }
+            });
     }
 
     public async Task DisplayTree<T>(string header, IEnumerable<TreeItem<T>> items, Func<T, string>? itemFormatter = null, CancellationToken cancellationToken = default)

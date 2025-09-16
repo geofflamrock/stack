@@ -16,7 +16,7 @@ public static class ProcessHelpers
         bool captureStandardError = false,
         Func<int, Exception?>? exceptionHandler = null)
     {
-        logger.TraceCommand(fileName, command);
+        logger.ExecutingCommand(fileName, command);
 
         var infoBuilder = new StringBuilder();
         var errorBuilder = new StringBuilder();
@@ -53,7 +53,7 @@ public static class ProcessHelpers
 
         if (result != 0)
         {
-            logger.TraceFailedCommand(fileName, command, result, errorBuilder.ToString());
+            logger.CommandFailed(fileName, command, result, errorBuilder.ToString());
 
             if (exceptionHandler != null)
             {
@@ -71,7 +71,7 @@ public static class ProcessHelpers
 
         if (infoBuilder.Length > 0)
         {
-            logger.TraceInfoOutput(Markup.Escape(infoBuilder.ToString()));
+            logger.CommandOutput(Markup.Escape(infoBuilder.ToString()));
         }
 
         var output = infoBuilder.ToString();
@@ -95,11 +95,11 @@ public class ProcessException(string message, string filePath, string command, i
 internal static partial class LoggerExtensionMethods
 {
     [LoggerMessage(Level = LogLevel.Trace, Message = "{FileName} {Command}")]
-    public static partial void TraceCommand(this ILogger logger, string fileName, string command);
+    public static partial void ExecutingCommand(this ILogger logger, string fileName, string command);
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "Failed to execute command: {FileName} {Command}. Exit code: {ExitCode}. Error: {Error}.")]
-    public static partial void TraceFailedCommand(this ILogger logger, string fileName, string command, int exitCode, string error);
+    public static partial void CommandFailed(this ILogger logger, string fileName, string command, int exitCode, string error);
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "{Info}")]
-    public static partial void TraceInfoOutput(this ILogger logger, string info);
+    public static partial void CommandOutput(this ILogger logger, string info);
 }

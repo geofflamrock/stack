@@ -212,6 +212,13 @@ public class StackStatusCommandHandler(
 
         var remoteUri = gitClient.GetRemoteUri();
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (stacksForRemote.Count == 0)
+        {
+            logger.NoStacksForRepository();
+            return new StackStatusCommandResponse([]);
+        }
+
         var currentBranch = gitClient.GetCurrentBranch();
 
         var stacksToCheckStatusFor = new List<Config.Stack>();
@@ -226,20 +233,29 @@ public class StackStatusCommandHandler(
 
             if (stack is null)
             {
+                if (inputs.Stack is null)
+                {
+                    throw new InvalidOperationException("Stack not found.");
+                }
+
                 throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
             }
 
             stacksToCheckStatusFor.Add(stack);
         }
 
-        var stackStatusResults = StackHelpers.GetStackStatus(
-            stacksToCheckStatusFor,
-            currentBranch,
-            logger,
-            displayProvider,
-            gitClient,
-            gitHubClient,
-            inputs.Full);
+        var stackStatusResults = await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+        {
+            await Task.CompletedTask;
+            return StackHelpers.GetStackStatus(
+                stacksToCheckStatusFor,
+                currentBranch,
+                logger,
+                displayProvider,
+                gitClient,
+                gitHubClient,
+                inputs.Full);
+        }, cancellationToken);
 
         return new StackStatusCommandResponse(stackStatusResults);
     }

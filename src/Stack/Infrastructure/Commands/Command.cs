@@ -28,6 +28,7 @@ public abstract class Command : System.CommandLine.Command
         InputProvider = inputProvider;
 
         Add(CommonOptions.WorkingDirectory);
+        Add(CommonOptions.Debug);
         Add(CommonOptions.Verbose);
 
         SetAction(async (parseResult, cancellationToken) =>
@@ -71,7 +72,7 @@ internal static partial class LoggerExtensionMethods
     [LoggerMessage(Level = LogLevel.Error, Message = "An error occurred running command \"{FilePath} {Command}\"")]
     public static partial void ProcessExceptionCommandDetails(this ILogger logger, string filePath, string command);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "{Message}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "{Message}")]
     public static partial void ProcessExceptionErrorMessage(this ILogger logger, string message);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "{Message}")]
