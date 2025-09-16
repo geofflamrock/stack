@@ -22,7 +22,7 @@ public static class CommonOptions
 
     public static Option<bool> Json { get; } = new Option<bool>("--json")
     {
-        Description = "Output results as JSON.",
+        Description = "Write output and log messages as JSON. Log messages will be written to stderr.",
         Required = false
     };
 

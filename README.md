@@ -173,6 +173,7 @@ Options:
   --working-dir        The path to the directory containing the git repository. Defaults to the current directory.
   --debug              Show debug output.
   --verbose            Show verbose output.
+  --json               Write output and log messages as JSON. Log messages will be written to stderr.
   -n, --name           The name of the stack. Must be unique within the repository.
   -s, --source-branch  The source branch to use for the new stack. Defaults to the default branch for the repository.
   -b, --branch         The name of the branch to create within the stack.
@@ -191,7 +192,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
-  --json          Output results as JSON.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -?, -h, --help  Show help and usage information
 ```
 
@@ -207,7 +208,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
-  --json          Output results as JSON.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   --all           Show status of all stacks.
   --full          Show full status including pull requests.
@@ -226,6 +227,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -y, --yes       Confirm the command without prompting.
   -?, -h, --help  Show help and usage information
@@ -243,6 +245,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -n, --name      The new name for the stack.
   -?, -h, --help  Show help and usage information
@@ -262,6 +265,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   --rebase        Use rebase when updating the stack. Overrides any setting in Git configuration.
   --merge         Use merge when updating the stack. Overrides any setting in Git configuration.
@@ -280,6 +284,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -b, --branch    The name of the branch.
   -?, -h, --help  Show help and usage information
 ```
@@ -296,6 +301,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -y, --yes       Confirm the command without prompting.
   -?, -h, --help  Show help and usage information
@@ -313,6 +319,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -b, --branch    The name of the branch.
   -p, --parent    The name of the parent branch to put the branch under.
@@ -331,6 +338,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -b, --branch    The name of the branch.
   -p, --parent    The name of the parent branch to put the branch under.
@@ -349,6 +357,7 @@ Options:
   --working-dir              The path to the directory containing the git repository. Defaults to the current directory.
   --debug                    Show debug output.
   --verbose                  Show verbose output.
+  --json                     Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack                The name of the stack.
   -b, --branch               The name of the branch.
   -y, --yes                  Confirm the command without prompting.
@@ -371,6 +380,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
 ```
@@ -387,6 +397,7 @@ Options:
   --working-dir       The path to the directory containing the git repository. Defaults to the current directory.
   --debug             Show debug output.
   --verbose           Show verbose output.
+  --json              Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack         The name of the stack.
   --max-batch-size    The maximum number of branches to process at once. [default: 5]
   --force-with-lease  Force push changes with lease.
@@ -405,6 +416,7 @@ Options:
   --working-dir     The path to the directory containing the git repository. Defaults to the current directory.
   --debug           Show debug output.
   --verbose         Show verbose output.
+  --json            Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack       The name of the stack.
   --max-batch-size  The maximum number of branches to process at once. [default: 5]
   --rebase          Use rebase when updating the stack. Overrides any setting in Git configuration.
@@ -428,6 +440,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
 ```
@@ -444,6 +457,7 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack     The name of the stack.
   -?, -h, --help  Show help and usage information
 ```
@@ -462,5 +476,6 @@ Options:
   --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
   --debug         Show debug output.
   --verbose       Show verbose output.
+  --json          Write output and log messages as JSON. Log messages will be written to stderr.
   -?, -h, --help  Show help and usage information
 ```
