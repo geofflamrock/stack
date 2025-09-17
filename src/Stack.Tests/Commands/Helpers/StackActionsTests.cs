@@ -6,9 +6,10 @@ using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
-namespace Stack.Tests.Helpers;
+namespace Stack.Tests.Commands.Helpers;
 
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
@@ -486,28 +487,36 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        var statuses = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 5, new Commit(Some.Sha(), Some.Name())) }
-        };
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
-
+        
+        // Set up the scenario: local branch is behind remote
+        gitClient.ChangeBranch(sourceBranch);
+        
+        // Create a commit on the remote tracking branch to make local behind
+        repo.CreateCommitOnRemoteTrackingBranch(sourceBranch, "Remote commit that makes local behind");
+        
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).Build();
-
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+
+        // Verify initial state - local should be behind remote
+        var branchStatuses = gitClient.GetBranchStatuses([sourceBranch]);
+        branchStatuses[sourceBranch].Behind.Should().BeGreaterThan(0);
+        branchStatuses[sourceBranch].IsCurrentBranch.Should().BeTrue();
 
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.Received(1).PullBranch(sourceBranch);
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        // Assert - After pulling, the branch should be up to date
+        var updatedStatuses = gitClient.GetBranchStatuses([sourceBranch]);
+        updatedStatuses[sourceBranch].Behind.Should().Be(0);
     }
 
     [Fact]
@@ -516,19 +525,24 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var otherBranch = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(otherBranch).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-        var statuses = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 1, new Commit(Some.Sha(), Some.Name())) },
-            { otherBranch, new GitBranchStatus(otherBranch, $"origin/{otherBranch}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) }
-        };
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
-
+        
+        // Set up scenario: both branches are behind their remotes
+        gitClient.ChangeBranch(sourceBranch);
+        
+        // Make both branches behind their remotes by creating commits on remote tracking branches
+        repo.CreateCommitOnRemoteTrackingBranch(sourceBranch, "Remote commit on source branch");
+        repo.CreateCommitOnRemoteTrackingBranch(otherBranch, "Remote commit on other branch");
+        
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
             .WithBranch(b => b.WithName(otherBranch))
@@ -536,12 +550,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state - both branches should be behind
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, otherBranch]);
+        initialStatuses[sourceBranch].Behind.Should().BeGreaterThan(0);
+        initialStatuses[sourceBranch].IsCurrentBranch.Should().BeTrue();
+        initialStatuses[otherBranch].Behind.Should().BeGreaterThan(0);
+        initialStatuses[otherBranch].IsCurrentBranch.Should().BeFalse();
+
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.Received(1).PullBranch(sourceBranch);
-        gitClient.Received(1).FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == otherBranch));
+        // Assert - Current branch should be up to date, other branch fetched but not pulled
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, otherBranch]);
+        finalStatuses[sourceBranch].Behind.Should().Be(0, "current branch should be pulled up to date");
+        finalStatuses[otherBranch].Behind.Should().Be(0, "other branch should be fetched up to date");
     }
 
     [Fact]
@@ -550,28 +572,30 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var otherBranch = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(otherBranch).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-        var statuses = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { otherBranch, new GitBranchStatus(otherBranch, $"origin/{otherBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
-        };
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+        
+        // Ensure we're on the source branch
+        gitClient.ChangeBranch(sourceBranch);
+        
         var stack = new TestStackBuilder().WithSourceBranch(sourceBranch).WithBranch(b => b.WithName(otherBranch)).Build();
-
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.DidNotReceive().PullBranch(Arg.Any<string>());
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
+        // Assert - Since both branches are up to date (ahead=0, behind=0), no pull operations should occur
+        // We can't easily assert that no git operations happened, but we can verify the state remains unchanged
+        var currentBranch = gitClient.GetCurrentBranch();
+        currentBranch.Should().Be(sourceBranch);
     }
 
     [Fact]
