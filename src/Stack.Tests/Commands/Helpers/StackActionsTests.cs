@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NSubstitute;
@@ -640,21 +641,25 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchInOtherWorktree = Some.BranchName();
-        var worktreePath = $"C:/temp/{Some.Name()}";
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branchInOtherWorktree).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-        var statuses = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name()), null) },
-            // Simulate branch existing in another worktree (marker '+') by providing WorktreePath
-            { branchInOtherWorktree, new GitBranchStatus(branchInOtherWorktree, $"origin/{branchInOtherWorktree}", true, false, 0, 4, new Commit(Some.Sha(), Some.Name()), worktreePath) }
-        };
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+        
+        // Set up scenario: source branch is current, other branch is in a worktree and behind
+        gitClient.ChangeBranch(sourceBranch);
+        
+        // Create a worktree for the branch
+        var worktreePath = repo.CreateWorktree(branchInOtherWorktree);
+        
+        // Make the branch in worktree behind by creating a commit on remote
+        repo.CreateCommitOnRemoteTrackingBranch(branchInOtherWorktree, "Remote commit on worktree branch");
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -663,13 +668,17 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branchInOtherWorktree]);
+        initialStatuses[branchInOtherWorktree].Behind.Should().BeGreaterThan(0, "worktree branch should be behind");
+        initialStatuses[branchInOtherWorktree].WorktreePath.Should().NotBeNullOrEmpty("branch should be in worktree");
+
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.Received(1).PullBranchForWorktree(branchInOtherWorktree, worktreePath);
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Any<string[]>());
-        gitClient.DidNotReceive().PullBranch(branchInOtherWorktree);
+        // Assert - The worktree branch should be pulled directly in its worktree
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branchInOtherWorktree]);
+        finalStatuses[branchInOtherWorktree].Behind.Should().Be(0, "worktree branch should be pulled up to date");
     }
 
     [Fact]
@@ -680,25 +689,28 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchAheadOfRemote = Some.BranchName();
         var branchNotAheadOfRemote = Some.BranchName();
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branchAheadOfRemote).PushToRemote())
+            .WithBranch(b => b.WithName(branchNotAheadOfRemote).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        var branchStatus = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchAheadOfRemote, new GitBranchStatus(branchAheadOfRemote, $"origin/{branchAheadOfRemote}", true, false, 3, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchNotAheadOfRemote, new GitBranchStatus(branchNotAheadOfRemote, $"origin/{branchNotAheadOfRemote}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
-        };
-
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
-
-        var branchesPushedToRemote = new List<string>();
-
-        gitClient
-            .WhenForAnyArgs(g => g.PushBranches(Arg.Any<string[]>(), Arg.Any<bool>()))
-            .Do((c) => branchesPushedToRemote.AddRange(c.Arg<string[]>()));
+        
+        // Set up scenario: one branch is ahead of remote, others are up to date
+        gitClient.ChangeBranch(branchAheadOfRemote);
+        
+        // Create local commits to make this branch ahead
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(filePath, Some.Name());
+        repo.Stage(Path.GetFileName(filePath));
+        repo.Commit("Local commit making branch ahead");
+        
+        // Switch back to source branch
+        gitClient.ChangeBranch(sourceBranch);
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -708,11 +720,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branchAheadOfRemote, branchNotAheadOfRemote]);
+        initialStatuses[branchAheadOfRemote].Ahead.Should().BeGreaterThan(0, "branch should be ahead of remote");
+        initialStatuses[branchNotAheadOfRemote].Ahead.Should().Be(0, "branch should not be ahead");
+        initialStatuses[sourceBranch].Ahead.Should().Be(0, "source branch should not be ahead");
+
         // Act
         stackActions.PushChanges(stack, 5, false);
 
-        // Assert
-        branchesPushedToRemote.ToArray().Should().BeEquivalentTo([branchAheadOfRemote]);
+        // Assert - Only the branch that was ahead should be pushed
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branchAheadOfRemote, branchNotAheadOfRemote]);
+        finalStatuses[branchAheadOfRemote].Ahead.Should().Be(0, "ahead branch should be pushed and synchronized");
+        finalStatuses[branchNotAheadOfRemote].Ahead.Should().Be(0, "not-ahead branch should remain unchanged");
+        finalStatuses[sourceBranch].Ahead.Should().Be(0, "source branch should remain unchanged");
     }
 
     [Fact]
@@ -898,19 +919,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchUpToDate = Some.BranchName();
         var branchBehind = Some.BranchName();
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branchUpToDate).PushToRemote())
+            .WithBranch(b => b.WithName(branchBehind).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        var branchStatus = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchUpToDate, new GitBranchStatus(branchUpToDate, $"origin/{branchUpToDate}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchBehind, new GitBranchStatus(branchBehind, $"origin/{branchBehind}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) }
-        };
-
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
+        
+        // Set up scenario: one branch is behind (can't be pushed), others are up to date
+        gitClient.ChangeBranch(sourceBranch);
+        repo.CreateCommitOnRemoteTrackingBranch(branchBehind, "Remote commit making branch behind");
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -920,11 +942,19 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state - no branches should be ahead
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branchUpToDate, branchBehind]);
+        initialStatuses[sourceBranch].Ahead.Should().Be(0, "source branch should not be ahead");
+        initialStatuses[branchUpToDate].Ahead.Should().Be(0, "up-to-date branch should not be ahead");
+        initialStatuses[branchBehind].Ahead.Should().Be(0, "behind branch should not be ahead");
+
         // Act
         stackActions.PushChanges(stack, maxBatchSize: 5, forceWithLease: false);
 
-        // Assert
-        gitClient.DidNotReceive().PushBranches(Arg.Any<string[]>(), Arg.Any<bool>());
-        gitClient.DidNotReceive().PushNewBranch(Arg.Any<string>());
+        // Assert - No changes should be made since no branches are ahead
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branchUpToDate, branchBehind]);
+        finalStatuses[sourceBranch].Ahead.Should().Be(0, "source branch should remain not ahead");
+        finalStatuses[branchUpToDate].Ahead.Should().Be(0, "up-to-date branch should remain not ahead");
+        finalStatuses[branchBehind].Ahead.Should().Be(0, "behind branch should remain not ahead");
     }
 }
