@@ -376,19 +376,21 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchWithRemoteChanges = Some.BranchName();
         var branchWithoutRemoteChanges = Some.BranchName();
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branchWithRemoteChanges).PushToRemote())
+            .WithBranch(b => b.WithName(branchWithoutRemoteChanges).PushToRemote())
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        var branchStatus = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchWithRemoteChanges, new GitBranchStatus(branchWithRemoteChanges, $"origin/{branchWithRemoteChanges}", true, false, 0, 3, new Commit(Some.Sha(), Some.Name())) },
-            { branchWithoutRemoteChanges, new GitBranchStatus(branchWithoutRemoteChanges, $"origin/{branchWithoutRemoteChanges}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
-        };
-
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
+        
+        // Set up scenario: only one branch has remote changes
+        gitClient.ChangeBranch(sourceBranch);
+        repo.CreateCommitOnRemoteTrackingBranch(branchWithRemoteChanges, "Remote commit on branch with changes");
+        // branchWithoutRemoteChanges remains up to date
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -398,12 +400,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branchWithRemoteChanges, branchWithoutRemoteChanges]);
+        initialStatuses[sourceBranch].Behind.Should().Be(0, "source branch should be up to date");
+        initialStatuses[branchWithRemoteChanges].Behind.Should().BeGreaterThan(0, "branch should be behind remote");
+        initialStatuses[branchWithoutRemoteChanges].Behind.Should().Be(0, "branch should be up to date");
+
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchWithRemoteChanges));
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchWithoutRemoteChanges) || a.Contains(sourceBranch)));
+        // Assert - Only the branch with remote changes should be fetched
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branchWithRemoteChanges, branchWithoutRemoteChanges]);
+        finalStatuses[branchWithRemoteChanges].Behind.Should().Be(0, "branch with remote changes should be fetched");
+        finalStatuses[branchWithoutRemoteChanges].Behind.Should().Be(0, "branch without changes should remain up to date");
+        finalStatuses[sourceBranch].Behind.Should().Be(0, "source branch should remain up to date");
     }
 
     [Fact]
@@ -414,19 +424,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branchThatExistsInRemote = Some.BranchName();
         var branchThatDoesNotExistInRemote = Some.BranchName();
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branchThatExistsInRemote).PushToRemote())
+            .WithBranch(b => b.WithName(branchThatDoesNotExistInRemote)) // Not pushed to remote
+            .Build();
+
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-
-        var branchStatus = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branchThatExistsInRemote, new GitBranchStatus(branchThatExistsInRemote, $"origin/{branchThatExistsInRemote}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) },
-            { branchThatDoesNotExistInRemote, new GitBranchStatus(branchThatDoesNotExistInRemote, $"origin/{branchThatDoesNotExistInRemote}", false, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
-        };
-
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatus);
+        
+        // Set up scenario: make the branch that exists in remote behind
+        gitClient.ChangeBranch(sourceBranch);
+        repo.CreateCommitOnRemoteTrackingBranch(branchThatExistsInRemote, "Remote commit on branch that exists");
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -436,12 +447,19 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branchThatExistsInRemote, branchThatDoesNotExistInRemote]);
+        initialStatuses[branchThatExistsInRemote].RemoteBranchExists.Should().BeTrue("branch should exist in remote");
+        initialStatuses[branchThatExistsInRemote].Behind.Should().BeGreaterThan(0, "branch should be behind remote");
+        initialStatuses[branchThatDoesNotExistInRemote].RemoteBranchExists.Should().BeFalse("branch should not exist in remote");
+
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 1 && a[0] == branchThatExistsInRemote));
-        gitClient.DidNotReceive().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Contains(branchThatDoesNotExistInRemote) || a.Contains(sourceBranch)));
+        // Assert - Only the branch that exists in remote should be fetched
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branchThatExistsInRemote, branchThatDoesNotExistInRemote]);
+        finalStatuses[branchThatExistsInRemote].Behind.Should().Be(0, "branch that exists in remote should be fetched");
+        finalStatuses[branchThatDoesNotExistInRemote].Behind.Should().Be(0, "branch with no remote should remain unchanged");
     }
 
     [Fact]
@@ -452,19 +470,23 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
 
-        var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(sourceBranch).PushToRemote())
+            .WithBranch(b => b.WithName(branch1).PushToRemote())
+            .WithBranch(b => b.WithName(branch2).PushToRemote())
+            .Build();
 
-        var statuses = new Dictionary<string, GitBranchStatus>
-        {
-            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
-            { branch1, new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 2, new Commit(Some.Sha(), Some.Name())) },
-            { branch2, new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 3, new Commit(Some.Sha(), Some.Name())) }
-        };
-        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(statuses);
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClient = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var console = new TestDisplayProvider(testOutputHelper);
+        
+        // Set up scenario: source branch is current and up to date, other branches are behind
+        gitClient.ChangeBranch(sourceBranch);
+        
+        // Make non-current branches behind by creating commits on their remote tracking branches
+        repo.CreateCommitOnRemoteTrackingBranch(branch1, "Remote commit on branch1");
+        repo.CreateCommitOnRemoteTrackingBranch(branch2, "Remote commit on branch2");
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
@@ -474,12 +496,26 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
+        // Verify initial state
+        var initialStatuses = gitClient.GetBranchStatuses([sourceBranch, branch1, branch2]);
+        initialStatuses[sourceBranch].Behind.Should().Be(0, "source branch should be up to date");
+        initialStatuses[sourceBranch].IsCurrentBranch.Should().BeTrue();
+        initialStatuses[branch1].Behind.Should().BeGreaterThan(0, "branch1 should be behind");
+        initialStatuses[branch1].IsCurrentBranch.Should().BeFalse();
+        initialStatuses[branch2].Behind.Should().BeGreaterThan(0, "branch2 should be behind");
+        initialStatuses[branch2].IsCurrentBranch.Should().BeFalse();
+
         // Act
         stackActions.PullChanges(stack);
 
-        // Assert
-        gitClient.DidNotReceive().PullBranch(Arg.Any<string>());
-        gitClient.Received().FetchBranchRefSpecs(Arg.Is<string[]>(a => a.Length == 2 && a.Contains(branch1) && a.Contains(branch2)));
+        // Assert - Non-current branches should be fetched and up to date
+        var finalStatuses = gitClient.GetBranchStatuses([sourceBranch, branch1, branch2]);
+        finalStatuses[sourceBranch].Behind.Should().Be(0, "source branch should remain up to date");
+        finalStatuses[branch1].Behind.Should().Be(0, "branch1 should be fetched up to date");
+        finalStatuses[branch2].Behind.Should().Be(0, "branch2 should be fetched up to date");
+        
+        // Source branch should still be current
+        gitClient.GetCurrentBranch().Should().Be(sourceBranch);
     }
 
     [Fact]
