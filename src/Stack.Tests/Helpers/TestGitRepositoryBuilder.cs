@@ -341,7 +341,6 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
 {
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public string LocalDirectoryPath => LocalDirectory.DirectoryPath;
-    public CliExecutionContext ExecutionContext => new() { WorkingDirectory = LocalDirectory.DirectoryPath };
     readonly List<TemporaryDirectory> WorktreePaths = [];
 
     public LibGit2Sharp.Commit GetTipOfBranch(string branchName)

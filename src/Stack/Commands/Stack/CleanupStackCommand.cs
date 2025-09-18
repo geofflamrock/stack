@@ -43,7 +43,6 @@ public record CleanupStackCommandInputs(string? Stack, bool Confirm)
 public class CleanupStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<CleanupStackCommandHandler> logger,
-    IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
     IGitHubClient gitHubClient,

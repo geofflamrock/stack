@@ -46,7 +46,6 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<DeleteStackCommandHandler> logger,
-    IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
