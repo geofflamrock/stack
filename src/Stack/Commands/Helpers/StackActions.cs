@@ -14,19 +14,6 @@ namespace Stack.Commands.Helpers
         Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
     }
 
-    public interface IGitClientFactory
-    {
-        IGitClient Create(string path);
-    }
-
-    public class GitClientFactory(ILoggerFactory loggerFactory) : IGitClientFactory
-    {
-        public IGitClient Create(string path)
-        {
-            var gitLogger = loggerFactory.CreateLogger<GitClient>();
-            return new GitClient(gitLogger, path);
-        }
-    }
 
     public class StackActions(
         IGitClientFactory gitClientFactory,
@@ -58,6 +45,7 @@ namespace Stack.Commands.Helpers
             // Use the default GitClient for the current working directory
             return GetDefaultGitClient();
         }
+
         public void PullChanges(Config.Stack stack)
         {
             var gitClient = GetDefaultGitClient();
@@ -370,7 +358,7 @@ namespace Stack.Commands.Helpers
 
                 // Only change branch if it's not in a worktree (i.e., using the default git client path)
                 if (branchGitClient == defaultGitClient ||
-                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
+                    (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
                 {
                     defaultGitClient.ChangeBranch(branch);
                 }

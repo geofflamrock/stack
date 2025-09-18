@@ -11,13 +11,6 @@ namespace Stack.Tests.Helpers;
 
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
-    private static IGitClientFactory CreateMockGitClientFactory()
-    {
-        var factory = Substitute.For<IGitClientFactory>();
-        var mockWorktreeGitClient = Substitute.For<IGitClient>();
-        factory.Create(Arg.Any<string>()).Returns(mockWorktreeGitClient);
-        return factory;
-    }
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenConflictAbortedBeforeProgressRecorded_ThrowsAbortException()
     {
@@ -198,8 +191,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         );
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
-        var factory = CreateMockGitClientFactory();
-        factory.Create(Arg.Any<string>()).Returns(gitClient);
+        var factory = Substitute.For<IGitClientFactory>();
+        factory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         var stackActions = new StackActions(factory, executionContext, gitHubClient, logger, console);
 
         // Act
