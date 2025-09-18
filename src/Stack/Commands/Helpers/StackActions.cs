@@ -236,7 +236,7 @@ namespace Stack.Commands.Helpers
             catch (ConflictException)
             {
                 var result = await ConflictResolutionDetector.WaitForConflictResolution(
-                    gitClient,
+                    branchGitClient,
                     logger,
                     ConflictOperationType.Merge,
                     TimeSpan.FromSeconds(1),
