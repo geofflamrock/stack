@@ -9,6 +9,8 @@ using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
 using Stack.Commands;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Stack.Infrastructure;
 
@@ -35,7 +37,19 @@ public static class HostApplicationBuilderExtensions
 
         builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
         builder.Logging.ClearProviders();
-        builder.Services.AddSingleton<ILoggerProvider, AnsiConsoleLoggerProvider>();
+
+        if (args.Contains(CommonOptions.Json.Name))
+        {
+            builder.Logging.AddJsonConsole();
+            builder.Services.Configure<ConsoleLoggerOptions>(options =>
+            {
+                options.LogToStandardErrorThreshold = LogLevel.Trace;
+            });
+        }
+        else
+        {
+            builder.Services.AddSingleton<ILoggerProvider, AnsiConsoleLoggerProvider>();
+        }
 
         return builder;
     }
@@ -54,7 +68,15 @@ public static class HostApplicationBuilderExtensions
                 Out = new AnsiConsoleOutput(stream),
             });
         });
-        services.AddSingleton<IDisplayProvider, ConsoleDisplayProvider>();
+        services.AddSingleton<IOutputProvider, ConsoleOutputProvider>();
+        if (args.Contains(CommonOptions.Json.Name))
+        {
+            services.AddSingleton<IDisplayProvider, LoggingDisplayProvider>();
+        }
+        else
+        {
+            services.AddSingleton<IDisplayProvider, ConsoleDisplayProvider>();
+        }
         services.AddSingleton<IInputProvider, ConsoleInputProvider>();
         services.AddSingleton<IStackConfig, FileStackConfig>();
         services.AddSingleton<IFileOperations, FileOperations>();

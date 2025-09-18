@@ -96,12 +96,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
     private readonly StackStatusCommandHandler handler;
 
     public StackStatusCommand(
-        ILogger<StackStatusCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        StackStatusCommandHandler handler,
         CliExecutionContext executionContext,
-        StackStatusCommandHandler handler)
-        : base("status", "Show the status of the current stack or all stacks in the repository.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<StackStatusCommand> logger)
+        : base("status", "Show the status of the current stack or all stacks in the repository.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -121,12 +121,12 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
 
     protected override async Task WriteDefaultOutput(StackStatusCommandResponse response, CancellationToken cancellationToken)
     {
-        await StackHelpers.OutputStackStatus(response.Stacks, DisplayProvider, cancellationToken);
+        await StackHelpers.OutputStackStatus(response.Stacks, OutputProvider, cancellationToken);
 
         if (response.Stacks.Count == 1)
         {
             var stack = response.Stacks.First();
-            await StackHelpers.OutputBranchAndStackActions(stack, DisplayProvider, cancellationToken);
+            await StackHelpers.OutputBranchAndStackActions(stack, OutputProvider, cancellationToken);
         }
     }
 
@@ -134,7 +134,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
     {
         var output = response.Stacks.Select(MapToJsonOutput).ToList();
         var json = JsonSerializer.Serialize(output, typeof(List<StackStatusCommandJsonOutput>), StackStatusCommandJsonSerializerContext.Default);
-        await StdOut.WriteLineAsync(json.AsMemory(), cancellationToken);
+        await OutputProvider.WriteLine(json, cancellationToken);
     }
 
     private static StackStatusCommandJsonOutput MapToJsonOutput(StackStatus stack)
@@ -251,7 +251,6 @@ public class StackStatusCommandHandler(
                 stacksToCheckStatusFor,
                 currentBranch,
                 logger,
-                displayProvider,
                 gitClient,
                 gitHubClient,
                 inputs.Full);

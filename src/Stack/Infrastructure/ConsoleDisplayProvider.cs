@@ -1,28 +1,6 @@
-using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Spectre.Console.Rendering;
 
 namespace Stack.Infrastructure;
-
-public interface IDisplayProvider
-{
-    Task DisplayStatus(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default);
-    Task<T> DisplayStatus<T>(string message, Func<CancellationToken, Task<T>> action, CancellationToken cancellationToken = default);
-    Task DisplayTree<T>(string header, IEnumerable<TreeItem<T>> items, Func<T, string>? itemFormatter = null, CancellationToken cancellationToken = default) where T : notnull;
-    Task DisplayMessage(string message, CancellationToken cancellationToken = default);
-    Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
-        => DisplayMessage($"{Emoji.Known.CheckMark}  {message}", cancellationToken);
-    Task DisplayStatusWithSuccess(string message, Func<CancellationToken, Task> action, CancellationToken cancellationToken = default)
-    {
-        return DisplayStatus(message, async ct =>
-        {
-            await action(ct);
-            await DisplaySuccess(message, ct);
-        }, cancellationToken);
-    }
-    Task DisplayHeader(string header, CancellationToken cancellationToken = default);
-    Task DisplayNewLine(CancellationToken cancellationToken = default);
-}
 
 public class ConsoleDisplayProvider(IAnsiConsole console) : IDisplayProvider
 {
@@ -105,12 +83,6 @@ public class ConsoleDisplayProvider(IAnsiConsole console) : IDisplayProvider
         console.Write(tree);
     }
 
-    public async Task DisplayMessage(string message, CancellationToken cancellationToken = default)
-    {
-        await Task.CompletedTask;
-        console.MarkupLine(message);
-    }
-
     void AddChildTreeNodes<T>(TreeNode parent, TreeItem<T> item, Func<T, string>? itemFormatter = null) where T : notnull
     {
         foreach (var child in item.Children)
@@ -141,6 +113,12 @@ public class ConsoleDisplayProvider(IAnsiConsole console) : IDisplayProvider
         rule.LeftJustified();
         rule.DoubleBorder();
         console.Write(rule);
+    }
+
+    public async Task DisplaySuccess(string message, CancellationToken cancellationToken = default)
+    {
+        await Task.CompletedTask;
+        console.MarkupLine($"{Emoji.Known.CheckMark}  {message}", cancellationToken);
     }
 }
 

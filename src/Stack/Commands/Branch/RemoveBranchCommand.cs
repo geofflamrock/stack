@@ -25,12 +25,12 @@ public class RemoveBranchCommand : Command
     private readonly RemoveBranchCommandHandler handler;
 
     public RemoveBranchCommand(
-        ILogger<RemoveBranchCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        RemoveBranchCommandHandler handler,
         CliExecutionContext executionContext,
-        RemoveBranchCommandHandler handler)
-        : base("remove", "Remove a branch from a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<RemoveBranchCommand> logger)
+        : base("remove", "Remove a branch from a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

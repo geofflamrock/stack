@@ -18,12 +18,12 @@ public class PushStackCommand : Command
     private readonly PushStackCommandHandler handler;
 
     public PushStackCommand(
-        ILogger<PushStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        PushStackCommandHandler handler,
         CliExecutionContext executionContext,
-        PushStackCommandHandler handler)
-        : base("push", "Push changes to the remote repository for a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<PushStackCommand> logger)
+        : base("push", "Push changes to the remote repository for a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

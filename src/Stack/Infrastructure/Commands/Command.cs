@@ -11,25 +11,26 @@ public abstract class Command : System.CommandLine.Command
 {
     protected ILogger Logger;
     protected IInputProvider InputProvider;
-    protected IDisplayProvider DisplayProvider;
+    protected IOutputProvider OutputProvider;
     protected string? WorkingDirectory;
     protected bool Verbose;
 
     public Command(
         string name,
         string? description,
-        ILogger logger,
-        IDisplayProvider displayProvider,
+        CliExecutionContext executionContext,
         IInputProvider inputProvider,
-        CliExecutionContext executionContext) : base(name, description)
+        IOutputProvider outputProvider,
+        ILogger logger) : base(name, description)
     {
-        Logger = logger;
-        DisplayProvider = displayProvider;
         InputProvider = inputProvider;
+        OutputProvider = outputProvider;
+        Logger = logger;
 
         Add(CommonOptions.WorkingDirectory);
         Add(CommonOptions.Debug);
         Add(CommonOptions.Verbose);
+        Add(CommonOptions.Json);
 
         SetAction(async (parseResult, cancellationToken) =>
         {

@@ -11,19 +11,13 @@ public abstract class CommandWithOutput<TResponse> : Command where TResponse : n
     protected CommandWithOutput(
         string name,
         string? description,
-        ILogger logger,
-        IDisplayProvider displayProvider,
+        CliExecutionContext executionContext,
         IInputProvider inputProvider,
-        CliExecutionContext executionContext)
-        : base(name, description, logger, displayProvider, inputProvider, executionContext)
+        IOutputProvider outputProvider,
+        ILogger logger)
+        : base(name, description, executionContext, inputProvider, outputProvider, logger)
     {
-        Add(CommonOptions.Json);
     }
-
-    readonly JsonSerializerOptions jsonSerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {

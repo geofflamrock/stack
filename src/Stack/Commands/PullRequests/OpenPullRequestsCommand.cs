@@ -13,12 +13,12 @@ public class OpenPullRequestsCommand : Command
     private readonly OpenPullRequestsCommandHandler handler;
 
     public OpenPullRequestsCommand(
-        ILogger<OpenPullRequestsCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        OpenPullRequestsCommandHandler handler,
         CliExecutionContext executionContext,
-        OpenPullRequestsCommandHandler handler)
-        : base("open", "Open pull requests for a stack in the default browser.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<OpenPullRequestsCommand> logger)
+        : base("open", "Open pull requests for a stack in the default browser.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);

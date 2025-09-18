@@ -116,7 +116,6 @@ namespace Stack.Commands.Helpers
                 stack,
                 currentBranch,
                 logger,
-                displayProvider,
                 gitClient,
                 gitHubClient,
                 true);

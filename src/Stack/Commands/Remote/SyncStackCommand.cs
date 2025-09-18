@@ -19,12 +19,12 @@ public class SyncStackCommand : Command
     private readonly SyncStackCommandHandler handler;
 
     public SyncStackCommand(
-        ILogger<SyncStackCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        SyncStackCommandHandler handler,
         CliExecutionContext executionContext,
-        SyncStackCommandHandler handler)
-        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<SyncStackCommand> logger)
+        : base("sync", "Sync a stack with the remote repository. Shortcut for `git fetch --prune`, `stack pull`, `stack update` and `stack push`.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -63,6 +63,7 @@ public record SyncStackCommandInputs(
 public class SyncStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<SyncStackCommandHandler> logger,
+    IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
     IGitClient gitClient,
     IGitHubClient gitHubClient,
@@ -103,21 +104,19 @@ public class SyncStackCommandHandler(
 
         if (!inputs.Confirm)
         {
-            await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
+            var status = await displayProvider.DisplayStatus("Checking stack status...", async (ct) =>
             {
-                var status = StackHelpers.GetStackStatus(
+                await Task.CompletedTask;
+                return StackHelpers.GetStackStatus(
                     stack,
                     currentBranch,
                     logger,
-                    displayProvider,
                     gitClient,
                     gitHubClient,
                     true);
-
-                await StackHelpers.OutputStackStatus(status, displayProvider, cancellationToken);
             }, cancellationToken);
 
-            await displayProvider.DisplayNewLine(cancellationToken);
+            await StackHelpers.OutputStackStatus(status, outputProvider, cancellationToken);
 
             if (!await inputProvider.Confirm(Questions.ConfirmSyncStack, cancellationToken))
             {
