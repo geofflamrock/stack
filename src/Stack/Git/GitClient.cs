@@ -160,9 +160,18 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     {
         // Detect presence of .git/rebase-merge or .git/rebase-apply directories
         // Use repo root to build path; Git guarantees these directories during an interactive or normal rebase
-        var root = GetRootOfRepository();
-        var rebaseMerge = Path.Combine(root, ".git", "rebase-merge");
-        var rebaseApply = Path.Combine(root, ".git", "rebase-apply");
+
+        // Resolve the git dir for this working tree (works for normal repo & worktrees)
+        var gitDir = ExecuteGitCommandAndReturnOutput("rev-parse --git-dir").Trim();
+
+        // rev-parse may return a relative path (e.g. .git); make it absolute
+        if (!Path.IsPathRooted(gitDir))
+        {
+            gitDir = Path.GetFullPath(Path.Combine(workingDirectory, gitDir));
+        }
+
+        var rebaseMerge = Path.Combine(gitDir, "rebase-merge");
+        var rebaseApply = Path.Combine(gitDir, "rebase-apply");
         return Directory.Exists(rebaseMerge) || Directory.Exists(rebaseApply);
     }
 
