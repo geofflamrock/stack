@@ -46,7 +46,8 @@ public record DeleteStackCommandResponse(string? DeletedStackName);
 public class DeleteStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<DeleteStackCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<DeleteStackCommandInputs>
@@ -56,6 +57,7 @@ public class DeleteStackCommandHandler(
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 

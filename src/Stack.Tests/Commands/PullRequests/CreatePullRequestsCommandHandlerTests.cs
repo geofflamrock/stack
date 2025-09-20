@@ -7,6 +7,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
@@ -53,7 +54,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
@@ -124,7 +129,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -186,7 +195,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider
@@ -245,7 +258,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -306,7 +323,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider
@@ -371,7 +392,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         // Act and assert
@@ -425,7 +450,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -491,7 +520,11 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         Directory.CreateDirectory(Path.Join(tempRepo.DirectoryPath, ".github"));
         File.WriteAllText(Path.Join(tempRepo.DirectoryPath, ".github", "PULL_REQUEST_TEMPLATE.md"), "This is the PR template");
 
@@ -554,7 +587,11 @@ This is the PR template";
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -620,7 +657,11 @@ This is the PR template";
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -676,7 +717,11 @@ This is the PR template";
             [branch1] = new GitBranchStatus(branch1, $"origin/{branch1}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
             [branch2] = new GitBranchStatus(branch2, $"origin/{branch2}", true, false, 0, 0, new Commit(Some.Sha(), "msg"))
         });
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClient, gitHubClient, fileOperations, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");

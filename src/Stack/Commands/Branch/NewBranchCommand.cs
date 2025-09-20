@@ -48,7 +48,8 @@ public class NewBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<NewBranchCommandHandler> logger,
     IDisplayProvider displayProvider,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<NewBranchCommandInputs>
 {
@@ -56,6 +57,7 @@ public class NewBranchCommandHandler(
     {
         await Task.CompletedTask;
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();

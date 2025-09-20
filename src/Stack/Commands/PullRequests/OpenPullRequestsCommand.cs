@@ -41,7 +41,8 @@ public record OpenPullRequestsCommandInputs(string? Stack)
 public class OpenPullRequestsCommandHandler(
     IInputProvider inputProvider,
     ILogger<OpenPullRequestsCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<OpenPullRequestsCommandInputs>
@@ -51,6 +52,7 @@ public class OpenPullRequestsCommandHandler(
         await Task.CompletedTask;
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();

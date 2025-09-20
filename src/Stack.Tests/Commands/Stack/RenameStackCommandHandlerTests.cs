@@ -9,6 +9,7 @@ using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Tests.Commands.Stack;
 
@@ -35,11 +36,14 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
 
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
@@ -70,12 +74,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
 
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
 
@@ -104,12 +111,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
 
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -138,12 +148,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
 
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", "RenamedStack"), CancellationToken.None);
@@ -171,12 +184,14 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
-
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act & Assert
         var act = async () => await handler.Handle(new RenameStackCommandInputs("NonExistentStack", "NewName"), CancellationToken.None);
@@ -203,12 +218,14 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
-
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act & Assert
         var act = async () => await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack2"), CancellationToken.None);
@@ -231,12 +248,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack1"), CancellationToken.None);
@@ -267,12 +287,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri1);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act - Rename Stack1 to ExistingName (which exists on a different remote)
         await handler.Handle(new RenameStackCommandInputs("Stack1", "ExistingName"), CancellationToken.None);
@@ -302,12 +325,16 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
 
         gitClient.GetRemoteUri().Returns(remoteUri1); // Different remote than the stack
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", "NewName"), CancellationToken.None);

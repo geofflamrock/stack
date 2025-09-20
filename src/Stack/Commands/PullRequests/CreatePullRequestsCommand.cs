@@ -45,7 +45,8 @@ public class CreatePullRequestsCommandHandler(
     ILogger<CreatePullRequestsCommandHandler> logger,
     IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
     IStackConfig stackConfig)
@@ -57,6 +58,7 @@ public class CreatePullRequestsCommandHandler(
 
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();

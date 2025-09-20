@@ -34,9 +34,12 @@ public abstract class Command : System.CommandLine.Command
 
         SetAction(async (parseResult, cancellationToken) =>
         {
-            WorkingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
+            var workingDirectory = parseResult.GetValue(CommonOptions.WorkingDirectory);
 
-            executionContext.WorkingDirectory = WorkingDirectory;
+            if (!string.IsNullOrEmpty(workingDirectory))
+            {
+                executionContext.WorkingDirectory = workingDirectory;
+            }
 
             try
             {
