@@ -1324,15 +1324,15 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         }
 
         [Fact]
-        public void PushChanges_WithRealGitRepository_PushesNonCurrentBranchWithChanges()
+        public void PushChanges_WithRealGitRepository_PushesBranchCheckedOutInWorktree()
         {
             // Arrange
             var sourceBranch = Some.BranchName();
-            var nonCurrentBranch = Some.BranchName();
+            var worktreeBranch = Some.BranchName();
 
             using var repo = new TestGitRepositoryBuilder()
                 .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
-                .WithBranch(builder => builder.WithName(nonCurrentBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+                .WithBranch(builder => builder.WithName(worktreeBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
                 .Build();
 
             var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
@@ -1341,18 +1341,22 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
             var gitHubClient = Substitute.For<IGitHubClient>();
 
-            // Make changes to the branch, then switch away to make it non-current
-            gitClient.ChangeBranch(nonCurrentBranch);
+            // Make changes to the worktree branch, then switch away to create worktree
+            gitClient.ChangeBranch(worktreeBranch);
             var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
-            File.WriteAllText(filePath, "non-current branch change");
+            File.WriteAllText(filePath, "worktree branch change");
             repo.Stage(Path.GetFileName(filePath));
-            var branchCommit = repo.Commit("Change in non-current branch");
+            var branchCommit = repo.Commit("Change in worktree branch");
 
-            // Switch back to source branch (so other branch is non-current)
+            // Switch to source branch first, then create worktree (can't create worktree for current branch)
             gitClient.ChangeBranch(sourceBranch);
+            
+            // Create a worktree for the branch
+            var worktreePath = repo.CreateWorktree(worktreeBranch);
+
             var stack = new TestStackBuilder()
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(b => b.WithName(nonCurrentBranch))
+                .WithBranch(b => b.WithName(worktreeBranch))
                 .Build();
 
             var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
@@ -1360,10 +1364,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             // Act
             stackActions.PushChanges(stack, 5, false);
 
-            // Assert - remote branch should be at same SHA as local branch
-            var localTip = repo.GetTipOfBranch(nonCurrentBranch);
-            var remoteTip = repo.GetTipOfRemoteBranch(nonCurrentBranch);
-            remoteTip.Sha.Should().Be(localTip.Sha, "remote branch should be at same SHA as local branch after push");
+            // Assert - verify that branch in worktree was pushed correctly
+            var worktreeLocalTip = repo.GetTipOfBranch(worktreeBranch);
+            var worktreeRemoteTip = repo.GetTipOfRemoteBranch(worktreeBranch);
+            worktreeRemoteTip.Sha.Should().Be(worktreeLocalTip.Sha, "worktree branch should be pushed to match local branch");
         }
 
         [Fact]
