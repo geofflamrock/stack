@@ -946,13 +946,13 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
             var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
 
-            // Act & Assert - the main test is that pull operations complete without error 
-            var act = () => stackActions.PullChanges(stack);
-            act.Should().NotThrow("pull operations should complete without error");
+            // Act
+            stackActions.PullChanges(stack);
             
-            // Verify that the current branch is properly detected and handled
-            var currentBranch = gitClient.GetCurrentBranch();
-            currentBranch.Should().Be(featureBranch, "feature branch should remain current after pull");
+            // Assert - verify that local branch points to correct SHA from remote branch
+            var featureLocalTip = repo.GetTipOfBranch(featureBranch);
+            var featureRemoteTip = repo.GetTipOfRemoteBranch(featureBranch);
+            featureLocalTip.Sha.Should().Be(featureRemoteTip.Sha, "current branch should be pulled to match remote");
         }
 
         [Fact]
@@ -993,22 +993,24 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             // Act
             stackActions.PullChanges(stack);
 
-            // Assert - the fetch operation should have been performed
-            // We verify this by checking that the branch status after shows it's no longer behind 
-            var statusAfter = gitClient.GetBranchStatuses([featureBranch]);
-            statusAfter[featureBranch].Behind.Should().Be(0, "branch should not be behind remote after fetch");
+            // Assert - verify that fetch operation updated the remote tracking references
+            // For non-current branches, the fetch updates the remote tracking branch reference
+            var featureLocalTip = repo.GetTipOfBranch(featureBranch);
+            var featureRemoteTip = repo.GetTipOfRemoteBranch(featureBranch);
+            // The local branch should have been updated via fetch to match the remote
+            featureLocalTip.Sha.Should().Be(featureRemoteTip.Sha, "non-current branch should be fetched to match remote");
         }
 
         [Fact]
-        public void PullChanges_WithRealGitRepository_HandlesNonCurrentBranchWithRemoteChanges()
+        public void PullChanges_WithRealGitRepository_PullsBranchCheckedOutInWorktree()
         {
             // Arrange
             var sourceBranch = Some.BranchName();
-            var featureBranch = Some.BranchName();
+            var worktreeBranch = Some.BranchName();
 
             using var repo = new TestGitRepositoryBuilder()
                 .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
-                .WithBranch(builder => builder.WithName(featureBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+                .WithBranch(builder => builder.WithName(worktreeBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
                 .Build();
 
             var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
@@ -1018,14 +1020,17 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             var gitHubClient = Substitute.For<IGitHubClient>();
 
             // Create commits on remote tracking branch to simulate changes to pull  
-            repo.CreateCommitOnRemoteTrackingBranch(featureBranch, "Remote change on feature");
+            repo.CreateCommitOnRemoteTrackingBranch(worktreeBranch, "Remote change on worktree branch");
 
-            // Make source branch current (so feature is not current, simulating worktree scenario)
+            // Switch to source branch first, then create worktree (can't create worktree for current branch)
             gitClient.ChangeBranch(sourceBranch);
+            
+            // Create a worktree for the branch
+            var worktreePath = repo.CreateWorktree(worktreeBranch);
 
             var stack = new TestStackBuilder()
                 .WithSourceBranch(sourceBranch)
-                .WithBranch(b => b.WithName(featureBranch))
+                .WithBranch(b => b.WithName(worktreeBranch))
                 .Build();
 
             var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
@@ -1033,13 +1038,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             // Act
             stackActions.PullChanges(stack);
 
-            // Assert - verify that non-current branch was fetched (not pulled since it's not current)
-            var featureLocalTip = repo.GetTipOfBranch(featureBranch);
-            var featureRemoteTip = repo.GetTipOfRemoteBranch(featureBranch);
-            // The local branch should still be at its original position since it's not current
-            // but the operation should complete successfully
-            var branchStatuses = gitClient.GetBranchStatuses([featureBranch]);
-            branchStatuses.Should().ContainKey(featureBranch, "branch status should be retrievable after fetch");
+            // Assert - verify that branch in worktree was pulled correctly
+            var worktreeLocalTip = repo.GetTipOfBranch(worktreeBranch);
+            var worktreeRemoteTip = repo.GetTipOfRemoteBranch(worktreeBranch);
+            worktreeLocalTip.Sha.Should().Be(worktreeRemoteTip.Sha, "worktree branch should be pulled to match remote");
         }
 
         [Fact]
@@ -1061,7 +1063,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             var gitHubClient = Substitute.For<IGitHubClient>();
 
             gitClient.ChangeBranch(sourceBranch);
-            var initialCommitCount = repo.GetCommitsReachableFromBranch(localOnlyBranch).Count;
+            var initialLocalTip = repo.GetTipOfBranch(localOnlyBranch);
 
             var stack = new TestStackBuilder()
                 .WithSourceBranch(sourceBranch)
@@ -1074,8 +1076,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             stackActions.PullChanges(stack);
 
             // Assert - local-only branch should not have been affected
-            var finalCommitCount = repo.GetCommitsReachableFromBranch(localOnlyBranch).Count;
-            finalCommitCount.Should().Be(initialCommitCount, "local-only branch should not be modified");
+            var finalLocalTip = repo.GetTipOfBranch(localOnlyBranch);
+            finalLocalTip.Sha.Should().Be(initialLocalTip.Sha, "local-only branch should remain unchanged");
         }
 
         [Fact]
@@ -1100,7 +1102,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             repo.DeleteRemoteTrackingBranch(deletedRemoteBranch);
 
             gitClient.ChangeBranch(sourceBranch);
-            var initialCommitCount = repo.GetCommitsReachableFromBranch(deletedRemoteBranch).Count;
+            var initialLocalTip = repo.GetTipOfBranch(deletedRemoteBranch);
 
             var stack = new TestStackBuilder()
                 .WithSourceBranch(sourceBranch)
@@ -1113,8 +1115,8 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             stackActions.PullChanges(stack);
 
             // Assert - branch with deleted remote should not be modified
-            var finalCommitCount = repo.GetCommitsReachableFromBranch(deletedRemoteBranch).Count;
-            finalCommitCount.Should().Be(initialCommitCount, "branch with deleted remote should not be modified");
+            var finalLocalTip = repo.GetTipOfBranch(deletedRemoteBranch);
+            finalLocalTip.Sha.Should().Be(initialLocalTip.Sha, "branch with deleted remote should remain unchanged");
         }
 
         [Fact]
@@ -1315,9 +1317,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             // Act
             stackActions.PushChanges(stack, 5, false);
 
-            // Assert - non-current branch changes should be pushed to remote
-            var finalRemoteCommitCount = repo.GetCommitsReachableFromRemoteBranch(nonCurrentBranch).Count;
-            finalRemoteCommitCount.Should().BeGreaterThan(initialRemoteCommitCount, "non-current branch should be pushed to remote");
+            // Assert - remote branch should be at same SHA as local branch after push
+            var localTip = repo.GetTipOfBranch(nonCurrentBranch);
+            var remoteTip = repo.GetTipOfRemoteBranch(nonCurrentBranch);
+            remoteTip.Sha.Should().Be(localTip.Sha, "remote branch should match local branch SHA after push");
         }
 
         [Fact]
@@ -1410,6 +1413,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             
             branchExists.Should().BeTrue("local branch should still exist");
             finalHasRemoteTracking.Should().BeTrue("PushChanges should create remote tracking branch for branches without one");
+            
+            // Also assert that the remote branch has the correct SHA from the local branch
+            var localTip = repo.GetTipOfBranch(localOnlyBranch);
+            var remoteTip = repo.GetTipOfRemoteBranch(localOnlyBranch);
+            remoteTip.Sha.Should().Be(localTip.Sha, "remote branch should have same SHA as local branch");
         }
 
         [Fact]
