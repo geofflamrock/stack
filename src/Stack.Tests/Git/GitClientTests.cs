@@ -1076,4 +1076,81 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var newLocalTip = repo.GetTipOfBranch(targetBranch).Sha;
         newLocalTip.Should().Be(originalLocalTip);
     }
+
+    [Fact]
+    public void IsRebaseInProgress_InLinkedWorktreeWithConflict_ReturnsTrueThenFalseAfterAbort()
+    {
+        var baseBranch = Some.BranchName();
+        var featureBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(b => b.WithName(baseBranch))
+            .WithBranch(b => b.WithName(featureBranch).FromSourceBranch(baseBranch))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var primaryGit = new GitClient(logger, repo.LocalDirectoryPath);
+
+        // Create a linked worktree for the feature branch
+        var worktreesRoot = Path.Combine(repo.LocalDirectoryPath, "..", "wt");
+        Directory.CreateDirectory(worktreesRoot);
+        var worktreePath = Path.GetFullPath(Path.Combine(worktreesRoot, Some.Name()));
+
+        // git worktree add <path> <branch>
+        var psi = new System.Diagnostics.ProcessStartInfo("git", $"worktree add \"{worktreePath}\" {featureBranch}")
+        {
+            WorkingDirectory = repo.LocalDirectoryPath,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        using (var p = System.Diagnostics.Process.Start(psi)!)
+        {
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                throw new Exception($"Failed to create worktree: {p.StandardError.ReadToEnd()}");
+            }
+        }
+
+        // Create conflicting changes: modify same file differently in base and worktree feature branch
+        var relativeFilePath = Some.Name();
+        var baseFilePath = Path.Combine(repo.LocalDirectoryPath, relativeFilePath);
+        File.WriteAllText(baseFilePath, "base");
+        repo.Stage(relativeFilePath);
+        repo.Commit();
+
+        var worktreeFilePath = Path.Combine(worktreePath, relativeFilePath);
+        File.WriteAllText(worktreeFilePath, "feature");
+
+        // stage & commit in worktree
+        var wtCommit = new System.Diagnostics.ProcessStartInfo("git", $"add \"{relativeFilePath}\"")
+        {
+            WorkingDirectory = worktreePath,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        System.Diagnostics.Process.Start(wtCommit)!.WaitForExit();
+        var wtCommit2 = new System.Diagnostics.ProcessStartInfo("git", "commit -m feature")
+        {
+            WorkingDirectory = worktreePath,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+        System.Diagnostics.Process.Start(wtCommit2)!.WaitForExit();
+
+        // Now attempt a rebase of feature onto base inside the worktree (should conflict)
+        var worktreeGit = new GitClient(logger, worktreePath);
+        try
+        {
+            worktreeGit.RebaseFromLocalSourceBranch(baseBranch);
+        }
+        catch (ConflictException)
+        {
+        }
+
+        worktreeGit.IsRebaseInProgress().Should().BeTrue();
+
+        worktreeGit.AbortRebase();
+        worktreeGit.IsRebaseInProgress().Should().BeFalse();
+    }
 }
