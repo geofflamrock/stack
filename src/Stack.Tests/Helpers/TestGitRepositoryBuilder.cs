@@ -436,9 +436,17 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         var remoteBranchName = branch.TrackedBranch.CanonicalName;
         var remoteBranch = LocalRepository.Branches[remoteBranchName];
 
+        // Create a tree with actual file changes to ensure the commit is meaningful
+        var treeDefinition = TreeDefinition.From(remoteBranch.Tip.Tree);
+        var fileName = $"remote-change-{Some.ShortName()}.txt";
+        var fileContent = $"Remote change: {message}";
+        var bytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
+        var blobId = LocalRepository.ObjectDatabase.Write<Blob>(bytes);
+        treeDefinition.Add(fileName, blobId, Mode.NonExecutableFile);
+        var tree = LocalRepository.ObjectDatabase.CreateTree(treeDefinition);
+
         // Create a commit directly on the remote tracking branch
         var signature = new Signature(Some.Name(), Some.Email(), DateTimeOffset.Now);
-        var tree = remoteBranch.Tip.Tree;
         var parents = new[] { remoteBranch.Tip };
         var commit = LocalRepository.ObjectDatabase.CreateCommit(signature, signature, message, tree, parents, false);
 
