@@ -463,6 +463,29 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return worktreePath;
     }
 
+    public void CommitInWorktree(string worktreePath, string relativePath, string contents, string? message = null)
+    {
+        if (string.IsNullOrWhiteSpace(worktreePath)) throw new ArgumentException("Worktree path is required", nameof(worktreePath));
+        if (!Directory.Exists(worktreePath)) throw new DirectoryNotFoundException(worktreePath);
+
+        var fullPath = Path.Combine(worktreePath, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        File.WriteAllText(fullPath, contents);
+
+        var worktree = LocalRepository.Worktrees.FirstOrDefault(wt => wt.WorktreeRepository.Info.WorkingDirectory.TrimEnd(Path.DirectorySeparatorChar)
+            == Path.GetFullPath(worktreePath).TrimEnd(Path.DirectorySeparatorChar));
+
+        if (worktree is null)
+        {
+            throw new ArgumentException($"The specified path '{worktreePath}' is not a recognized worktree of the repository.", nameof(worktreePath));
+        }
+
+        var wtRepo = worktree.WorktreeRepository;
+        LibGit2Sharp.Commands.Stage(wtRepo, relativePath);
+        var sig = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
+        wtRepo.Commit(message ?? Some.Name(), sig, sig);
+    }
+
     public void Dispose()
     {
         GC.SuppressFinalize(this);
