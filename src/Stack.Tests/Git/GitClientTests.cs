@@ -1092,7 +1092,7 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         var primaryGit = new GitClient(logger, repo.LocalDirectoryPath);
 
         // Create a linked worktree for the feature branch using helper
-        var worktreePath = repo.CreateWorktree(featureBranch);
+        var worktree = repo.CreateWorktree(featureBranch);
 
         // Create conflicting changes: modify same file differently in base and worktree feature branch
         var relativeFilePath = Some.Name();
@@ -1104,10 +1104,10 @@ public class GitClientTests(ITestOutputHelper testOutputHelper)
         repo.Commit();
 
         // Worktree (feature branch) commit
-        repo.CommitInWorktree(worktreePath, relativeFilePath, "feature", "feature commit");
+        repo.CommitInWorktree(worktree, relativeFilePath, "feature", "feature commit");
 
         // Now attempt a rebase of feature onto base inside the worktree (should conflict)
-        var worktreeGit = new GitClient(logger, worktreePath);
+        var worktreeGit = new GitClient(logger, worktree.WorktreeRepository.Info.WorkingDirectory);
         try
         {
             worktreeGit.RebaseFromLocalSourceBranch(baseBranch);

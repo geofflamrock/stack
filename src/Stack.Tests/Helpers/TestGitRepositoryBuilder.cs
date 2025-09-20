@@ -445,7 +445,7 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
     }
 
-    public string CreateWorktree(string branchName)
+    public Worktree CreateWorktree(string branchName)
     {
         // Validate branch exists
         if (LocalRepository.Branches[branchName] is null)
@@ -456,29 +456,18 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         // Create a temporary directory for the worktree
         var worktreePath = TemporaryDirectory.CreatePath();
         var worktreeName = Some.Name();
-        LocalRepository.Worktrees.Add(branchName, worktreeName, worktreePath, false);
+        var worktree = LocalRepository.Worktrees.Add(branchName, worktreeName, worktreePath, false);
 
         WorktreePaths.Add(new TemporaryDirectory(worktreePath));
 
-        return worktreePath;
+        return worktree;
     }
 
-    public void CommitInWorktree(string worktreePath, string relativePath, string contents, string? message = null)
+    public void CommitInWorktree(Worktree worktree, string relativePath, string contents, string? message = null)
     {
-        if (string.IsNullOrWhiteSpace(worktreePath)) throw new ArgumentException("Worktree path is required", nameof(worktreePath));
-        if (!Directory.Exists(worktreePath)) throw new DirectoryNotFoundException(worktreePath);
-
-        var fullPath = Path.Combine(worktreePath, relativePath);
+        var fullPath = Path.Combine(worktree.WorktreeRepository.Info.WorkingDirectory, relativePath);
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
         File.WriteAllText(fullPath, contents);
-
-        var worktree = LocalRepository.Worktrees.FirstOrDefault(wt => wt.WorktreeRepository.Info.WorkingDirectory.TrimEnd(Path.DirectorySeparatorChar)
-            == Path.GetFullPath(worktreePath).TrimEnd(Path.DirectorySeparatorChar));
-
-        if (worktree is null)
-        {
-            throw new ArgumentException($"The specified path '{worktreePath}' is not a recognized worktree of the repository.", nameof(worktreePath));
-        }
 
         var wtRepo = worktree.WorktreeRepository;
         LibGit2Sharp.Commands.Stage(wtRepo, relativePath);
