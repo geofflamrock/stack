@@ -349,7 +349,7 @@ namespace Stack.Commands.Helpers
 
                             if (!commonBaseExistsInBranchBeingRebasedOnto)
                             {
-                                logger.LogDebug("Common base {CommonBase} exists in branch {BranchToRebaseOnto}",
+                                logger.LogDebug("Common base {CommonBase} does not exist in branch {BranchToRebaseOnto}, treating previous parent as being squash merged and re-parenting.",
                                     commonBase,
                                     branchToRebaseOnto.Name);
 
@@ -359,7 +359,7 @@ namespace Stack.Commands.Helpers
                             }
                             else
                             {
-                                logger.LogDebug("Common base {CommonBase} does not exist in branch {BranchToRebaseOnto}",
+                                logger.LogDebug("Common base {CommonBase} exists in branch {BranchToRebaseOnto}, no need to re-parent",
                                     commonBase,
                                     branchToRebaseOnto.Name);
                             }

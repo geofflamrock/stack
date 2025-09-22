@@ -415,7 +415,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task UpdateStack_WhenUpdatingUsingRebase_AndFirstBranchWasSquashMerged_RemovesOriginalCommitsAndKeepsSquashCommit()
+    public async Task UpdateStack_WhenUpdatingUsingRebase_AndFirstBranchWasSquashMerged_ReparentsOntoSourceBranchToAvoidConflicts()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
@@ -465,6 +465,17 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         thirdBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Third branch should contain squash commit from source");
         secondBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Second branch should not contain tip commit from first branch");
         thirdBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Third branch should not contain tip commit from first branch");
+
+        repo.CreateCommitOnRemoteTrackingBranch(sourceBranch, "New commit on source after squash merge");
+        var tipOfSourceAfterNewCommit = repo.GetTipOfBranch(sourceBranch);
+
+        // Act again to verify subsequent rebase still works
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        secondBranchCommits = repo.GetCommitsReachableFromBranch(secondBranch);
+        thirdBranchCommits = repo.GetCommitsReachableFromBranch(thirdBranch);
+        secondBranchCommits.Should().Contain(c => c.Sha == tipOfSourceAfterNewCommit.Sha, "Second branch should contain latest commit from source after subsequent rebase");
+        thirdBranchCommits.Should().Contain(c => c.Sha == tipOfSourceAfterNewCommit.Sha, "Third branch should contain latest commit from source after subsequent rebase");
     }
 
     [Fact]
