@@ -6,12 +6,11 @@ using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
-using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Helpers;
 
-public partial class StackActionsTests(ITestOutputHelper testOutputHelper)
+public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task UpdateStack_UsingMerge_WhenConflictAbortedBeforeProgressRecorded_ThrowsAbortException()
