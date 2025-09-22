@@ -5,9 +5,20 @@ namespace Stack.Git;
 public enum ConflictOperationType { Merge, Rebase }
 public enum ConflictResolutionResult { Completed, Aborted, NotStarted, Timeout }
 
-public static class ConflictResolutionDetector
+public interface IConflictResolutionDetector
 {
-    public static async Task<ConflictResolutionResult> WaitForConflictResolution(
+    Task<ConflictResolutionResult> WaitForConflictResolution(
+        IGitClient gitClient,
+        ILogger logger,
+        ConflictOperationType operationType,
+        TimeSpan pollInterval,
+        TimeSpan? timeout,
+        CancellationToken cancellationToken);
+}
+
+public class ConflictResolutionDetector : IConflictResolutionDetector
+{
+    public async Task<ConflictResolutionResult> WaitForConflictResolution(
         IGitClient gitClient,
         ILogger logger,
         ConflictOperationType operationType,

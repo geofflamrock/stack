@@ -20,7 +20,8 @@ namespace Stack.Commands.Helpers
         CliExecutionContext executionContext,
         IGitHubClient gitHubClient,
         ILogger<StackActions> logger,
-        IDisplayProvider displayProvider) : IStackActions
+        IDisplayProvider displayProvider,
+        IConflictResolutionDetector conflictResolutionDetector) : IStackActions
     {
         /// <summary>
         /// Gets the default GitClient for the current working directory
@@ -216,7 +217,7 @@ namespace Stack.Commands.Helpers
             }
             catch (ConflictException)
             {
-                var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                var result = await conflictResolutionDetector.WaitForConflictResolution(
                     branchGitClient,
                     logger,
                     ConflictOperationType.Merge,
@@ -387,7 +388,7 @@ namespace Stack.Commands.Helpers
                 }
                 catch (ConflictException)
                 {
-                    var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                    var result = await conflictResolutionDetector.WaitForConflictResolution(
                         branchGitClient,
                         logger,
                         ConflictOperationType.Rebase,
@@ -429,7 +430,7 @@ namespace Stack.Commands.Helpers
                 }
                 catch (ConflictException)
                 {
-                    var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                    var result = await conflictResolutionDetector.WaitForConflictResolution(
                         branchGitClient,
                         logger,
                         ConflictOperationType.Rebase,
