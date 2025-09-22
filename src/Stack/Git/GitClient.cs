@@ -32,6 +32,8 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
+    string? GetMergeBase(string branch1, string branch2);
+    bool IsCommitReachableFromBranch(string commitSha, string branchName);
 
     bool IsMergeInProgress();
     bool IsRebaseInProgress();
@@ -335,6 +337,40 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
         Func<int, Exception?>? exceptionHandler = null)
     {
         ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
+    }
+
+    public string? GetMergeBase(string branch1, string branch2)
+    {
+        var mergeBase = ExecuteGitCommandAndReturnOutput($"merge-base {branch1} {branch2}", false, exitCode =>
+        {
+            if (exitCode == 0)
+            {
+                return null; // success
+            }
+            if (exitCode == 1)
+            {
+                return null; // no common ancestor
+            }
+            return new Exception("Failed to get merge base");
+        })?.Trim();
+
+        return string.IsNullOrWhiteSpace(mergeBase) ? null : mergeBase;
+    }
+
+    public bool IsCommitReachableFromBranch(string commitSha, string branchName)
+    {
+        var branchesThatContainTheCommit = ExecuteGitCommandAndReturnOutput($"branch --contains {commitSha}", false, exitCode =>
+        {
+            if (exitCode == 1)
+            {
+                return null; // no branches contain the commit
+            }
+            return new Exception("Failed to check if commit is reachable from branch");
+        })?.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Select(b => b.TrimStart('*', ' ').Trim())
+            .ToArray() ?? Array.Empty<string>();
+
+        return branchesThatContainTheCommit.Contains(branchName);
     }
 }
 

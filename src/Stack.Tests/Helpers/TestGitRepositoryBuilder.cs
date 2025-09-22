@@ -445,6 +445,54 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
     }
 
+    /// <summary>
+    /// Creates a "squash merge" style commit on the target branch whose tree matches the tip of the branch being squashed.
+    /// This simulates a PR being squash merged into the target branch (e.g. source) without preserving the original commits.
+    /// The newly created commit is added to both the local and remote tracking refs of the target branch (if a remote exists).
+    /// </summary>
+    /// <param name="branchToSquashName">The feature/stack branch whose cumulative changes will be squashed.</param>
+    /// <param name="targetBranchName">The branch to receive the squash commit (typically the source branch).</param>
+    /// <param name="message">The commit message for the squash commit.</param>
+    /// <returns>The created squash commit.</returns>
+    public LibGit2Sharp.Commit CreateSquashCommitFromBranchOntoBranch(string branchToSquashName, string targetBranchName, string message)
+    {
+        var branchToSquash = LocalRepository.Branches[branchToSquashName];
+        var targetBranch = LocalRepository.Branches[targetBranchName];
+
+        if (branchToSquash is null)
+        {
+            throw new ArgumentException($"Branch '{branchToSquashName}' does not exist", nameof(branchToSquashName));
+        }
+
+        if (targetBranch is null)
+        {
+            throw new ArgumentException($"Target branch '{targetBranchName}' does not exist", nameof(targetBranchName));
+        }
+
+        var signature = new Signature(Some.Name(), Some.Email(), DateTimeOffset.Now);
+        var parent = targetBranch.Tip;
+        var tree = branchToSquash.Tip.Tree; // Use the full tree of the branch being squashed
+
+        var squashCommit = LocalRepository.ObjectDatabase.CreateCommit(
+            signature,
+            signature,
+            message,
+            tree,
+            new[] { parent },
+            false);
+
+        // Fast-forward the local target branch to the squash commit
+        LocalRepository.Refs.UpdateTarget(targetBranch.Reference, squashCommit.Id);
+
+        // Fast-forward the remote tracking branch if it exists
+        if (targetBranch.TrackedBranch is not null)
+        {
+            LocalRepository.Refs.UpdateTarget(targetBranch.TrackedBranch.Reference, squashCommit.Id);
+        }
+
+        return squashCommit;
+    }
+
     public Worktree CreateWorktree(string branchName)
     {
         // Validate branch exists

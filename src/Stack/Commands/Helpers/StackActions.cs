@@ -317,17 +317,58 @@ namespace Stack.Commands.Helpers
                 if (branchToRebaseOnto.IsActive)
                 {
                     var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInStack.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
-                    var shouldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
+                    var couldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
+                    string? parentCommitToRebaseFrom = null;
 
-                    if (shouldRebaseOntoParent)
+                    if (couldRebaseOntoParent)
                     {
                         var gitClient = GetDefaultGitClient();
-                        shouldRebaseOntoParent = gitClient.IsAncestor(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
+
+                        // Get the common base between the branch we're rebasing and
+                        // the branch we could potentially re-parent from.
+                        var commonBase = gitClient.GetMergeBase(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
+
+                        if (commonBase is null)
+                        {
+                            // This should never happen, but if it does, we can't re-parent
+                            // so we'll just rebase from the source branch instead.
+                            couldRebaseOntoParent = false;
+                        }
+                        else
+                        {
+                            logger.LogDebug("Common base between {BranchToRebase} and {LowestInactiveBranchToReParentFrom} is {CommonBase}",
+                                branchToRebaseFrom,
+                                lowestInactiveBranchToReParentFrom,
+                                commonBase);
+
+                            // Now check if the common base exists in the branch we're rebasing onto
+                            // If it does, then we know that it got merged in. If it doesn't,
+                            // then we know that it got squash merged in, so we should re-parent
+                            // onto the new parent branch instead.
+                            var commonBaseExistsInBranchBeingRebasedOnto = gitClient.IsCommitReachableFromBranch(commonBase, branchToRebaseOnto.Name);
+
+                            if (!commonBaseExistsInBranchBeingRebasedOnto)
+                            {
+                                logger.LogDebug("Common base {CommonBase} exists in branch {BranchToRebaseOnto}",
+                                    commonBase,
+                                    branchToRebaseOnto.Name);
+
+                                // Common base doesn't exist in the branch we're rebasing onto,
+                                // so we know that it got squash merged in. We can re-parent.
+                                parentCommitToRebaseFrom = commonBase;
+                            }
+                            else
+                            {
+                                logger.LogDebug("Common base {CommonBase} does not exist in branch {BranchToRebaseOnto}",
+                                    commonBase,
+                                    branchToRebaseOnto.Name);
+                            }
+                        }
                     }
 
-                    if (shouldRebaseOntoParent)
+                    if (parentCommitToRebaseFrom is not null)
                     {
-                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!, branchStatuses, cancellationToken);
+                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, parentCommitToRebaseFrom, branchStatuses, cancellationToken);
                     }
                     else
                     {
@@ -381,7 +422,7 @@ namespace Stack.Commands.Helpers
         private async Task RebaseOntoNewParent(
             string branch,
             string newParentBranchName,
-            string oldParentBranchName,
+            string oldParentCommitSha,
             Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
@@ -392,7 +433,7 @@ namespace Stack.Commands.Helpers
 
                 try
                 {
-                    branchGitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
+                    branchGitClient.RebaseOntoNewParent(newParentBranchName, oldParentCommitSha);
                 }
                 catch (ConflictException)
                 {

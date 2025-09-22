@@ -415,6 +415,59 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task UpdateStack_WhenUpdatingUsingRebase_AndFirstBranchWasSquashMerged_RemovesOriginalCommitsAndKeepsSquashCommit()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var firstBranch = Some.BranchName();
+        var secondBranch = Some.BranchName();
+        var thirdBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(firstBranch).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(3).PushToRemote())
+            .WithBranch(builder => builder.WithName(secondBranch).FromSourceBranch(firstBranch).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithBranch(builder => builder.WithName(thirdBranch).FromSourceBranch(secondBranch).WithNumberOfEmptyCommits(1).PushToRemote())
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+
+        var tipOfFirstBranch = repo.GetTipOfBranch(firstBranch);
+
+        // Simulate squash merge of the first branch into the source branch on the remote (keeping first branch locally untouched)
+        gitClient.ChangeBranch(sourceBranch);
+        var squashCommit = repo.CreateSquashCommitFromBranchOntoBranch(firstBranch, sourceBranch, "Squash merge first branch");
+
+        // Delete the remote tracking branch for firstBranch to simulate PR being closed/merged & branch deleted
+        repo.DeleteRemoteTrackingBranch(firstBranch);
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(firstBranch).WithChildBranch(c => c.WithName(secondBranch).WithChildBranch(d => d.WithName(thirdBranch))))
+            .Build();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
+        var secondBranchCommits = repo.GetCommitsReachableFromBranch(secondBranch);
+        var thirdBranchCommits = repo.GetCommitsReachableFromBranch(thirdBranch);
+
+        secondBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Second branch should contain squash commit from source");
+        thirdBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Third branch should contain squash commit from source");
+        secondBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Second branch should not contain tip commit from first branch");
+        thirdBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Third branch should not contain tip commit from first branch");
+    }
+
+    [Fact]
     public void PushChanges_WhenChangesExistOnCurrentBranch_PushesChangesCorrectly()
     {
         // Arrange
