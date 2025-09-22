@@ -372,8 +372,24 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         return [.. LocalRepository.Branches];
     }
 
+    public LibGit2Sharp.Branch ChangeBranch(string branchName)
+    {
+        return LibGit2Sharp.Commands.Checkout(LocalRepository, branchName);
+    }
+
     public LibGit2Sharp.Commit Commit(string? message = null)
     {
+        var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
+        return LocalRepository.Commit(message ?? Some.Name(), signature, signature);
+    }
+
+    public LibGit2Sharp.Commit Commit(string relativePath, string contents, string? message = null)
+    {
+        var fullPath = Path.Combine(LocalDirectoryPath, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        File.WriteAllText(fullPath, contents);
+        LibGit2Sharp.Commands.Stage(LocalRepository, relativePath);
+
         var signature = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
         return LocalRepository.Commit(message ?? Some.Name(), signature, signature);
     }
