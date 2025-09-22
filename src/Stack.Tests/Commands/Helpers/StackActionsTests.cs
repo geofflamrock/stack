@@ -244,6 +244,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) },
