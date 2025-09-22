@@ -207,15 +207,8 @@ namespace Stack.Commands.Helpers
         {
             logger.MergingBranch(sourceBranchName, branch);
 
-            var defaultGitClient = GetDefaultGitClient();
             var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
-
-            // Only change branch if it's not in a worktree (i.e., using the default git client path)
-            if (branchGitClient == defaultGitClient ||
-                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
-            {
-                defaultGitClient.ChangeBranch(branch);
-            }
+            branchGitClient.ChangeBranch(branch);
 
             try
             {
