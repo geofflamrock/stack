@@ -11,7 +11,7 @@ namespace Stack.Tests.Integration;
 public class StackActionsTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
-    public void PullChanges_WhenChangesExistOnSourceBranch_PullsChangesCorrectly()
+    public void PullChanges_WhenChangesExistOnSourceAndBranchInStack_PullsChangesCorrectly()
     {
         // Arrange
         var sourceBranch = Some.BranchName();
