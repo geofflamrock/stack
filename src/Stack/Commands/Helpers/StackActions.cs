@@ -352,16 +352,8 @@ namespace Stack.Commands.Helpers
         {
             await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto {sourceBranchName}", async ct =>
             {
-
-                var defaultGitClient = GetDefaultGitClient();
                 var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
-
-                // Only change branch if it's not in a worktree (i.e., using the default git client path)
-                if (branchGitClient == defaultGitClient ||
-                    (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
-                {
-                    defaultGitClient.ChangeBranch(branch);
-                }
+                branchGitClient.ChangeBranch(branch);
 
                 try
                 {
@@ -400,45 +392,39 @@ namespace Stack.Commands.Helpers
             Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
-            logger.RebasingBranchOntoNewParent(branch, newParentBranchName);
-
-            var defaultGitClient = GetDefaultGitClient();
-            var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
-
-            // Only change branch if it's not in a worktree (i.e., using the default git client path)
-            if (branchGitClient == defaultGitClient ||
-                (branchStatuses.TryGetValue(branch, out var branchStatus) && branchStatus.WorktreePath == null))
+            await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto new parent {newParentBranchName}", async ct =>
             {
-                defaultGitClient.ChangeBranch(branch);
-            }
+                var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
+                branchGitClient.ChangeBranch(branch);
 
-            try
-            {
-                branchGitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
-            }
-            catch (ConflictException)
-            {
-                var result = await ConflictResolutionDetector.WaitForConflictResolution(
-                    branchGitClient,
-                    logger,
-                    ConflictOperationType.Rebase,
-                    TimeSpan.FromSeconds(1),
-                    null,
-                    cancellationToken);
-
-                switch (result)
+                try
                 {
-                    case ConflictResolutionResult.Completed:
-                        break;
-                    case ConflictResolutionResult.Aborted:
-                        throw new Exception("Rebase aborted due to conflicts.");
-                    case ConflictResolutionResult.Timeout:
-                        throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
-                    case ConflictResolutionResult.NotStarted:
-                        logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
-                        break;
+                    branchGitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
                 }
-            }
+                catch (ConflictException)
+                {
+                    var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                        branchGitClient,
+                        logger,
+                        ConflictOperationType.Rebase,
+                        TimeSpan.FromSeconds(1),
+                        null,
+                        cancellationToken);
+
+                    switch (result)
+                    {
+                        case ConflictResolutionResult.Completed:
+                            break;
+                        case ConflictResolutionResult.Aborted:
+                            throw new Exception("Rebase aborted due to conflicts.");
+                        case ConflictResolutionResult.Timeout:
+                            throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
+                        case ConflictResolutionResult.NotStarted:
+                            logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
+                            break;
+                    }
+                }
+            }, cancellationToken);
         }
     }
 }

@@ -5,6 +5,7 @@ using Stack.Commands.Helpers;
 using Stack.Git;
 using Xunit.Abstractions;
 using Stack.Tests.Helpers;
+using Stack.Infrastructure.Settings;
 
 namespace Stack.Tests.Integration;
 
@@ -24,9 +25,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Create commits on remote tracking branches to simulate changes to pull
         repo.CreateCommitOnRemoteTrackingBranch(sourceBranch, "Remote change on source");
@@ -40,7 +43,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(otherBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PullChanges(stack);
@@ -69,9 +72,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Create commits on remote tracking branch to simulate changes to pull  
         repo.CreateCommitOnRemoteTrackingBranch(worktreeBranch, "Remote change on worktree branch");
@@ -87,7 +92,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(worktreeBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PullChanges(stack);
@@ -112,9 +117,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         gitClient.ChangeBranch(sourceBranch);
         var initialLocalTip = repo.GetTipOfBranch(localOnlyBranch);
@@ -124,7 +131,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(localOnlyBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PullChanges(stack);
@@ -148,9 +155,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Delete the remote tracking branch to simulate deleted remote
         repo.DeleteRemoteTrackingBranch(deletedRemoteBranch);
@@ -163,7 +172,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(deletedRemoteBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PullChanges(stack);
@@ -191,9 +200,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Add changes to source branch (simulating changes to merge)
         gitClient.ChangeBranch(sourceBranch);
@@ -215,7 +226,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(line2Branch1))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -247,9 +258,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Add changes to source branch (simulating changes to rebase onto)
         gitClient.ChangeBranch(sourceBranch);
@@ -271,7 +284,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(line2Branch1))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -290,6 +303,118 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task UpdateStack_WhenUpdatingUsingMerge_AndBranchCheckedOutInWorktree_UpdatesStackCorrectly()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var parentBranch = Some.BranchName();
+        var childBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(parentBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(childBranch).FromSourceBranch(parentBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+
+        // Add change to source
+        gitClient.ChangeBranch(sourceBranch);
+        var sourceFile = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(sourceFile, "source change");
+        repo.Stage(Path.GetFileName(sourceFile));
+        var sourceCommit = repo.Commit("Source branch change");
+
+        // Add change to parent branch
+        gitClient.ChangeBranch(parentBranch);
+        var parentFile = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(parentFile, "parent change");
+        repo.Stage(Path.GetFileName(parentFile));
+        var parentCommit = repo.Commit("Parent branch change");
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(parentBranch).WithChildBranch(c => c.WithName(childBranch)))
+            .Build();
+
+        gitClient.ChangeBranch(sourceBranch); // ensure not on child
+        var worktree = repo.CreateWorktree(childBranch);
+        worktree.Should().NotBeNull();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert - child branch should contain both source and parent commits after merge propagated through worktree parent
+        var childCommits = repo.GetCommitsReachableFromBranch(childBranch);
+        childCommits.Should().Contain(c => c.Sha == sourceCommit.Sha, "child branch should contain source changes after merge");
+        childCommits.Should().Contain(c => c.Sha == parentCommit.Sha, "child branch should contain parent branch changes after merge");
+    }
+
+    [Fact]
+    public async Task UpdateStack_WhenUpdatingUsingRebase_AndBranchCheckedOutInWorktree_UpdatesStackCorrectly()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var parentBranch = Some.BranchName();
+        var childBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(parentBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(childBranch).FromSourceBranch(parentBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+
+        // Add change to source
+        gitClient.ChangeBranch(sourceBranch);
+        var sourceFile = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(sourceFile, "source change");
+        repo.Stage(Path.GetFileName(sourceFile));
+        var sourceCommit = repo.Commit("Source branch change");
+
+        // Add change to parent
+        gitClient.ChangeBranch(parentBranch);
+        var parentFile = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(parentFile, "parent change");
+        repo.Stage(Path.GetFileName(parentFile));
+        repo.Commit("Parent branch change"); // SHA will change during rebase; use message for assertion
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(parentBranch).WithChildBranch(c => c.WithName(childBranch)))
+            .Build();
+
+        gitClient.ChangeBranch(sourceBranch); // ensure not on child
+        var worktreePath = repo.CreateWorktree(childBranch);
+        worktreePath.Should().NotBeNull();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
+
+        // Act
+        await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert - child branch should contain rebased source and parent changes
+        var childCommits = repo.GetCommitsReachableFromBranch(childBranch);
+        childCommits.Should().Contain(c => c.Sha == sourceCommit.Sha, "child branch should contain source changes after rebase");
+        childCommits.Should().Contain(c => c.MessageShort == "Parent branch change", "child branch should contain parent changes after rebase (message match due to rewritten SHA)");
+    }
+
+    [Fact]
     public void PushChanges_WhenChangesExistOnCurrentBranch_PushesChangesCorrectly()
     {
         // Arrange
@@ -303,9 +428,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Make changes to the current branch
         gitClient.ChangeBranch(currentBranch);
@@ -321,7 +448,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(currentBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -346,9 +473,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Make changes to the non-current branch
         gitClient.ChangeBranch(nonCurrentBranch);
@@ -366,7 +495,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(nonCurrentBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -391,9 +520,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Make changes to the worktree branch, then switch away to create worktree
         gitClient.ChangeBranch(worktreeBranch);
@@ -413,7 +544,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(worktreeBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -438,9 +569,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Make changes to the local-only branch
         gitClient.ChangeBranch(localOnlyBranch);
@@ -460,7 +593,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(localOnlyBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act - should complete without errors and should actually create the remote tracking branch
         stackActions.PushChanges(stack, 5, false);
@@ -492,9 +625,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var gitClientLogger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
-        var console = new TestDisplayProvider(testOutputHelper);
-        var gitClient = new GitClient(gitClientLogger, repo.ExecutionContext);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = new GitClient(gitClientLogger, repo.LocalDirectoryPath);
         var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
 
         // Make changes to the branch
         gitClient.ChangeBranch(deletedRemoteBranch);
@@ -514,7 +649,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(deletedRemoteBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClient, gitHubClient, logger, console);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider);
 
         // Act - should complete without errors even with deleted remote
         stackActions.PushChanges(stack, 5, false);
@@ -526,5 +661,20 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Verify that attempting to get the remote branch tip throws (because remote doesn't exist)
         var act = () => repo.GetTipOfRemoteBranch(deletedRemoteBranch);
         act.Should().Throw<Exception>("remote branch should not be accessible after deletion");
+    }
+}
+
+public class TestGitClientFactory(ITestOutputHelper testOutputHelper) : IGitClientFactory
+{
+    private readonly Dictionary<string, GitClient> gitClients = [];
+
+    public IGitClient Create(string workingDirectory)
+    {
+        if (!gitClients.ContainsKey(workingDirectory))
+        {
+            var logger = XUnitLogger.CreateLogger<GitClient>(testOutputHelper);
+            gitClients[workingDirectory] = new GitClient(logger, workingDirectory);
+        }
+        return gitClients[workingDirectory];
     }
 }
