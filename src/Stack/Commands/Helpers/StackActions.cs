@@ -287,27 +287,27 @@ namespace Stack.Commands.Helpers
             //
             logger.RebasingStackForBranchLine(status.Name, status.SourceBranch.Name, string.Join(" -> ", branchLine.Select(b => b.Name)));
 
-            BranchDetail? lowestActionBranch = null;
+            BranchDetail? lowestActiveBranchInLine = null;
             foreach (var branch in branchLine)
             {
                 if (branch.IsActive)
                 {
-                    lowestActionBranch = branch;
+                    lowestActiveBranchInLine = branch;
                 }
             }
 
-            if (lowestActionBranch is null)
+            if (lowestActiveBranchInLine is null)
             {
                 logger.NoActiveBranchesFound();
                 return;
             }
 
-            string? branchToRebaseFrom = lowestActionBranch.Name;
+            string? branchToRebaseFrom = lowestActiveBranchInLine.Name;
             string? lowestInactiveBranchToReParentFrom = null;
 
             List<BranchDetailBase> branchesToRebaseOnto = [.. branchLine];
             branchesToRebaseOnto.Reverse();
-            branchesToRebaseOnto.Remove(lowestActionBranch);
+            branchesToRebaseOnto.Remove(lowestActiveBranchInLine);
             branchesToRebaseOnto.Add(status.SourceBranch);
 
             List<BranchDetailBase> allBranchesInStack = [status.SourceBranch, .. branchLine];
@@ -318,53 +318,7 @@ namespace Stack.Commands.Helpers
                 {
                     var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInStack.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
                     var couldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
-                    string? parentCommitToRebaseFrom = null;
-
-                    if (couldRebaseOntoParent)
-                    {
-                        var gitClient = GetDefaultGitClient();
-
-                        // Get the common base between the branch we're rebasing and
-                        // the branch we could potentially re-parent from.
-                        var commonBase = gitClient.GetMergeBase(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
-
-                        if (commonBase is null)
-                        {
-                            // This should never happen, but if it does, we can't re-parent
-                            // so we'll just rebase from the source branch instead.
-                            couldRebaseOntoParent = false;
-                        }
-                        else
-                        {
-                            logger.LogDebug("Common base between {BranchToRebase} and {LowestInactiveBranchToReParentFrom} is {CommonBase}",
-                                branchToRebaseFrom,
-                                lowestInactiveBranchToReParentFrom,
-                                commonBase);
-
-                            // Now check if the common base exists in the branch we're rebasing onto
-                            // If it does, then we know that it got merged in. If it doesn't,
-                            // then we know that it got squash merged in, so we should re-parent
-                            // onto the new parent branch instead.
-                            var commonBaseExistsInBranchBeingRebasedOnto = gitClient.IsCommitReachableFromBranch(commonBase, branchToRebaseOnto.Name);
-
-                            if (!commonBaseExistsInBranchBeingRebasedOnto)
-                            {
-                                logger.LogDebug("Common base {CommonBase} does not exist in branch {BranchToRebaseOnto}, treating previous parent as being squash merged and re-parenting.",
-                                    commonBase,
-                                    branchToRebaseOnto.Name);
-
-                                // Common base doesn't exist in the branch we're rebasing onto,
-                                // so we know that it got squash merged in. We can re-parent.
-                                parentCommitToRebaseFrom = commonBase;
-                            }
-                            else
-                            {
-                                logger.LogDebug("Common base {CommonBase} exists in branch {BranchToRebaseOnto}, no need to re-parent",
-                                    commonBase,
-                                    branchToRebaseOnto.Name);
-                            }
-                        }
-                    }
+                    var parentCommitToRebaseFrom = couldRebaseOntoParent ? GetCommitShaToReParentFrom(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!) : null;
 
                     if (parentCommitToRebaseFrom is not null)
                     {
@@ -379,6 +333,44 @@ namespace Stack.Commands.Helpers
                 {
                     lowestInactiveBranchToReParentFrom = branchToRebaseOnto.Name;
                 }
+            }
+        }
+
+        private string? GetCommitShaToReParentFrom(string branchToRebase, string lowestInactiveBranchToReParentFrom)
+        {
+            var gitClient = GetDefaultGitClient();
+
+            // Get the common base between the branch we're rebasing and
+            // the branch we could potentially re-parent from.
+            var commonBase = gitClient.GetMergeBase(branchToRebase, lowestInactiveBranchToReParentFrom);
+
+            if (commonBase is null)
+            {
+                // This should never happen, but if it does, we can't re-parent
+                // so we'll just rebase from the source branch instead.
+                return null;
+            }
+
+            logger.CommonBaseBetweenBranches(branchToRebase, lowestInactiveBranchToReParentFrom, commonBase);
+
+            // Now check if the common base exists in the branch we're rebasing onto
+            // If it does, then we know that it got merged in. If it doesn't,
+            // then we know that it got squash merged in, so we should re-parent
+            // onto the new parent branch instead.
+            var commonBaseExistsInBranchBeingRebasedOnto = gitClient.IsCommitReachableFromBranch(commonBase, lowestInactiveBranchToReParentFrom);
+
+            if (!commonBaseExistsInBranchBeingRebasedOnto)
+            {
+                logger.CommitDoesNotExistInNewParent(commonBase, lowestInactiveBranchToReParentFrom);
+
+                // Common base doesn't exist in the branch we're rebasing onto,
+                // so we know that it got squash merged in. We can re-parent.
+                return commonBase;
+            }
+            else
+            {
+                logger.CommitExistsInNewParent(commonBase, lowestInactiveBranchToReParentFrom);
+                return null;
             }
         }
 
@@ -503,4 +495,13 @@ internal static partial class LoggerExtensionMethods
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Rebasing {Branch} onto new parent {NewParentBranch}")]
     public static partial void RebasingBranchOntoNewParent(this ILogger logger, string branch, string newParentBranch);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Common base between {SourceBranch} and {TargetBranch}: {CommitSha}")]
+    public static partial void CommonBaseBetweenBranches(this ILogger logger, string sourceBranch, string targetBranch, string commitSha);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Commit {CommitSha} does not exist in branch {BranchToRebaseOnto}, treating previous parent as being squash merged and re-parenting.")]
+    public static partial void CommitDoesNotExistInNewParent(this ILogger logger, string commitSha, string branchToRebaseOnto);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Commit {CommitSha} exists in branch {BranchToRebaseOnto}, no need to re-parent")]
+    public static partial void CommitExistsInNewParent(this ILogger logger, string commitSha, string branchToRebaseOnto);
 }
