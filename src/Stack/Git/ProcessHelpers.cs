@@ -6,15 +6,18 @@ using Stack.Infrastructure;
 
 namespace Stack.Git;
 
+public record ProcessExecutionResult(int ExitCode, string StandardOutput, string StandardError);
+public record ProcessExecutionInfo(string FileName, string Arguments, string? WorkingDirectory);
+
 public static class ProcessHelpers
 {
-    public static string ExecuteProcessAndReturnOutput(
+    public static ProcessExecutionResult ExecuteProcessAndReturnOutput(
         string fileName,
         string command,
         string? workingDirectory,
         ILogger logger,
         bool captureStandardError = false,
-        Func<int, Exception?>? exceptionHandler = null)
+        Action<ProcessExecutionInfo, ProcessExecutionResult>? exceptionHandler = null)
     {
         logger.ExecutingCommand(fileName, command);
 
@@ -33,7 +36,7 @@ public static class ProcessHelpers
         };
 
         using var process = Process.Start(psi);
-        if (process is null) return string.Empty;
+        if (process is null) return new ProcessExecutionResult(-1, string.Empty, string.Empty);
 
         process.OutputDataReceived += (_, e) =>
         {
@@ -49,23 +52,23 @@ public static class ProcessHelpers
         process.BeginOutputReadLine();
 
         process.WaitForExit();
-        int result = process.ExitCode;
+        int exitCode = process.ExitCode;
+        var standardOutput = infoBuilder.ToString();
+        var standardError = errorBuilder.ToString();
+        var result = new ProcessExecutionResult(exitCode, standardOutput, standardError);
+        var info = new ProcessExecutionInfo(fileName, command, workingDirectory);
 
-        if (result != 0)
+        if (exitCode != 0)
         {
-            logger.CommandFailed(fileName, command, result, errorBuilder.ToString());
+            logger.CommandFailed(fileName, command, exitCode, errorBuilder.ToString());
 
             if (exceptionHandler != null)
             {
-                var exception = exceptionHandler(result);
-                if (exception != null)
-                {
-                    throw exception;
-                }
+                exceptionHandler(info, result);
             }
             else
             {
-                throw new ProcessException(errorBuilder.ToString(), fileName, command, result);
+                throw new ProcessException(errorBuilder.ToString(), fileName, command, exitCode);
             }
         }
 
@@ -81,7 +84,7 @@ public static class ProcessHelpers
             output += $"{Environment.NewLine}{errorBuilder}";
         }
 
-        return output;
+        return result;
     }
 }
 

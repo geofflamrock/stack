@@ -234,8 +234,7 @@ namespace Stack.Commands.Helpers
                     case ConflictResolutionResult.Timeout:
                         throw new TimeoutException("Timed out waiting for merge conflict resolution.");
                     case ConflictResolutionResult.NotStarted:
-                        logger.LogWarning("Expected merge to be in progress but marker not found. Proceeding cautiously.");
-                        break;
+                        throw new Exception("Expected merge to be in progress but it is not. Use --verbose output for more details.");
                 }
             }
         }
@@ -405,8 +404,7 @@ namespace Stack.Commands.Helpers
                         case ConflictResolutionResult.Timeout:
                             throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
                         case ConflictResolutionResult.NotStarted:
-                            logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
-                            break;
+                            throw new Exception("Expected rebase to be in progress but it is not. Use --verbose output for more details.");
                     }
                 }
             }, cancellationToken);
@@ -447,8 +445,7 @@ namespace Stack.Commands.Helpers
                         case ConflictResolutionResult.Timeout:
                             throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
                         case ConflictResolutionResult.NotStarted:
-                            logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
-                            break;
+                            throw new Exception("Expected rebase to be in progress but it is not. Use --verbose output for more details.");
                     }
                 }
             }, cancellationToken);
