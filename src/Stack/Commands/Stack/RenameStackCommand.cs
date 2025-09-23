@@ -51,7 +51,8 @@ public record RenameStackCommandResponse();
 public class RenameStackCommandHandler(
     IInputProvider inputProvider,
     ILogger<RenameStackCommandHandler> logger,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<RenameStackCommandInputs>
 {
@@ -59,6 +60,7 @@ public class RenameStackCommandHandler(
     {
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 

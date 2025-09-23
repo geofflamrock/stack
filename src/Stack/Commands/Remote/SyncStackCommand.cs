@@ -65,7 +65,8 @@ public class SyncStackCommandHandler(
     ILogger<SyncStackCommandHandler> logger,
     IOutputProvider outputProvider,
     IDisplayProvider displayProvider,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IStackConfig stackConfig,
     IStackActions stackActions)
@@ -80,6 +81,7 @@ public class SyncStackCommandHandler(
 
         var stackData = stackConfig.Load();
 
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();

@@ -341,7 +341,6 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
 {
     public string RemoteUri => RemoteDirectory.DirectoryPath;
     public string LocalDirectoryPath => LocalDirectory.DirectoryPath;
-    public CliExecutionContext ExecutionContext => new() { WorkingDirectory = LocalDirectory.DirectoryPath };
     readonly List<TemporaryDirectory> WorktreePaths = [];
 
     public LibGit2Sharp.Commit GetTipOfBranch(string branchName)
@@ -446,7 +445,7 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         LocalRepository.Refs.UpdateTarget(remoteBranch.Reference, commit.Id);
     }
 
-    public string CreateWorktree(string branchName)
+    public Worktree CreateWorktree(string branchName)
     {
         // Validate branch exists
         if (LocalRepository.Branches[branchName] is null)
@@ -457,11 +456,23 @@ public class TestGitRepository(TemporaryDirectory LocalDirectory, TemporaryDirec
         // Create a temporary directory for the worktree
         var worktreePath = TemporaryDirectory.CreatePath();
         var worktreeName = Some.Name();
-        LocalRepository.Worktrees.Add(branchName, worktreeName, worktreePath, false);
+        var worktree = LocalRepository.Worktrees.Add(branchName, worktreeName, worktreePath, false);
 
         WorktreePaths.Add(new TemporaryDirectory(worktreePath));
 
-        return worktreePath;
+        return worktree;
+    }
+
+    public void CommitInWorktree(Worktree worktree, string relativePath, string contents, string? message = null)
+    {
+        var fullPath = Path.Combine(worktree.WorktreeRepository.Info.WorkingDirectory, relativePath);
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        File.WriteAllText(fullPath, contents);
+
+        var wtRepo = worktree.WorktreeRepository;
+        LibGit2Sharp.Commands.Stage(wtRepo, relativePath);
+        var sig = new Signature(Some.Name(), Some.Name(), DateTimeOffset.Now);
+        wtRepo.Commit(message ?? Some.Name(), sig, sig);
     }
 
     public void Dispose()

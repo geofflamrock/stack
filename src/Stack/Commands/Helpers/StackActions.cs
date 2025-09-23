@@ -1,5 +1,6 @@
 using Stack.Config;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Git;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
@@ -13,14 +14,41 @@ namespace Stack.Commands.Helpers
         Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
     }
 
+
     public class StackActions(
-        IGitClient gitClient,
+        IGitClientFactory gitClientFactory,
+        CliExecutionContext executionContext,
         IGitHubClient gitHubClient,
         ILogger<StackActions> logger,
         IDisplayProvider displayProvider) : IStackActions
     {
+        /// <summary>
+        /// Gets the default GitClient for the current working directory
+        /// </summary>
+        private IGitClient GetDefaultGitClient()
+        {
+            return gitClientFactory.Create(executionContext.WorkingDirectory);
+        }
+
+        /// <summary>
+        /// Gets the appropriate GitClient for operating on a branch, either in the current working directory
+        /// or in the branch's worktree if it's checked out in another worktree
+        /// </summary>
+        private IGitClient GetGitClientForBranch(string branchName, Dictionary<string, GitBranchStatus> branchStatuses)
+        {
+            if (branchStatuses.TryGetValue(branchName, out var branchStatus) && branchStatus.WorktreePath != null)
+            {
+                // Branch is checked out in another worktree, create a GitClient for that worktree
+                return gitClientFactory.Create(branchStatus.WorktreePath);
+            }
+
+            // Use the default GitClient for the current working directory
+            return GetDefaultGitClient();
+        }
+
         public void PullChanges(Config.Stack stack)
         {
+            var gitClient = GetDefaultGitClient();
             List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
             var branchStatus = gitClient.GetBranchStatuses([.. allBranchesInStacks]);
 
@@ -62,7 +90,9 @@ namespace Stack.Commands.Helpers
             {
                 var worktreePath = branchStatus[branch].WorktreePath!; // not null due to filter
                 logger.PullingWorktreeBranch(branch, worktreePath);
-                gitClient.PullBranchForWorktree(branch, worktreePath);
+
+                var branchGitClient = GetGitClientForBranch(branch, branchStatus);
+                branchGitClient.PullBranch(branch);
             }
 
             if (nonCurrentBranches.Length > 0)
@@ -77,6 +107,7 @@ namespace Stack.Commands.Helpers
             int maxBatchSize,
             bool forceWithLease)
         {
+            var gitClient = GetDefaultGitClient();
             var branchStatus = gitClient.GetBranchStatuses([.. stack.AllBranchNames]);
 
             var branchesThatHaveNotBeenPushedToRemote = branchStatus
@@ -110,6 +141,7 @@ namespace Stack.Commands.Helpers
 
         public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken)
         {
+            var gitClient = GetDefaultGitClient();
             var currentBranch = gitClient.GetCurrentBranch();
 
             var status = StackHelpers.GetStackStatus(
@@ -120,19 +152,24 @@ namespace Stack.Commands.Helpers
                 gitHubClient,
                 true);
 
+            // Get branch statuses to check for worktrees
+            List<string> allBranchesInStack = [stack.SourceBranch, .. stack.AllBranchNames];
+            var branchStatuses = gitClient.GetBranchStatuses([.. allBranchesInStack]);
+
             if (strategy == UpdateStrategy.Rebase)
             {
-                await UpdateStackUsingRebase(stack, status, cancellationToken);
+                await UpdateStackUsingRebase(stack, status, branchStatuses, cancellationToken);
             }
             else
             {
-                await UpdateStackUsingMerge(stack, status, cancellationToken);
+                await UpdateStackUsingMerge(stack, status, branchStatuses, cancellationToken);
             }
         }
 
         private async Task UpdateStackUsingMerge(
             Config.Stack stack,
             StackStatus status,
+            Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
             logger.UpdatingStackUsingMerge(status.Name);
@@ -141,13 +178,14 @@ namespace Stack.Commands.Helpers
 
             foreach (var branchLine in allBranchLines)
             {
-                await UpdateBranchLineUsingMerge(branchLine, status.SourceBranch, cancellationToken);
+                await UpdateBranchLineUsingMerge(branchLine, status.SourceBranch, branchStatuses, cancellationToken);
             }
         }
 
         private async Task UpdateBranchLineUsingMerge(
             List<BranchDetail> branchLine,
             BranchDetailBase parentBranch,
+            Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
             var currentParentBranch = parentBranch;
@@ -155,7 +193,7 @@ namespace Stack.Commands.Helpers
             {
                 if (branch.IsActive)
                 {
-                    await MergeFromSourceBranch(branch.Name, currentParentBranch.Name, cancellationToken);
+                    await MergeFromSourceBranch(branch.Name, currentParentBranch.Name, branchStatuses, cancellationToken);
                     currentParentBranch = branch;
                 }
                 else
@@ -165,19 +203,21 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private async Task MergeFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
+        private async Task MergeFromSourceBranch(string branch, string sourceBranchName, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
         {
             logger.MergingBranch(sourceBranchName, branch);
-            gitClient.ChangeBranch(branch);
+
+            var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
+            branchGitClient.ChangeBranch(branch);
 
             try
             {
-                gitClient.MergeFromLocalSourceBranch(sourceBranchName);
+                branchGitClient.MergeFromLocalSourceBranch(sourceBranchName);
             }
             catch (ConflictException)
             {
                 var result = await ConflictResolutionDetector.WaitForConflictResolution(
-                    gitClient,
+                    branchGitClient,
                     logger,
                     ConflictOperationType.Merge,
                     TimeSpan.FromSeconds(1),
@@ -202,6 +242,7 @@ namespace Stack.Commands.Helpers
         private async Task UpdateStackUsingRebase(
             Config.Stack stack,
             StackStatus status,
+            Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
             logger.UpdatingStackUsingRebase(status.Name);
@@ -210,11 +251,11 @@ namespace Stack.Commands.Helpers
 
             foreach (var branchLine in allBranchLines)
             {
-                await UpdateBranchLineUsingRebase(status, branchLine, cancellationToken);
+                await UpdateBranchLineUsingRebase(status, branchLine, branchStatuses, cancellationToken);
             }
         }
 
-        private async Task UpdateBranchLineUsingRebase(StackStatus status, List<BranchDetail> branchLine, CancellationToken cancellationToken)
+        private async Task UpdateBranchLineUsingRebase(StackStatus status, List<BranchDetail> branchLine, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
         {
             //
             // When rebasing the stack, we'll use `git rebase --update-refs` from the
@@ -280,16 +321,17 @@ namespace Stack.Commands.Helpers
 
                     if (shouldRebaseOntoParent)
                     {
+                        var gitClient = GetDefaultGitClient();
                         shouldRebaseOntoParent = gitClient.IsAncestor(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!);
                     }
 
                     if (shouldRebaseOntoParent)
                     {
-                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!, cancellationToken);
+                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, lowestInactiveBranchToReParentFrom!, branchStatuses, cancellationToken);
                     }
                     else
                     {
-                        await RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name, cancellationToken);
+                        await RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name, branchStatuses, cancellationToken);
                     }
                 }
                 else if (lowestInactiveBranchToReParentFrom is null)
@@ -299,20 +341,21 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, CancellationToken cancellationToken)
+        private async Task RebaseFromSourceBranch(string branch, string sourceBranchName, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
         {
             await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto {sourceBranchName}", async ct =>
             {
-                gitClient.ChangeBranch(branch);
+                var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
+                branchGitClient.ChangeBranch(branch);
 
                 try
                 {
-                    gitClient.RebaseFromLocalSourceBranch(sourceBranchName);
+                    branchGitClient.RebaseFromLocalSourceBranch(sourceBranchName);
                 }
                 catch (ConflictException)
                 {
                     var result = await ConflictResolutionDetector.WaitForConflictResolution(
-                        gitClient,
+                        branchGitClient,
                         logger,
                         ConflictOperationType.Rebase,
                         TimeSpan.FromSeconds(1),
@@ -339,38 +382,42 @@ namespace Stack.Commands.Helpers
             string branch,
             string newParentBranchName,
             string oldParentBranchName,
+            Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
-            logger.RebasingBranchOntoNewParent(branch, newParentBranchName);
-            gitClient.ChangeBranch(branch);
-
-            try
+            await displayProvider.DisplayStatusWithSuccess($"Rebasing {branch} onto new parent {newParentBranchName}", async ct =>
             {
-                gitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
-            }
-            catch (ConflictException)
-            {
-                var result = await ConflictResolutionDetector.WaitForConflictResolution(
-                    gitClient,
-                    logger,
-                    ConflictOperationType.Rebase,
-                    TimeSpan.FromSeconds(1),
-                    null,
-                    cancellationToken);
+                var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
+                branchGitClient.ChangeBranch(branch);
 
-                switch (result)
+                try
                 {
-                    case ConflictResolutionResult.Completed:
-                        break;
-                    case ConflictResolutionResult.Aborted:
-                        throw new Exception("Rebase aborted due to conflicts.");
-                    case ConflictResolutionResult.Timeout:
-                        throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
-                    case ConflictResolutionResult.NotStarted:
-                        logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
-                        break;
+                    branchGitClient.RebaseOntoNewParent(newParentBranchName, oldParentBranchName);
                 }
-            }
+                catch (ConflictException)
+                {
+                    var result = await ConflictResolutionDetector.WaitForConflictResolution(
+                        branchGitClient,
+                        logger,
+                        ConflictOperationType.Rebase,
+                        TimeSpan.FromSeconds(1),
+                        null,
+                        cancellationToken);
+
+                    switch (result)
+                    {
+                        case ConflictResolutionResult.Completed:
+                            break;
+                        case ConflictResolutionResult.Aborted:
+                            throw new Exception("Rebase aborted due to conflicts.");
+                        case ConflictResolutionResult.Timeout:
+                            throw new TimeoutException("Timed out waiting for rebase conflict resolution.");
+                        case ConflictResolutionResult.NotStarted:
+                            logger.LogWarning("Expected rebase to be in progress but marker not found. Proceeding cautiously.");
+                            break;
+                    }
+                }
+            }, cancellationToken);
         }
     }
 }

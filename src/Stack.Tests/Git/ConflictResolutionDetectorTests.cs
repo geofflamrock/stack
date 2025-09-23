@@ -38,7 +38,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
     {
         using var repo = new TestGitRepositoryBuilder().Build();
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var result = await ConflictResolutionDetector.WaitForConflictResolution(
             git,
@@ -62,7 +62,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -122,7 +122,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -167,7 +167,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -209,7 +209,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -252,7 +252,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -322,7 +322,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             .Build();
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
-        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.ExecutionContext);
+        var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);

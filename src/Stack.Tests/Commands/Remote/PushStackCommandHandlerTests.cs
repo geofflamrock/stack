@@ -6,6 +6,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using Xunit.Abstractions;
 
@@ -42,7 +43,11 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.ChangeBranch(branch1);
 
@@ -85,7 +90,11 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.ChangeBranch(branch1);
 
@@ -129,7 +138,11 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.ChangeBranch(branch1);
 
@@ -172,7 +185,11 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.ChangeBranch(branch1);
 
@@ -215,7 +232,11 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitHubClient = Substitute.For<IGitHubClient>();
         var stackActions = Substitute.For<IStackActions>();
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClient, stackConfig, stackActions);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.ChangeBranch(branch1);
 

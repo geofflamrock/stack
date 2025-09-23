@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -42,7 +43,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
@@ -83,7 +88,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -123,7 +132,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -163,7 +176,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -197,7 +214,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(anotherBranch);
@@ -238,7 +259,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -277,7 +302,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -312,7 +341,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, anotherBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
         await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd, anotherBranch), CancellationToken.None);
@@ -354,7 +387,11 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToAdd);

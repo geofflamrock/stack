@@ -45,7 +45,6 @@ public interface IGitClient
     void PushNewBranch(string branchName);
     void PullBranch(string branchName);
     void FetchBranchRefSpecs(string[] branchNames);
-    void PullBranchForWorktree(string branchName, string worktreePath);
     void PushBranches(string[] branches, bool forceWithLease);
     void DeleteLocalBranch(string branchName);
 
@@ -57,7 +56,7 @@ public interface IGitClient
     void ContinueRebase();
 }
 
-public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) : IGitClient
+public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGitClient
 {
     public string GetCurrentBranch()
     {
@@ -161,9 +160,18 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
     {
         // Detect presence of .git/rebase-merge or .git/rebase-apply directories
         // Use repo root to build path; Git guarantees these directories during an interactive or normal rebase
-        var root = GetRootOfRepository();
-        var rebaseMerge = Path.Combine(root, ".git", "rebase-merge");
-        var rebaseApply = Path.Combine(root, ".git", "rebase-apply");
+
+        // Resolve the git dir for this working tree (works for normal repo & worktrees)
+        var gitDir = ExecuteGitCommandAndReturnOutput("rev-parse --git-dir").Trim();
+
+        // rev-parse may return a relative path (e.g. .git); make it absolute
+        if (!Path.IsPathRooted(gitDir))
+        {
+            gitDir = Path.GetFullPath(Path.Combine(workingDirectory, gitDir));
+        }
+
+        var rebaseMerge = Path.Combine(gitDir, "rebase-merge");
+        var rebaseApply = Path.Combine(gitDir, "rebase-apply");
         return Directory.Exists(rebaseMerge) || Directory.Exists(rebaseApply);
     }
 
@@ -226,12 +234,6 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
 
         var refSpecs = string.Join(" ", branchNames.Select(b => $"{b}:{b}"));
         ExecuteGitCommand($"fetch origin {refSpecs}");
-    }
-
-    public void PullBranchForWorktree(string branchName, string worktreePath)
-    {
-        // Execute the pull within the specified worktree without changing the current working directory
-        ExecuteGitCommand($"-C \"{worktreePath}\" pull origin {branchName}");
     }
 
     public void PushBranches(string[] branches, bool forceWithLease)
@@ -320,7 +322,7 @@ public class GitClient(ILogger<GitClient> logger, CliExecutionContext context) :
         return ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
-            context.WorkingDirectory,
+            workingDirectory,
             logger,
             captureStandardError,
             exceptionHandler

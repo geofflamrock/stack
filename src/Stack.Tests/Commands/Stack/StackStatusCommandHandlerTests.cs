@@ -6,6 +6,7 @@ using Stack.Config;
 using Stack.Git;
 using Stack.Tests.Helpers;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Commands.Helpers;
 using Xunit.Abstractions;
 
@@ -41,7 +42,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -110,7 +115,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -185,7 +194,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -274,7 +287,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
@@ -351,7 +368,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -394,7 +415,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -467,7 +492,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -531,7 +560,11 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var console = new TestDisplayProvider(testOutputHelper);
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClient, gitHubClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 

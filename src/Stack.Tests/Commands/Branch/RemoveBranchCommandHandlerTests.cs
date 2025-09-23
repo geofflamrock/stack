@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
@@ -35,7 +36,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -79,7 +84,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -121,7 +130,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -156,7 +169,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -198,7 +215,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -231,7 +252,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -273,7 +298,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -312,7 +341,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -352,7 +385,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -392,7 +429,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
@@ -432,7 +473,11 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClient, stackConfig);
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
