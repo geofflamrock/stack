@@ -414,12 +414,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var firstBranch = Some.BranchName();
         var secondBranch = Some.BranchName();
         var thirdBranch = Some.BranchName();
+        var fourthBranch = Some.BranchName();
 
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
             .WithBranch(builder => builder.WithName(firstBranch).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(3).PushToRemote())
             .WithBranch(builder => builder.WithName(secondBranch).FromSourceBranch(firstBranch).WithNumberOfEmptyCommits(1).PushToRemote())
             .WithBranch(builder => builder.WithName(thirdBranch).FromSourceBranch(secondBranch).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithBranch(builder => builder.WithName(fourthBranch).FromSourceBranch(secondBranch).WithNumberOfEmptyCommits(1).PushToRemote())
             .Build();
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
@@ -440,7 +442,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
-            .WithBranch(b => b.WithName(firstBranch).WithChildBranch(c => c.WithName(secondBranch).WithChildBranch(d => d.WithName(thirdBranch))))
+            .WithBranch(b => b.WithName(firstBranch)
+                .WithChildBranch(c => c.WithName(secondBranch)
+                    .WithChildBranch(d => d.WithName(thirdBranch))
+                    .WithChildBranch(e => e.WithName(fourthBranch))))
             .Build();
 
         var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
@@ -451,11 +456,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Assert
         var secondBranchCommits = repo.GetCommitsReachableFromBranch(secondBranch);
         var thirdBranchCommits = repo.GetCommitsReachableFromBranch(thirdBranch);
+        var fourthBranchCommits = repo.GetCommitsReachableFromBranch(fourthBranch);
 
         secondBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Second branch should contain squash commit from source");
         thirdBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Third branch should contain squash commit from source");
+        fourthBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Fourth branch should contain squash commit from source");
         secondBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Second branch should not contain tip commit from first branch");
         thirdBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Third branch should not contain tip commit from first branch");
+        fourthBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Fourth branch should not contain tip commit from first branch");
 
         repo.CreateCommitOnRemoteTrackingBranch(sourceBranch, "New commit on source after squash merge");
         var tipOfSourceAfterNewCommit = repo.GetTipOfBranch(sourceBranch);
@@ -465,8 +473,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         secondBranchCommits = repo.GetCommitsReachableFromBranch(secondBranch);
         thirdBranchCommits = repo.GetCommitsReachableFromBranch(thirdBranch);
+        fourthBranchCommits = repo.GetCommitsReachableFromBranch(fourthBranch);
         secondBranchCommits.Should().Contain(c => c.Sha == tipOfSourceAfterNewCommit.Sha, "Second branch should contain latest commit from source after subsequent rebase");
         thirdBranchCommits.Should().Contain(c => c.Sha == tipOfSourceAfterNewCommit.Sha, "Third branch should contain latest commit from source after subsequent rebase");
+        fourthBranchCommits.Should().Contain(c => c.Sha == tipOfSourceAfterNewCommit.Sha, "Fourth branch should contain latest commit from source after subsequent rebase");
     }
 
     [Fact]
@@ -477,12 +487,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var firstBranch = Some.BranchName();
         var secondBranch = Some.BranchName();
         var thirdBranch = Some.BranchName();
+        var fourthBranch = Some.BranchName();
 
         using var repo = new TestGitRepositoryBuilder()
             .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
             .WithBranch(builder => builder.WithName(firstBranch).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(3).PushToRemote())
             .WithBranch(builder => builder.WithName(secondBranch).FromSourceBranch(firstBranch).WithNumberOfEmptyCommits(1).PushToRemote())
             .WithBranch(builder => builder.WithName(thirdBranch).FromSourceBranch(secondBranch).WithNumberOfEmptyCommits(1).PushToRemote())
+            .WithBranch(builder => builder.WithName(fourthBranch).FromSourceBranch(secondBranch).WithNumberOfEmptyCommits(1).PushToRemote())
             .Build();
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
@@ -508,7 +520,10 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new TestStackBuilder()
             .WithSourceBranch(sourceBranch)
-            .WithBranch(b => b.WithName(firstBranch).WithChildBranch(c => c.WithName(secondBranch).WithChildBranch(d => d.WithName(thirdBranch))))
+            .WithBranch(b => b.WithName(firstBranch)
+                .WithChildBranch(c => c.WithName(secondBranch)
+                    .WithChildBranch(d => d.WithName(thirdBranch))
+                    .WithChildBranch(e => e.WithName(fourthBranch))))
             .Build();
 
         var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
@@ -519,11 +534,14 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         // Assert
         var secondBranchCommits = repo.GetCommitsReachableFromBranch(secondBranch);
         var thirdBranchCommits = repo.GetCommitsReachableFromBranch(thirdBranch);
+        var fourthBranchCommits = repo.GetCommitsReachableFromBranch(fourthBranch);
 
         secondBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Second branch should contain squash commit from source");
         thirdBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Third branch should contain squash commit from source");
+        fourthBranchCommits.Should().Contain(c => c.Sha == squashCommit.Sha, "Fourth branch should contain squash commit from source");
         secondBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Second branch should not contain tip commit from first branch");
         thirdBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Third branch should not contain tip commit from first branch");
+        fourthBranchCommits.Should().NotContain(c => c.Sha == tipOfFirstBranch.Sha, "Fourth branch should not contain tip commit from first branch");
     }
 
     [Fact]
