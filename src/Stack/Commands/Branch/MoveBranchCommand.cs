@@ -33,12 +33,12 @@ public class MoveBranchCommand : Command
     private readonly MoveBranchCommandHandler handler;
 
     public MoveBranchCommand(
-        ILogger<MoveBranchCommand> logger,
-        IDisplayProvider displayProvider,
-        IInputProvider inputProvider,
+        MoveBranchCommandHandler handler,
         CliExecutionContext executionContext,
-        MoveBranchCommandHandler handler)
-        : base("move", "Move a branch to another location in a stack.", logger, displayProvider, inputProvider, executionContext)
+        IInputProvider inputProvider,
+        IOutputProvider outputProvider,
+        ILogger<MoveBranchCommand> logger)
+        : base("move", "Move a branch to another location in a stack.", executionContext, inputProvider, outputProvider, logger)
     {
         this.handler = handler;
         Add(CommonOptions.Stack);
@@ -76,7 +76,7 @@ public record MoveBranchCommandInputs(string? StackName, string? BranchName, str
 public class MoveBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<MoveBranchCommandHandler> logger,
-    IDisplayProvider displayProvider,
+    IOutputProvider outputProvider,
     IGitClient gitClient,
     IStackConfig stackConfig)
     : CommandHandlerBase<MoveBranchCommandInputs>
@@ -134,7 +134,8 @@ public class MoveBranchCommandHandler(
         stackConfig.Save(stackData);
 
         logger.BranchMovedInStack(branchName, stack.Name);
-        await displayProvider.DisplayMessage($"Run {"stack sync".Example()} or {"stack update".Example()} to synchronize the changes with Git.", cancellationToken);
+
+        await outputProvider.WriteMessage($"Run {$"stack sync --stack \"{stack.Name}\"".Example()} or {$"stack update --stack \"{stack.Name}\"".Example()} to synchronize the changes with your repository.", cancellationToken);
     }
 }
 
