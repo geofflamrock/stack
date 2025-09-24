@@ -285,53 +285,56 @@ namespace Stack.Commands.Helpers
             // all commits from feature3 (and therefore from feature2) on top of the latest commits of main
             // which will include the squashed commit.
             //
+            // TODO: Rewrite the above comment to be correct.
             logger.RebasingStackForBranchLine(status.Name, status.SourceBranch.Name, string.Join(" -> ", branchLine.Select(b => b.Name)));
+            List<BranchDetailBase> allBranchesInLine = [status.SourceBranch, .. branchLine];
 
-            BranchDetail? lowestActiveBranchInLine = null;
             foreach (var branch in branchLine)
             {
-                if (branch.IsActive)
+                if (!branch.IsActive)
                 {
-                    lowestActiveBranchInLine = branch;
+                    logger.TraceSkippingInactiveBranch(branch.Name);
+                    continue;
                 }
-            }
 
-            if (lowestActiveBranchInLine is null)
-            {
-                logger.NoActiveBranchesFound();
-                return;
-            }
+                string? lowestInactiveBranchToReParentFrom = null;
+                List<BranchDetailBase> branchesToRebaseOnto = [];
 
-            string? branchToRebaseFrom = lowestActiveBranchInLine.Name;
-            string? lowestInactiveBranchToReParentFrom = null;
-
-            List<BranchDetailBase> branchesToRebaseOnto = [.. branchLine];
-            branchesToRebaseOnto.Reverse();
-            branchesToRebaseOnto.Remove(lowestActiveBranchInLine);
-            branchesToRebaseOnto.Add(status.SourceBranch);
-
-            List<BranchDetailBase> allBranchesInStack = [status.SourceBranch, .. branchLine];
-
-            foreach (var branchToRebaseOnto in branchesToRebaseOnto)
-            {
-                if (branchToRebaseOnto.IsActive)
+                // Find all active branches above this one to 
+                // rebase onto. Also work out if there is any that
+                // are inactive that we need to re-parent from in
+                // order to handle squash merges.
+                foreach (var branchToRebaseOnto in allBranchesInLine)
                 {
-                    var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInStack.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
+                    if (branchToRebaseOnto.Name == branch.Name)
+                    {
+                        break;
+                    }
+
+                    if (branchToRebaseOnto.IsActive)
+                    {
+                        branchesToRebaseOnto.Add(branchToRebaseOnto);
+                    }
+                    else if (lowestInactiveBranchToReParentFrom is null)
+                    {
+                        lowestInactiveBranchToReParentFrom = branchToRebaseOnto.Name;
+                    }
+                }
+
+                foreach (var branchToRebaseOnto in branchesToRebaseOnto)
+                {
+                    var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInLine.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
                     var couldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
-                    var parentCommitToRebaseFrom = couldRebaseOntoParent ? GetCommitShaToReParentFrom(branchToRebaseFrom, lowestInactiveBranchToReParentFrom!, branchToRebaseOnto.Name) : null;
+                    var parentCommitToRebaseFrom = couldRebaseOntoParent ? GetCommitShaToReParentFrom(branch.Name, lowestInactiveBranchToReParentFrom!, branchToRebaseOnto.Name) : null;
 
                     if (parentCommitToRebaseFrom is not null)
                     {
-                        await RebaseOntoNewParent(branchToRebaseFrom, branchToRebaseOnto.Name, parentCommitToRebaseFrom, branchStatuses, cancellationToken);
+                        await RebaseOntoNewParent(branch.Name, branchToRebaseOnto.Name, parentCommitToRebaseFrom, branchStatuses, cancellationToken);
                     }
                     else
                     {
-                        await RebaseFromSourceBranch(branchToRebaseFrom, branchToRebaseOnto.Name, branchStatuses, cancellationToken);
+                        await RebaseFromSourceBranch(branch.Name, branchToRebaseOnto.Name, branchStatuses, cancellationToken);
                     }
-                }
-                else if (lowestInactiveBranchToReParentFrom is null)
-                {
-                    lowestInactiveBranchToReParentFrom = branchToRebaseOnto.Name;
                 }
             }
         }
