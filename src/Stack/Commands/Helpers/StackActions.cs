@@ -18,7 +18,6 @@ namespace Stack.Commands.Helpers
     public class StackActions(
         IGitClientFactory gitClientFactory,
         CliExecutionContext executionContext,
-        IGitHubClient gitHubClient,
         ILogger<StackActions> logger,
         IDisplayProvider displayProvider,
         IConflictResolutionDetector conflictResolutionDetector) : IStackActions
@@ -143,65 +142,63 @@ namespace Stack.Commands.Helpers
         public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken)
         {
             var gitClient = GetDefaultGitClient();
-            var currentBranch = gitClient.GetCurrentBranch();
 
-            var status = StackHelpers.GetStackStatus(
-                stack,
-                currentBranch,
-                logger,
-                gitClient,
-                gitHubClient,
-                true);
-
-            // Get branch statuses to check for worktrees
             List<string> allBranchesInStack = [stack.SourceBranch, .. stack.AllBranchNames];
             var branchStatuses = gitClient.GetBranchStatuses([.. allBranchesInStack]);
 
+            if (!branchStatuses.ContainsKey(stack.SourceBranch))
+            {
+                logger.SourceBranchDoesNotExist(stack.SourceBranch);
+                return;
+            }
+
             if (strategy == UpdateStrategy.Rebase)
             {
-                await UpdateStackUsingRebase(stack, status, branchStatuses, cancellationToken);
+                await UpdateStackUsingRebase(stack, branchStatuses, cancellationToken);
             }
             else
             {
-                await UpdateStackUsingMerge(stack, status, branchStatuses, cancellationToken);
+                await UpdateStackUsingMerge(stack, branchStatuses, cancellationToken);
             }
         }
 
         private async Task UpdateStackUsingMerge(
             Config.Stack stack,
-            StackStatus status,
             Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
-            logger.UpdatingStackUsingMerge(status.Name);
+            logger.UpdatingStackUsingMerge(stack.Name);
 
-            var allBranchLines = status.GetAllBranchLines();
-
-            foreach (var branchLine in allBranchLines)
+            foreach (var branchLine in stack.GetAllBranchLines())
             {
-                await UpdateBranchLineUsingMerge(branchLine, status.SourceBranch, branchStatuses, cancellationToken);
+                await UpdateBranchLineUsingMerge(branchLine, stack.SourceBranch, branchStatuses, cancellationToken);
             }
         }
 
         private async Task UpdateBranchLineUsingMerge(
-            List<BranchDetail> branchLine,
-            BranchDetailBase parentBranch,
+            List<Branch> branchLine,
+            string parentBranchName,
             Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
-            var currentParentBranch = parentBranch;
+            var currentParentBranch = parentBranchName;
             foreach (var branch in branchLine)
             {
-                if (branch.IsActive)
+                if (IsBranchActive(branch.Name, branchStatuses))
                 {
-                    await MergeFromSourceBranch(branch.Name, currentParentBranch.Name, branchStatuses, cancellationToken);
-                    currentParentBranch = branch;
+                    await MergeFromSourceBranch(branch.Name, currentParentBranch, branchStatuses, cancellationToken);
+                    currentParentBranch = branch.Name;
                 }
                 else
                 {
                     logger.TraceSkippingInactiveBranch(branch.Name);
                 }
             }
+        }
+
+        private static bool IsBranchActive(string branchName, Dictionary<string, GitBranchStatus> branchStatuses)
+        {
+            return branchStatuses.TryGetValue(branchName, out var status) && status.RemoteBranchExists;
         }
 
         private async Task MergeFromSourceBranch(string branch, string sourceBranchName, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
@@ -241,21 +238,23 @@ namespace Stack.Commands.Helpers
 
         private async Task UpdateStackUsingRebase(
             Config.Stack stack,
-            StackStatus status,
             Dictionary<string, GitBranchStatus> branchStatuses,
             CancellationToken cancellationToken)
         {
-            logger.UpdatingStackUsingRebase(status.Name);
+            logger.UpdatingStackUsingRebase(stack.Name);
 
-            var allBranchLines = status.GetAllBranchLines();
-
-            foreach (var branchLine in allBranchLines)
+            foreach (var branchLine in stack.GetAllBranchLines())
             {
-                await UpdateBranchLineUsingRebase(status, branchLine, branchStatuses, cancellationToken);
+                await UpdateBranchLineUsingRebase(stack.Name, stack.SourceBranch, branchLine, branchStatuses, cancellationToken);
             }
         }
 
-        private async Task UpdateBranchLineUsingRebase(StackStatus status, List<BranchDetail> branchLine, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
+        private async Task UpdateBranchLineUsingRebase(
+            string stackName,
+            string sourceBranchName,
+            List<Branch> branchLine,
+            Dictionary<string, GitBranchStatus> branchStatuses,
+            CancellationToken cancellationToken)
         {
             //
             // When rebasing the stack, we need to be able to pick up changes at each level of the stack.
@@ -307,19 +306,22 @@ namespace Stack.Commands.Helpers
             // - feature4 onto feature2
             // - feature5 onto main (re-parenting as feature1 was squash merged)
             //
-            logger.RebasingStackForBranchLine(status.Name, status.SourceBranch.Name, string.Join(" -> ", branchLine.Select(b => b.Name)));
-            List<BranchDetailBase> allBranchesInLine = [status.SourceBranch, .. branchLine];
+            logger.RebasingStackForBranchLine(stackName, sourceBranchName, string.Join(" -> ", branchLine.Select(b => b.Name)));
+            var allBranchesInLine = new List<BranchState> { GetBranchState(sourceBranchName, branchStatuses) };
+            allBranchesInLine.AddRange(branchLine.Select(b => GetBranchState(b.Name, branchStatuses)));
 
             foreach (var branch in branchLine)
             {
-                if (!branch.IsActive)
+                var branchState = allBranchesInLine.First(b => b.Name == branch.Name);
+
+                if (!branchState.IsActive)
                 {
                     logger.TraceSkippingInactiveBranch(branch.Name);
                     continue;
                 }
 
                 string? lowestInactiveBranchToReParentFrom = null;
-                List<BranchDetailBase> branchesToRebaseOnto = [];
+                var branchesToRebaseOnto = new List<BranchState>();
 
                 // Find all active branches above this one to 
                 // rebase onto. Also work out if there is any that
@@ -344,8 +346,10 @@ namespace Stack.Commands.Helpers
 
                 foreach (var branchToRebaseOnto in branchesToRebaseOnto)
                 {
-                    var lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null ? allBranchesInLine.First(b => b.Name == lowestInactiveBranchToReParentFrom) : null;
-                    var couldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is not null && lowestInactiveBranchToReParentFromDetail.Exists;
+                    BranchState? lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null
+                        ? allBranchesInLine.First(b => b.Name == lowestInactiveBranchToReParentFrom)
+                        : null;
+                    var couldRebaseOntoParent = lowestInactiveBranchToReParentFromDetail is { Exists: true };
                     var parentCommitToRebaseFrom = couldRebaseOntoParent ? GetCommitShaToReParentFrom(branch.Name, lowestInactiveBranchToReParentFrom!, branchToRebaseOnto.Name) : null;
 
                     if (parentCommitToRebaseFrom is not null)
@@ -358,6 +362,16 @@ namespace Stack.Commands.Helpers
                     }
                 }
             }
+        }
+
+        private static BranchState GetBranchState(string branchName, Dictionary<string, GitBranchStatus> branchStatuses)
+        {
+            if (branchStatuses.TryGetValue(branchName, out var status))
+            {
+                return new BranchState(branchName, true, status.RemoteBranchExists);
+            }
+
+            return new BranchState(branchName, false, false);
         }
 
         private string? GetCommitShaToReParentFrom(string branchToRebase, string lowestInactiveBranchToReParentFrom, string branchToRebaseOnto)
@@ -474,6 +488,7 @@ namespace Stack.Commands.Helpers
                 }
             }, cancellationToken);
         }
+        private readonly record struct BranchState(string Name, bool Exists, bool IsActive);
     }
 }
 
@@ -499,6 +514,9 @@ internal static partial class LoggerExtensionMethods
 
     [LoggerMessage(Level = LogLevel.Trace, Message = "Branch {Branch} no longer exists on the remote repository or the associated pull request is no longer open. Skipping...")]
     public static partial void TraceSkippingInactiveBranch(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Source branch \"{SourceBranch}\" does not exist locally. Skipping update.")]
+    public static partial void SourceBranchDoesNotExist(this ILogger logger, string sourceBranch);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Merging {SourceBranch} into {Branch}")]
     public static partial void MergingBranch(this ILogger logger, string sourceBranch, string branch);
