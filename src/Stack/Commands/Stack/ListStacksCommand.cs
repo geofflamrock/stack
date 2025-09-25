@@ -2,7 +2,6 @@ using System.CommandLine;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using Spectre.Console;
 using Stack.Commands.Helpers;
 using Stack.Config;
 using Stack.Git;
@@ -46,9 +45,11 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
             return;
         }
 
+        var hasCurrentStack = response.Stacks.Any(s => s.IsCurrent);
+
         foreach (var stack in response.Stacks)
         {
-            await OutputProvider.WriteMessage($"{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
+            await OutputProvider.WriteMessage($"{(stack.IsCurrent ? "* " : hasCurrentStack ? "  " : "")}{stack.Name.Stack()} {$"({stack.SourceBranch})".Muted()} {stack.BranchCount} {(stack.BranchCount == 1 ? "branch" : "branches")}", cancellationToken);
         }
     }
 
@@ -61,7 +62,7 @@ public class ListStacksCommand : CommandWithOutput<ListStacksCommandResponse>
 
 public record ListStacksCommandInputs;
 public record ListStacksCommandResponse(List<ListStacksCommandResponseItem> Stacks);
-public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount);
+public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount, bool IsCurrent);
 
 public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClientFactory gitClientFactory, CliExecutionContext executionContext)
     : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
@@ -74,6 +75,7 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClientFactor
 
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
+        var currentBranch = gitClient.GetCurrentBranch();
 
         if (remoteUri is null)
         {
@@ -82,6 +84,29 @@ public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClientFactor
 
         var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
 
-        return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
+        Config.Stack? currentStack = null;
+
+        var stacksContainingBranch = stacksForRemote
+            .Where(stack => StackContainsBranch(stack, currentBranch))
+            .ToList();
+
+        if (stacksContainingBranch.Count == 1)
+        {
+            currentStack = stacksContainingBranch.First();
+        }
+
+        return new ListStacksCommandResponse([.. stacksForRemote
+            .OrderBy(s => s.Name)
+            .Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count, currentStack is not null && currentStack == s))]);
+
+        static bool StackContainsBranch(Config.Stack stack, string branchName)
+        {
+            if (stack.SourceBranch.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return stack.AllBranchNames.Any(b => b.Equals(branchName, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }
