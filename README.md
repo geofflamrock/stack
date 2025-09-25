@@ -136,9 +136,13 @@ To use the rebase strategy, either:
 
 To push changes to the remote after rebasing you'll need to use the `--force-with-lease` option.
 
-**Rough edges**
+**_Squash merges_**
 
-If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain, however for each commit that existed on the branch that was merged if you select to take the new single commit that now exists generally it isn't too bad.
+A common pattern when using pull requests is to Squash Merge the pull request when merging into the target branch, squashing all the commits in the PR branch into a single commit. This causes issues when rebasing the rest of the child branches in the stack.
+
+Stack has handling to detect when a squash merge happens during updating a stack using rebase as the update strategy. It will skip the commits that were squash merged, avoiding conflicts.
+
+The remote tracking branch for the branch that was squash merged needs to be deleted for this handling to be enabled.
 
 ### Creating pull requests
 

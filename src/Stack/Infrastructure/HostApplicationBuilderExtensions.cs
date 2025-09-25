@@ -91,6 +91,7 @@ public static class HostApplicationBuilderExtensions
             var cache = provider.GetRequiredService<IMemoryCache>();
             return new CachingGitHubClient(safe, cache);
         });
+        services.AddSingleton<IConflictResolutionDetector, ConflictResolutionDetector>();
 
         services.AddSingleton<IStackActions, StackActions>();
         RegisterCommandHandlers(services);

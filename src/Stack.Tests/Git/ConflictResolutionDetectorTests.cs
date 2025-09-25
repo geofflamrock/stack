@@ -40,7 +40,9 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
         var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
 
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Merge,
@@ -63,6 +65,8 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
 
         var logger = CreateLogger<ConflictResolutionDetectorTests>();
         var git = new GitClient(XUnitLogger.CreateLogger<GitClient>(testOutputHelper), repo.LocalDirectoryPath);
+
+        var conflictResolutionDetector = new ConflictResolutionDetector();
 
         var relFile = Some.Name();
         var filePath = Path.Join(repo.LocalDirectoryPath, relFile);
@@ -99,7 +103,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             RunGit(repo.LocalDirectoryPath, "commit -m resolved-merge");
         });
 
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Merge,
@@ -144,7 +148,9 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         // Abort after delay
         var aborter = Task.Run(async () => { await Task.Delay(60); git.AbortMerge(); });
 
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Merge,
@@ -186,8 +192,10 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         git.ChangeBranch(branchBase);
         try { git.MergeFromLocalSourceBranch(branchOther); } catch (ConflictException) { }
 
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
         // Do not resolve or abort; should timeout
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Merge,
@@ -225,12 +233,14 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         repo.Stage(relFile);
         repo.Commit();
 
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
         // start rebase that will conflict
         try { git.RebaseFromLocalSourceBranch(branchBase); } catch (ConflictException) { }
 
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(50);
-        var act = async () => await ConflictResolutionDetector.WaitForConflictResolution(
+        var act = async () => await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Rebase,
@@ -268,6 +278,8 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         repo.Stage(relFile);
         repo.Commit();
 
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
         git.ChangeBranch(featureBranch);
         try { git.RebaseFromLocalSourceBranch(baseBranch); } catch (ConflictException) { }
 
@@ -299,7 +311,7 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
             }
         });
 
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Rebase,
@@ -338,12 +350,14 @@ public class ConflictResolutionDetectorTests(ITestOutputHelper testOutputHelper)
         repo.Stage(relFile);
         repo.Commit();
 
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
         git.ChangeBranch(featureBranch);
         try { git.RebaseFromLocalSourceBranch(baseBranch); } catch (ConflictException) { }
 
         var aborter = Task.Run(async () => { await Task.Delay(60); git.AbortRebase(); });
 
-        var result = await ConflictResolutionDetector.WaitForConflictResolution(
+        var result = await conflictResolutionDetector.WaitForConflictResolution(
             git,
             logger,
             ConflictOperationType.Rebase,

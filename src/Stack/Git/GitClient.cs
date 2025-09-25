@@ -32,6 +32,8 @@ public interface IGitClient
     string GetRootOfRepository();
     string? GetConfigValue(string key);
     bool IsAncestor(string ancestor, string descendant);
+    string? GetMergeBase(string branch1, string branch2);
+    bool IsCommitReachableFromBranch(string commitSha, string branchName);
 
     bool IsMergeInProgress();
     bool IsRebaseInProgress();
@@ -118,14 +120,14 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
 
     public string? GetConfigValue(string key)
     {
-        var configValue = ExecuteGitCommandAndReturnOutput($"config --get {key}", false, exitCode =>
+        var configValue = ExecuteGitCommandAndReturnOutput($"config --get {key}", false, (info, result) =>
         {
-            if (exitCode == 1)
+            if (result.ExitCode == 1)
             {
-                return null;
+                return;
             }
 
-            return new Exception("Failed to get config value.");
+            throw new Exception("Failed to get config value.");
         })?.Trim();
 
         return string.IsNullOrEmpty(configValue) ? null : configValue;
@@ -135,10 +137,9 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     {
         var isAncestor = false;
 
-        ExecuteGitCommand($"merge-base --is-ancestor {ancestor} {descendant}", false, exitCode =>
+        ExecuteGitCommand($"merge-base --is-ancestor {ancestor} {descendant}", false, (info, result) =>
         {
-            isAncestor = exitCode == 0;
-            return null;
+            isAncestor = result.ExitCode == 0;
         });
 
         return isAncestor;
@@ -148,10 +149,9 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     {
         var inProgress = true;
         // "git rev-parse -q --verify MERGE_HEAD" returns 0 when a merge is in progress
-        ExecuteGitCommand("rev-parse -q --verify MERGE_HEAD", false, exitCode =>
+        ExecuteGitCommand("rev-parse -q --verify MERGE_HEAD", false, (info, result) =>
         {
-            inProgress = exitCode == 0;
-            return null; // suppress exception
+            inProgress = result.ExitCode == 0;
         });
         return inProgress;
     }
@@ -184,17 +184,12 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     {
         // ORIG_HEAD is updated by Git before dangerous operations (merge, rebase, reset).
         // Use quiet verify; exit code 0 when ref exists, 1 otherwise.
-        string? orig = ExecuteGitCommandAndReturnOutput("rev-parse -q --verify ORIG_HEAD", false, exitCode =>
+        string? orig = ExecuteGitCommandAndReturnOutput("rev-parse -q --verify ORIG_HEAD", false, (info, result) =>
         {
-            if (exitCode == 0)
+            if (result.ExitCode > 1)
             {
-                return null; // success
+                throw new Exception("Failed to read ORIG_HEAD");
             }
-            if (exitCode == 1)
-            {
-                return null; // ref not found; treat as null without throwing
-            }
-            return new Exception("Failed to read ORIG_HEAD");
         })?.Trim();
 
         return string.IsNullOrWhiteSpace(orig) ? null : orig;
@@ -254,40 +249,43 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
 
     public void MergeFromLocalSourceBranch(string sourceBranchName)
     {
-        ExecuteGitCommand($"merge {sourceBranchName}", false, exitCode =>
+        ExecuteGitCommand($"merge {sourceBranchName}", false, (info, result) =>
         {
-            if (exitCode > 0)
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
             {
-                return new ConflictException();
+                throw new ConflictException();
             }
 
-            return null;
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
     }
 
     public void RebaseFromLocalSourceBranch(string sourceBranchName)
     {
-        ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, exitCode =>
+        ExecuteGitCommand($"rebase {sourceBranchName} --update-refs", false, (info, result) =>
         {
-            if (exitCode > 0)
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
             {
-                return new ConflictException();
+                throw new ConflictException();
             }
 
-            return null;
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
     }
 
     public void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName)
     {
-        ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, exitCode =>
+        ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, (info, result) =>
         {
-            if (exitCode > 0)
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
             {
-                return new ConflictException();
+                throw new ConflictException();
             }
 
-            return null;
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
     }
 
@@ -303,23 +301,24 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
 
     public void ContinueRebase()
     {
-        ExecuteGitCommand($"rebase --continue", false, exitCode =>
+        ExecuteGitCommand($"rebase --continue", false, (info, result) =>
         {
-            if (exitCode > 0)
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
             {
-                return new ConflictException();
+                throw new ConflictException();
             }
 
-            return null;
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
     }
 
     private string ExecuteGitCommandAndReturnOutput(
         string command,
         bool captureStandardError = false,
-        Func<int, Exception?>? exceptionHandler = null)
+        Action<ProcessExecutionInfo, ProcessExecutionResult>? exceptionHandler = null)
     {
-        return ProcessHelpers.ExecuteProcessAndReturnOutput(
+        var result = ProcessHelpers.ExecuteProcessAndReturnOutput(
             "git",
             command,
             workingDirectory,
@@ -327,14 +326,51 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
             captureStandardError,
             exceptionHandler
         );
+
+        var output = result.StandardOutput;
+
+        if (captureStandardError && !string.IsNullOrWhiteSpace(result.StandardError))
+        {
+            output += $"{Environment.NewLine}{result.StandardError}";
+        }
+
+        return output;
     }
 
     private void ExecuteGitCommand(
         string command,
         bool captureStandardError = false,
-        Func<int, Exception?>? exceptionHandler = null)
+        Action<ProcessExecutionInfo, ProcessExecutionResult>? exceptionHandler = null)
     {
         ExecuteGitCommandAndReturnOutput(command, captureStandardError, exceptionHandler);
+    }
+
+    public string? GetMergeBase(string branch1, string branch2)
+    {
+        var mergeBase = ExecuteGitCommandAndReturnOutput($"merge-base {branch1} {branch2}", false, (info, result) =>
+        {
+            if (result.ExitCode > 1)
+            {
+                throw new Exception("Failed to get merge base");
+            }
+        })?.Trim();
+
+        return string.IsNullOrWhiteSpace(mergeBase) ? null : mergeBase;
+    }
+
+    public bool IsCommitReachableFromBranch(string commitSha, string branchName)
+    {
+        var branchesThatContainTheCommit = ExecuteGitCommandAndReturnOutput($"branch --contains {commitSha}", false, (info, result) =>
+        {
+            if (result.ExitCode > 1)
+            {
+                throw new Exception("Failed to check if commit is reachable from branch");
+            }
+        })?.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Select(b => b.TrimStart('*', ' ').Trim())
+            .ToArray() ?? Array.Empty<string>();
+
+        return branchesThatContainTheCommit.Contains(branchName);
     }
 }
 

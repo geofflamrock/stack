@@ -111,7 +111,7 @@ public class GitHubClient(ILogger<GitHubClient> logger, CliExecutionContext cont
 
     private string ExecuteGitHubCommandAndReturnOutput(string command)
     {
-        return ProcessHelpers.ExecuteProcessAndReturnOutput(
+        var result = ProcessHelpers.ExecuteProcessAndReturnOutput(
             "gh",
             command,
             context.WorkingDirectory,
@@ -119,6 +119,8 @@ public class GitHubClient(ILogger<GitHubClient> logger, CliExecutionContext cont
             false,
             null
         );
+
+        return result.StandardOutput.Trim();
     }
 
     private void ExecuteGitHubCommand(string command)
