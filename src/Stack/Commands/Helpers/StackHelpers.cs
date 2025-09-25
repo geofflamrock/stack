@@ -109,6 +109,11 @@ public static class StackHelpers
         IGitHubClient gitHubClient,
         bool includePullRequestStatus)
     {
+        if (includePullRequestStatus)
+        {
+            gitHubClient.ThrowIfNotAvailable();
+        }
+
         var stacksToReturnStatusFor = new List<StackStatus>();
 
         var stacksOrderedByCurrentBranch = stacks
