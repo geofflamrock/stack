@@ -103,7 +103,7 @@ public class MoveBranchCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.StackName}' not found.");
         }
 
-        var branchName = await inputProvider.SelectBranch(logger, inputs.BranchName, [.. stack.AllBranchNames], cancellationToken);
+        var branchName = await inputProvider.SelectBranch(logger, inputs.BranchName, stack, cancellationToken);
 
         if (!stack.AllBranchNames.Contains(branchName))
         {
