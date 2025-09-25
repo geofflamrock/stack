@@ -380,7 +380,9 @@ Usage:
 
 Options:
   --working-dir         The path to the directory containing the git repository. Defaults to the current directory.
+  --debug               Show debug output.
   --verbose             Show verbose output.
+  --json                Write output and log messages as JSON. Log messages will be written to stderr.
   -s, --stack           The name of the stack.
   -b, --branch          The name of the branch.
   -p, --parent          The name of the parent branch to put the branch under.

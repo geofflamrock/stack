@@ -77,12 +77,14 @@ public class MoveBranchCommandHandler(
     IInputProvider inputProvider,
     ILogger<MoveBranchCommandHandler> logger,
     IOutputProvider outputProvider,
-    IGitClient gitClient,
+    IGitClientFactory gitClientFactory,
+    CliExecutionContext executionContext,
     IStackConfig stackConfig)
     : CommandHandlerBase<MoveBranchCommandInputs>
 {
     public override async Task Handle(MoveBranchCommandInputs inputs, CancellationToken cancellationToken)
     {
+        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
