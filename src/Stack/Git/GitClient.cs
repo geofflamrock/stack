@@ -49,6 +49,7 @@ public interface IGitClient
     void FetchBranchRefSpecs(string[] branchNames);
     void PushBranches(string[] branches, bool forceWithLease);
     void DeleteLocalBranch(string branchName);
+    void ResetBranchToRemote(string remoteTrackingBranchName);
 
     void MergeFromLocalSourceBranch(string sourceBranchName);
     void RebaseFromLocalSourceBranch(string sourceBranchName);
@@ -245,6 +246,11 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     public void DeleteLocalBranch(string branchName)
     {
         ExecuteGitCommand($"branch -D {branchName}");
+    }
+
+    public void ResetBranchToRemote(string remoteTrackingBranchName)
+    {
+        ExecuteGitCommand($"reset --hard {remoteTrackingBranchName}");
     }
 
     public void MergeFromLocalSourceBranch(string sourceBranchName)

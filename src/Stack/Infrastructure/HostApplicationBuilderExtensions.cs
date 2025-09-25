@@ -114,6 +114,7 @@ public static class HostApplicationBuilderExtensions
         services.AddTransient<RemoveBranchCommandHandler>();
 
         services.AddTransient<PullStackCommandHandler>();
+        services.AddTransient<ResetStackCommandHandler>();
         services.AddTransient<PushStackCommandHandler>();
         services.AddTransient<SyncStackCommandHandler>();
 
@@ -140,6 +141,7 @@ public static class HostApplicationBuilderExtensions
         services.AddTransient<RemoveBranchCommand>();
 
         services.AddTransient<PullStackCommand>();
+        services.AddTransient<ResetStackCommand>();
         services.AddTransient<PushStackCommand>();
         services.AddTransient<SyncStackCommand>();
 

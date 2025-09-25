@@ -12,6 +12,7 @@ namespace Stack.Commands.Helpers
         void PullChanges(Config.Stack stack);
         void PushChanges(Config.Stack stack, int maxBatchSize, bool forceWithLease);
         Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
+        Task ResetStack(Config.Stack stack, CancellationToken cancellationToken);
     }
 
 
@@ -137,6 +138,70 @@ namespace Stack.Commands.Helpers
             {
                 logger.PushingBranches(string.Join(", ", branches));
                 gitClient.PushBranches([.. branches], forceWithLease);
+            }
+        }
+
+        public async Task ResetStack(Config.Stack stack, CancellationToken cancellationToken)
+        {
+            var gitClient = GetDefaultGitClient();
+            var currentBranch = gitClient.GetCurrentBranch();
+
+            List<string> allBranchesInStack = [stack.SourceBranch, .. stack.AllBranchNames];
+            var branchStatuses = gitClient.GetBranchStatuses([.. allBranchesInStack]);
+
+            foreach (var branch in allBranchesInStack)
+            {
+                if (!branchStatuses.TryGetValue(branch, out var status))
+                {
+                    logger.TraceMissingBranchStatus(branch);
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(status.RemoteTrackingBranchName))
+                {
+                    logger.TraceSkippingResetBranchNoRemoteTracking(branch);
+                    continue;
+                }
+
+                if (!status.RemoteBranchExists)
+                {
+                    logger.TraceSkippingResetBranchRemoteMissing(branch);
+                    continue;
+                }
+
+                var remoteTrackingBranch = status.RemoteTrackingBranchName;
+
+                await displayProvider.DisplayStatusWithSuccess($"Resetting {branch} to {remoteTrackingBranch}", async ct =>
+                {
+                    await Task.CompletedTask;
+
+                    var branchGitClient = GetGitClientForBranch(branch, branchStatuses);
+
+                    var originalBranch = branchGitClient.GetCurrentBranch();
+                    var shouldRestoreOriginalBranch = status.WorktreePath is null &&
+                        !originalBranch.Equals(branch, StringComparison.OrdinalIgnoreCase);
+
+                    if (!originalBranch.Equals(branch, StringComparison.OrdinalIgnoreCase))
+                    {
+                        branchGitClient.ChangeBranch(branch);
+                    }
+
+                    logger.ResettingBranchToRemote(branch, remoteTrackingBranch!);
+                    branchGitClient.ResetBranchToRemote(remoteTrackingBranch!);
+
+                    if (shouldRestoreOriginalBranch)
+                    {
+                        branchGitClient.ChangeBranch(originalBranch);
+                    }
+                }, cancellationToken);
+            }
+
+            // Ensure the default working directory returns to the original branch
+            var finalGitClient = GetDefaultGitClient();
+            var finalCurrentBranch = finalGitClient.GetCurrentBranch();
+            if (!finalCurrentBranch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase))
+            {
+                finalGitClient.ChangeBranch(currentBranch);
             }
         }
 
@@ -487,6 +552,18 @@ internal static partial class LoggerExtensionMethods
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Fetching changes for {Branches} from remote")]
     public static partial void FetchingNonCurrentBranches(this ILogger logger, string branches);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Branch {Branch} was not found locally. Skipping reset.")]
+    public static partial void TraceMissingBranchStatus(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Branch {Branch} does not have a remote tracking branch. Skipping reset.")]
+    public static partial void TraceSkippingResetBranchNoRemoteTracking(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Remote tracking branch for {Branch} no longer exists. Skipping reset.")]
+    public static partial void TraceSkippingResetBranchRemoteMissing(this ILogger logger, string branch);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Resetting {Branch} to remote {RemoteTrackingBranch}")]
+    public static partial void ResettingBranchToRemote(this ILogger logger, string branch, string remoteTrackingBranch);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Pushing new branch {Branch} to remote")]
     public static partial void PushingNewBranch(this ILogger logger, string branch);

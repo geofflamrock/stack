@@ -545,6 +545,140 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task ResetStack_WhenBranchesHaveLocalCommits_ResetsToRemoteHeads()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var featureBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(featureBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
+        // Create local commits on source and feature branches without pushing
+        repo.ChangeBranch(sourceBranch);
+        var sourceFilePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(sourceFilePath, "source local change");
+        repo.Stage(Path.GetFileName(sourceFilePath));
+        repo.Commit("Local change on source branch");
+
+        repo.ChangeBranch(featureBranch);
+        var featureFilePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(featureFilePath, "feature local change");
+        repo.Stage(Path.GetFileName(featureFilePath));
+        repo.Commit("Local change on feature branch");
+
+        var remoteSourceTipBeforeReset = repo.GetTipOfRemoteBranch(sourceBranch);
+        var remoteFeatureTipBeforeReset = repo.GetTipOfRemoteBranch(featureBranch);
+
+        repo.GetTipOfBranch(sourceBranch).Sha.Should().NotBe(remoteSourceTipBeforeReset.Sha, "source branch should diverge from remote before reset");
+        repo.GetTipOfBranch(featureBranch).Sha.Should().NotBe(remoteFeatureTipBeforeReset.Sha, "feature branch should diverge from remote before reset");
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(featureBranch))
+            .Build();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await stackActions.ResetStack(stack, CancellationToken.None);
+
+        // Assert - local branches should match their remote tracking branches after reset
+        repo.GetTipOfBranch(sourceBranch).Sha.Should().Be(remoteSourceTipBeforeReset.Sha, "source branch should match remote after reset");
+        repo.GetTipOfBranch(featureBranch).Sha.Should().Be(remoteFeatureTipBeforeReset.Sha, "feature branch should match remote after reset");
+    }
+
+    [Fact]
+    public async Task ResetStack_WhenBranchCheckedOutInWorktree_ResetsBranchUsingWorktreeClient()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var worktreeBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(worktreeBranch).FromSourceBranch(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
+        // Create a worktree for the branch and make a local commit there
+        repo.ChangeBranch(sourceBranch);
+        var worktree = repo.CreateWorktree(worktreeBranch);
+        var worktreeFile = Some.Name();
+        repo.CommitInWorktree(worktree, worktreeFile, "worktree change", "Worktree local change");
+
+        var remoteTipBeforeReset = repo.GetTipOfRemoteBranch(worktreeBranch);
+        repo.GetTipOfBranch(worktreeBranch).Sha.Should().NotBe(remoteTipBeforeReset.Sha, "worktree branch should diverge from remote before reset");
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(worktreeBranch))
+            .Build();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await stackActions.ResetStack(stack, CancellationToken.None);
+
+        // Assert - local branch (including worktree) should match remote after reset
+        repo.GetTipOfBranch(worktreeBranch).Sha.Should().Be(remoteTipBeforeReset.Sha, "worktree branch should match remote after reset");
+    }
+
+    [Fact]
+    public async Task ResetStack_WhenBranchHasNoRemoteTrackingBranch_DoesNotModifyBranch()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var localOnlyBranch = Some.BranchName();
+
+        using var repo = new TestGitRepositoryBuilder()
+            .WithBranch(builder => builder.WithName(sourceBranch).PushToRemote().WithNumberOfEmptyCommits(1))
+            .WithBranch(builder => builder.WithName(localOnlyBranch).FromSourceBranch(sourceBranch).WithNumberOfEmptyCommits(1)) // no push to remote
+            .Build();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
+        var gitClientFactory = new TestGitClientFactory(testOutputHelper);
+        var conflictResolutionDetector = new ConflictResolutionDetector();
+
+        repo.ChangeBranch(localOnlyBranch);
+        var filePath = Path.Join(repo.LocalDirectoryPath, Some.Name());
+        File.WriteAllText(filePath, "local-only change");
+        repo.Stage(Path.GetFileName(filePath));
+        var localCommit = repo.Commit("Local-only branch change");
+
+        var stack = new TestStackBuilder()
+            .WithSourceBranch(sourceBranch)
+            .WithBranch(b => b.WithName(localOnlyBranch))
+            .Build();
+
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await stackActions.ResetStack(stack, CancellationToken.None);
+
+        // Assert - branch without remote tracking should remain unchanged
+        repo.GetTipOfBranch(localOnlyBranch).Sha.Should().Be(localCommit.Sha, "branch without remote tracking should not be modified by reset");
+    }
+
+    [Fact]
     public void PushChanges_WhenChangesExistOnCurrentBranch_PushesChangesCorrectly()
     {
         // Arrange
