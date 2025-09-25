@@ -49,7 +49,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs("Stack1", false, true), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs("Stack1", false, true, false), CancellationToken.None);
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -92,7 +92,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         var invalidStackName = Some.Name();
-        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false, false), CancellationToken.None))
+        await handler.Invoking(async h => await h.Handle(new UpdateStackCommandInputs(invalidStackName, false, false, false), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage($"Stack '{invalidStackName}' not found.");
     }
@@ -135,7 +135,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, true), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true, false), CancellationToken.None);
 
         // Assert current branch preserved
         gitClient.Received().ChangeBranch(branch1);
@@ -172,7 +172,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, false, true), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, false, true, false), CancellationToken.None);
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -215,7 +215,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, true, false), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, true, false, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
@@ -258,7 +258,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns(UpdateStrategy.Rebase.ToString().ToLower());
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, null, null), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
@@ -300,7 +300,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns(UpdateStrategy.Rebase.ToString().ToLower());
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, null, true), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, null, true, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
@@ -343,7 +343,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns(UpdateStrategy.Merge.ToString().ToLower());
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, null, null), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
@@ -386,7 +386,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns(UpdateStrategy.Merge.ToString().ToLower());
 
         // Act (rebase specified overrides config)
-        await handler.Handle(new UpdateStackCommandInputs(null, true, null), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, true, null, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
@@ -430,7 +430,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns((string?)null);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, null, null), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
@@ -474,7 +474,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetConfigValue("stack.update.strategy").Returns((string?)null);
 
         // Act
-        await handler.Handle(new UpdateStackCommandInputs(null, null, null), CancellationToken.None);
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
         await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
@@ -510,7 +510,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Act and assert
         await handler
-            .Invoking(h => h.Handle(new UpdateStackCommandInputs(null, true, true), CancellationToken.None))
+            .Invoking(h => h.Handle(new UpdateStackCommandInputs(null, true, true, false), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Cannot specify both rebase and merge.");
     }

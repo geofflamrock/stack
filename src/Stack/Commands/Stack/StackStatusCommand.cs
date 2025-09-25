@@ -88,9 +88,9 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         Description = "Show status of all stacks."
     };
 
-    static readonly Option<bool> Full = new("--full")
+    static readonly Option<bool> CheckPullRequests = new("--check-pull-requests")
     {
-        Description = "Show full status including pull requests."
+        Description = "Include the status of pull requests in output."
     };
 
     private readonly StackStatusCommandHandler handler;
@@ -106,7 +106,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         this.handler = handler;
         Add(CommonOptions.Stack);
         Add(All);
-        Add(Full);
+        Add(CheckPullRequests);
     }
 
     protected override async Task<StackStatusCommandResponse> ExecuteAndReturnResponse(ParseResult parseResult, CancellationToken cancellationToken)
@@ -115,7 +115,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
             new StackStatusCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),
                 parseResult.GetValue(All),
-                parseResult.GetValue(Full)),
+                parseResult.GetValue(CheckPullRequests)),
             cancellationToken);
     }
 
@@ -193,7 +193,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
     }
 }
 
-public record StackStatusCommandInputs(string? Stack, bool All, bool Full);
+public record StackStatusCommandInputs(string? Stack, bool All, bool CheckPullRequests);
 public record StackStatusCommandResponse(List<StackStatus> Stacks);
 
 public class StackStatusCommandHandler(
@@ -255,7 +255,7 @@ public class StackStatusCommandHandler(
                 logger,
                 gitClient,
                 gitHubClient,
-                inputs.Full);
+                inputs.CheckPullRequests);
         }, cancellationToken);
 
         return new StackStatusCommandResponse(stackStatusResults);

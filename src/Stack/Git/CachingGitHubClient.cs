@@ -48,5 +48,7 @@ public class CachingGitHubClient : IGitHubClient
         inner.OpenPullRequest(pullRequest);
     }
 
+    public void ThrowIfNotAvailable() => inner.ThrowIfNotAvailable();
+
     static string GetCacheKey(string branch) => $"pr:{branch}";
 }

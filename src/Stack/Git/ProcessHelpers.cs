@@ -86,6 +86,25 @@ public static class ProcessHelpers
 
         return result;
     }
+
+    public static bool DoesCommandExist(string command)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = Environment.OSVersion.Platform == PlatformID.Win32NT ? "where" : "which",
+            Arguments = command,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(psi);
+        if (process is null) return false;
+
+        process.WaitForExit();
+        return process.ExitCode == 0;
+    }
 }
 
 public class ProcessException(string message, string filePath, string command, int exitCode) : Exception(message)

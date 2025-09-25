@@ -30,6 +30,7 @@ This is where `stack` comes in: It lets you manage multiple branches that form t
   - [Adding a new branch](#adding-a-new-branch)
   - [Incorporating changes from the remote repository](#incorporating-changes-from-the-remote-repository)
     - [Specifying an update strategy](#specifying-an-update-strategy)
+    - [Checking pull requests during update](#checking-pull-requests-during-update)
   - [Creating pull requests](#creating-pull-requests)
 - [Commands](#commands)
 
@@ -123,7 +124,7 @@ To use the merge strategy, either:
 
 Updating a stack using merge, particularly if it has a number of branches in it, can result in lots of merge commits.
 
-If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve. This can be a bit of a pain.
+If you merge a pull request using "Squash and merge" then you might find that the first update to a stack after that results in merge conflicts that you need to resolve.
 
 ##### Rebase <!-- omit from toc -->
 
@@ -143,6 +144,10 @@ A common pattern when using pull requests is to Squash Merge the pull request wh
 Stack has handling to detect when a squash merge happens during updating a stack using rebase as the update strategy. It will skip the commits that were squash merged, avoiding conflicts.
 
 The remote tracking branch for the branch that was squash merged needs to be deleted for this handling to be enabled.
+
+#### Checking pull requests during update
+
+A branch will be skipped during the update of a stack if it's remote tracking branch has been deleted, which normally happens when a pull request is merged. If you don't delete the remote tracking branch when merging pull requests you can skip branches where the pull request is merged with the `--check-pull-requests` option.
 
 ### Creating pull requests
 
@@ -209,14 +214,14 @@ Usage:
   stack status [options]
 
 Options:
-  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
-  --debug         Show debug output.
-  --verbose       Show verbose output.
-  --json          Write output and log messages as JSON. Log messages will be written to stderr.
-  -s, --stack     The name of the stack.
-  --all           Show status of all stacks.
-  --full          Show full status including pull requests.
-  -?, -h, --help  Show help and usage information
+  --working-dir          The path to the directory containing the git repository. Defaults to the current directory.
+  --debug                Show debug output.
+  --verbose              Show verbose output.
+  --json                 Write output and log messages as JSON. Log messages will be written to stderr.
+  -s, --stack            The name of the stack.
+  --all                  Show status of all stacks.
+  --check-pull-requests  Include the status of pull requests in output.
+  -?, -h, --help         Show help and usage information
 ```
 
 #### `stack delete` <!-- omit from toc -->
@@ -266,14 +271,15 @@ Usage:
   stack update [options]
 
 Options:
-  --working-dir   The path to the directory containing the git repository. Defaults to the current directory.
-  --debug         Show debug output.
-  --verbose       Show verbose output.
-  --json          Write output and log messages as JSON. Log messages will be written to stderr.
-  -s, --stack     The name of the stack.
-  --rebase        Use rebase when updating the stack. Overrides any setting in Git configuration.
-  --merge         Use merge when updating the stack. Overrides any setting in Git configuration.
-  -?, -h, --help  Show help and usage information
+  --working-dir          The path to the directory containing the git repository. Defaults to the current directory.
+  --debug                Show debug output.
+  --verbose              Show verbose output.
+  --json                 Write output and log messages as JSON. Log messages will be written to stderr.
+  -s, --stack            The name of the stack.
+  --rebase               Use rebase when updating the stack. Overrides any setting in Git configuration.
+  --merge                Use merge when updating the stack. Overrides any setting in Git configuration.
+  --check-pull-requests  Check the status of pull requests when determining if a branch should be included in updating the stack.
+  -?, -h, --help         Show help and usage information
 ```
 
 #### `stack switch` <!-- omit from toc -->
@@ -438,17 +444,18 @@ Usage:
   stack sync [options]
 
 Options:
-  --working-dir     The path to the directory containing the git repository. Defaults to the current directory.
-  --debug           Show debug output.
-  --verbose         Show verbose output.
-  --json            Write output and log messages as JSON. Log messages will be written to stderr.
-  -s, --stack       The name of the stack.
-  --max-batch-size  The maximum number of branches to process at once. [default: 5]
-  --rebase          Use rebase when updating the stack. Overrides any setting in Git configuration.
-  --merge           Use merge when updating the stack. Overrides any setting in Git configuration.
-  -y, --yes         Confirm the command without prompting.
-  --no-push         Don't push changes to the remote repository
-  -?, -h, --help    Show help and usage information
+  --working-dir          The path to the directory containing the git repository. Defaults to the current directory.
+  --debug                Show debug output.
+  --verbose              Show verbose output.
+  --json                 Write output and log messages as JSON. Log messages will be written to stderr.
+  -s, --stack            The name of the stack.
+  --max-batch-size       The maximum number of branches to process at once. [default: 5]
+  --rebase               Use rebase when updating the stack. Overrides any setting in Git configuration.
+  --merge                Use merge when updating the stack. Overrides any setting in Git configuration.
+  -y, --yes              Confirm the command without prompting.
+  --check-pull-requests  Check the status of pull requests when determining if a branch should be included in updating the stack.
+  --no-push              Don't push changes to the remote repository
+  -?, -h, --help         Show help and usage information
 ```
 
 ### GitHub commands <!-- omit from toc -->

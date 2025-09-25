@@ -11,13 +11,14 @@ namespace Stack.Commands.Helpers
     {
         void PullChanges(Config.Stack stack);
         void PushChanges(Config.Stack stack, int maxBatchSize, bool forceWithLease);
-        Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken);
+        Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false);
     }
 
 
     public class StackActions(
         IGitClientFactory gitClientFactory,
         CliExecutionContext executionContext,
+        IGitHubClient gitHubClient,
         ILogger<StackActions> logger,
         IDisplayProvider displayProvider,
         IConflictResolutionDetector conflictResolutionDetector) : IStackActions
@@ -139,12 +140,17 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken)
+        public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false)
         {
             var gitClient = GetDefaultGitClient();
 
             List<string> allBranchesInStack = [stack.SourceBranch, .. stack.AllBranchNames];
-            var branchStatuses = gitClient.GetBranchStatuses([.. allBranchesInStack]);
+
+            var branchStatuses = await displayProvider.DisplayStatus("Checking status of branches...", async ct =>
+            {
+                await Task.CompletedTask;
+                return gitClient.GetBranchStatuses([.. allBranchesInStack]);
+            }, cancellationToken);
 
             if (!branchStatuses.ContainsKey(stack.SourceBranch))
             {
@@ -152,9 +158,21 @@ namespace Stack.Commands.Helpers
                 return;
             }
 
+            var pullRequests = new Dictionary<string, GitHubPullRequest?>();
+            if (checkPullRequests)
+            {
+                gitHubClient.ThrowIfNotAvailable();
+
+                await displayProvider.DisplayStatus("Checking status of pull requests...", async ct =>
+                {
+                    await Task.CompletedTask;
+                    pullRequests = gitHubClient.GetPullRequests(stack.AllBranchNames);
+                }, cancellationToken);
+            }
+
             if (strategy == UpdateStrategy.Rebase)
             {
-                await UpdateStackUsingRebase(stack, branchStatuses, cancellationToken);
+                await UpdateStackUsingRebase(stack, branchStatuses, pullRequests, cancellationToken);
             }
             else
             {
@@ -239,13 +257,14 @@ namespace Stack.Commands.Helpers
         private async Task UpdateStackUsingRebase(
             Config.Stack stack,
             Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)
         {
             logger.UpdatingStackUsingRebase(stack.Name);
 
             foreach (var branchLine in stack.GetAllBranchLines())
             {
-                await UpdateBranchLineUsingRebase(stack.Name, stack.SourceBranch, branchLine, branchStatuses, cancellationToken);
+                await UpdateBranchLineUsingRebase(stack.Name, stack.SourceBranch, branchLine, branchStatuses, pullRequests, cancellationToken);
             }
         }
 
@@ -254,6 +273,7 @@ namespace Stack.Commands.Helpers
             string sourceBranchName,
             List<Branch> branchLine,
             Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)
         {
             //
@@ -307,8 +327,8 @@ namespace Stack.Commands.Helpers
             // - feature5 onto main (re-parenting as feature1 was squash merged)
             //
             logger.RebasingStackForBranchLine(stackName, sourceBranchName, string.Join(" -> ", branchLine.Select(b => b.Name)));
-            var allBranchesInLine = new List<BranchState> { GetBranchState(sourceBranchName, branchStatuses) };
-            allBranchesInLine.AddRange(branchLine.Select(b => GetBranchState(b.Name, branchStatuses)));
+            var allBranchesInLine = new List<BranchState> { GetBranchState(sourceBranchName, branchStatuses, pullRequests) };
+            allBranchesInLine.AddRange(branchLine.Select(b => GetBranchState(b.Name, branchStatuses, pullRequests)));
 
             foreach (var branch in branchLine)
             {
@@ -364,14 +384,14 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        private static BranchState GetBranchState(string branchName, Dictionary<string, GitBranchStatus> branchStatuses)
+        private static BranchState GetBranchState(string branchName, Dictionary<string, GitBranchStatus> branchStatuses, Dictionary<string, GitHubPullRequest?>? pullRequests)
         {
             if (branchStatuses.TryGetValue(branchName, out var status))
             {
-                return new BranchState(branchName, true, status.RemoteBranchExists);
+                return new BranchState(branchName, status, pullRequests?.GetValueOrDefault(branchName));
             }
 
-            return new BranchState(branchName, false, false);
+            return new BranchState(branchName, null, null);
         }
 
         private string? GetCommitShaToReParentFrom(string branchToRebase, string lowestInactiveBranchToReParentFrom, string branchToRebaseOnto)
@@ -488,7 +508,12 @@ namespace Stack.Commands.Helpers
                 }
             }, cancellationToken);
         }
-        private readonly record struct BranchState(string Name, bool Exists, bool IsActive);
+        private readonly record struct BranchState(string Name, GitBranchStatus? BranchStatus, GitHubPullRequest? PullRequest)
+        {
+            public bool Exists => BranchStatus is not null;
+            public bool RemoteTrackingBranchExists => BranchStatus?.RemoteBranchExists ?? false;
+            public bool IsActive => RemoteTrackingBranchExists || (PullRequest?.State == GitHubPullRequestStates.Open);
+        }
     }
 }
 

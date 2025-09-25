@@ -1,4 +1,5 @@
 using FluentAssertions;
+using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
 using Stack.Commands.Helpers;
 using Stack.Git;
@@ -24,6 +25,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -40,7 +42,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(otherBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PullChanges(stack);
@@ -69,6 +71,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -87,7 +90,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(worktreeBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PullChanges(stack);
@@ -112,6 +115,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -124,7 +128,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(localOnlyBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PullChanges(stack);
@@ -148,6 +152,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -163,7 +168,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(deletedRemoteBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PullChanges(stack);
@@ -191,6 +196,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -215,7 +221,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(line2Branch1))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -247,6 +253,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -271,7 +278,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(line2Branch1))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -305,6 +312,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -332,7 +340,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var worktree = repo.CreateWorktree(childBranch);
         worktree.Should().NotBeNull();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
@@ -359,6 +367,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -386,7 +395,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var worktreePath = repo.CreateWorktree(childBranch);
         worktreePath.Should().NotBeNull();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -417,6 +426,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -438,7 +448,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(e => e.WithName(fourthBranch))))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -489,6 +499,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -515,7 +526,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(e => e.WithName(fourthBranch))))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         await stackActions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
@@ -547,6 +558,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -565,7 +577,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(currentBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -590,6 +602,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -610,7 +623,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(nonCurrentBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -635,6 +648,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -657,7 +671,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(worktreeBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act
         stackActions.PushChanges(stack, 5, false);
@@ -682,6 +696,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -704,7 +719,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(localOnlyBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act - should complete without errors and should actually create the remote tracking branch
         stackActions.PushChanges(stack, 5, false);
@@ -735,6 +750,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitHubClient = Substitute.For<IGitHubClient>();
         var cliExecutionContext = new CliExecutionContext() { WorkingDirectory = repo.LocalDirectoryPath };
         var gitClientFactory = new TestGitClientFactory(testOutputHelper);
         var conflictResolutionDetector = new ConflictResolutionDetector();
@@ -757,7 +773,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
             .WithBranch(b => b.WithName(deletedRemoteBranch))
             .Build();
 
-        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, logger, displayProvider, conflictResolutionDetector);
+        var stackActions = new StackActions(gitClientFactory, cliExecutionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
 
         // Act - should complete without errors even with deleted remote
         stackActions.PushChanges(stack, 5, false);

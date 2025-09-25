@@ -107,7 +107,7 @@ public static class StackHelpers
         ILogger logger,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
-        bool includePullRequestStatus = true)
+        bool includePullRequestStatus)
     {
         var stacksToReturnStatusFor = new List<StackStatus>();
 
@@ -219,7 +219,7 @@ public static class StackHelpers
         ILogger logger,
         IGitClient gitClient,
         IGitHubClient gitHubClient,
-        bool includePullRequestStatus = true)
+        bool includePullRequestStatus)
     {
         var statuses = GetStackStatus(
             [stack],
@@ -521,7 +521,7 @@ public static class StackHelpers
     public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var currentBranch = gitClient.GetCurrentBranch();
-        var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, true);
+        var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, false);
 
         return [.. stackStatus.GetAllBranches().Where(b => b.CouldBeCleanedUp).Select(b => b.Name)];
     }
