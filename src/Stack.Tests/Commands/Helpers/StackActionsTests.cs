@@ -88,6 +88,92 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task UpdateStack_UsingMerge_WhenBranchHasMergedPullRequest_SkipsBranch()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var inactiveBranch = Some.BranchName();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = new TestGitHubRepositoryBuilder()
+            .WithPullRequest(inactiveBranch, pr => pr.Merged())
+            .Build();
+        var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { inactiveBranch, new GitBranchStatus(inactiveBranch, $"origin/{inactiveBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new(inactiveBranch, []) });
+
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
+        var factory = Substitute.For<IGitClientFactory>();
+        factory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        factory.Create(Arg.Any<string>()).Returns(gitClient);
+
+        var actions = new StackActions(factory, executionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await actions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None, true);
+
+        // Assert
+        gitClient.DidNotReceive().ChangeBranch(inactiveBranch);
+        gitClient.DidNotReceive().MergeFromLocalSourceBranch(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingMerge_WhenBranchHasNoRemoteTrackingBranch_IsUpdated()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var localOnlyBranch = Some.BranchName();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { localOnlyBranch, new GitBranchStatus(localOnlyBranch, null, false, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new(localOnlyBranch, []) });
+
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
+        var factory = Substitute.For<IGitClientFactory>();
+        factory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        factory.Create(Arg.Any<string>()).Returns(gitClient);
+
+        var actions = new StackActions(factory, executionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await actions.UpdateStack(stack, UpdateStrategy.Merge, CancellationToken.None);
+
+        // Assert
+        gitClient.Received(1).ChangeBranch(localOnlyBranch);
+        gitClient.Received(1).MergeFromLocalSourceBranch(sourceBranch);
+    }
+
+    [Fact]
     public async Task UpdateStack_UsingRebase_WhenConflictResolutionAborted_ThrowsAbortException()
     {
         // Arrange
@@ -159,6 +245,93 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         gitClient.Received().ChangeBranch(feature);
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingRebase_WhenBranchHasMergedPullRequest_SkipsBranch()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var inactiveBranch = Some.BranchName();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = new TestGitHubRepositoryBuilder()
+            .WithPullRequest(inactiveBranch, pr => pr.Merged())
+            .Build();
+        var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { inactiveBranch, new GitBranchStatus(inactiveBranch, $"origin/{inactiveBranch}", true, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new(inactiveBranch, []) });
+
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
+        var factory = Substitute.For<IGitClientFactory>();
+        factory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        factory.Create(Arg.Any<string>()).Returns(gitClient);
+
+        var actions = new StackActions(factory, executionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await actions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None, true);
+
+        // Assert
+        gitClient.DidNotReceive().ChangeBranch(inactiveBranch);
+        gitClient.DidNotReceive().RebaseFromLocalSourceBranch(Arg.Any<string>());
+        gitClient.DidNotReceive().RebaseOntoNewParent(Arg.Any<string>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task UpdateStack_UsingRebase_WhenBranchHasNoRemoteTrackingBranch_IsUpdated()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var localOnlyBranch = Some.BranchName();
+
+        var logger = XUnitLogger.CreateLogger<StackActions>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
+
+        var branchStatuses = new Dictionary<string, GitBranchStatus>
+        {
+            { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, true, 0, 0, new Commit(Some.Sha(), Some.Name())) },
+            { localOnlyBranch, new GitBranchStatus(localOnlyBranch, null, false, false, 0, 0, new Commit(Some.Sha(), Some.Name())) }
+        };
+
+        gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
+
+        var stack = new Config.Stack(
+            "Stack1",
+            Some.HttpsUri().ToString(),
+            sourceBranch,
+            new List<Config.Branch> { new(localOnlyBranch, []) });
+
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
+        var factory = Substitute.For<IGitClientFactory>();
+        factory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        factory.Create(Arg.Any<string>()).Returns(gitClient);
+
+        var actions = new StackActions(factory, executionContext, gitHubClient, logger, displayProvider, conflictResolutionDetector);
+
+        // Act
+        await actions.UpdateStack(stack, UpdateStrategy.Rebase, CancellationToken.None);
+
+        // Assert
+        gitClient.Received(1).ChangeBranch(localOnlyBranch);
+        gitClient.Received(1).RebaseFromLocalSourceBranch(sourceBranch);
     }
 
     [Fact]
