@@ -176,20 +176,21 @@ namespace Stack.Commands.Helpers
             }
             else
             {
-                await UpdateStackUsingMerge(stack, branchStatuses, cancellationToken);
+                await UpdateStackUsingMerge(stack, branchStatuses, pullRequests, cancellationToken);
             }
         }
 
         private async Task UpdateStackUsingMerge(
             Config.Stack stack,
             Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)
         {
             logger.UpdatingStackUsingMerge(stack.Name);
 
             foreach (var branchLine in stack.GetAllBranchLines())
             {
-                await UpdateBranchLineUsingMerge(branchLine, stack.SourceBranch, branchStatuses, cancellationToken);
+                await UpdateBranchLineUsingMerge(branchLine, stack.SourceBranch, branchStatuses, pullRequests, cancellationToken);
             }
         }
 
@@ -197,12 +198,14 @@ namespace Stack.Commands.Helpers
             List<Branch> branchLine,
             string parentBranchName,
             Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)
         {
             var currentParentBranch = parentBranchName;
             foreach (var branch in branchLine)
             {
-                if (IsBranchActive(branch.Name, branchStatuses))
+                var branchState = GetBranchState(branch.Name, branchStatuses, pullRequests);
+                if (branchState.IsActive)
                 {
                     await MergeFromSourceBranch(branch.Name, currentParentBranch, branchStatuses, cancellationToken);
                     currentParentBranch = branch.Name;
@@ -212,11 +215,6 @@ namespace Stack.Commands.Helpers
                     logger.TraceSkippingInactiveBranch(branch.Name);
                 }
             }
-        }
-
-        private static bool IsBranchActive(string branchName, Dictionary<string, GitBranchStatus> branchStatuses)
-        {
-            return branchStatuses.TryGetValue(branchName, out var status) && status.RemoteBranchExists;
         }
 
         private async Task MergeFromSourceBranch(string branch, string sourceBranchName, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
@@ -327,8 +325,7 @@ namespace Stack.Commands.Helpers
             // - feature5 onto main (re-parenting as feature1 was squash merged)
             //
             logger.RebasingStackForBranchLine(stackName, sourceBranchName, string.Join(" -> ", branchLine.Select(b => b.Name)));
-            var allBranchesInLine = new List<BranchState> { GetBranchState(sourceBranchName, branchStatuses, pullRequests) };
-            allBranchesInLine.AddRange(branchLine.Select(b => GetBranchState(b.Name, branchStatuses, pullRequests)));
+            List<BranchState> allBranchesInLine = [GetBranchState(sourceBranchName, branchStatuses, pullRequests), .. branchLine.Select(b => GetBranchState(b.Name, branchStatuses, pullRequests))];
 
             foreach (var branch in branchLine)
             {
@@ -386,12 +383,7 @@ namespace Stack.Commands.Helpers
 
         private static BranchState GetBranchState(string branchName, Dictionary<string, GitBranchStatus> branchStatuses, Dictionary<string, GitHubPullRequest?>? pullRequests)
         {
-            if (branchStatuses.TryGetValue(branchName, out var status))
-            {
-                return new BranchState(branchName, status, pullRequests?.GetValueOrDefault(branchName));
-            }
-
-            return new BranchState(branchName, null, null);
+            return new BranchState(branchName, branchStatuses.GetValueOrDefault(branchName), pullRequests?.GetValueOrDefault(branchName));
         }
 
         private string? GetCommitShaToReParentFrom(string branchToRebase, string lowestInactiveBranchToReParentFrom, string branchToRebaseOnto)
@@ -512,7 +504,31 @@ namespace Stack.Commands.Helpers
         {
             public bool Exists => BranchStatus is not null;
             public bool RemoteTrackingBranchExists => BranchStatus?.RemoteBranchExists ?? false;
-            public bool IsActive => RemoteTrackingBranchExists || (PullRequest?.State == GitHubPullRequestStates.Open);
+            public bool IsActive
+            {
+                get
+                {
+                    if (BranchStatus is null)
+                    {
+                        return false;
+                    }
+
+                    if (BranchStatus.RemoteTrackingBranchName is null)
+                    {
+                        // Branch has never been pushed to remote, consider it active
+                        return true;
+                    }
+
+                    if (!RemoteTrackingBranchExists)
+                    {
+                        // Remote tracking branch doesn't exist, consider it inactive
+                        return false;
+                    }
+
+                    // If there's no associated pull request, or if the pull request is not merged, consider it active
+                    return PullRequest is null || PullRequest.State != GitHubPullRequestStates.Merged;
+                }
+            }
         }
     }
 }
