@@ -100,6 +100,44 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
     {
         return this with { Name = newName };
     }
+
+    public Branch? FindBranch(string branchName)
+    {
+        foreach (var branch in Branches)
+        {
+            if (branch.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+            {
+                return branch;
+            }
+
+            var found = FindBranchRecursive(branch, branchName);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    static Branch? FindBranchRecursive(Branch branch, string branchName)
+    {
+        foreach (var child in branch.Children)
+        {
+            if (child.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+            {
+                return child;
+            }
+
+            var found = FindBranchRecursive(child, branchName);
+            if (found != null)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
 }
 
 public record Branch(string Name, List<Branch> Children)

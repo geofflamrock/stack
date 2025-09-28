@@ -97,13 +97,31 @@ public class RemoveBranchCommandHandler(
             throw new InvalidOperationException($"Branch '{branchName}' not found in stack '{stack.Name}'.");
         }
 
-        var action =
-            inputs.RemoveChildrenAction ??
-            await inputProvider.Select(
+        // Find the branch to check if it has children
+        var branch = stack.FindBranch(branchName);
+        var hasChildren = branch?.Children.Count > 0;
+
+        RemoveBranchChildAction action;
+        
+        if (inputs.RemoveChildrenAction.HasValue)
+        {
+            // Use the explicitly provided action
+            action = inputs.RemoveChildrenAction.Value;
+        }
+        else if (hasChildren)
+        {
+            // Only ask for action if the branch has children
+            action = await inputProvider.Select(
                 Questions.RemoveBranchChildAction,
                 new[] { RemoveBranchChildAction.MoveChildrenToParent, RemoveBranchChildAction.RemoveChildren },
                 cancellationToken,
                 (action) => action.Humanize());
+        }
+        else
+        {
+            // Default action when no children (doesn't matter which one we choose)
+            action = RemoveBranchChildAction.RemoveChildren;
+        }
 
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmRemoveBranch, cancellationToken))
         {
