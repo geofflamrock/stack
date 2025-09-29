@@ -481,6 +481,84 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task WhenCheckPullRequestsIsTrue_StackIsUpdatedWithCheckPullRequestsEnabled()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var stackActions = Substitute.For<IStackActions>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClient.GetConfigValue("stack.update.strategy").Returns((string?)null);
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, true), CancellationToken.None);
+
+        // Assert
+        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), true);
+    }
+
+    [Fact]
+    public async Task WhenCheckPullRequestsIsFalse_StackIsUpdatedWithCheckPullRequestsDisabled()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branch1 = Some.BranchName();
+        var branch2 = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b1 => b1.WithName(branch1).WithChildBranch(b2 => b2.WithName(branch2))))
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<UpdateStackCommandHandler>(testOutputHelper);
+        var displayProvider = new TestDisplayProvider(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var stackActions = Substitute.For<IStackActions>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new UpdateStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClient.GetConfigValue("stack.update.strategy").Returns((string?)null);
+
+        // Act
+        await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
+
+        // Assert
+        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), false);
+    }
+
+    [Fact]
     public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
     {
         // Arrange
