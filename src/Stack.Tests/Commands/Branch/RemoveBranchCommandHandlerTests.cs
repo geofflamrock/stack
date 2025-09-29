@@ -497,4 +497,136 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
     }
+
+    [Fact]
+    public async Task WhenBranchHasNoChildren_DoesNotAskForChildAction()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await handler.Handle(RemoveBranchCommandInputs.Empty, CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", remoteUri, sourceBranch, [])
+        });
+
+        // Should not ask for child action when branch has no children
+        await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
+    }
+
+    [Fact]
+    public async Task WhenBranchHasNoChildrenButRemoveChildrenIsProvided_DoesNotAskForChildAction()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.RemoveChildren), CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", remoteUri, sourceBranch, [])
+        });
+
+        // Should not ask for child action when explicitly provided, even if branch has no children
+        await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
+    }
+
+    [Fact]
+    public async Task WhenBranchHasNoChildrenButMoveChildrenToParentIsProvided_DoesNotAskForChildAction()
+    {
+        // Arrange
+        var sourceBranch = Some.BranchName();
+        var branchToRemove = Some.BranchName();
+        var remoteUri = Some.HttpsUri().ToString();
+
+        var stackConfig = new TestStackConfigBuilder()
+            .WithStack(stack => stack
+                .WithName("Stack1")
+                .WithRemoteUri(remoteUri)
+                .WithSourceBranch(sourceBranch)
+                .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
+            .Build();
+        var inputProvider = Substitute.For<IInputProvider>();
+        var logger = XUnitLogger.CreateLogger<RemoveBranchCommandHandler>(testOutputHelper);
+        var gitClient = Substitute.For<IGitClient>();
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
+        var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+
+        gitClient.GetRemoteUri().Returns(remoteUri);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
+        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
+        inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
+
+        // Act
+        await handler.Handle(new RemoveBranchCommandInputs(null, null, false, RemoveBranchChildAction.MoveChildrenToParent), CancellationToken.None);
+
+        // Assert
+        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        {
+            new("Stack1", remoteUri, sourceBranch, [])
+        });
+
+        // Should not ask for child action when explicitly provided, even if branch has no children
+        await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
+    }
 }
