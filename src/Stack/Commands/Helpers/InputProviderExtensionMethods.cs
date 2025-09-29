@@ -108,6 +108,40 @@ public static class InputProviderExtensionMethods
         return inputProvider.Select(logger, Questions.SelectBranch, name, branches, cancellationToken);
     }
 
+    public static async Task<string> SelectBranch(
+        this IInputProvider inputProvider,
+        ILogger logger,
+        string? name,
+        Config.Stack stack,
+        CancellationToken cancellationToken)
+    {
+        void GetBranchNamesWithIndentation(Branch branch, List<string> names, int level = 0)
+        {
+            names.Add($"{new string(' ', level * 2)}{branch.Name}");
+            foreach (var child in branch.Children)
+            {
+                GetBranchNamesWithIndentation(child, names, level + 1);
+            }
+        }
+
+        var allBranchNamesWithLevel = new List<string>();
+        foreach (var branch in stack.Branches)
+        {
+            GetBranchNamesWithIndentation(branch, allBranchNamesWithLevel);
+        }
+
+        var branchSelection = (name ?? await inputProvider
+            .SelectGrouped(
+                Questions.SelectBranch,
+                [new ChoiceGroup<string>(stack.SourceBranch, [.. allBranchNamesWithLevel])],
+                cancellationToken))
+            .Trim();
+
+        logger.Answer(Questions.SelectBranch, branchSelection);
+
+        return branchSelection;
+    }
+
     public static async Task<string> SelectParentBranch(
         this IInputProvider inputProvider,
         ILogger logger,

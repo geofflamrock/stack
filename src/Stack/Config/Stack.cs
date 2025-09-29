@@ -86,6 +86,138 @@ public record Stack(string Name, string RemoteUri, string SourceBranch, List<Bra
         return false;
     }
 
+    public void MoveBranch(string branchName, string newParentBranchName, MoveBranchChildAction childAction)
+    {
+        // First, find and extract the branch being moved
+        var (branchToMove, originalParentName, childrenToReParent) = ExtractBranch(branchName, childAction);
+        if (branchToMove is null)
+        {
+            throw new InvalidOperationException($"Branch '{branchName}' not found in stack.");
+        }
+
+        // Add the moved branch to the new parent location
+        AddBranchToParent(branchToMove, newParentBranchName);
+
+        // Re-parent children to their original location if needed
+        if (childrenToReParent.Count > 0)
+        {
+            foreach (var child in childrenToReParent)
+            {
+                AddBranchToParent(child, originalParentName);
+            }
+        }
+    }
+
+    private (Branch? branchToMove, string originalParentName, List<Branch> childrenToReParent) ExtractBranch(string branchName, MoveBranchChildAction childAction)
+    {
+        // Check root level branches
+        for (int i = 0; i < Branches.Count; i++)
+        {
+            var branch = Branches[i];
+            if (branch.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+            {
+                Branches.RemoveAt(i);
+
+                if (childAction == MoveBranchChildAction.ReParentChildren)
+                {
+                    // Children should be re-parented to the source branch (root level)
+                    var childrenToReParent = branch.Children.ToList();
+                    return (new Branch(branch.Name, new List<Branch>()), SourceBranch, childrenToReParent);
+                }
+                else
+                {
+                    return (branch, SourceBranch, new List<Branch>());
+                }
+            }
+        }
+
+        // Check nested branches
+        foreach (var branch in Branches)
+        {
+            var result = ExtractBranchFromChildren(branch, branchName, childAction);
+            if (result.branchToMove is not null)
+            {
+                return result;
+            }
+        }
+
+        return (null, string.Empty, new List<Branch>());
+    }
+
+    private static (Branch? branchToMove, string originalParentName, List<Branch> childrenToReParent) ExtractBranchFromChildren(Branch parentBranch, string branchName, MoveBranchChildAction childAction)
+    {
+        for (int i = 0; i < parentBranch.Children.Count; i++)
+        {
+            var childBranch = parentBranch.Children[i];
+            if (childBranch.Name.Equals(branchName, StringComparison.OrdinalIgnoreCase))
+            {
+                parentBranch.Children.RemoveAt(i);
+
+                if (childAction == MoveBranchChildAction.ReParentChildren)
+                {
+                    // Children should be re-parented to the original parent
+                    var childrenToReParent = childBranch.Children.ToList();
+                    return (new Branch(childBranch.Name, new List<Branch>()), parentBranch.Name, childrenToReParent);
+                }
+                else
+                {
+                    return (childBranch, parentBranch.Name, new List<Branch>());
+                }
+            }
+        }
+
+        foreach (var child in parentBranch.Children)
+        {
+            var result = ExtractBranchFromChildren(child, branchName, childAction);
+            if (result.branchToMove is not null)
+            {
+                return result;
+            }
+        }
+
+        return (null, string.Empty, new List<Branch>());
+    }
+
+    private void AddBranchToParent(Branch branchToMove, string parentBranchName)
+    {
+        // If the parent is the source branch, add to root level
+        if (parentBranchName.Equals(SourceBranch, StringComparison.OrdinalIgnoreCase))
+        {
+            Branches.Add(branchToMove);
+            return;
+        }
+
+        // Find the parent branch and add as child
+        foreach (var branch in Branches)
+        {
+            if (AddBranchToParentInChildren(branch, branchToMove, parentBranchName))
+            {
+                return;
+            }
+        }
+
+        throw new InvalidOperationException($"Parent branch '{parentBranchName}' not found in stack.");
+    }
+
+    private static bool AddBranchToParentInChildren(Branch currentBranch, Branch branchToMove, string parentBranchName)
+    {
+        if (currentBranch.Name.Equals(parentBranchName, StringComparison.OrdinalIgnoreCase))
+        {
+            currentBranch.Children.Add(branchToMove);
+            return true;
+        }
+
+        foreach (var child in currentBranch.Children)
+        {
+            if (AddBranchToParentInChildren(child, branchToMove, parentBranchName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public List<List<Branch>> GetAllBranchLines()
     {
         var allLines = new List<List<Branch>>();
