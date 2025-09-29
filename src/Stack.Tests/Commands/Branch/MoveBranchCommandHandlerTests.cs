@@ -46,7 +46,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
 
         // Act
@@ -95,7 +95,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
         inputProvider.Select(Questions.MoveBranchChildAction, Arg.Any<MoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<MoveBranchChildAction, string>>())
             .Returns(MoveBranchChildAction.MoveChildren);
@@ -145,7 +145,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
         inputProvider.Select(Questions.MoveBranchChildAction, Arg.Any<MoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<MoveBranchChildAction, string>>())
             .Returns(MoveBranchChildAction.ReParentChildren);
@@ -194,7 +194,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
 
         // Act
@@ -284,7 +284,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(nonExistentBranch);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(nonExistentBranch);
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
@@ -324,7 +324,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
-        inputProvider.Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
+        inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
         inputProvider.Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(firstBranch);
 
         // Act
