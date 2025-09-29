@@ -24,6 +24,7 @@ public class UpdateStackCommand : Command
         Add(CommonOptions.Stack);
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
+        Add(CommonOptions.CheckPullRequests);
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
@@ -32,14 +33,15 @@ public class UpdateStackCommand : Command
             new UpdateStackCommandInputs(
                 parseResult.GetValue(CommonOptions.Stack),
                 parseResult.GetValue(CommonOptions.Rebase),
-                parseResult.GetValue(CommonOptions.Merge)),
+                parseResult.GetValue(CommonOptions.Merge),
+                parseResult.GetValue(CommonOptions.CheckPullRequests)),
             cancellationToken);
     }
 }
 
-public record UpdateStackCommandInputs(string? Stack, bool? Rebase, bool? Merge)
+public record UpdateStackCommandInputs(string? Stack, bool? Rebase, bool? Merge, bool CheckPullRequests)
 {
-    public static UpdateStackCommandInputs Empty => new(null, null, null);
+    public static UpdateStackCommandInputs Empty => new(null, null, null, false);
 }
 
 public record UpdateStackCommandResponse();
@@ -87,7 +89,7 @@ public class UpdateStackCommandHandler(
 
         await displayProvider.DisplayStatus("Updating stack...", async (ct) =>
         {
-            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken);
+            await stackActions.UpdateStack(stack, updateStrategy, cancellationToken, inputs.CheckPullRequests);
         }, cancellationToken);
 
         if (stack.SourceBranch.Equals(currentBranch, StringComparison.InvariantCultureIgnoreCase) ||

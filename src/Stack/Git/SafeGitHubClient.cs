@@ -38,6 +38,8 @@ public class SafeGitHubClient(IGitHubClient inner, ILogger<SafeGitHubClient> log
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)
         => inner.OpenPullRequest(pullRequest);
+
+    public void ThrowIfNotAvailable() => inner.ThrowIfNotAvailable();
 }
 
 internal static partial class LoggerExtensionMethods

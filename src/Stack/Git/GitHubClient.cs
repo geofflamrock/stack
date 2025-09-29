@@ -48,7 +48,9 @@ public static class GitHubPullRequestExtensionMethods
 
 public interface IGitHubClient
 {
+    void ThrowIfNotAvailable();
     GitHubPullRequest? GetPullRequest(string branch);
+    Dictionary<string, GitHubPullRequest?> GetPullRequests(IEnumerable<string> branches) => branches.ToDictionary(b => b, GetPullRequest);
     GitHubPullRequest CreatePullRequest(
         string headBranch,
         string baseBranch,
@@ -71,6 +73,23 @@ internal partial class GitHubClientJsonSerializerContext : JsonSerializerContext
 
 public class GitHubClient(ILogger<GitHubClient> logger, CliExecutionContext context) : IGitHubClient
 {
+    public bool IsAvailable => ProcessHelpers.DoesCommandExist("gh");
+
+    public bool IsAuthenticated => IsAvailable && ExecuteGitHubCommandAndReturnOutput("auth status").Contains("Logged in to");
+
+    public void ThrowIfNotAvailable()
+    {
+        if (!IsAvailable)
+        {
+            throw new InvalidOperationException("GitHub CLI (gh) is not installed or not available in PATH.");
+        }
+
+        if (!IsAuthenticated)
+        {
+            throw new InvalidOperationException("GitHub CLI (gh) is not authenticated. Please run 'gh auth login' to authenticate.");
+        }
+    }
+
     public GitHubPullRequest? GetPullRequest(string branch)
     {
         var output = ExecuteGitHubCommandAndReturnOutput($"pr list --json title,number,body,state,url,isDraft,headRefName --head {branch} --state all");

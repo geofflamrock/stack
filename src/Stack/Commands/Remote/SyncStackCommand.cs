@@ -32,6 +32,7 @@ public class SyncStackCommand : Command
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
         Add(CommonOptions.Confirm);
+        Add(CommonOptions.CheckPullRequests);
         Add(NoPush);
     }
 
@@ -44,7 +45,8 @@ public class SyncStackCommand : Command
                 parseResult.GetValue(CommonOptions.Rebase),
                 parseResult.GetValue(CommonOptions.Merge),
                 parseResult.GetValue(CommonOptions.Confirm),
-                parseResult.GetValue(NoPush)),
+                parseResult.GetValue(NoPush),
+                parseResult.GetValue(CommonOptions.CheckPullRequests)),
             cancellationToken);
     }
 }
@@ -55,9 +57,10 @@ public record SyncStackCommandInputs(
     bool? Rebase,
     bool? Merge,
     bool Confirm,
-    bool NoPush)
+    bool NoPush,
+    bool CheckPullRequests)
 {
-    public static SyncStackCommandInputs Empty => new(null, 5, null, null, false, false);
+    public static SyncStackCommandInputs Empty => new(null, 5, null, null, false, false, false);
 }
 
 public class SyncStackCommandHandler(
@@ -115,7 +118,7 @@ public class SyncStackCommandHandler(
                     logger,
                     gitClient,
                     gitHubClient,
-                    true);
+                    inputs.CheckPullRequests);
             }, cancellationToken);
 
             await StackHelpers.OutputStackStatus(status, outputProvider, cancellationToken);
@@ -138,7 +141,7 @@ public class SyncStackCommandHandler(
 
         await displayProvider.DisplayStatus("Updating stack...", async (ct) =>
         {
-            await stackActions.UpdateStack(stack, updateStrategy, ct);
+            await stackActions.UpdateStack(stack, updateStrategy, ct, inputs.CheckPullRequests);
         }, cancellationToken);
 
         var forceWithLease = updateStrategy == UpdateStrategy.Rebase;

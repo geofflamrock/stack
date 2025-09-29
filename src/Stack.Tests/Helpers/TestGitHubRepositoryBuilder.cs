@@ -5,6 +5,7 @@ namespace Stack.Tests.Helpers;
 public class TestGitHubRepositoryBuilder
 {
     readonly Dictionary<string, GitHubPullRequest> pullRequests = new();
+    bool available = true;
 
     public TestGitHubRepositoryBuilder WithPullRequest(string branch, Action<TestGitHubPullRequestBuilder>? pullRequestBuilder = null)
     {
@@ -15,9 +16,15 @@ public class TestGitHubRepositoryBuilder
         return this;
     }
 
+    public TestGitHubRepositoryBuilder NotAvailable()
+    {
+        available = false;
+        return this;
+    }
+
     public TestGitHubRepository Build()
     {
-        return new TestGitHubRepository(pullRequests);
+        return new TestGitHubRepository(pullRequests, available);
     }
 }
 
@@ -61,7 +68,7 @@ public class TestGitHubPullRequestBuilder
     }
 }
 
-public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequests) : IGitHubClient
+public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequests, bool available) : IGitHubClient
 {
     public Dictionary<string, GitHubPullRequest> PullRequests { get; } = PullRequests;
 
@@ -97,5 +104,13 @@ public class TestGitHubRepository(Dictionary<string, GitHubPullRequest> PullRequ
 
     public void OpenPullRequest(GitHubPullRequest pullRequest)
     {
+    }
+
+    public void ThrowIfNotAvailable()
+    {
+        if (!available)
+        {
+            throw new InvalidOperationException("GitHub client not available.");
+        }
     }
 }

@@ -82,7 +82,8 @@ public class CreatePullRequestsCommandHandler(
             currentBranch,
             logger,
             gitClient,
-            gitHubClient);
+            gitHubClient,
+            true);
 
         var pullRequestCreateActions = new List<PullRequestCreateAction>();
 

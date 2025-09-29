@@ -67,4 +67,10 @@ public static class CommonOptions
         Description = "The name of the parent branch to put the branch under.",
         Required = false
     };
+
+    public static Option<bool> CheckPullRequests { get; } = new Option<bool>("--check-pull-requests")
+    {
+        Description = "Check the status of pull requests as part of determining if a branch should be included when updating the stack.",
+        Required = false
+    };
 }
