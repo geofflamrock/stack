@@ -453,7 +453,7 @@ Options:
   --rebase               Use rebase when updating the stack. Overrides any setting in Git configuration.
   --merge                Use merge when updating the stack. Overrides any setting in Git configuration.
   -y, --yes              Confirm the command without prompting.
-  --check-pull-requests  Check the status of pull requests when determining if a branch should be included in updating the stack.
+  --check-pull-requests  Check the status of pull requests as part of determining if a branch should be included when updating the stack.
   --no-push              Don't push changes to the remote repository
   -?, -h, --help         Show help and usage information
 ```

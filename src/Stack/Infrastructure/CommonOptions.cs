@@ -70,7 +70,7 @@ public static class CommonOptions
 
     public static Option<bool> CheckPullRequests { get; } = new Option<bool>("--check-pull-requests")
     {
-        Description = "Check the status of pull requests when determining if a branch should be included in updating the stack.",
+        Description = "Check the status of pull requests as part of determining if a branch should be included when updating the stack.",
         Required = false
     };
 }
