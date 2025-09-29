@@ -14,7 +14,7 @@ public enum MoveBranchChildAction
     [Description("Move child branches with the branch being moved")]
     MoveChildren,
 
-    [Description("Re-parent child branches to the previous location")]
+    [Description("Re-parent child branches to the current parent of the branch being moved")]
     ReParentChildren
 }
 
@@ -22,7 +22,7 @@ public class MoveBranchCommand : Command
 {
     static readonly Option<bool> ReParentChildren = new("--re-parent-children")
     {
-        Description = "Re-parent child branches to the previous location."
+        Description = "Re-parent child branches to the current parent of the branch being moved."
     };
 
     static readonly Option<bool> MoveChildren = new("--move-children")

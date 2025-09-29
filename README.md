@@ -386,7 +386,7 @@ Options:
   -s, --stack           The name of the stack.
   -b, --branch          The name of the branch.
   -p, --parent          The name of the parent branch to put the branch under.
-  --re-parent-children  Re-parent child branches to the previous location.
+  --re-parent-children  Re-parent child branches to the current parent of the branch being moved.
   --move-children       Move child branches with the branch being moved.
   -?, -h, --help        Show help and usage information
 ```
