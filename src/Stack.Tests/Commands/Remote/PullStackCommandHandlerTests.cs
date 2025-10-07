@@ -21,17 +21,14 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(child => child.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -43,10 +40,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -66,18 +60,15 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -89,10 +80,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
         await handler.Handle(new PullStackCommandInputs("Stack1"), CancellationToken.None);
@@ -111,18 +99,15 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -134,10 +119,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act and assert
         var invalidStackName = Some.Name();

@@ -20,17 +20,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -40,10 +37,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -57,8 +51,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new Config.Stack("Stack1", remoteUri, sourceBranch, []),
-            new Config.Stack("Stack2", remoteUri, sourceBranch, [])
+            new Config.Stack("Stack1", stackRepository.RemoteUri, sourceBranch, []),
+            new Config.Stack("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -68,17 +62,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -88,10 +79,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
@@ -103,8 +91,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
+            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -114,17 +102,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -134,10 +119,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -153,17 +135,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -173,10 +152,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
@@ -187,8 +163,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
+            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -199,17 +175,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -219,10 +192,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -240,12 +210,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .Build();
@@ -256,10 +224,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
         inputProvider.Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>()).Returns(true);
@@ -270,7 +235,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -282,17 +247,14 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -302,10 +264,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -316,8 +275,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, []),
-            new("Stack2", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
+            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>());
     }
@@ -329,12 +288,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
@@ -345,10 +302,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -362,7 +316,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
         });
     }
 
@@ -373,12 +327,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
@@ -389,10 +341,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -406,7 +355,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
     }
 
@@ -417,12 +366,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
@@ -433,10 +380,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -448,7 +392,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
@@ -461,12 +405,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove).WithChildBranch(b => b.WithName(childBranch))))
             .Build();
@@ -477,10 +419,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -492,7 +431,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(childBranch, [])])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
@@ -504,12 +443,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
             .Build();
@@ -520,10 +457,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -535,7 +469,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
 
         // Should not ask for child action when branch has no children
@@ -548,12 +482,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
             .Build();
@@ -564,10 +496,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -579,7 +508,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
 
         // Should not ask for child action when explicitly provided, even if branch has no children
@@ -592,12 +521,10 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var branchToRemove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToRemove))) // Branch with no children
             .Build();
@@ -608,10 +535,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new RemoveBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToRemove);
@@ -623,7 +547,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
 
         // Should not ask for child action when explicitly provided, even if branch has no children

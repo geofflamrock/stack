@@ -18,24 +18,19 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenChangesExistLocally_TheyArePushedToTheRemote()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -65,24 +60,19 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenNameIsProvided_DoesNotAskForName_PushesChangesToRemoteForBranchesInStack()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -113,24 +103,19 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenNameIsProvided_ButStackDoesNotExist_Throws()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -160,24 +145,19 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenNumberOfBranchesIsGreaterThanMaxBatchSize_ChangesAreSuccessfullyPushedToTheRemoteInBatches()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -207,24 +187,19 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenUsingForceWithLease_ChangesAreForcePushedToTheRemote()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();

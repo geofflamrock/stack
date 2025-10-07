@@ -21,7 +21,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var firstBranch = Some.BranchName();
         var secondBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -30,13 +29,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch))
                 .WithBranch(branch => branch.WithName(secondBranch)
@@ -55,7 +52,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
                 new Config.Branch(secondBranch, [])
             ])
@@ -70,7 +67,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var firstBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -79,13 +75,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch))
                 .WithBranch(branch => branch.WithName(branchToMove)
@@ -106,7 +100,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [new Config.Branch(childBranch, [])])])
             ])
         });
@@ -120,7 +114,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var firstBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
         var childBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -129,13 +122,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
         var outputProvider = Substitute.For<IOutputProvider>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch))
                 .WithBranch(branch => branch.WithName(branchToMove)
@@ -156,7 +147,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
                 new Config.Branch(childBranch, [])
             ])
@@ -170,7 +161,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var firstBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -179,13 +169,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
         var outputProvider = Substitute.For<IOutputProvider>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch)
                     .WithChildBranch(child => child.WithName(branchToMove))))
@@ -203,7 +191,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, []),
                 new Config.Branch(branchToMove, [])
             ])
@@ -217,7 +205,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var firstBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -226,13 +213,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
         var outputProvider = Substitute.For<IOutputProvider>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch))
                 .WithBranch(branch => branch.WithName(branchToMove)))
@@ -246,7 +231,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])])
             ])
         });
@@ -261,7 +246,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var firstBranch = Some.BranchName();
         var nonExistentBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -270,13 +254,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
         var outputProvider = Substitute.For<IOutputProvider>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch)))
             .Build();
@@ -300,7 +282,6 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var firstBranch = Some.BranchName();
         var branchToMove = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<MoveBranchCommandHandler>(testOutputHelper);
@@ -309,13 +290,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext();
         gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
         var outputProvider = Substitute.For<IOutputProvider>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(branch => branch.WithName(firstBranch))
                 .WithBranch(branch => branch.WithName(branchToMove)))

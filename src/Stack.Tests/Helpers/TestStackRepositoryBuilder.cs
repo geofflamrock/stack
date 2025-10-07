@@ -7,7 +7,7 @@ namespace Stack.Tests.Helpers;
 public class TestStackRepositoryBuilder
 {
     readonly List<Action<TestStackBuilder>> stackBuilders = [];
-    string? remoteUri;
+    string remoteUri = Some.HttpsUri().ToString();
 
     public TestStackRepositoryBuilder WithStack(Action<TestStackBuilder> stackBuilder)
     {
@@ -26,14 +26,12 @@ public class TestStackRepositoryBuilder
         var stackData = new StackData([.. stackBuilders.Select(builder =>
         {
             var stackBuilder = new TestStackBuilder();
+            stackBuilder = stackBuilder.WithRemoteUri(remoteUri);
             builder(stackBuilder);
             return stackBuilder.Build();
         })]);
 
-        // If no explicit remote URI was set, use the first stack's remote URI
-        var repositoryRemoteUri = remoteUri ?? stackData.Stacks.FirstOrDefault()?.RemoteUri ?? Some.HttpsUri().ToString();
-
-        return new TestStackRepository(stackData, repositoryRemoteUri);
+        return new TestStackRepository(stackData, remoteUri);
     }
 }
 

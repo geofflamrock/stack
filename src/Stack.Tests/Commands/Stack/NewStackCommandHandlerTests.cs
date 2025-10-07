@@ -21,9 +21,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var existingBranch = Some.BranchName();
         var stackName = Some.ShortName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -35,8 +34,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns(stackName);
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Add);
@@ -48,7 +45,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
+            new(stackName, stackRepository.RemoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
         });
         gitClient.Received().ChangeBranch(existingBranch);
     }
@@ -60,9 +57,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var existingBranch = Some.BranchName();
         var stackName = Some.ShortName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -74,8 +70,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch, existingBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns(stackName);
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
@@ -86,7 +80,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [])
+            new(stackName, stackRepository.RemoteUri, sourceBranch, [])
         });
         gitClient.DidNotReceive().ChangeBranch(Arg.Any<string>());
     }
@@ -97,9 +91,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var stackName = Some.ShortName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -111,8 +104,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
 
@@ -124,7 +115,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [])
+            new(stackName, stackRepository.RemoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
     }
@@ -134,9 +125,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -148,8 +138,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.None);
 
@@ -161,7 +149,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -172,9 +160,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -186,8 +173,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
 
@@ -199,7 +184,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -212,9 +197,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -226,8 +210,6 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Select(Questions.SelectSourceBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns(sourceBranch);
         inputProvider.Select(Questions.AddOrCreateBranch, Arg.Any<BranchAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<BranchAction, string>>()).Returns(BranchAction.Create);
@@ -239,7 +221,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -251,9 +233,8 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Arrange
         var sourceBranch = Some.BranchName();
         var newBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
@@ -264,9 +245,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
-        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]);
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient
+        gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns([sourceBranch]); gitClient
             .When(gc => gc.PushNewBranch(newBranch))
             .Do(_ => throw new Exception("Failed to push branch"));
 
@@ -281,7 +260,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
-            new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
