@@ -23,7 +23,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -41,7 +41,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -76,7 +76,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -94,7 +94,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -129,7 +129,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var anotherBranchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -147,7 +147,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -183,7 +183,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -201,7 +201,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -236,7 +236,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -254,7 +254,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -288,7 +288,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -306,7 +306,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -332,7 +332,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -346,7 +346,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -380,7 +380,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -398,7 +398,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -434,7 +434,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -452,7 +452,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 

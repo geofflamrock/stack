@@ -39,19 +39,16 @@ public class StackSwitchCommandHandler(
     IInputProvider inputProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<StackSwitchCommandInputs>
 {
     public override async Task Handle(StackSwitchCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
         var allBranchesInStacks = stacksForRemote.SelectMany(s => s.AllBranchNames).Distinct().ToArray();
         var branchesThatExistLocally = gitClient.GetBranchesThatExistLocally(allBranchesInStacks);
 

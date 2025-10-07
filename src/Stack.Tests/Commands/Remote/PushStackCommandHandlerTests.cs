@@ -26,7 +26,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -45,7 +45,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -73,7 +73,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -92,7 +92,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -121,7 +121,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -140,7 +140,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -168,7 +168,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -187,7 +187,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -215,7 +215,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -234,7 +234,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PushStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 

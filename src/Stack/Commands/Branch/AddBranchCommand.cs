@@ -47,7 +47,7 @@ public class AddBranchCommandHandler(
     ILogger<AddBranchCommandHandler> logger,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<AddBranchCommandInputs>
 {
     public override async Task Handle(AddBranchCommandInputs inputs, CancellationToken cancellationToken)
@@ -55,13 +55,10 @@ public class AddBranchCommandHandler(
         await Task.CompletedTask;
 
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var stackData = stackConfig.Load();
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {
@@ -113,7 +110,7 @@ public class AddBranchCommandHandler(
             stack.Branches.Add(new Branch(branchName, []));
         }
 
-        stackConfig.Save(stackData);
+        repository.SaveChanges();
 
         logger.BranchAdded(branchName, stack.Name);
     }

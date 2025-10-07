@@ -21,7 +21,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -43,7 +43,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -54,7 +54,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack2", remoteUri, sourceBranch, [])
         });
@@ -67,7 +67,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -88,7 +88,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -99,7 +99,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, []),
             new("Stack2", remoteUri, sourceBranch, [])
@@ -113,7 +113,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -134,7 +134,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -144,7 +144,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new DeleteStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack2", remoteUri, sourceBranch, [])
         });
@@ -159,7 +159,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -180,7 +180,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -202,7 +202,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToKeep = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -242,7 +242,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -254,7 +254,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack2", remoteUri, sourceBranch, [])
         });
@@ -269,7 +269,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -286,7 +286,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -296,7 +296,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new DeleteStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEmpty();
+        stackRepository.Stacks.Should().BeEmpty();
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -308,7 +308,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -329,7 +329,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new DeleteStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -339,7 +339,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new DeleteStackCommandInputs(null, true), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack2", remoteUri, sourceBranch, [])
         });

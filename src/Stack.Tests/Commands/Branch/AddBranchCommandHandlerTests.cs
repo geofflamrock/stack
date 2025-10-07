@@ -32,7 +32,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, firstBranch, childBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -45,7 +45,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -57,7 +57,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
@@ -73,7 +73,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -90,7 +90,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -102,7 +102,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
@@ -118,7 +118,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -134,7 +134,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -146,7 +146,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])])
         });
@@ -161,7 +161,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -178,7 +178,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -199,7 +199,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -216,7 +216,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -227,7 +227,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, branchToAdd, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
@@ -244,7 +244,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -261,7 +261,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -285,7 +285,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -304,7 +304,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -326,7 +326,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branchToAdd = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -343,7 +343,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -351,7 +351,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd, anotherBranch), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])
@@ -376,7 +376,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate().Returns(new[] { sourceBranch, firstBranch, childBranch, branchToAdd });
         gitClient.DoesLocalBranchExist(branchToAdd).Returns(true);
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -389,7 +389,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
             .Build();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new AddBranchCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -400,7 +400,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, null, firstBranch), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(branchToAdd, [])])]),
             new("Stack2", remoteUri, sourceBranch, [])

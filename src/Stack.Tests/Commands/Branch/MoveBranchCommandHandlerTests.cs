@@ -33,7 +33,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -43,7 +43,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(branchToMove))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -53,7 +53,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
@@ -82,7 +82,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -92,7 +92,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(childBranch))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -104,7 +104,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [new Config.Branch(childBranch, [])])])
@@ -132,7 +132,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -142,7 +142,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(childBranch))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -154,7 +154,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
@@ -182,7 +182,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -191,7 +191,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                     .WithChildBranch(child => child.WithName(branchToMove))))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);
@@ -201,7 +201,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, []),
@@ -229,7 +229,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -238,13 +238,13 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(branchToMove)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         // Act
         await handler.Handle(new MoveBranchCommandInputs("Stack1", branchToMove, firstBranch, MoveBranchChildAction.MoveChildren), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [
                 new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])])
@@ -273,7 +273,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -281,7 +281,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(firstBranch)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(nonExistentBranch);
@@ -312,7 +312,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -321,7 +321,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
                 .WithBranch(branch => branch.WithName(branchToMove)))
             .Build();
 
-        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new MoveBranchCommandHandler(inputProvider, logger, outputProvider, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.SelectGrouped(Questions.SelectBranch, Arg.Any<ChoiceGroup<string>[]>(), Arg.Any<CancellationToken>()).Returns(branchToMove);

@@ -23,14 +23,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackName = Some.ShortName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -46,7 +46,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new(stackName, remoteUri, sourceBranch, [new Config.Branch(existingBranch, [])])
         });
@@ -62,14 +62,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackName = Some.ShortName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -84,7 +84,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(NewStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new(stackName, remoteUri, sourceBranch, [])
         });
@@ -99,14 +99,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackName = Some.ShortName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -122,7 +122,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(inputs, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new(stackName, remoteUri, sourceBranch, [])
         });
@@ -136,14 +136,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -159,7 +159,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(inputs, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [])
         });
@@ -174,14 +174,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var newBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -197,7 +197,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(inputs, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
@@ -214,14 +214,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var newBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -237,7 +237,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new NewStackCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });
@@ -253,14 +253,14 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var newBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder().Build();
+        var stackRepository = new TestStackRepositoryBuilder().WithRemoteUri(remoteUri).Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig);
+        var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -279,7 +279,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new NewStackCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
         {
             new("Stack1", remoteUri, sourceBranch, [new Config.Branch(newBranch, [])])
         });

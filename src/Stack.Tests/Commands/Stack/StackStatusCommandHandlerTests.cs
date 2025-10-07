@@ -26,7 +26,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch1 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -44,7 +44,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -99,7 +99,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch1 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -117,7 +117,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -177,7 +177,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch3 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -196,7 +196,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitHubClient = Substitute.For<IGitHubClient>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -265,7 +265,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch3 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -289,7 +289,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -351,7 +351,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var aThirdBranch = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -370,7 +370,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -398,7 +398,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch1 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -417,7 +417,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -475,7 +475,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfSourceBranch = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -494,7 +494,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -548,7 +548,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var tipOfBranch1 = new Commit(Some.Sha(), Some.Name());
         var tipOfBranch2 = new Commit(Some.Sha(), Some.Name());
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -562,7 +562,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var console = new TestDisplayProvider(testOutputHelper);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackConfig);
+        var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
         
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 

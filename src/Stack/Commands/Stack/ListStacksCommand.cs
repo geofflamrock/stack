@@ -63,24 +63,14 @@ public record ListStacksCommandInputs;
 public record ListStacksCommandResponse(List<ListStacksCommandResponseItem> Stacks);
 public record ListStacksCommandResponseItem(string Name, string SourceBranch, int BranchCount);
 
-public class ListStacksCommandHandler(IStackConfig stackConfig, IGitClientFactory gitClientFactory, CliExecutionContext executionContext)
+public class ListStacksCommandHandler(IStackRepository repository)
     : CommandHandlerBase<ListStacksCommandInputs, ListStacksCommandResponse>
 {
     public override async Task<ListStacksCommandResponse> Handle(ListStacksCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
-        var stackData = stackConfig.Load();
-
-        var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
-
-        if (remoteUri is null)
-        {
-            return new ListStacksCommandResponse([]);
-        }
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         return new ListStacksCommandResponse([.. stacksForRemote.Select(s => new ListStacksCommandResponseItem(s.Name, s.SourceBranch, s.Branches.Count))]);
     }

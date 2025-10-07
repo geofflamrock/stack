@@ -4,25 +4,36 @@ using Stack.Config;
 
 namespace Stack.Tests.Helpers;
 
-public class TestStackConfigBuilder
+public class TestStackRepositoryBuilder
 {
     readonly List<Action<TestStackBuilder>> stackBuilders = [];
+    string? remoteUri;
 
-    public TestStackConfigBuilder WithStack(Action<TestStackBuilder> stackBuilder)
+    public TestStackRepositoryBuilder WithStack(Action<TestStackBuilder> stackBuilder)
     {
         stackBuilders.Add(stackBuilder);
         return this;
     }
 
-    public TestStackConfig Build()
+    public TestStackRepositoryBuilder WithRemoteUri(string uri)
     {
-        return new TestStackConfig(
-            new StackData([.. stackBuilders.Select(builder =>
-            {
-                var stackBuilder = new TestStackBuilder();
-                builder(stackBuilder);
-                return stackBuilder.Build();
-            })]));
+        remoteUri = uri;
+        return this;
+    }
+
+    public TestStackRepository Build()
+    {
+        var stackData = new StackData([.. stackBuilders.Select(builder =>
+        {
+            var stackBuilder = new TestStackBuilder();
+            builder(stackBuilder);
+            return stackBuilder.Build();
+        })]);
+
+        // If no explicit remote URI was set, use the first stack's remote URI
+        var repositoryRemoteUri = remoteUri ?? stackData.Stacks.FirstOrDefault()?.RemoteUri ?? Some.HttpsUri().ToString();
+
+        return new TestStackRepository(stackData, repositoryRemoteUri);
     }
 }
 
@@ -119,4 +130,52 @@ public class TestStackConfig(StackData initialData) : IStackConfig
     {
         stackData = newStackData;
     }
+}
+public class TestStackRepository : IStackRepository
+{
+    private readonly StackData stackData;
+    private readonly string remoteUri;
+
+    public TestStackRepository(StackData initialData, string remoteUri)
+    {
+        this.stackData = initialData;
+        this.remoteUri = remoteUri;
+    }
+
+    public string RemoteUri => remoteUri;
+
+    public List<Config.Stack> GetStacks()
+    {
+        if (string.IsNullOrEmpty(remoteUri))
+        {
+            return [];
+        }
+
+        return stackData.Stacks
+            .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    public Config.Stack? GetStack(string name)
+    {
+        return GetStacks()
+            .FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void AddStack(Config.Stack stack)
+    {
+        stackData.Stacks.Add(stack);
+    }
+
+    public void RemoveStack(Config.Stack stack)
+    {
+        stackData.Stacks.Remove(stack);
+    }
+
+    public void SaveChanges()
+    {
+        // No-op for testing - changes are already in memory
+    }
+
+    public List<Config.Stack> Stacks => stackData.Stacks;
 }

@@ -26,7 +26,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -56,7 +56,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -101,7 +101,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -131,7 +131,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -167,7 +167,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
             .WithPullRequest(branch1, pr => pr.WithBody($"{StackConstants.StackMarkerStart} {StackConstants.StackMarkerEnd}"))
             .Build();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -197,7 +197,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -230,7 +230,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -260,7 +260,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -299,7 +299,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -325,7 +325,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -364,7 +364,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -394,7 +394,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -422,7 +422,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
                 .WithTitle("PR Title")
                 .Merged())
             .Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -452,7 +452,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -491,7 +491,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -522,7 +522,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         Directory.CreateDirectory(Path.Join(tempRepo.DirectoryPath, ".github"));
@@ -563,7 +563,7 @@ This is the PR template";
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -589,7 +589,7 @@ This is the PR template";
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -629,7 +629,7 @@ This is the PR template";
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -659,7 +659,7 @@ This is the PR template";
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -689,7 +689,7 @@ This is the PR template";
         var remoteUri = Some.HttpsUri().ToString();
 
         var gitHubClient = new TestGitHubRepositoryBuilder().Build();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -719,7 +719,7 @@ This is the PR template";
         });
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackConfig);
+        var handler = new CreatePullRequestsCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, fileOperations, stackRepository);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 

@@ -79,6 +79,7 @@ public static class HostApplicationBuilderExtensions
         }
         services.AddSingleton<IInputProvider, ConsoleInputProvider>();
         services.AddSingleton<IStackConfig, FileStackConfig>();
+        services.AddScoped<IStackRepository, StackRepository>();
         services.AddSingleton<IFileOperations, FileOperations>();
         services.AddSingleton<CliExecutionContext>();
 

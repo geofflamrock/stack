@@ -52,7 +52,7 @@ public class UpdateStackCommandHandler(
     IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig,
+    IStackRepository repository,
     IStackActions stackActions)
     : CommandHandlerBase<UpdateStackCommandInputs>
 {
@@ -63,12 +63,8 @@ public class UpdateStackCommandHandler(
         if (inputs.Rebase == true && inputs.Merge == true)
             throw new InvalidOperationException("Cannot specify both rebase and merge.");
 
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {

@@ -78,7 +78,7 @@ public class NewStackCommandHandler(
     IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<NewStackCommandInputs>
 {
     public override async Task Handle(NewStackCommandInputs inputs, CancellationToken cancellationToken)
@@ -92,8 +92,7 @@ public class NewStackCommandHandler(
 
         var sourceBranch = await inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches, cancellationToken);
 
-        var stackData = stackConfig.Load();
-        var remoteUri = gitClient.GetRemoteUri();
+        var remoteUri = repository.RemoteUri;
         var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
@@ -143,9 +142,8 @@ public class NewStackCommandHandler(
             stack.Branches.Add(new Branch(branchName, []));
         }
 
-        stackData.Stacks.Add(stack);
-
-        stackConfig.Save(stackData);
+        repository.AddStack(stack);
+        repository.SaveChanges();
 
         if (branchName is not null)
         {

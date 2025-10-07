@@ -53,18 +53,15 @@ public class RenameStackCommandHandler(
     ILogger<RenameStackCommandHandler> logger,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<RenameStackCommandInputs>
 {
     public override async Task Handle(RenameStackCommandInputs inputs, CancellationToken cancellationToken)
     {
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {
@@ -94,10 +91,9 @@ public class RenameStackCommandHandler(
         var renamedStack = stack.ChangeName(newName);
 
         // Update the stack in the collection
-        var stackIndex = stackData.Stacks.IndexOf(stack);
-        stackData.Stacks[stackIndex] = renamedStack;
-
-        stackConfig.Save(stackData);
+        repository.RemoveStack(stack);
+        repository.AddStack(renamedStack);
+        repository.SaveChanges();
 
         logger.StackRenamed(stack.Name, newName);
     }

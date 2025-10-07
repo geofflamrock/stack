@@ -23,7 +23,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branch2 = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -41,7 +41,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -54,7 +54,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new PullStackCommandInputs(null), CancellationToken.None);
 
         // Assert
-        var expectedStack = stackConfig.Load().Stacks.First(s => s.Name == "Stack1");
+        var expectedStack = stackRepository.Stacks.First(s => s.Name == "Stack1");
         stackActions.Received(1).PullChanges(expectedStack);
         gitClient.Received(1).ChangeBranch(branch1);
     }
@@ -68,7 +68,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branch2 = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -87,7 +87,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -98,7 +98,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new PullStackCommandInputs("Stack1"), CancellationToken.None);
 
         // Assert
-        var expectedStack = stackConfig.Load().Stacks.First(s => s.Name == "Stack1");
+        var expectedStack = stackRepository.Stacks.First(s => s.Name == "Stack1");
         stackActions.Received(1).PullChanges(expectedStack);
         gitClient.Received(1).ChangeBranch(branch1);
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -113,7 +113,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var branch2 = Some.BranchName();
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
                 .WithRemoteUri(remoteUri)
@@ -132,7 +132,7 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var stackActions = Substitute.For<IStackActions>();
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackConfig, stackActions);
+        var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
