@@ -19,8 +19,8 @@ public interface IStackRepository
 public class StackRepository : IStackRepository
 {
     private readonly IStackConfig stackConfig;
-    private readonly IGitClient gitClient;
-    private readonly string remoteUri;
+    private readonly IGitClientFactory gitClientFactory;
+    private readonly CliExecutionContext executionContext;
     private readonly Lazy<StackData> stackData;
 
     public StackRepository(
@@ -29,22 +29,22 @@ public class StackRepository : IStackRepository
         CliExecutionContext executionContext)
     {
         this.stackConfig = stackConfig;
-        this.gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        this.remoteUri = gitClient.GetRemoteUri();
+        this.gitClientFactory = gitClientFactory;
+        this.executionContext = executionContext;
         this.stackData = new Lazy<StackData>(() => stackConfig.Load());
     }
 
-    public string RemoteUri => remoteUri;
+    public string RemoteUri => gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
 
     public List<Stack> GetStacks()
     {
-        if (string.IsNullOrEmpty(remoteUri))
+        if (string.IsNullOrEmpty(RemoteUri))
         {
             return [];
         }
 
         return stackData.Value.Stacks
-            .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
+            .Where(s => s.RemoteUri.Equals(RemoteUri, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 

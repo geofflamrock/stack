@@ -323,7 +323,7 @@ public class StackRepositoryTests
     }
 
     [Fact]
-    public void Constructor_UsesWorkingDirectoryFromExecutionContext()
+    public void WhenGettingRemoteUri_UsesWorkingDirectoryFromExecutionContext()
     {
         // Arrange
         var workingDirectory = "/custom/path";
@@ -344,6 +344,7 @@ public class StackRepositoryTests
         var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
 
         // Assert
+        repository.RemoteUri.Should().Be(remoteUri);
         gitClientFactory.Received(1).Create(workingDirectory);
     }
 }

@@ -27,6 +27,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -63,6 +64,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -97,6 +99,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -131,6 +134,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -166,6 +170,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -203,6 +208,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
@@ -239,6 +245,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var logger = XUnitLogger.CreateLogger<NewStackCommandHandler>(testOutputHelper);
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(stackRepository.RemoteUri);
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new NewStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository);
