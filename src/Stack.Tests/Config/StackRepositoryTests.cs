@@ -241,30 +241,6 @@ public class StackRepositoryTests
     }
 
     [Fact]
-    public void RemoteUri_ReturnsRemoteUriFromGitClient()
-    {
-        // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([]));
-
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
-
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
-
-        // Act
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
-
-        // Assert
-        repository.RemoteUri.Should().Be(remoteUri);
-    }
-
-    [Fact]
     public void AddStack_ThenRemoveStack_ResultsInOriginalState()
     {
         // Arrange
@@ -323,7 +299,7 @@ public class StackRepositoryTests
     }
 
     [Fact]
-    public void WhenGettingRemoteUri_UsesWorkingDirectoryFromExecutionContext()
+    public void WhenExecutionContextHasSpecificWorkingDirectory_UsesGitClientForThatWorkingDirectory()
     {
         // Arrange
         var workingDirectory = "/custom/path";
@@ -344,7 +320,7 @@ public class StackRepositoryTests
         var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
 
         // Assert
-        repository.RemoteUri.Should().Be(remoteUri);
+        repository.GetStacks();
         gitClientFactory.Received(1).Create(workingDirectory);
     }
 }

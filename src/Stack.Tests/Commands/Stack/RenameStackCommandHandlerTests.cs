@@ -241,43 +241,4 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         stackRepository.Stacks.Should().HaveCount(1);
         stackRepository.Stacks.Should().Contain(s => s.Name == "Stack1");
     }
-
-    [Fact]
-    public async Task WhenNoStacksExistForRemote_LogsNoStacksMessageAndReturns()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var remoteUri1 = Some.HttpsUri().ToString();
-        var remoteUri2 = Some.HttpsUri().ToString();
-
-        // Create a stack config with stacks only for a different remote
-        var stackRepository = new TestStackRepositoryBuilder()
-            .WithStack(stack => stack
-                .WithName("Stack1")
-                .WithRemoteUri(remoteUri2)
-                .WithSourceBranch(sourceBranch))
-            .WithRemoteUri(remoteUri1) // Repository filters by remote URI 1, but stack is for URI 2
-            .Build();
-
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var gitClient = Substitute.For<IGitClient>();
-
-        gitClient.GetRemoteUri().Returns(remoteUri1); // Different remote than the stack
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
-
-        // Act
-        await handler.Handle(new RenameStackCommandInputs("Stack1", "NewName"), CancellationToken.None);
-
-        // Assert
-        // Verify the stack config was not modified
-        stackRepository.Stacks.Should().HaveCount(1);
-        stackRepository.Stacks.Should().Contain(s => s.Name == "Stack1" && s.RemoteUri == remoteUri2);
-    }
 }

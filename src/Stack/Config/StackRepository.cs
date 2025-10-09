@@ -12,8 +12,6 @@ public interface IStackRepository
     void RemoveStack(Stack stack);
 
     void SaveChanges();
-
-    string RemoteUri { get; }
 }
 
 public class StackRepository : IStackRepository
@@ -34,7 +32,7 @@ public class StackRepository : IStackRepository
         this.stackData = new Lazy<StackData>(() => stackConfig.Load());
     }
 
-    public string RemoteUri => gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
+    string RemoteUri => gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
 
     public List<Stack> GetStacks()
     {
