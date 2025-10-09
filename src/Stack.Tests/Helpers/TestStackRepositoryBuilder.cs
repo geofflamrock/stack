@@ -129,6 +129,7 @@ public class TestStackConfig(StackData initialData) : IStackConfig
         stackData = newStackData;
     }
 }
+
 public class TestStackRepository : IStackRepository
 {
     private readonly StackData stackData;
@@ -152,12 +153,6 @@ public class TestStackRepository : IStackRepository
         return stackData.Stacks
             .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
             .ToList();
-    }
-
-    public Config.Stack? GetStack(string name)
-    {
-        return GetStacks()
-            .FirstOrDefault(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
 
     public void AddStack(Config.Stack stack)

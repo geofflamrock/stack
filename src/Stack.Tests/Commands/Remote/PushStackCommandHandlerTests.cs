@@ -21,7 +21,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
@@ -63,7 +64,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
@@ -106,7 +108,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
@@ -148,7 +151,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
@@ -190,7 +194,8 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(branch1);
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack

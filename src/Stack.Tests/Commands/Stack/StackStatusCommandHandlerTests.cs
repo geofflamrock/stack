@@ -42,14 +42,15 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
-        gitHubClient.GetPullRequest(branch1).Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -109,14 +110,15 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
-        gitHubClient.GetPullRequest(branch1).Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -182,14 +184,15 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
         gitHubClient
             .GetPullRequest(branch1)
-            .Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+            .Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -269,12 +272,13 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
-        gitHubClient.GetPullRequest(branch1).Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitHubClient.GetPullRequest(branch1).Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -344,8 +348,9 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Act and assert
         var incorrectStackName = Some.Name();
@@ -385,7 +390,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -394,7 +399,8 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitHubClient
             .GetPullRequest(branch2)
-            .Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+            .Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -456,7 +462,7 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
@@ -465,7 +471,8 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         gitHubClient
             .GetPullRequest(branch2)
-            .Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+            .Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),
@@ -519,14 +526,15 @@ public class StackStatusCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new StackStatusCommandHandler(inputProvider, logger, console, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         var pr = new GitHubPullRequest(1, "PR title", "PR body", GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
 
         gitHubClient
             .GetPullRequest(branch1)
-            .Returns(pr);        gitClient.GetCurrentBranch().Returns(sourceBranch);
+            .Returns(pr);
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, tipOfSourceBranch),

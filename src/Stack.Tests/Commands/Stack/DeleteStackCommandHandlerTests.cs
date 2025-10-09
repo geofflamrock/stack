@@ -32,7 +32,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
@@ -71,7 +72,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
@@ -111,7 +113,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
@@ -151,7 +154,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
@@ -190,7 +194,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>())
             .Returns(ci =>
             {
@@ -246,7 +251,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
@@ -283,7 +289,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<DeleteStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
-        var gitHubClient = Substitute.For<IGitHubClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitHubClient = Substitute.For<IGitHubClient>();
+        gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(ci => CreateBranchStatuses(ci.Arg<string[]>(), sourceBranch));
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
