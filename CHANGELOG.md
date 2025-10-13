@@ -1,5 +1,24 @@
 # Changelog
 
+# v0.15.0 (2025-10-13)
+
+### 🚀 New Features
+* Add `rename` command by @Copilot in https://github.com/geofflamrock/stack/pull/366
+* Auto-select stack when current branch is only in that stack by @Copilot in https://github.com/geofflamrock/stack/pull/370
+* Improve conflict detection by @geofflamrock in https://github.com/geofflamrock/stack/pull/368
+* Improving logging and status display by @geofflamrock in https://github.com/geofflamrock/stack/pull/360
+* Add json logging by @geofflamrock in https://github.com/geofflamrock/stack/pull/373
+* Improve squash merge handling by @geofflamrock in https://github.com/geofflamrock/stack/pull/379
+* Add `branch move` command by @Copilot in https://github.com/geofflamrock/stack/pull/367
+* Default to updating stack without checking pull requests by @geofflamrock in https://github.com/geofflamrock/stack/pull/380
+### 🐛 Bug Fixes
+* Fixes issue where `gh` cli error would cause commands to fail by @geofflamrock in https://github.com/geofflamrock/stack/pull/372
+* Fix rebase and merge operations when branches are checked out in worktrees by @Copilot in https://github.com/geofflamrock/stack/pull/362
+* Skip child action prompt when removing branches with no children by @Copilot in https://github.com/geofflamrock/stack/pull/382
+### Other changes
+* Add integration tests for StackActions by @Copilot in https://github.com/geofflamrock/stack/pull/377
+
+
 # v0.14.0 (2025-09-05)
 
 ### 🚀 New Features
