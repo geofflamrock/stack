@@ -32,18 +32,11 @@ public class StackRepository : IStackRepository
         this.stackData = new Lazy<StackData>(() => stackConfig.Load());
     }
 
-    string RemoteUri => gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
-
     public List<Stack> GetStacks()
     {
-        if (string.IsNullOrEmpty(RemoteUri))
-        {
-            return [];
-        }
+        var remoteUri = gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
 
-        return stackData.Value.Stacks
-            .Where(s => s.RemoteUri.Equals(RemoteUri, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return [.. stackData.Value.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))];
     }
 
     public void AddStack(Stack stack)
