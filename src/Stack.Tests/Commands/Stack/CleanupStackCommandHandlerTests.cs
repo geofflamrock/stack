@@ -39,8 +39,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branch without remote tracking should not be cleaned up
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -87,8 +86,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -135,8 +133,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - all branches exist in remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -184,8 +181,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -232,8 +228,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -279,8 +274,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         inputProvider.Confirm(Questions.ConfirmDeleteBranches, Arg.Any<CancellationToken>()).Returns(true);
 
@@ -315,8 +309,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has remote tracking but remote branch was deleted
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -362,8 +355,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
@@ -411,8 +403,7 @@ public class CleanupStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new CleanupStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(sourceBranch);
 
         // Setup branch statuses - branchToCleanup has been deleted from remote
         var branchStatuses = new Dictionary<string, GitBranchStatus>
