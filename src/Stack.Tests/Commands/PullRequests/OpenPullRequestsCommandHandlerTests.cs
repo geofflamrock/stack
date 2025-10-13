@@ -1,9 +1,8 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -40,7 +39,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -88,7 +87,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -133,7 +132,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -176,7 +175,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         var prForBranch1 = new GitHubPullRequest(1, "PR Title", string.Empty, GitHubPullRequestStates.Open, Some.HttpsUri(), false, branch1);
         gitHubClient
@@ -222,7 +221,7 @@ public class OpenPullRequestsCommandHandlerTests(ITestOutputHelper testOutputHel
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new OpenPullRequestsCommandHandler(inputProvider, logger, gitClientFactory, executionContext, gitHubClient, stackRepository);
-        
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
         // Act and assert
         var invalidStackName = Some.Name();

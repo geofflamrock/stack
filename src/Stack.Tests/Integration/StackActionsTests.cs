@@ -1,11 +1,11 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands.Helpers;
 using Stack.Git;
-using Xunit.Abstractions;
-using Stack.Tests.Helpers;
 using Stack.Infrastructure.Settings;
+using Stack.Tests.Helpers;
+using Xunit.Abstractions;
 
 namespace Stack.Tests.Integration;
 

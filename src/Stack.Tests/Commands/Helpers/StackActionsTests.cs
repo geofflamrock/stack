@@ -23,7 +23,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Config.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -61,7 +61,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Config.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -109,11 +109,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new(inactiveBranch, []) });
+            new List<Model.Branch> { new(inactiveBranch, []) });
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
         var factory = Substitute.For<IGitClientFactory>();
@@ -151,11 +151,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new(localOnlyBranch, []) });
+            new List<Model.Branch> { new(localOnlyBranch, []) });
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
         var factory = Substitute.For<IGitClientFactory>();
@@ -184,7 +184,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Config.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -221,7 +221,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Config.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Config.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -269,11 +269,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new(inactiveBranch, []) });
+            new List<Model.Branch> { new(inactiveBranch, []) });
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
         var factory = Substitute.For<IGitClientFactory>();
@@ -312,11 +312,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new(localOnlyBranch, []) });
+            new List<Model.Branch> { new(localOnlyBranch, []) });
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
         var factory = Substitute.For<IGitClientFactory>();
@@ -917,11 +917,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+            new List<Model.Branch> { new Model.Branch(branchInWorktree, new List<Model.Branch>()) }
         );
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
@@ -965,11 +965,11 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,
-            new List<Config.Branch> { new Config.Branch(branchInWorktree, new List<Config.Branch>()) }
+            new List<Model.Branch> { new Model.Branch(branchInWorktree, new List<Model.Branch>()) }
         );
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
@@ -1008,7 +1008,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         };
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(branchStatuses);
 
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "Stack1",
             Some.HttpsUri().ToString(),
             sourceBranch,

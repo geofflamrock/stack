@@ -1,4 +1,3 @@
-using MoreLinq.Experimental;
 using Stack.Infrastructure;
 using Xunit.Abstractions;
 

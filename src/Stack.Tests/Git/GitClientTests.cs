@@ -1,10 +1,8 @@
 using FluentAssertions;
 using FluentAssertions.Execution;
-using LibGit2Sharp;
-using Stack.Git;
 using Meziantou.Extensions.Logging.Xunit;
+using Stack.Git;
 using Stack.Tests.Helpers;
-using System.IO;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Git;

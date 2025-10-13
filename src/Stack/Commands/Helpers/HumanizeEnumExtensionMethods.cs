@@ -1,3 +1,5 @@
+using Stack.Model;
+
 namespace Stack.Commands;
 
 public static class HumanizeEnumExtensionMethods

@@ -1,15 +1,15 @@
 using Stack.Git;
 using Stack.Infrastructure.Settings;
 
-namespace Stack.Config;
+namespace Stack.Persistence;
 
 public interface IStackRepository
 {
-    List<Stack> GetStacks();
+    List<Model.Stack> GetStacks();
 
-    void AddStack(Stack stack);
+    void AddStack(Model.Stack stack);
 
-    void RemoveStack(Stack stack);
+    void RemoveStack(Model.Stack stack);
 
     void SaveChanges();
 }
@@ -32,19 +32,19 @@ public class StackRepository : IStackRepository
         this.stackData = new Lazy<StackData>(() => stackConfig.Load());
     }
 
-    public List<Stack> GetStacks()
+    public List<Model.Stack> GetStacks()
     {
         var remoteUri = gitClientFactory.Create(executionContext.WorkingDirectory).GetRemoteUri();
 
         return [.. stackData.Value.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))];
     }
 
-    public void AddStack(Stack stack)
+    public void AddStack(Model.Stack stack)
     {
         stackData.Value.Stacks.Add(stack);
     }
 
-    public void RemoveStack(Stack stack)
+    public void RemoveStack(Model.Stack stack)
     {
         stackData.Value.Stacks.Remove(stack);
     }

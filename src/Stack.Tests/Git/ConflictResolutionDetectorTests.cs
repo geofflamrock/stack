@@ -1,14 +1,10 @@
-using System.Threading;
-using System.Threading.Tasks;
+using System.Diagnostics;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
 using Meziantou.Extensions.Logging.Xunit;
+using Microsoft.Extensions.Logging;
 using Stack.Git;
 using Stack.Tests.Helpers;
-using Xunit;
 using Xunit.Abstractions;
-using System.IO;
-using System.Diagnostics;
 
 namespace Stack.Tests.Git;
 

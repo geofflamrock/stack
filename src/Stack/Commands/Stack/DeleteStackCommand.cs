@@ -1,10 +1,10 @@
-using Stack.Config;
+using System.CommandLine;
+using Microsoft.Extensions.Logging;
+using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
-using Stack.Commands.Helpers;
-using System.CommandLine;
-using Microsoft.Extensions.Logging;
+using Stack.Persistence;
 
 
 namespace Stack.Commands;

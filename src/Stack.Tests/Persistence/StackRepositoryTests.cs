@@ -1,11 +1,10 @@
 using FluentAssertions;
-using FluentAssertions.Execution;
 using NSubstitute;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 using Stack.Tests.Helpers;
-using StackModel = Stack.Config.Stack;
+using StackModel = Stack.Model.Stack;
 
 namespace Stack.Tests;
 

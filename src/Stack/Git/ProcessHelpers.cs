@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Stack.Infrastructure;
 
 namespace Stack.Git;
 

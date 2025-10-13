@@ -1,7 +1,5 @@
 using System.Text;
 using LibGit2Sharp;
-using Stack.Git;
-using Stack.Infrastructure.Settings;
 
 namespace Stack.Tests.Helpers;
 

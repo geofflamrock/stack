@@ -1,6 +1,5 @@
-using System;
-using NSubstitute;
-using Stack.Config;
+using Stack.Model;
+using Stack.Persistence;
 
 namespace Stack.Tests.Helpers;
 
@@ -66,7 +65,7 @@ public class TestStackBuilder
         return this;
     }
 
-    public Config.Stack Build()
+    public Model.Stack Build()
     {
         var branches = branchBuilders
             .Select(builder =>
@@ -77,7 +76,7 @@ public class TestStackBuilder
             })
             .ToList();
 
-        var stack = new Config.Stack(name ?? Some.Name(), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
+        var stack = new Model.Stack(name ?? Some.Name(), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
 
         return stack;
     }
@@ -118,7 +117,7 @@ public class TestStackConfig(StackData initialData) : IStackConfig
 {
     StackData stackData = initialData;
 
-    public List<Config.Stack> Stacks => stackData.Stacks;
+    public List<Model.Stack> Stacks => stackData.Stacks;
 
     public string GetConfigPath() => throw new NotImplementedException("TestStackConfig does not support GetConfigPath.");
 
@@ -143,7 +142,7 @@ public class TestStackRepository : IStackRepository
 
     public string RemoteUri => remoteUri;
 
-    public List<Config.Stack> GetStacks()
+    public List<Model.Stack> GetStacks()
     {
         if (string.IsNullOrEmpty(remoteUri))
         {
@@ -155,12 +154,12 @@ public class TestStackRepository : IStackRepository
             .ToList();
     }
 
-    public void AddStack(Config.Stack stack)
+    public void AddStack(Model.Stack stack)
     {
         stackData.Stacks.Add(stack);
     }
 
-    public void RemoveStack(Config.Stack stack)
+    public void RemoveStack(Model.Stack stack)
     {
         stackData.Stacks.Remove(stack);
     }
@@ -170,5 +169,5 @@ public class TestStackRepository : IStackRepository
         // No-op for testing - changes are already in memory
     }
 
-    public List<Config.Stack> Stacks => stackData.Stacks;
+    public List<Model.Stack> Stacks => stackData.Stacks;
 }

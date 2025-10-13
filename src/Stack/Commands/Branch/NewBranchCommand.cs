@@ -3,10 +3,11 @@ using Microsoft.Extensions.Logging;
 using MoreLinq;
 using MoreLinq.Extensions;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 

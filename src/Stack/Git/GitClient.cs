@@ -1,8 +1,5 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Stack.Infrastructure;
-using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;
 

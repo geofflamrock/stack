@@ -1,13 +1,12 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
-using Stack.Config;
+using Stack.Commands.Helpers;
 using Stack.Git;
-using Stack.Tests.Helpers;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
-using Stack.Commands.Helpers;
+using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Remote;
@@ -59,9 +58,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs("Stack1", 5, false, false, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -153,9 +152,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, false, false, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -201,9 +200,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, false, false, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
 
         _ = inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -252,9 +251,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, true, false, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, true);
         await inputProvider.DidNotReceive().Select(Questions.SelectUpdateStrategy, Arg.Any<UpdateStrategy[]>(), Arg.Any<CancellationToken>());
         gitClient.Received().ChangeBranch(branch1);
     }
@@ -302,9 +301,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, false, true, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -352,9 +351,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -402,9 +401,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -452,9 +451,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, true, null, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -502,9 +501,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, null, true, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -553,9 +552,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -604,9 +603,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, null, null, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, true);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -679,9 +678,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, false, false, true, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmSyncStack, Arg.Any<CancellationToken>());
     }
@@ -731,9 +730,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs(null, 5, false, false, false, true, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
-        stackActions.DidNotReceive().PushChanges(Arg.Any<Config.Stack>(), Arg.Any<int>(), Arg.Any<bool>());
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        stackActions.DidNotReceive().PushChanges(Arg.Any<Model.Stack>(), Arg.Any<int>(), Arg.Any<bool>());
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -779,9 +778,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs("Stack1", 5, false, false, false, false, true), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), true);
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), true);
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 
@@ -827,9 +826,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new SyncStackCommandInputs("Stack1", 5, false, false, false, false, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received().PullChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"));
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), false);
-        stackActions.Received().PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received().PullChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"));
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), false);
+        stackActions.Received().PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         gitClient.Received().ChangeBranch(branch1);
     }
 }

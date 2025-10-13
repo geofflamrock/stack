@@ -1,10 +1,10 @@
-namespace Stack.Config;
+namespace Stack.Model;
 
 public static class StackExtensionMethods
 {
     public static bool IsCurrentStack(this Stack stack, string currentBranch)
     {
-        return stack.SourceBranch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) || 
+        return stack.SourceBranch.Equals(currentBranch, StringComparison.OrdinalIgnoreCase) ||
                stack.AllBranchNames.Contains(currentBranch);
     }
 

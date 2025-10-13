@@ -1,10 +1,7 @@
-using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Infrastructure;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
@@ -21,13 +18,13 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stackName = "TestStack";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
             new(stackName, remoteUri, sourceBranch, []),
             new("OtherStack", remoteUri, sourceBranch, [])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
 
@@ -48,12 +45,12 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stackName = "OnlyStack";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
             new(stackName, remoteUri, sourceBranch, [])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
 
@@ -75,13 +72,13 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var currentBranch = Some.BranchName();
         var stackWithCurrentBranch = "StackWithBranch";
         var stackWithoutCurrentBranch = "StackWithoutBranch";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
-            new(stackWithCurrentBranch, remoteUri, sourceBranch, [new Config.Branch(currentBranch, [])]),
-            new(stackWithoutCurrentBranch, remoteUri, sourceBranch, [new Config.Branch(Some.BranchName(), [])])
+            new(stackWithCurrentBranch, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])]),
+            new(stackWithoutCurrentBranch, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
 
@@ -103,16 +100,16 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var currentBranch = Some.BranchName();
         var stack1Name = "Stack1";
         var stack2Name = "Stack2";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
-            new(stack1Name, remoteUri, sourceBranch, [new Config.Branch(currentBranch, [])]),
-            new(stack2Name, remoteUri, sourceBranch, [new Config.Branch(currentBranch, [])])
+            new(stack1Name, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])]),
+            new(stack2Name, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
-        
+
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>())
             .Returns(stack1Name);
 
@@ -134,16 +131,16 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var currentBranch = Some.BranchName();
         var stack1Name = "Stack1";
         var stack2Name = "Stack2";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
-            new(stack1Name, remoteUri, sourceBranch, [new Config.Branch(Some.BranchName(), [])]),
-            new(stack2Name, remoteUri, sourceBranch, [new Config.Branch(Some.BranchName(), [])])
+            new(stack1Name, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])]),
+            new(stack2Name, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
-        
+
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>())
             .Returns(stack1Name);
 
@@ -165,13 +162,13 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
         var currentBranch = sourceBranch; // Current branch is the source branch
         var stackWithCurrentAsSource = "StackWithSourceBranch";
         var stackWithDifferentSource = "StackWithDifferentSource";
-        
-        var stacks = new List<Config.Stack>
+
+        var stacks = new List<Model.Stack>
         {
             new(stackWithCurrentAsSource, remoteUri, sourceBranch, []),
             new(stackWithDifferentSource, remoteUri, Some.BranchName(), [])
         };
-        
+
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<InputProviderExtensionMethodsTests>(testOutputHelper);
 
