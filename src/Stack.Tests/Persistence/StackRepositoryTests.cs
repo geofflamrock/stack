@@ -246,6 +246,7 @@ public class StackRepositoryTests
         var stack2Model = new Model.Stack("Stack2", "main", []);
         repository.AddStack(stack2Model);
         repository.RemoveStack(stack2Model);
+        repository.SaveChanges();
 
         // Assert
         dataStore.Data.Stacks.Should().BeEquivalentTo([stack1]);
