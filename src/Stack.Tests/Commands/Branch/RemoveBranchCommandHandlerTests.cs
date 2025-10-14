@@ -6,6 +6,7 @@ using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
