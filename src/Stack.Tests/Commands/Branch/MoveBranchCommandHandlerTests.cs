@@ -52,7 +52,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
+            new("Stack1", sourceBranch, [
                 new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])]),
                 new Model.Branch(secondBranch, [])
             ])
@@ -100,7 +100,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
+            new("Stack1", sourceBranch, [
                 new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [new Model.Branch(childBranch, [])])])
             ])
         });
@@ -147,7 +147,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
+            new("Stack1", sourceBranch, [
                 new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])]),
                 new Model.Branch(childBranch, [])
             ])
@@ -191,7 +191,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
+            new("Stack1", sourceBranch, [
                 new Model.Branch(firstBranch, []),
                 new Model.Branch(branchToMove, [])
             ])
@@ -231,7 +231,7 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [
+            new("Stack1", sourceBranch, [
                 new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])])
             ])
         });

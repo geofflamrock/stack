@@ -4,23 +4,41 @@ using Stack.Git;
 using Stack.Infrastructure.Settings;
 using Stack.Persistence;
 using Stack.Tests.Helpers;
-using StackModel = Stack.Model.Stack;
 
 namespace Stack.Tests;
 
 public class StackRepositoryTests
 {
+    private class MockStackDataStore(StackData stackData) : IStackDataStore
+    {
+        public StackData Data { get; private set; } = stackData;
+
+        public void Save(StackData data)
+        {
+            Data = data;
+        }
+
+        public StackData Load()
+        {
+            return Data;
+        }
+
+        public string GetConfigPath()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     [Fact]
     public void GetStacks_FiltersStacksByRemoteUri_CaseInsensitive()
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var stack2 = new StackModel("Stack2", Some.HttpsUri().ToString(), "main", []);
-        var stack3 = new StackModel("Stack3", remoteUri.ToUpper(), "main", []);
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
+        var stack2 = new StackDataItem("Stack2", Some.HttpsUri().ToString(), "main", []);
+        var stack3 = new StackDataItem("Stack3", remoteUri.ToUpper(), "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1, stack2, stack3]));
+        var dataStore = new MockStackDataStore(new StackData([stack1, stack2, stack3]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -31,21 +49,23 @@ public class StackRepositoryTests
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
         // Act
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
         var stacks = repository.GetStacks();
 
         // Assert
-        stacks.Should().BeEquivalentTo([stack1, stack3]);
+        stacks.Should().BeEquivalentTo([
+            new Model.Stack("Stack1", "main", []),
+            new Model.Stack("Stack3", "main", [])
+        ]);
     }
 
     [Fact]
     public void GetStacks_WhenNoRemoteUri_ReturnsEmptyList()
     {
         // Arrange
-        var stack1 = new StackModel("Stack1", Some.HttpsUri().ToString(), "main", []);
+        var stack1 = new StackDataItem("Stack1", Some.HttpsUri().ToString(), "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1]));
+        var dataStore = new MockStackDataStore(new StackData([stack1]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns((string?)null);
@@ -56,7 +76,7 @@ public class StackRepositoryTests
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
         // Act
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
         var stacks = repository.GetStacks();
 
         // Assert
@@ -68,10 +88,9 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", Some.HttpsUri().ToString(), "main", []);
+        var stack1 = new StackDataItem("Stack1", Some.HttpsUri().ToString(), "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1]));
+        var dataStore = new MockStackDataStore(new StackData([stack1]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -82,7 +101,7 @@ public class StackRepositoryTests
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
         // Act
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
         var stacks = repository.GetStacks();
 
         // Assert
@@ -94,11 +113,9 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var existingStack = new StackModel("Stack1", remoteUri, "main", []);
-        var newStack = new StackModel("Stack2", remoteUri, "main", []);
+        var existingStackInStorage = new StackDataItem("Stack1", remoteUri, "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([existingStack]));
+        var dataStore = new MockStackDataStore(new StackData([existingStackInStorage]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -108,14 +125,18 @@ public class StackRepositoryTests
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
+        var newStack = new Model.Stack("Stack2", "main", []);
         repository.AddStack(newStack);
         var stacks = repository.GetStacks();
 
         // Assert
-        stacks.Should().BeEquivalentTo([existingStack, newStack]);
+        stacks.Should().BeEquivalentTo([
+            new Model.Stack("Stack1", "main", []),
+            new Model.Stack("Stack2", "main", [])
+        ]);
     }
 
     [Fact]
@@ -123,11 +144,10 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var stack2 = new StackModel("Stack2", remoteUri, "main", []);
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
+        var stack2 = new StackDataItem("Stack2", remoteUri, "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1, stack2]));
+        var dataStore = new MockStackDataStore(new StackData([stack1, stack2]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -137,42 +157,14 @@ public class StackRepositoryTests
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
-        repository.RemoveStack(stack1);
+        repository.RemoveStack(new Model.Stack("Stack1", "main", []));
         var stacks = repository.GetStacks();
 
         // Assert
-        stacks.Should().BeEquivalentTo([stack2]);
-    }
-
-    [Fact]
-    public void SaveChanges_CallsStackConfigSave()
-    {
-        // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var originalStackData = new StackData([stack1]);
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(originalStackData);
-
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
-
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
-
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
-
-        // Act
-        repository.SaveChanges();
-
-        // Assert
-        stackConfig.Received(1).Save(Arg.Is<StackData>(sd => sd == originalStackData));
+        stacks.Should().BeEquivalentTo([new Model.Stack("Stack2", "main", [])]);
     }
 
     [Fact]
@@ -180,11 +172,10 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var stack2 = new StackModel("Stack2", remoteUri, "main", []);
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
+        var stack2 = new StackDataItem("Stack2", remoteUri, "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1]));
+        var dataStore = new MockStackDataStore(new StackData([stack1]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -194,17 +185,14 @@ public class StackRepositoryTests
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
-        repository.AddStack(stack2);
+        repository.AddStack(new Model.Stack("Stack2", "main", []));
         repository.SaveChanges();
 
         // Assert
-        stackConfig.Received(1).Save(Arg.Is<StackData>(sd =>
-            sd.Stacks.Count == 2 &&
-            sd.Stacks.Contains(stack1) &&
-            sd.Stacks.Contains(stack2)));
+        dataStore.Data.Stacks.Should().BeEquivalentTo([stack1, stack2]);
     }
 
     [Fact]
@@ -212,11 +200,10 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var stack2 = new StackModel("Stack2", remoteUri, "main", []);
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
+        var stack2 = new StackDataItem("Stack2", remoteUri, "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1, stack2]));
+        var dataStore = new MockStackDataStore(new StackData([stack1, stack2]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -226,17 +213,14 @@ public class StackRepositoryTests
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
-        repository.RemoveStack(stack1);
+        repository.RemoveStack(new Model.Stack("Stack1", "main", []));
         repository.SaveChanges();
 
         // Assert
-        stackConfig.Received(1).Save(Arg.Is<StackData>(sd =>
-            sd.Stacks.Count == 1 &&
-            sd.Stacks.Contains(stack2) &&
-            !sd.Stacks.Contains(stack1)));
+        dataStore.Data.Stacks.Should().BeEquivalentTo([stack2]);
     }
 
     [Fact]
@@ -244,11 +228,9 @@ public class StackRepositoryTests
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-        var stack2 = new StackModel("Stack2", remoteUri, "main", []);
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1]));
+        var dataStore = new MockStackDataStore(new StackData([stack1]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -258,43 +240,15 @@ public class StackRepositoryTests
 
         var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
 
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
-        repository.AddStack(stack2);
-        repository.RemoveStack(stack2);
-        var stacks = repository.GetStacks();
+        var stack2Model = new Model.Stack("Stack2", "main", []);
+        repository.AddStack(stack2Model);
+        repository.RemoveStack(stack2Model);
 
         // Assert
-        stacks.Should().BeEquivalentTo([stack1]);
-    }
-
-    [Fact]
-    public void GetStacks_ReturnsNewListEachTime()
-    {
-        // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
-        var stack1 = new StackModel("Stack1", remoteUri, "main", []);
-
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([stack1]));
-
-        var gitClient = Substitute.For<IGitClient>();
-        gitClient.GetRemoteUri().Returns(remoteUri);
-
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
-
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
-
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
-
-        // Act
-        var stacks1 = repository.GetStacks();
-        var stacks2 = repository.GetStacks();
-
-        // Assert
-        stacks1.Should().NotBeSameAs(stacks2, "each call should return a new list instance");
+        dataStore.Data.Stacks.Should().BeEquivalentTo([stack1]);
     }
 
     [Fact]
@@ -304,8 +258,7 @@ public class StackRepositoryTests
         var workingDirectory = "/custom/path";
         var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = Substitute.For<IStackConfig>();
-        stackConfig.Load().Returns(new StackData([]));
+        var dataStore = new MockStackDataStore(new StackData([]));
 
         var gitClient = Substitute.For<IGitClient>();
         gitClient.GetRemoteUri().Returns(remoteUri);
@@ -316,7 +269,7 @@ public class StackRepositoryTests
         var executionContext = new CliExecutionContext { WorkingDirectory = workingDirectory };
 
         // Act
-        var repository = new StackRepository(stackConfig, gitClientFactory, executionContext);
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Assert
         repository.GetStacks();

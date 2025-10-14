@@ -23,7 +23,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Model.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", sourceBranch, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -61,7 +61,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), sourceBranch, new List<Model.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", sourceBranch, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -111,7 +111,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new(inactiveBranch, []) });
 
@@ -153,7 +152,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new(localOnlyBranch, []) });
 
@@ -184,7 +182,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Model.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", source, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -221,7 +219,7 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var gitHubClient = Substitute.For<IGitHubClient>();
         var conflictResolutionDetector = Substitute.For<IConflictResolutionDetector>();
-        var stack = new Model.Stack("Stack1", Some.HttpsUri().ToString(), source, new List<Model.Branch> { new(feature, []) });
+        var stack = new Model.Stack("Stack1", source, new List<Model.Branch> { new(feature, []) });
 
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -271,7 +269,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new(inactiveBranch, []) });
 
@@ -314,7 +311,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new(localOnlyBranch, []) });
 
@@ -919,7 +915,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new Model.Branch(branchInWorktree, new List<Model.Branch>()) }
         );
@@ -967,7 +962,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             new List<Model.Branch> { new Model.Branch(branchInWorktree, new List<Model.Branch>()) }
         );
@@ -1010,7 +1004,6 @@ public class StackActionsTests(ITestOutputHelper testOutputHelper)
 
         var stack = new Model.Stack(
             "Stack1",
-            Some.HttpsUri().ToString(),
             sourceBranch,
             []
         );

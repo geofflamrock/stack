@@ -76,7 +76,7 @@ public static class HostApplicationBuilderExtensions
             services.AddSingleton<IDisplayProvider, ConsoleDisplayProvider>();
         }
         services.AddSingleton<IInputProvider, ConsoleInputProvider>();
-        services.AddSingleton<IStackConfig, FileStackConfig>();
+        services.AddSingleton<IStackDataStore, FileStackDataStore>();
         services.AddScoped<IStackRepository, StackRepository>();
         services.AddSingleton<IFileOperations, FileOperations>();
         services.AddSingleton<CliExecutionContext>();

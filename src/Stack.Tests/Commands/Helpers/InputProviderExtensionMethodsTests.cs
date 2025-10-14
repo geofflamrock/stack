@@ -14,15 +14,14 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenNameIsProvided_ReturnsStackByName()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stackName = "TestStack";
 
         var stacks = new List<Model.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, []),
-            new("OtherStack", remoteUri, sourceBranch, [])
+            new(stackName, sourceBranch, []),
+            new("OtherStack", sourceBranch, [])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
@@ -41,14 +40,13 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenOnlyOneStackExists_AutoSelectsStack()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stackName = "OnlyStack";
 
         var stacks = new List<Model.Stack>
         {
-            new(stackName, remoteUri, sourceBranch, [])
+            new(stackName, sourceBranch, [])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
@@ -67,7 +65,6 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenCurrentBranchIsInOnlyOneStack_AutoSelectsThatStack()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stackWithCurrentBranch = "StackWithBranch";
@@ -75,8 +72,8 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
 
         var stacks = new List<Model.Stack>
         {
-            new(stackWithCurrentBranch, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])]),
-            new(stackWithoutCurrentBranch, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
+            new(stackWithCurrentBranch, sourceBranch, [new Model.Branch(currentBranch, [])]),
+            new(stackWithoutCurrentBranch, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
@@ -95,7 +92,6 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenCurrentBranchIsInMultipleStacks_PromptsUser()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stack1Name = "Stack1";
@@ -103,8 +99,8 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
 
         var stacks = new List<Model.Stack>
         {
-            new(stack1Name, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])]),
-            new(stack2Name, remoteUri, sourceBranch, [new Model.Branch(currentBranch, [])])
+            new(stack1Name, sourceBranch, [new Model.Branch(currentBranch, [])]),
+            new(stack2Name, sourceBranch, [new Model.Branch(currentBranch, [])])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
@@ -126,7 +122,6 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenCurrentBranchIsInNoStacks_PromptsUser()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = Some.BranchName();
         var stack1Name = "Stack1";
@@ -134,8 +129,8 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
 
         var stacks = new List<Model.Stack>
         {
-            new(stack1Name, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])]),
-            new(stack2Name, remoteUri, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
+            new(stack1Name, sourceBranch, [new Model.Branch(Some.BranchName(), [])]),
+            new(stack2Name, sourceBranch, [new Model.Branch(Some.BranchName(), [])])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
@@ -157,7 +152,6 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
     public async Task SelectStack_WhenCurrentBranchIsSourceBranchInOnlyOneStack_AutoSelectsThatStack()
     {
         // Arrange
-        var remoteUri = Some.HttpsUri().ToString();
         var sourceBranch = Some.BranchName();
         var currentBranch = sourceBranch; // Current branch is the source branch
         var stackWithCurrentAsSource = "StackWithSourceBranch";
@@ -165,8 +159,8 @@ public class InputProviderExtensionMethodsTests(ITestOutputHelper testOutputHelp
 
         var stacks = new List<Model.Stack>
         {
-            new(stackWithCurrentAsSource, remoteUri, sourceBranch, []),
-            new(stackWithDifferentSource, remoteUri, Some.BranchName(), [])
+            new(stackWithCurrentAsSource, sourceBranch, []),
+            new(stackWithDifferentSource, Some.BranchName(), [])
         };
 
         var inputProvider = Substitute.For<IInputProvider>();
