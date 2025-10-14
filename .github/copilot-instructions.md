@@ -7,7 +7,7 @@ Purpose: Enable AI agents to quickly understand and extend the `stack` CLI (bran
 - **Entry**: `Program.cs` builds DI host then invokes `StackRootCommand` (System.CommandLine pattern).
 - **Command Structure**: Each feature = command class inheriting `Infrastructure/Commands/Command.cs` (adds common options, logging, error handling, input prompts). Command handlers are split: command class parses & constructs handler (e.g. `NewStackCommand` + `NewStackCommandHandler`). Follow this separation religiously.
 - **Core Domains**:
-  1. **Config (`Config/`)**: Persistent model (`Stack`, `Branch`) with schema migration v1→v2 in `FileStackConfig`. Config path is `%AppData%/stack/config.json` (Windows). v1 = linear list, v2 = tree structure. Backward compatibility is critical—use existing mapping helpers.
+  1. **Config (`Config/`)**: Persistent model (`Stack`, `Branch`) with schema migration v1→v2 in `FileStackConfig`. Config path is `%AppData%/stack/config.json` (Windows). v1 = linear list, v2 = tree structure. Backward compatibility is critical—use existing mapping helpers. **Stack Repository Pattern**: Command handlers access stacks through `IStackRepository` (scoped service) instead of `IStackConfig` directly. Repository automatically filters stacks by current git remote URI—handlers don't need to know about remote filtering. See "Stack Repository Pattern" section below.
   2. **Git (`Git/`)**: Thin wrapper over `git` & `gh` CLIs via `ProcessHelpers`. Never re-implement git porcelain—compose existing commands. Conflict detection surfaces as `ConflictException`.
   3. **Stack orchestration (`Commands/Helpers/StackActions.cs` & `StackHelpers.cs`)**: Implements update strategies (merge vs rebase), batch operations, PR list maintenance, status tree rendering (Spectre.Console). Pull request status lookups are best-effort and may be skipped if the GitHub CLI is unavailable.
   4. **GitHub integration (`GitHubClient`, `SafeGitHubClient`, `CachingGitHubClient`)**: Uses `gh pr` CLI JSON output. `SafeGitHubClient` swallows failures (missing CLI, auth, network) for status lookups only (`GetPullRequest`) and logs a single warning, ensuring commands still succeed; create/edit/open operations still propagate errors. Extend by adding fields to the source gen context.
@@ -38,7 +38,7 @@ Purpose: Enable AI agents to quickly understand and extend the `stack` CLI (bran
 1. **Create Command Class**: `Commands/<Area>/<Name>Command.cs` inheriting `Command` base class.
 2. **Define Options**: Define any new `Option<T>` locally; reuse existing ones from `CommonOptions` static properties.
 3. **Wire Dependencies**: In constructor, `Add(...)` options and set description; register in `StackRootCommand` constructor.
-4. **Implement Execute**: Override `Execute` method. Instantiate required clients: `new GitClient(StdErrLogger, new GitClientSettings(Verbose, WorkingDirectory))`, config via `FileStackConfig()`, and (if GitHub needed) `CachingGitHubClient`.
+4. **Implement Execute**: Override `Execute` method. Inject `IStackRepository` (instead of `IStackConfig`), `IGitClientFactory`, and `CliExecutionContext` via handler constructor.
 5. **Separate Handler Logic**: Put non-trivial business logic in separate handler class (suffix `CommandHandler`) inheriting `CommandHandlerBase<TInput>` to keep command class thin and testable.
 6. **Exception Handling**: Follow existing patterns—let `ProcessException` bubble for standardized error output via base `Command` class.
 

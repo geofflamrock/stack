@@ -20,16 +20,13 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -40,10 +37,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
@@ -52,10 +48,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(RenameStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().HaveCount(2);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
-        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack2");
-        stackConfig.Stacks.Should().NotContain(s => s.Name == "Stack1");
+        stackRepository.Stacks.Should().HaveCount(2);
+        stackRepository.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+        stackRepository.Stacks.Should().Contain(s => s.Name == "Stack2");
+        stackRepository.Stacks.Should().NotContain(s => s.Name == "Stack1");
     }
 
     [Fact]
@@ -63,12 +59,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -79,10 +73,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Text(Questions.StackName, Arg.Any<CancellationToken>()).Returns("RenamedStack");
 
@@ -91,8 +84,8 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        stackConfig.Stacks.Should().HaveCount(1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+        stackRepository.Stacks.Should().HaveCount(1);
+        stackRepository.Stacks.Should().Contain(s => s.Name == "RenamedStack");
     }
 
     [Fact]
@@ -100,12 +93,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -116,10 +107,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -128,8 +118,8 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
-        stackConfig.Stacks.Should().HaveCount(1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+        stackRepository.Stacks.Should().HaveCount(1);
+        stackRepository.Stacks.Should().Contain(s => s.Name == "RenamedStack");
     }
 
     [Fact]
@@ -137,12 +127,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -153,10 +141,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", "RenamedStack"), CancellationToken.None);
@@ -164,8 +151,8 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
-        stackConfig.Stacks.Should().HaveCount(1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "RenamedStack");
+        stackRepository.Stacks.Should().HaveCount(1);
+        stackRepository.Stacks.Should().Contain(s => s.Name == "RenamedStack");
     }
 
     [Fact]
@@ -173,12 +160,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -188,10 +173,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         // Act & Assert
         var act = async () => await handler.Handle(new RenameStackCommandInputs("NonExistentStack", "NewName"), CancellationToken.None);
@@ -203,16 +187,13 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -222,10 +203,9 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         // Act & Assert
         var act = async () => await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack2"), CancellationToken.None);
@@ -237,12 +217,10 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     {
         // Arrange
         var sourceBranch = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
 
@@ -252,96 +230,15 @@ public class RenameStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var gitClient = Substitute.For<IGitClient>();
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(sourceBranch);
 
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
+        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackRepository);
 
         // Act
         await handler.Handle(new RenameStackCommandInputs("Stack1", "Stack1"), CancellationToken.None);
 
         // Assert
-        stackConfig.Stacks.Should().HaveCount(1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack1");
-    }
-
-    [Fact]
-    public async Task WhenStacksWithSameNameExistAcrossDifferentRemotes_AllowsRename()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var remoteUri1 = Some.HttpsUri().ToString();
-        var remoteUri2 = Some.HttpsUri().ToString();
-
-        var stackConfig = new TestStackConfigBuilder()
-            .WithStack(stack => stack
-                .WithName("Stack1")
-                .WithRemoteUri(remoteUri1)
-                .WithSourceBranch(sourceBranch))
-            .WithStack(stack => stack
-                .WithName("ExistingName")
-                .WithRemoteUri(remoteUri2)
-                .WithSourceBranch(sourceBranch))
-            .Build();
-
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var gitClient = Substitute.For<IGitClient>();
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri1);
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
-
-        // Act - Rename Stack1 to ExistingName (which exists on a different remote)
-        await handler.Handle(new RenameStackCommandInputs("Stack1", "ExistingName"), CancellationToken.None);
-
-        // Assert
-        stackConfig.Stacks.Should().HaveCount(2);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "ExistingName" && s.RemoteUri == remoteUri2);
-        stackConfig.Stacks.Should().NotContain(s => s.Name == "Stack1");
-    }
-
-    [Fact]
-    public async Task WhenNoStacksExistForRemote_LogsNoStacksMessageAndReturns()
-    {
-        // Arrange
-        var sourceBranch = Some.BranchName();
-        var remoteUri1 = Some.HttpsUri().ToString();
-        var remoteUri2 = Some.HttpsUri().ToString();
-
-        // Create a stack config with stacks only for a different remote
-        var stackConfig = new TestStackConfigBuilder()
-            .WithStack(stack => stack
-                .WithName("Stack1")
-                .WithRemoteUri(remoteUri2)
-                .WithSourceBranch(sourceBranch))
-            .Build();
-
-        var inputProvider = Substitute.For<IInputProvider>();
-        var logger = XUnitLogger.CreateLogger<RenameStackCommandHandler>(testOutputHelper);
-        var gitClientFactory = Substitute.For<IGitClientFactory>();
-        var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var gitClient = Substitute.For<IGitClient>();
-
-        gitClient.GetRemoteUri().Returns(remoteUri1); // Different remote than the stack
-        gitClient.GetCurrentBranch().Returns(sourceBranch);
-
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        var handler = new RenameStackCommandHandler(inputProvider, logger, gitClientFactory, executionContext, stackConfig);
-
-        // Act
-        await handler.Handle(new RenameStackCommandInputs("Stack1", "NewName"), CancellationToken.None);
-
-        // Assert
-        // Verify the stack config was not modified
-        stackConfig.Stacks.Should().HaveCount(1);
-        stackConfig.Stacks.Should().Contain(s => s.Name == "Stack1" && s.RemoteUri == remoteUri2);
+        stackRepository.Stacks.Should().HaveCount(1);
+        stackRepository.Stacks.Should().Contain(s => s.Name == "Stack1");
     }
 }

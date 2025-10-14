@@ -21,18 +21,15 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -44,12 +41,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -79,18 +73,15 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -102,12 +93,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act and assert
         var invalidStackName = Some.Name();
@@ -123,18 +111,15 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -146,12 +131,11 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // We are on a specific branch in the stack
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
@@ -182,12 +166,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
@@ -201,12 +183,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -237,17 +216,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -259,12 +235,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -293,17 +266,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -315,12 +285,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -348,17 +315,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -370,12 +334,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -404,17 +365,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -426,12 +384,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -460,17 +415,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -482,12 +434,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -516,17 +465,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -538,12 +484,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -572,17 +515,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -594,12 +534,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -629,17 +566,14 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1).WithChildBranch(b => b.WithName(branch2))))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -651,12 +585,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -683,7 +614,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
     public async Task WhenBothRebaseAndMergeAreSpecified_AnErrorIsThrown()
     {
         // Arrange
-        var stackConfig = Substitute.For<IStackConfig>();
+        var stackRepository = new TestStackRepositoryBuilder().Build();
         var inputProvider = Substitute.For<IInputProvider>();
         var logger = XUnitLogger.CreateLogger<SyncStackCommandHandler>(testOutputHelper);
         var gitClient = Substitute.For<IGitClient>();
@@ -693,7 +624,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
@@ -711,18 +642,15 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -734,12 +662,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -768,18 +693,15 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch))
             .Build();
         var inputProvider = Substitute.For<IInputProvider>();
@@ -791,12 +713,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -825,12 +744,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
@@ -844,12 +761,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },
@@ -878,12 +792,10 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var branch1 = Some.BranchName();
         var branch2 = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
 
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(stackBranch => stackBranch.WithName(branch1))
                 .WithBranch(stackBranch => stackBranch.WithName(branch2)))
@@ -897,12 +809,9 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var outputProvider = Substitute.For<IOutputProvider>();
-        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackConfig, stackActions);
+        var handler = new SyncStackCommandHandler(inputProvider, logger, outputProvider, displayProvider, gitClientFactory, executionContext, gitHubClient, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
-
-        gitClient.GetRemoteUri().Returns(remoteUri);
-        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient); gitClient.GetCurrentBranch().Returns(branch1);
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             { sourceBranch, new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit("abc1234", "Test commit message")) },

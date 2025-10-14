@@ -49,19 +49,15 @@ public class CreatePullRequestsCommandHandler(
     CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
     IFileOperations fileOperations,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<CreatePullRequestsCommandInputs>
 {
     public override async Task Handle(CreatePullRequestsCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {

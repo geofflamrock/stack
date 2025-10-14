@@ -49,19 +49,16 @@ public class DeleteStackCommandHandler(
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<DeleteStackCommandInputs>
 {
     public override async Task Handle(DeleteStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         var stack = await inputProvider.SelectStack(logger, inputs.Stack, stacksForRemote, currentBranch, cancellationToken);
 
@@ -84,8 +81,8 @@ public class DeleteStackCommandHandler(
                 }
             }
 
-            stackData.Stacks.Remove(stack);
-            stackConfig.Save(stackData);
+            repository.RemoveStack(stack);
+            repository.SaveChanges();
 
             logger.StackDeleted(stack.Name);
         }

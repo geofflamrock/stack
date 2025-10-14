@@ -21,16 +21,13 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
@@ -39,7 +36,6 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
         gitClient.DoesLocalBranchExist(branchToSwitchTo).Returns(true);
         gitClient
@@ -48,8 +44,8 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
-        
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackRepository);
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         inputProvider
@@ -70,16 +66,13 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
@@ -88,7 +81,6 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
         gitClient.DoesLocalBranchExist(branchToSwitchTo).Returns(true);
         gitClient
@@ -97,8 +89,8 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
-        
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackRepository);
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act
@@ -116,16 +108,13 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var sourceBranch = Some.BranchName();
         var anotherBranch = Some.BranchName();
         var branchToSwitchTo = Some.BranchName();
-        var remoteUri = Some.HttpsUri().ToString();
-        var stackConfig = new TestStackConfigBuilder()
+        var stackRepository = new TestStackRepositoryBuilder()
             .WithStack(stack => stack
                 .WithName("Stack1")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(branchToSwitchTo)))
             .WithStack(stack => stack
                 .WithName("Stack2")
-                .WithRemoteUri(remoteUri)
                 .WithSourceBranch(sourceBranch)
                 .WithBranch(b => b.WithName(anotherBranch)))
             .Build();
@@ -134,7 +123,6 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var gitClient = Substitute.For<IGitClient>();
         var currentBranch = sourceBranch;
         gitClient.GetCurrentBranch().Returns(sourceBranch);
-        gitClient.GetRemoteUri().Returns(remoteUri);
         gitClient.GetBranchesThatExistLocally(Arg.Any<string[]>()).Returns([sourceBranch, anotherBranch, branchToSwitchTo]);
         gitClient
             .When(g => g.ChangeBranch(Arg.Any<string>()))
@@ -142,8 +130,8 @@ public class StackSwitchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         var gitClientFactory = Substitute.For<IGitClientFactory>();
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
-        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackConfig);
-        
+        var handler = new StackSwitchCommandHandler(inputProvider, gitClientFactory, executionContext, stackRepository);
+
         gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
 
         // Act and assert

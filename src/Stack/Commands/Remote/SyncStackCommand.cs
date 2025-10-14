@@ -71,7 +71,7 @@ public class SyncStackCommandHandler(
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
     IGitHubClient gitHubClient,
-    IStackConfig stackConfig,
+    IStackRepository repository,
     IStackActions stackActions)
     : CommandHandlerBase<SyncStackCommandInputs>
 {
@@ -82,12 +82,8 @@ public class SyncStackCommandHandler(
         if (inputs.Rebase == true && inputs.Merge == true)
             throw new InvalidOperationException("Cannot specify both rebase and merge.");
 
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {

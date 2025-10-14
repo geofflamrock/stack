@@ -70,19 +70,16 @@ public class RemoveBranchCommandHandler(
     ILogger<RemoveBranchCommandHandler> logger,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<RemoveBranchCommandInputs>
 {
     public override async Task Handle(RemoveBranchCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
         var stack = await inputProvider.SelectStack(logger, inputs.StackName, stacksForRemote, currentBranch, cancellationToken);
 
         if (stack is null)
@@ -102,7 +99,7 @@ public class RemoveBranchCommandHandler(
         var hasChildren = branch?.Children.Count > 0;
 
         RemoveBranchChildAction action;
-        
+
         if (inputs.RemoveChildrenAction.HasValue)
         {
             // Use the explicitly provided action
@@ -126,7 +123,7 @@ public class RemoveBranchCommandHandler(
         if (inputs.Confirm || await inputProvider.Confirm(Questions.ConfirmRemoveBranch, cancellationToken))
         {
             stack.RemoveBranch(branchName, action);
-            stackConfig.Save(stackData);
+            repository.SaveChanges();
 
             logger.BranchRemovedFromStack(branchName, stack.Name);
         }

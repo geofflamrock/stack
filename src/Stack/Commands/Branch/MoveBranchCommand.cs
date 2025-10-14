@@ -79,17 +79,15 @@ public class MoveBranchCommandHandler(
     IOutputProvider outputProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<MoveBranchCommandInputs>
 {
     public override async Task Handle(MoveBranchCommandInputs inputs, CancellationToken cancellationToken)
     {
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stackData = stackConfig.Load();
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {
@@ -133,7 +131,7 @@ public class MoveBranchCommandHandler(
 
         stack.MoveBranch(branchName, newParentBranchName, childAction);
 
-        stackConfig.Save(stackData);
+        repository.SaveChanges();
 
         logger.BranchMovedInStack(branchName, stack.Name);
 

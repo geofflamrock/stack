@@ -50,7 +50,7 @@ public class NewBranchCommandHandler(
     IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig)
+    IStackRepository repository)
     : CommandHandlerBase<NewBranchCommandInputs>
 {
     public override async Task Handle(NewBranchCommandInputs inputs, CancellationToken cancellationToken)
@@ -58,13 +58,10 @@ public class NewBranchCommandHandler(
         await Task.CompletedTask;
 
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
         var currentBranch = gitClient.GetCurrentBranch();
         var branches = gitClient.GetLocalBranchesOrderedByMostRecentCommitterDate();
 
-        var stackData = stackConfig.Load();
-
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {
@@ -120,7 +117,7 @@ public class NewBranchCommandHandler(
             stack.Branches.Add(new Branch(branchName, []));
         }
 
-        stackConfig.Save(stackData);
+        repository.SaveChanges();
 
         try
         {

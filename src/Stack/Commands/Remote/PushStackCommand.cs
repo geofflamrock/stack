@@ -53,18 +53,15 @@ public class PushStackCommandHandler(
     IDisplayProvider displayProvider,
     IGitClientFactory gitClientFactory,
     CliExecutionContext executionContext,
-    IStackConfig stackConfig,
+    IStackRepository repository,
     IStackActions stackActions)
     : CommandHandlerBase<PushStackCommandInputs>
 {
     public override async Task Handle(PushStackCommandInputs inputs, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        var stackData = stackConfig.Load();
-
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
-        var remoteUri = gitClient.GetRemoteUri();
-        var stacksForRemote = stackData.Stacks.Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase)).ToList();
+        var stacksForRemote = repository.GetStacks();
 
         if (stacksForRemote.Count == 0)
         {
