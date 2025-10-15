@@ -1,15 +1,13 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
-using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
-using Stack.Infrastructure.Settings;
 
 namespace Stack.Tests.Commands.Stack;
 

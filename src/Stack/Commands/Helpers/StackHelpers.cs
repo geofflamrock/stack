@@ -1,11 +1,11 @@
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MoreLinq;
 using Spectre.Console;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Model;
+using Stack.Persistence;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
 
 namespace Stack.Commands.Helpers;
@@ -102,7 +102,7 @@ public record ParentBranchStatus(string Name, int Ahead, int Behind);
 public static class StackHelpers
 {
     public static List<StackStatus> GetStackStatus(
-        List<Config.Stack> stacks,
+        List<Model.Stack> stacks,
         string currentBranch,
         ILogger logger,
         IGitClient gitClient,
@@ -129,7 +129,7 @@ public static class StackHelpers
 
         return stacksToReturnStatusFor;
 
-        static void EvaluateBranchStatusDetails(ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, List<StackStatus> stacksToReturnStatusFor, IOrderedEnumerable<Config.Stack> stacksOrderedByCurrentBranch, Dictionary<string, GitBranchStatus> branchStatuses)
+        static void EvaluateBranchStatusDetails(ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient, bool includePullRequestStatus, List<StackStatus> stacksToReturnStatusFor, IOrderedEnumerable<Model.Stack> stacksOrderedByCurrentBranch, Dictionary<string, GitBranchStatus> branchStatuses)
         {
             foreach (var stack in stacksOrderedByCurrentBranch)
             {
@@ -219,7 +219,7 @@ public static class StackHelpers
     }
 
     public static StackStatus GetStackStatus(
-        Config.Stack stack,
+        Model.Stack stack,
         string currentBranch,
         ILogger logger,
         IGitClient gitClient,
@@ -523,7 +523,7 @@ public static class StackHelpers
         return strategy;
     }
 
-    public static string[] GetBranchesNeedingCleanup(Config.Stack stack, ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient)
+    public static string[] GetBranchesNeedingCleanup(Model.Stack stack, ILogger logger, IGitClient gitClient, IGitHubClient gitHubClient)
     {
         var currentBranch = gitClient.GetCurrentBranch();
         var stackStatus = GetStackStatus(stack, currentBranch, logger, gitClient, gitHubClient, false);
@@ -553,7 +553,7 @@ public static class StackHelpers
     public static void UpdateStackPullRequestList(
         ILogger logger,
         IGitHubClient gitHubClient,
-        Config.Stack stack,
+        Model.Stack stack,
         List<GitHubPullRequest> pullRequestsInStack)
     {
         var prListBuilder = new StringBuilder();

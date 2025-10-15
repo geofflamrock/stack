@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Infrastructure;
+using Stack.Model;
 
 namespace Stack.Commands.Helpers;
 
@@ -56,11 +56,11 @@ public static class InputProviderExtensionMethods
         return [.. selection];
     }
 
-    public static async Task<Config.Stack?> SelectStack(
+    public static async Task<Model.Stack?> SelectStack(
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        List<Config.Stack> stacks,
+        List<Model.Stack> stacks,
         string currentBranch,
         CancellationToken cancellationToken)
     {
@@ -112,7 +112,7 @@ public static class InputProviderExtensionMethods
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        Config.Stack stack,
+        Model.Stack stack,
         CancellationToken cancellationToken)
     {
         void GetBranchNamesWithIndentation(Branch branch, List<string> names, int level = 0)
@@ -146,7 +146,7 @@ public static class InputProviderExtensionMethods
         this IInputProvider inputProvider,
         ILogger logger,
         string? name,
-        Config.Stack stack,
+        Model.Stack stack,
         CancellationToken cancellationToken)
     {
         void GetBranchNamesWithIndentation(Branch branch, List<string> names, int level = 0)

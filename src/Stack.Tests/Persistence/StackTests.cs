@@ -19,19 +19,19 @@ public class StackTests
         //   - E
         //   - F
         //     - G
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [
-                        new Config.Branch("C", []),
-                        new Config.Branch("D", [])
+                new Model.Branch("A", [
+                    new Model.Branch("B", [
+                        new Model.Branch("C", []),
+                        new Model.Branch("D", [])
                     ]),
-                    new Config.Branch("E", []),
-                    new Config.Branch("F", [
-                        new Config.Branch("G", [])
+                    new Model.Branch("E", []),
+                    new Model.Branch("F", [
+                        new Model.Branch("G", [])
                     ])
                 ])
             ]
@@ -58,14 +58,14 @@ public class StackTests
         // - A
         // - B
         //   - C
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", []),
-                new Config.Branch("B", [
-                    new Config.Branch("C", [])
+                new Model.Branch("A", []),
+                new Model.Branch("B", [
+                    new Model.Branch("C", [])
                 ])
             ]
         );
@@ -78,8 +78,8 @@ public class StackTests
         //   - C
         // - B
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("A", [new Config.Branch("C", [])]),
-            new Config.Branch("B", [])
+            new Model.Branch("A", [new Model.Branch("C", [])]),
+            new Model.Branch("B", [])
         ]);
     }
 
@@ -89,13 +89,13 @@ public class StackTests
         // Arrange: Structure:
         // - A
         //   - B
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [])
+                new Model.Branch("A", [
+                    new Model.Branch("B", [])
                 ])
             ]
         );
@@ -107,8 +107,8 @@ public class StackTests
         // - A
         // - B
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("A", []),
-            new Config.Branch("B", [])
+            new Model.Branch("A", []),
+            new Model.Branch("B", [])
         ]);
     }
 
@@ -120,15 +120,15 @@ public class StackTests
         // - B
         //   - C
         //     - D
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", []),
-                new Config.Branch("B", [
-                    new Config.Branch("C", [
-                        new Config.Branch("D", [])
+                new Model.Branch("A", []),
+                new Model.Branch("B", [
+                    new Model.Branch("C", [
+                        new Model.Branch("D", [])
                     ])
                 ])
             ]
@@ -143,12 +143,12 @@ public class StackTests
         //     - D
         // - B
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("A", [
-                new Config.Branch("C", [
-                    new Config.Branch("D", [])
+            new Model.Branch("A", [
+                new Model.Branch("C", [
+                    new Model.Branch("D", [])
                 ])
             ]),
-            new Config.Branch("B", [])
+            new Model.Branch("B", [])
         ]);
     }
 
@@ -161,16 +161,16 @@ public class StackTests
         //   - C
         //     - D
         //     - E
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", []),
-                new Config.Branch("B", [
-                    new Config.Branch("C", [
-                        new Config.Branch("D", []),
-                        new Config.Branch("E", [])
+                new Model.Branch("A", []),
+                new Model.Branch("B", [
+                    new Model.Branch("C", [
+                        new Model.Branch("D", []),
+                        new Model.Branch("E", [])
                     ])
                 ])
             ]
@@ -186,12 +186,12 @@ public class StackTests
         //   - D
         //   - E
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("A", [
-                new Config.Branch("C", [])
+            new Model.Branch("A", [
+                new Model.Branch("C", [])
             ]),
-            new Config.Branch("B", [
-                new Config.Branch("D", []),
-                new Config.Branch("E", [])
+            new Model.Branch("B", [
+                new Model.Branch("D", []),
+                new Model.Branch("E", [])
             ])
         ]);
     }
@@ -205,19 +205,19 @@ public class StackTests
         //     - C
         //       - D
         // - E
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [
-                        new Config.Branch("C", [
-                            new Config.Branch("D", [])
+                new Model.Branch("A", [
+                    new Model.Branch("B", [
+                        new Model.Branch("C", [
+                            new Model.Branch("D", [])
                         ])
                     ])
                 ]),
-                new Config.Branch("E", [])
+                new Model.Branch("E", [])
             ]
         );
 
@@ -231,13 +231,13 @@ public class StackTests
         // - E
         //   - D
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("A", [
-                new Config.Branch("B", [
-                    new Config.Branch("C", [])
+            new Model.Branch("A", [
+                new Model.Branch("B", [
+                    new Model.Branch("C", [])
                 ])
             ]),
-            new Config.Branch("E", [
-                new Config.Branch("D", [])
+            new Model.Branch("E", [
+                new Model.Branch("D", [])
             ])
         ]);
     }
@@ -246,12 +246,12 @@ public class StackTests
     public void MoveBranch_WhenBranchNotFound_ThrowsException()
     {
         // Arrange
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [])
+                new Model.Branch("A", [])
             ]
         );
 
@@ -266,13 +266,13 @@ public class StackTests
     public void MoveBranch_WhenNewParentNotFound_ThrowsException()
     {
         // Arrange
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [])
+                new Model.Branch("A", [
+                    new Model.Branch("B", [])
                 ])
             ]
         );
@@ -291,15 +291,15 @@ public class StackTests
         // - A
         //   - B
         // - C
-        var stack = new Config.Stack(
+        var stack = new Model.Stack(
             "TestStack",
             Some.HttpsUri().ToString(),
             "main",
             [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [])
+                new Model.Branch("A", [
+                    new Model.Branch("B", [])
                 ]),
-                new Config.Branch("C", [])
+                new Model.Branch("C", [])
             ]
         );
 
@@ -311,9 +311,9 @@ public class StackTests
         //   - A
         //     - B
         stack.Branches.Should().BeEquivalentTo([
-            new Config.Branch("C", [
-                new Config.Branch("A", [
-                    new Config.Branch("B", [])
+            new Model.Branch("C", [
+                new Model.Branch("A", [
+                    new Model.Branch("B", [])
                 ])
             ])
         ]);

@@ -4,10 +4,9 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
-using Stack.Config;
-using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 

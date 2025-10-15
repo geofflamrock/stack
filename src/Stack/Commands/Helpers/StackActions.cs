@@ -1,17 +1,17 @@
-using Stack.Config;
-using Stack.Infrastructure;
-using Stack.Infrastructure.Settings;
-using Stack.Git;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using Stack.Git;
+using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
+using Stack.Model;
 
 namespace Stack.Commands.Helpers
 {
     public interface IStackActions
     {
-        void PullChanges(Config.Stack stack);
-        void PushChanges(Config.Stack stack, int maxBatchSize, bool forceWithLease);
-        Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false);
+        void PullChanges(Model.Stack stack);
+        void PushChanges(Model.Stack stack, int maxBatchSize, bool forceWithLease);
+        Task UpdateStack(Model.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false);
     }
 
 
@@ -47,7 +47,7 @@ namespace Stack.Commands.Helpers
             return GetDefaultGitClient();
         }
 
-        public void PullChanges(Config.Stack stack)
+        public void PullChanges(Model.Stack stack)
         {
             var gitClient = GetDefaultGitClient();
             List<string> allBranchesInStacks = [stack.SourceBranch, .. stack.AllBranchNames];
@@ -104,7 +104,7 @@ namespace Stack.Commands.Helpers
         }
 
         public void PushChanges(
-            Config.Stack stack,
+            Model.Stack stack,
             int maxBatchSize,
             bool forceWithLease)
         {
@@ -140,7 +140,7 @@ namespace Stack.Commands.Helpers
             }
         }
 
-        public async Task UpdateStack(Config.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false)
+        public async Task UpdateStack(Model.Stack stack, UpdateStrategy strategy, CancellationToken cancellationToken, bool checkPullRequests = false)
         {
             var gitClient = GetDefaultGitClient();
 
@@ -181,7 +181,7 @@ namespace Stack.Commands.Helpers
         }
 
         private async Task UpdateStackUsingMerge(
-            Config.Stack stack,
+            Model.Stack stack,
             Dictionary<string, GitBranchStatus> branchStatuses,
             Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)
@@ -253,7 +253,7 @@ namespace Stack.Commands.Helpers
         }
 
         private async Task UpdateStackUsingRebase(
-            Config.Stack stack,
+            Model.Stack stack,
             Dictionary<string, GitBranchStatus> branchStatuses,
             Dictionary<string, GitHubPullRequest?> pullRequests,
             CancellationToken cancellationToken)

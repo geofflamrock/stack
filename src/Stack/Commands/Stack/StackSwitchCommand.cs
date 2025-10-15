@@ -2,10 +2,11 @@ using System.CommandLine;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 

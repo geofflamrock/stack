@@ -1,4 +1,4 @@
-namespace Stack.Config;
+namespace Stack.Persistence;
 
 public static class StackConstants
 {

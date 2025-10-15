@@ -5,10 +5,10 @@ using Microsoft.Extensions.Logging;
 using MoreLinq.Extensions;
 using Spectre.Console;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 
@@ -220,7 +220,7 @@ public class StackStatusCommandHandler(
 
         var currentBranch = gitClient.GetCurrentBranch();
 
-        var stacksToCheckStatusFor = new List<Config.Stack>();
+        var stacksToCheckStatusFor = new List<Model.Stack>();
 
         if (inputs.All)
         {

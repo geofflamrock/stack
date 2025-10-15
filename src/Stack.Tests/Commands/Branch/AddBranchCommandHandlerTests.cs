@@ -3,7 +3,6 @@ using Meziantou.Extensions.Logging.Xunit;
 using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -53,9 +52,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, null, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(branchToAdd, [])])]),
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
     }
@@ -95,9 +94,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
     }
@@ -136,9 +135,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])])
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])])
         });
     }
 
@@ -211,9 +210,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, branchToAdd, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -326,9 +325,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs("Stack1", branchToAdd, anotherBranch), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(anotherBranch, [new Config.Branch(branchToAdd, [])])]),
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
@@ -371,9 +370,9 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new AddBranchCommandInputs(null, null, firstBranch), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Config.Branch(firstBranch, [new Config.Branch(childBranch, []), new Config.Branch(branchToAdd, [])])]),
+            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
 

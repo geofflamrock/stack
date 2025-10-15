@@ -1,5 +1,3 @@
-using System;
-
 namespace Stack.Tests.Helpers;
 
 public static class Some

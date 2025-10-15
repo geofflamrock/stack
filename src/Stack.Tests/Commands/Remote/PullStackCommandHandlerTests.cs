@@ -1,13 +1,12 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
-using Stack.Config;
+using Stack.Commands.Helpers;
 using Stack.Git;
-using Stack.Tests.Helpers;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
-using Stack.Commands.Helpers;
+using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Remote;
@@ -40,7 +39,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         inputProvider.Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>()).Returns("Stack1");
 
@@ -80,7 +80,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act
         await handler.Handle(new PullStackCommandInputs("Stack1"), CancellationToken.None);
@@ -119,7 +120,8 @@ public class PullStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         var executionContext = new CliExecutionContext { WorkingDirectory = "/some/path" };
         var handler = new PullStackCommandHandler(inputProvider, logger, displayProvider, gitClientFactory, executionContext, stackRepository, stackActions);
 
-        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);        gitClient.GetCurrentBranch().Returns(branch1);
+        gitClientFactory.Create(executionContext.WorkingDirectory).Returns(gitClient);
+        gitClient.GetCurrentBranch().Returns(branch1);
 
         // Act and assert
         var invalidStackName = Some.Name();

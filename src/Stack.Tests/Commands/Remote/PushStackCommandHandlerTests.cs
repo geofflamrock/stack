@@ -1,13 +1,12 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
-using Stack.Config;
+using Stack.Commands.Helpers;
 using Stack.Git;
-using Stack.Tests.Helpers;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
-using Stack.Commands.Helpers;
+using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Remote;
@@ -54,7 +53,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(PushStackCommandInputs.Default, CancellationToken.None);
 
         // Assert
-        stackActions.Received(1).PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received(1).PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
     }
 
     [Fact]
@@ -97,7 +96,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new PushStackCommandInputs("Stack1", 5, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received(1).PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, false);
+        stackActions.Received(1).PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, false);
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
 
@@ -184,7 +183,7 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new PushStackCommandInputs(null, 1, false), CancellationToken.None);
 
         // Assert
-        stackActions.Received(1).PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 1, false);
+        stackActions.Received(1).PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 1, false);
     }
 
     [Fact]
@@ -227,6 +226,6 @@ public class PushStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new PushStackCommandInputs(null, 5, true), CancellationToken.None);
 
         // Assert
-        stackActions.Received(1).PushChanges(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), 5, true);
+        stackActions.Received(1).PushChanges(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), 5, true);
     }
 }

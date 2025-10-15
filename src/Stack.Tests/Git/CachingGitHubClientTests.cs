@@ -1,4 +1,3 @@
-using System;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;

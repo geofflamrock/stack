@@ -1,12 +1,11 @@
 using System.CommandLine;
-
-using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 
@@ -128,15 +127,6 @@ public class RemoveBranchCommandHandler(
             logger.BranchRemovedFromStack(branchName, stack.Name);
         }
     }
-}
-
-public enum RemoveBranchChildAction
-{
-    [Description("Move children branches to parent branch")]
-    MoveChildrenToParent,
-
-    [Description("Remove children branches")]
-    RemoveChildren
 }
 
 internal static partial class LoggerExtensionMethods

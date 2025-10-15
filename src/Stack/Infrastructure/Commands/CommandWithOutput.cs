@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;

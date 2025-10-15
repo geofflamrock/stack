@@ -1,9 +1,8 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
@@ -49,7 +48,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
@@ -89,7 +88,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
@@ -129,7 +128,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new DeleteStackCommandInputs("Stack1", false), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
@@ -229,7 +228,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(DeleteStackCommandInputs.Empty, CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });
@@ -305,7 +304,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new DeleteStackCommandInputs(null, true), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
         });

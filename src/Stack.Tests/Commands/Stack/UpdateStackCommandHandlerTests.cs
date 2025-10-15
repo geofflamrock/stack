@@ -1,13 +1,12 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
-using Stack.Config;
+using Stack.Commands.Helpers;
 using Stack.Git;
-using Stack.Tests.Helpers;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
-using Stack.Commands.Helpers;
+using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 
 namespace Stack.Tests.Commands.Stack;
@@ -48,7 +47,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -157,7 +156,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
 
         // Assert
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -195,7 +194,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, true, false, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -234,7 +233,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -272,7 +271,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, true, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -311,7 +310,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -350,7 +349,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, true, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -390,7 +389,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Rebase, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -430,7 +429,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -466,7 +465,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, true), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), true);
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), true);
     }
 
     [Fact]
@@ -502,7 +501,7 @@ public class UpdateStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new UpdateStackCommandInputs(null, null, null, false), CancellationToken.None);
 
         // Assert
-        await stackActions.Received().UpdateStack(Arg.Is<Config.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), false);
+        await stackActions.Received().UpdateStack(Arg.Is<Model.Stack>(s => s.Name == "Stack1"), UpdateStrategy.Merge, Arg.Any<CancellationToken>(), false);
     }
 
     [Fact]

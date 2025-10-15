@@ -1,16 +1,14 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Spectre.Console;
-using Stack.Commands.Helpers;
-using Stack.Config;
-using Stack.Git;
-using Stack.Infrastructure;
-using Stack.Infrastructure.Settings;
-using Stack.Commands;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging.Console;
+using Spectre.Console;
+using Stack.Commands;
+using Stack.Commands.Helpers;
+using Stack.Git;
+using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 
 namespace Stack.Infrastructure;
 

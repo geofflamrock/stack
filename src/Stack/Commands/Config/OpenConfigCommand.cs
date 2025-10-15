@@ -1,9 +1,9 @@
 using System.CommandLine;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Stack.Config;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 

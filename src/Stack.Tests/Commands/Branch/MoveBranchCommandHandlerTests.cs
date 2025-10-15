@@ -1,13 +1,13 @@
 using FluentAssertions;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
 using Stack.Git;
 using Stack.Infrastructure;
+using Stack.Infrastructure.Settings;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
-using Stack.Infrastructure.Settings;
 
 namespace Stack.Tests.Commands.Branch;
 
@@ -50,11 +50,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, [
-                new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
-                new Config.Branch(secondBranch, [])
+                new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])]),
+                new Model.Branch(secondBranch, [])
             ])
         });
     }
@@ -98,10 +98,10 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, [
-                new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [new Config.Branch(childBranch, [])])])
+                new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [new Model.Branch(childBranch, [])])])
             ])
         });
     }
@@ -145,11 +145,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, [
-                new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])]),
-                new Config.Branch(childBranch, [])
+                new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])]),
+                new Model.Branch(childBranch, [])
             ])
         });
     }
@@ -189,11 +189,11 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs(null, null, null, null), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, [
-                new Config.Branch(firstBranch, []),
-                new Config.Branch(branchToMove, [])
+                new Model.Branch(firstBranch, []),
+                new Model.Branch(branchToMove, [])
             ])
         });
     }
@@ -229,10 +229,10 @@ public class MoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler.Handle(new MoveBranchCommandInputs("Stack1", branchToMove, firstBranch, MoveBranchChildAction.MoveChildren), CancellationToken.None);
 
         // Assert
-        stackRepository.Stacks.Should().BeEquivalentTo(new List<Config.Stack>
+        stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
             new("Stack1", stackRepository.RemoteUri, sourceBranch, [
-                new Config.Branch(firstBranch, [new Config.Branch(branchToMove, [])])
+                new Model.Branch(firstBranch, [new Model.Branch(branchToMove, [])])
             ])
         });
 

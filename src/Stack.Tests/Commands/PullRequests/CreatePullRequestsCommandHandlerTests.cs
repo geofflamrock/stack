@@ -1,13 +1,13 @@
 using FluentAssertions;
 using FluentAssertions.Equivalency;
-using NSubstitute;
 using Meziantou.Extensions.Logging.Xunit;
+using NSubstitute;
 using Stack.Commands;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Persistence;
 using Stack.Tests.Helpers;
 using Xunit.Abstractions;
 using static Stack.Commands.CreatePullRequestsCommandHandler;
@@ -40,7 +40,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -110,7 +110,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -171,7 +171,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -229,7 +229,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -290,7 +290,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -354,7 +354,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -407,7 +407,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -471,7 +471,7 @@ public class CreatePullRequestsCommandHandlerTests(ITestOutputHelper testOutputH
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         using var tempRepo = TemporaryDirectory.Create();
         gitClient.GetRootOfRepository().Returns(tempRepo.DirectoryPath);
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
@@ -537,7 +537,7 @@ This is the PR template";
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
+        var gitClient = Substitute.For<IGitClient>(); gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
         {
             [sourceBranch] = new GitBranchStatus(sourceBranch, $"origin/{sourceBranch}", true, false, 0, 0, new Commit(Some.Sha(), "msg")),
@@ -599,7 +599,7 @@ This is the PR template";
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>
@@ -654,7 +654,7 @@ This is the PR template";
         var displayProvider = new TestDisplayProvider(testOutputHelper);
         var outputProvider = Substitute.For<IOutputProvider>();
         var fileOperations = new FileOperations();
-        var gitClient = Substitute.For<IGitClient>();        gitClient.GetCurrentBranch().Returns(sourceBranch);
+        var gitClient = Substitute.For<IGitClient>(); gitClient.GetCurrentBranch().Returns(sourceBranch);
         gitClient.GetRootOfRepository().Returns(TemporaryDirectory.CreatePath());
         gitClient.CompareBranches(Arg.Any<string>(), Arg.Any<string>()).Returns((0, 0));
         gitClient.GetBranchStatuses(Arg.Any<string[]>()).Returns(new Dictionary<string, GitBranchStatus>

@@ -4,10 +4,11 @@ using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Stack.Commands.Helpers;
-using Stack.Config;
 using Stack.Git;
 using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
+using Stack.Model;
+using Stack.Persistence;
 
 namespace Stack.Commands;
 
@@ -93,7 +94,7 @@ public class NewStackCommandHandler(
         var sourceBranch = await inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches, cancellationToken);
 
         var remoteUri = gitClient.GetRemoteUri();
-        var stack = new Config.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Model.Stack(name, remoteUri, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 

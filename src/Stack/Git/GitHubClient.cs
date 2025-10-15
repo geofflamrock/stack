@@ -1,9 +1,7 @@
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Stack.Infrastructure;
 using Stack.Infrastructure.Settings;
 
 namespace Stack.Git;

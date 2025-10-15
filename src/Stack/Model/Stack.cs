@@ -1,7 +1,7 @@
+using System.ComponentModel;
 using Stack.Commands;
-using System.Text.RegularExpressions;
 
-namespace Stack.Config;
+namespace Stack.Model;
 
 public record Stack(string Name, string RemoteUri, string SourceBranch, List<Branch> Branches)
 {
@@ -308,4 +308,13 @@ public record Branch(string Name, List<Branch> Children)
         }
         return result;
     }
+}
+
+public enum RemoveBranchChildAction
+{
+    [Description("Move children branches to parent branch")]
+    MoveChildrenToParent,
+
+    [Description("Remove children branches")]
+    RemoveChildren
 }
