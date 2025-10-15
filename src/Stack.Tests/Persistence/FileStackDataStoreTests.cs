@@ -7,7 +7,7 @@ using Stack.Tests.Helpers;
 // use a fully-qualified name in all other tests.
 namespace Stack.Tests;
 
-public class FileStackConfigTests
+public class FileStackDataStoreTests
 {
     [Fact]
     public void Load_WhenConfigFileDoesNotExist_ReturnsEmptyList()
@@ -15,10 +15,10 @@ public class FileStackConfigTests
         // Arrange
         using var tempDirectory = TemporaryDirectory.Create();
 
-        var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
+        var dataStore = new FileStackDataStore(tempDirectory.DirectoryPath);
 
         // Act
-        var stackData = fileStackConfig.Load();
+        var stackData = dataStore.Load();
 
         // Assert
         stackData.Should().BeEquivalentTo(new StackData([]));
@@ -49,8 +49,8 @@ public class FileStackConfigTests
 ]";
         File.WriteAllText(configPath, v1Json);
 
-        var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
-        var expectedStack = new Model.Stack(
+        var dataStore = new FileStackDataStore(tempDirectory.DirectoryPath);
+        var expectedStack = new StackDataItem(
             stackName,
             remoteUri,
             sourceBranch,
@@ -62,7 +62,7 @@ public class FileStackConfigTests
             ]);
 
         // Act
-        var stackData = fileStackConfig.Load();
+        var stackData = dataStore.Load();
 
         // Assert
         stackData.Should().BeEquivalentTo(new StackData([expectedStack]));
@@ -96,7 +96,7 @@ public class FileStackConfigTests
         normalizedSavedJson.Should().Be(normalizedExpectedJson);
 
         // Original backup should be in V1 format
-        var backupPath = fileStackConfig.GetV1ConfigBackupFilePath();
+        var backupPath = dataStore.GetV1ConfigBackupFilePath();
         File.Exists(backupPath).Should().BeTrue();
         var backupJson = File.ReadAllText(backupPath);
         backupJson.Should().Be(v1Json);
@@ -145,9 +145,9 @@ public class FileStackConfigTests
 }}";
         File.WriteAllText(configPath, v2Json);
 
-        var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
+        var dataStore = new FileStackDataStore(tempDirectory.DirectoryPath);
 
-        var expectedStack = new Model.Stack(
+        var expectedStack = new StackDataItem(
             stackName,
             remoteUri,
             sourceBranch,
@@ -157,7 +157,7 @@ public class FileStackConfigTests
             ]);
 
         // Act
-        var stackData = fileStackConfig.Load();
+        var stackData = dataStore.Load();
 
         // Assert
         stackData.Should().BeEquivalentTo(new StackData([expectedStack]));
@@ -189,7 +189,7 @@ public class FileStackConfigTests
 ]";
         File.WriteAllText(configPath, v1Json);
 
-        var stack = new Model.Stack(
+        var stack = new StackDataItem(
             stackName,
             remoteUri,
             sourceBranch,
@@ -198,10 +198,10 @@ public class FileStackConfigTests
                 new(branch3, [])
             ]);
 
-        var fileStackConfig = new FileStackConfig(tempDirectory.DirectoryPath);
+        var dataStore = new FileStackDataStore(tempDirectory.DirectoryPath);
 
         // Act
-        fileStackConfig.Save(new StackData([stack]));
+        dataStore.Save(new StackData([stack]));
 
         // Assert
         var savedJson = File.ReadAllText(configPath);
@@ -238,7 +238,7 @@ public class FileStackConfigTests
         normalizedSavedJson.Should().Be(normalizedExpectedJson);
 
         // Original backup should be in V1 format
-        var backupPath = fileStackConfig.GetV1ConfigBackupFilePath();
+        var backupPath = dataStore.GetV1ConfigBackupFilePath();
         File.Exists(backupPath).Should().BeTrue();
         var backupJson = File.ReadAllText(backupPath);
         backupJson.Should().Be(v1Json);

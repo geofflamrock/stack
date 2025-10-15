@@ -3,7 +3,7 @@ using Stack.Commands;
 
 namespace Stack.Model;
 
-public record Stack(string Name, string RemoteUri, string SourceBranch, List<Branch> Branches)
+public record Stack(string Name, string SourceBranch, List<Branch> Branches)
 {
     public List<Branch> GetAllBranches()
     {

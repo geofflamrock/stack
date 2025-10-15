@@ -50,7 +50,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack2", sourceBranch, [])
         });
     }
 
@@ -90,8 +90,8 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, []),
+            new("Stack2", sourceBranch, [])
         });
     }
 
@@ -130,7 +130,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack2", sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -230,7 +230,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack2", sourceBranch, [])
         });
         gitClient.Received(1).DeleteLocalBranch(branchToCleanup);
         gitClient.DidNotReceive().DeleteLocalBranch(branchToKeep);
@@ -306,7 +306,7 @@ public class DeleteStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack2", sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmDeleteStack, Arg.Any<CancellationToken>());

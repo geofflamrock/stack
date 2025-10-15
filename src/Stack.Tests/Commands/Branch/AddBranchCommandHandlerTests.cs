@@ -54,8 +54,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
+            new("Stack2", sourceBranch, [])
         });
     }
 
@@ -96,8 +96,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
+            new("Stack2", sourceBranch, [])
         });
     }
 
@@ -137,7 +137,7 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])])
+            new("Stack1", sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])])
         });
     }
 
@@ -212,8 +212,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
+            new("Stack2", sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -327,8 +327,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [new Model.Branch(anotherBranch, [new Model.Branch(branchToAdd, [])])]),
+            new("Stack2", sourceBranch, [])
         });
         inputProvider.ReceivedCalls().Should().BeEmpty();
     }
@@ -372,8 +372,8 @@ public class AddBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [new Model.Branch(firstBranch, [new Model.Branch(childBranch, []), new Model.Branch(branchToAdd, [])])]),
+            new("Stack2", sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectParentBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());

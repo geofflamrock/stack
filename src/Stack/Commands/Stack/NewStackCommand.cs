@@ -94,7 +94,7 @@ public class NewStackCommandHandler(
         var sourceBranch = await inputProvider.Select(logger, Questions.SelectSourceBranch, inputs.SourceBranch, branches, cancellationToken);
 
         var remoteUri = gitClient.GetRemoteUri();
-        var stack = new Model.Stack(name, remoteUri, sourceBranch, []);
+        var stack = new Model.Stack(name, sourceBranch, []);
         string? branchName = null;
         BranchAction? branchAction = null;
 

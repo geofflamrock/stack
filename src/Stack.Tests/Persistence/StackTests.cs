@@ -21,7 +21,6 @@ public class StackTests
         //     - G
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [
@@ -60,7 +59,6 @@ public class StackTests
         //   - C
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", []),
@@ -91,7 +89,6 @@ public class StackTests
         //   - B
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [
@@ -122,7 +119,6 @@ public class StackTests
         //     - D
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", []),
@@ -163,7 +159,6 @@ public class StackTests
         //     - E
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", []),
@@ -207,7 +202,6 @@ public class StackTests
         // - E
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [
@@ -248,7 +242,6 @@ public class StackTests
         // Arrange
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [])
@@ -268,7 +261,6 @@ public class StackTests
         // Arrange
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [
@@ -293,7 +285,6 @@ public class StackTests
         // - C
         var stack = new Model.Stack(
             "TestStack",
-            Some.HttpsUri().ToString(),
             "main",
             [
                 new Model.Branch("A", [

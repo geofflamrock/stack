@@ -51,8 +51,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new Model.Stack("Stack1", stackRepository.RemoteUri, sourceBranch, []),
-            new Model.Stack("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new Model.Stack("Stack1", sourceBranch, []),
+            new Model.Stack("Stack2", sourceBranch, [])
         });
     }
 
@@ -91,8 +91,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, []),
+            new("Stack2", sourceBranch, [])
         });
     }
 
@@ -163,8 +163,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, []),
+            new("Stack2", sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -235,7 +235,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.SelectStack, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
@@ -275,8 +275,8 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, []),
-            new("Stack2", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, []),
+            new("Stack2", sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Confirm(Questions.ConfirmRemoveBranch, Arg.Any<CancellationToken>());
     }
@@ -316,7 +316,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(childBranch, [])])
+            new("Stack1", sourceBranch, [new Model.Branch(childBranch, [])])
         });
     }
 
@@ -355,7 +355,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
     }
 
@@ -392,7 +392,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
@@ -431,7 +431,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(childBranch, [])])
+            new("Stack1", sourceBranch, [new Model.Branch(childBranch, [])])
         });
 
         await inputProvider.DidNotReceive().Select(Questions.RemoveBranchChildAction, Arg.Any<RemoveBranchChildAction[]>(), Arg.Any<CancellationToken>(), Arg.Any<Func<RemoveBranchChildAction, string>>());
@@ -469,7 +469,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
 
         // Should not ask for child action when branch has no children
@@ -508,7 +508,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
 
         // Should not ask for child action when explicitly provided, even if branch has no children
@@ -547,7 +547,7 @@ public class RemoveBranchCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
 
         // Should not ask for child action when explicitly provided, even if branch has no children
