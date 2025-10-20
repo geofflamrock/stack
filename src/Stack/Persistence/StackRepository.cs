@@ -55,11 +55,15 @@ public class StackRepository : IStackRepository
     public void RemoveStack(Model.Stack stack)
     {
         var remoteUri = GetRemoteUri();
-        var stackToRemove = stackData.Value.Stacks.FirstOrDefault(s => s.Name == stack.Name && s.RemoteUri == remoteUri);
+        var stackToRemove = stackData.Value.Stacks.FirstOrDefault(s =>
+            s.Name == stack.Name &&
+            s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase));
+
         if (stackToRemove == null)
         {
             throw new InvalidOperationException($"Stack '{stack.Name}' does not exist in the current repository.");
         }
+
         stackData.Value.Stacks.Remove(stackToRemove);
     }
 

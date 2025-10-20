@@ -224,6 +224,34 @@ public class StackRepositoryTests
     }
 
     [Fact]
+    public void RemoveStack_RemoteUriComparisonIsCaseInsensitive()
+    {
+        // Arrange
+        var remoteUri = Some.HttpsUri().ToString();
+        var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
+        var stack2 = new StackDataItem("Stack2", remoteUri.ToUpper(), "main", []);
+
+        var dataStore = new MockStackDataStore(new StackData([stack1, stack2]));
+
+        var gitClient = Substitute.For<IGitClient>();
+        gitClient.GetRemoteUri().Returns(remoteUri);
+
+        var gitClientFactory = Substitute.For<IGitClientFactory>();
+        gitClientFactory.Create(Arg.Any<string>()).Returns(gitClient);
+
+        var executionContext = new CliExecutionContext { WorkingDirectory = "/repo" };
+
+        var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
+
+        // Act
+        repository.RemoveStack(new Model.Stack("Stack1", "main", []));
+        repository.SaveChanges();
+
+        // Assert
+        dataStore.Data.Stacks.Should().BeEquivalentTo([stack2]);
+    }
+
+    [Fact]
     public void AddStack_ThenRemoveStack_ResultsInOriginalState()
     {
         // Arrange
