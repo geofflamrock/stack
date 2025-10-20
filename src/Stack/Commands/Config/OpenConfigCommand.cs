@@ -9,24 +9,24 @@ namespace Stack.Commands;
 
 public class OpenConfigCommand : Command
 {
-    readonly IStackConfig stackConfig;
+    readonly IStackDataStore dataStore;
 
     public OpenConfigCommand(
-        IStackConfig stackConfig,
+        IStackDataStore dataStore,
         CliExecutionContext executionContext,
         IInputProvider inputProvider,
         IOutputProvider outputProvider,
         ILogger<OpenConfigCommand> logger)
         : base("open", "Open the configuration file in the default editor.", executionContext, inputProvider, outputProvider, logger)
     {
-        this.stackConfig = stackConfig;
+        this.dataStore = dataStore;
     }
 
     protected override async Task Execute(ParseResult parseResult, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
 
-        var configPath = stackConfig.GetConfigPath();
+        var configPath = dataStore.GetConfigPath();
 
         if (!File.Exists(configPath))
         {

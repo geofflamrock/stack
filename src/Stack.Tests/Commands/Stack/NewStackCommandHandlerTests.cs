@@ -45,7 +45,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new(stackName, stackRepository.RemoteUri, sourceBranch, [new Model.Branch(existingBranch, [])])
+            new(stackName, sourceBranch, [new Model.Branch(existingBranch, [])])
         });
         gitClient.Received().ChangeBranch(existingBranch);
     }
@@ -81,7 +81,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new(stackName, stackRepository.RemoteUri, sourceBranch, [])
+            new(stackName, sourceBranch, [])
         });
         gitClient.DidNotReceive().ChangeBranch(Arg.Any<string>());
     }
@@ -117,7 +117,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new(stackName, stackRepository.RemoteUri, sourceBranch, [])
+            new(stackName, sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Text(Questions.StackName, Arg.Any<CancellationToken>());
     }
@@ -152,7 +152,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [])
+            new("Stack1", sourceBranch, [])
         });
         await inputProvider.DidNotReceive().Select(Questions.SelectBranch, Arg.Any<string[]>(), Arg.Any<CancellationToken>());
     }
@@ -188,7 +188,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(newBranch, [])])
+            new("Stack1", sourceBranch, [new Model.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -226,7 +226,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(newBranch, [])])
+            new("Stack1", sourceBranch, [new Model.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);
@@ -266,7 +266,7 @@ public class NewStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         // Assert
         stackRepository.Stacks.Should().BeEquivalentTo(new List<Model.Stack>
         {
-            new("Stack1", stackRepository.RemoteUri, sourceBranch, [new Model.Branch(newBranch, [])])
+            new("Stack1", sourceBranch, [new Model.Branch(newBranch, [])])
         });
         gitClient.Received().CreateNewBranch(newBranch, sourceBranch);
         gitClient.Received().PushNewBranch(newBranch);

@@ -6,7 +6,6 @@ namespace Stack.Tests.Helpers;
 public class TestStackRepositoryBuilder
 {
     readonly List<Action<TestStackBuilder>> stackBuilders = [];
-    string remoteUri = Some.HttpsUri().ToString();
 
     public TestStackRepositoryBuilder WithStack(Action<TestStackBuilder> stackBuilder)
     {
@@ -14,42 +13,28 @@ public class TestStackRepositoryBuilder
         return this;
     }
 
-    public TestStackRepositoryBuilder WithRemoteUri(string uri)
-    {
-        remoteUri = uri;
-        return this;
-    }
-
     public TestStackRepository Build()
     {
-        var stackData = new StackData([.. stackBuilders.Select(builder =>
+        List<Model.Stack> stacks = [.. stackBuilders.Select(builder =>
         {
             var stackBuilder = new TestStackBuilder();
-            stackBuilder = stackBuilder.WithRemoteUri(remoteUri);
             builder(stackBuilder);
             return stackBuilder.Build();
-        })]);
+        })];
 
-        return new TestStackRepository(stackData, remoteUri);
+        return new TestStackRepository(stacks);
     }
 }
 
 public class TestStackBuilder
 {
     string? name;
-    string? remoteUri;
     string? sourceBranch;
     List<Action<TestStackBranchBuilder>> branchBuilders = [];
 
     public TestStackBuilder WithName(string name)
     {
         this.name = name;
-        return this;
-    }
-
-    public TestStackBuilder WithRemoteUri(string remoteUri)
-    {
-        this.remoteUri = remoteUri;
         return this;
     }
 
@@ -76,7 +61,7 @@ public class TestStackBuilder
             })
             .ToList();
 
-        var stack = new Model.Stack(name ?? Some.Name(), remoteUri ?? Some.HttpsUri().ToString(), sourceBranch ?? Some.BranchName(), branches);
+        var stack = new Model.Stack(name ?? Some.Name(), sourceBranch ?? Some.BranchName(), branches);
 
         return stack;
     }
@@ -113,31 +98,14 @@ public class TestStackBranchBuilder
     }
 }
 
-public class TestStackConfig(StackData initialData) : IStackConfig
-{
-    StackData stackData = initialData;
-
-    public List<Model.Stack> Stacks => stackData.Stacks;
-
-    public string GetConfigPath() => throw new NotImplementedException("TestStackConfig does not support GetConfigPath.");
-
-    public StackData Load() => stackData;
-
-    public void Save(StackData newStackData)
-    {
-        stackData = newStackData;
-    }
-}
-
 public class TestStackRepository : IStackRepository
 {
-    private readonly StackData stackData;
-    private readonly string remoteUri;
+    private readonly List<Model.Stack> stacks;
+    private readonly string remoteUri = Some.HttpsUri().ToString();
 
-    public TestStackRepository(StackData initialData, string remoteUri)
+    public TestStackRepository(List<Model.Stack> initialData)
     {
-        this.stackData = initialData;
-        this.remoteUri = remoteUri;
+        this.stacks = initialData;
     }
 
     public string RemoteUri => remoteUri;
@@ -149,19 +117,17 @@ public class TestStackRepository : IStackRepository
             return [];
         }
 
-        return stackData.Stacks
-            .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        return stacks.ToList();
     }
 
     public void AddStack(Model.Stack stack)
     {
-        stackData.Stacks.Add(stack);
+        stacks.Add(stack);
     }
 
     public void RemoveStack(Model.Stack stack)
     {
-        stackData.Stacks.Remove(stack);
+        stacks.Remove(stack);
     }
 
     public void SaveChanges()
@@ -169,5 +135,5 @@ public class TestStackRepository : IStackRepository
         // No-op for testing - changes are already in memory
     }
 
-    public List<Model.Stack> Stacks => stackData.Stacks;
+    public List<Model.Stack> Stacks => stacks;
 }

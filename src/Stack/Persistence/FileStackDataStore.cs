@@ -4,9 +4,12 @@ using Stack.Model;
 
 namespace Stack.Persistence;
 
-public record StackData(List<Model.Stack> Stacks);
+public record StackDataItem(string Name, string RemoteUri, string SourceBranch, List<StackBranchItem> Branches);
+public record StackBranchItem(string Name, List<StackBranchItem> Children);
 
-public interface IStackConfig
+public record StackData(List<StackDataItem> Stacks);
+
+public interface IStackDataStore
 {
     string GetConfigPath();
     StackData Load();
@@ -21,7 +24,7 @@ internal partial class StackConfigJsonSerializerContext : JsonSerializerContext
 {
 }
 
-public class FileStackConfig(string? configDirectory = null) : IStackConfig
+public class FileStackDataStore(string? configDirectory = null) : IStackDataStore
 {
     readonly string? configDirectory = configDirectory;
 
@@ -101,7 +104,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         }
     }
 
-    private List<Model.Stack> LoadStacksFromV2Format(string jsonString)
+    private List<StackDataItem> LoadStacksFromV2Format(string jsonString)
     {
         var stacksV2 = JsonSerializer.Deserialize(jsonString, StackConfigJsonSerializerContext.Default.StackConfigV2);
 
@@ -112,18 +115,18 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         return [.. stacksV2.Stacks.Select(MapFromV2Format)];
     }
 
-    private static StackV2 MapToV2Format(Model.Stack stack)
+    private static StackV2 MapToV2Format(StackDataItem stack)
     {
         var branchesV2 = stack.Branches.Select(MapToV2Format).ToList();
         return new StackV2(stack.Name, stack.RemoteUri, stack.SourceBranch, branchesV2);
     }
 
-    private static StackV2Branch MapToV2Format(Branch branch)
+    private static StackV2Branch MapToV2Format(StackBranchItem branch)
     {
         return new StackV2Branch(branch.Name, [.. branch.Children.Select(MapToV2Format)]);
     }
 
-    private List<Model.Stack> LoadStacksFromV1Format(string jsonString)
+    private List<StackDataItem> LoadStacksFromV1Format(string jsonString)
     {
         var stacksV1 = JsonSerializer.Deserialize(jsonString, StackConfigJsonSerializerContext.Default.ListStackV1);
         if (stacksV1 == null)
@@ -134,31 +137,26 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
         return [.. stacksV1.Select(MapFromV1Format)];
     }
 
-    private static Model.Stack MapFromV2Format(StackV2 stackV2)
+    private static StackDataItem MapFromV2Format(StackV2 stackV2)
     {
-        var branches = stackV2.Branches.Select(b => new Model.Branch(b.Name, [.. b.Children.Select(MapFromV2Format)])).ToList();
-        return new Model.Stack(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
+        var branches = stackV2.Branches.Select(b => new StackBranchItem(b.Name, [.. b.Children.Select(MapFromV2Format)])).ToList();
+        return new StackDataItem(stackV2.Name, stackV2.RemoteUri, stackV2.SourceBranch, branches);
     }
 
-    private static Model.Branch MapFromV2Format(StackV2Branch branchV2)
+    private static StackBranchItem MapFromV2Format(StackV2Branch branchV2)
     {
-        return new Model.Branch(branchV2.Name, [.. branchV2.Children.Select(MapFromV2Format)]);
+        return new StackBranchItem(branchV2.Name, [.. branchV2.Children.Select(MapFromV2Format)]);
     }
 
-    private static StackV1 MapToV1Format(Model.Stack stack)
-    {
-        return new StackV1(stack.Name, stack.RemoteUri, stack.SourceBranch, stack.AllBranchNames);
-    }
-
-    private static Model.Stack MapFromV1Format(StackV1 stackV1)
+    private static StackDataItem MapFromV1Format(StackV1 stackV1)
     {
         // In v1, the branches are a flat list, but this actually represents a tree structure
         // where each branch is the child of the previous one.
-        var childBranches = new List<Model.Branch>();
-        Model.Branch? currentParent = null;
+        var childBranches = new List<StackBranchItem>();
+        StackBranchItem? currentParent = null;
         foreach (var branch in stackV1.Branches)
         {
-            var newBranch = new Model.Branch(branch, []);
+            var newBranch = new StackBranchItem(branch, []);
             if (currentParent == null)
             {
                 childBranches.Add(newBranch);
@@ -170,7 +168,7 @@ public class FileStackConfig(string? configDirectory = null) : IStackConfig
             currentParent = newBranch;
         }
 
-        return new Model.Stack(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
+        return new StackDataItem(stackV1.Name, stackV1.RemoteUri, stackV1.SourceBranch, childBranches);
     }
 }
 
