@@ -224,12 +224,12 @@ public class StackRepositoryTests
     }
 
     [Fact]
-    public void RemoveStack_RemoteUriComparisonIsCaseInsensitive()
+    public void SaveChanges_WhenStackIsModified_SavesUpdatedData()
     {
         // Arrange
         var remoteUri = Some.HttpsUri().ToString();
         var stack1 = new StackDataItem("Stack1", remoteUri, "main", []);
-        var stack2 = new StackDataItem("Stack2", remoteUri.ToUpper(), "main", []);
+        var stack2 = new StackDataItem("Stack2", remoteUri, "main", []);
 
         var dataStore = new MockStackDataStore(new StackData([stack1, stack2]));
 
@@ -244,11 +244,16 @@ public class StackRepositoryTests
         var repository = new StackRepository(dataStore, gitClientFactory, executionContext);
 
         // Act
-        repository.RemoveStack(new Model.Stack("Stack1", "main", []));
+        var stacks = repository.GetStacks();
+        var stack1Modified = stacks.First(s => s.Name == "Stack1");
+        stack1Modified.Branches.Add(new Model.Branch("feature1", []));
         repository.SaveChanges();
 
         // Assert
-        dataStore.Data.Stacks.Should().BeEquivalentTo([stack2]);
+        dataStore.Data.Stacks.Should().BeEquivalentTo([
+            new StackDataItem("Stack1", remoteUri, "main", [new StackBranchItem("feature1", [])]),
+            stack2
+        ]);
     }
 
     [Fact]

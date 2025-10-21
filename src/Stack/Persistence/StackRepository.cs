@@ -19,7 +19,7 @@ public class StackRepository : IStackRepository
     private readonly IStackDataStore dataStore;
     private readonly IGitClientFactory gitClientFactory;
     private readonly CliExecutionContext executionContext;
-    private readonly Lazy<StackData> stackData;
+    private readonly Lazy<List<Model.Stack>> allStacks;
 
     public StackRepository(
         IStackDataStore dataStore,
@@ -29,47 +29,49 @@ public class StackRepository : IStackRepository
         this.dataStore = dataStore;
         this.gitClientFactory = gitClientFactory;
         this.executionContext = executionContext;
-        this.stackData = new Lazy<StackData>(() => dataStore.Load());
+        allStacks = new Lazy<List<Model.Stack>>(() => LoadData());
     }
 
     public List<Model.Stack> GetStacks()
     {
-        var remoteUri = GetRemoteUri();
-
-        return [.. stackData.Value.Stacks
-            .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
-            .Select(s => new Model.Stack(
-                s.Name,
-                s.SourceBranch,
-                [.. s.Branches.Select(b => MapToModelBranch(b))]))];
+        return allStacks.Value;
     }
 
     public void AddStack(Model.Stack stack)
     {
-        var remoteUri = GetRemoteUri();
-
-        stackData.Value.Stacks.Add(
-            new StackDataItem(stack.Name, remoteUri, stack.SourceBranch, [.. stack.Branches.Select(b => MapToDataBranch(b))]));
+        allStacks.Value.Add(stack);
     }
 
     public void RemoveStack(Model.Stack stack)
     {
         var remoteUri = GetRemoteUri();
-        var stackToRemove = stackData.Value.Stacks.FirstOrDefault(s =>
-            s.Name == stack.Name &&
-            s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase));
+        var stackToRemove = allStacks.Value.FirstOrDefault(s => s.Name == stack.Name);
 
         if (stackToRemove == null)
         {
             throw new InvalidOperationException($"Stack '{stack.Name}' does not exist in the current repository.");
         }
 
-        stackData.Value.Stacks.Remove(stackToRemove);
+        allStacks.Value.Remove(stackToRemove);
     }
 
     public void SaveChanges()
     {
-        dataStore.Save(stackData.Value);
+        var remoteUri = GetRemoteUri();
+        var stackData = dataStore.Load();
+        stackData.Stacks.RemoveAll(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase));
+        stackData.Stacks.AddRange(allStacks.Value.Select(s => new StackDataItem(s.Name, remoteUri, s.SourceBranch, [.. s.Branches.Select(b => MapToDataBranch(b))])));
+        dataStore.Save(stackData);
+    }
+
+    private List<Model.Stack> LoadData()
+    {
+        var remoteUri = GetRemoteUri();
+
+        var stackData = dataStore.Load();
+        return [.. stackData.Stacks
+            .Where(s => s.RemoteUri.Equals(remoteUri, StringComparison.OrdinalIgnoreCase))
+            .Select(s => new Model.Stack(s.Name, s.SourceBranch, [.. s.Branches.Select(b => MapToModelBranch(b))]))];
     }
 
     private string GetRemoteUri()
