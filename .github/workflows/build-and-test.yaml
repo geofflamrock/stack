@@ -74,7 +74,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore dependencies
         run: dotnet restore
@@ -140,7 +140,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: Publish
         run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
