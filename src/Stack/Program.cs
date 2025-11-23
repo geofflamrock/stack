@@ -19,9 +19,9 @@ await host.StartAsync().ConfigureAwait(false);
 try
 {
     var rootCommand = host.Services.GetRequiredService<StackRootCommand>();
-    var commandLineConfig = new CommandLineConfiguration(rootCommand);
+    var parseResult = rootCommand.Parse(args);
 
-    return await commandLineConfig.InvokeAsync(args);
+    return await parseResult.InvokeAsync();
 }
 finally
 {
