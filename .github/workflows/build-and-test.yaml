@@ -145,6 +145,18 @@ jobs:
       - name: Publish
         run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
 
+      - name: Test binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          ${{ github.workspace }}/publish/stack.exe --version
+        shell: pwsh
+
+      - name: Test binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x ${{ github.workspace }}/publish/stack
+          ${{ github.workspace }}/publish/stack --version
+
       - name: Copy changelog to publish folder
         run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
 
