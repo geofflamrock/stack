@@ -105,31 +105,37 @@ jobs:
             artifact-name: linux_amd64
             archive_type: tar
             os: ubuntu-latest
+            executable: stack
           - name: Linux arm64
             runtime-id: linux-arm64
             artifact-name: linux_arm64
             archive_type: tar
             os: ubuntu-22.04-arm
+            executable: stack
           - name: Windows amd64
             runtime-id: win-x64
             artifact-name: windows_amd64
             archive_type: zip
             os: windows-latest
+            executable: stack.exe
           - name: Windows arm64
             runtime-id: win-arm64
             artifact-name: windows_arm64
             archive_type: zip
             os: windows-latest
+            executable: stack.exe
           - name: macOS amd64
             runtime-id: osx-x64
             artifact-name: macos_amd64
             archive_type: tar
             os: macos-latest
+            executable: stack
           - name: macOS arm64
             runtime-id: osx-arm64
             artifact-name: macos_arm64
             archive_type: tar
             os: macos-latest
+            executable: stack
 
     name: Publish ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -145,17 +151,10 @@ jobs:
       - name: Publish
         run: dotnet publish src/Stack/Stack.csproj -c Release -r ${{ matrix.runtime-id }} -p:Version=${{ needs.version.outputs.version }} -p:DebugType=None -p:DebugSymbols=false -o ${{ github.workspace }}/publish
 
-      - name: Test binary (Windows)
-        if: runner.os == 'Windows'
+      - name: Test binary
         run: |
-          ${{ github.workspace }}/publish/stack.exe --version
-        shell: pwsh
-
-      - name: Test binary (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: |
-          chmod +x ${{ github.workspace }}/publish/stack
-          ${{ github.workspace }}/publish/stack --version
+          chmod +x ${{ github.workspace }}/publish/${{ matrix.executable }} || true
+          ${{ github.workspace }}/publish/${{ matrix.executable }} --version
 
       - name: Copy changelog to publish folder
         run: cp ${{ github.workspace }}/CHANGELOG.md ${{ github.workspace }}/publish
