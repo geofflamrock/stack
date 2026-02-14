@@ -122,7 +122,7 @@ jobs:
             runtime-id: win-arm64
             artifact-name: windows_arm64
             archive_type: zip
-            os: windows-latest
+            os: windows-11-arm
             executable: stack.exe
           - name: macOS amd64
             runtime-id: osx-x64
