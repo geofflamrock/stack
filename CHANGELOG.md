@@ -1,5 +1,18 @@
 # Changelog
 
+# v0.16.0 (2026-02-14)
+
+### 🚀 New Features
+* Upgrade to .NET 10 by @Copilot in https://github.com/geofflamrock/stack/pull/393
+* Update to System.CommandLine 2.0.0 by @geofflamrock in https://github.com/geofflamrock/stack/pull/394
+### Other changes
+* Simplify loading and saving of stacks in handlers by @geofflamrock in https://github.com/geofflamrock/stack/pull/386
+* Reorganise stack persistence and model folder structure by @geofflamrock in https://github.com/geofflamrock/stack/pull/389
+* Remove remote uri from core stack domain by @geofflamrock in https://github.com/geofflamrock/stack/pull/390
+* Fixes issue where changes to branches in stack would not be saved by @geofflamrock in https://github.com/geofflamrock/stack/pull/391
+* Verify published binaries run before archiving in CI by @Copilot in https://github.com/geofflamrock/stack/pull/398
+
+
 # v0.15.0 (2025-10-13)
 
 ### 🚀 New Features
