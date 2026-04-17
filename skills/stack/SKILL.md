@@ -1,5 +1,5 @@
 ---
-name: stack-cli
+name: stack
 description: "Use the stack CLI to manage stacked branches and pull requests. Use when: creating a new stack, adding or removing branches from a stack, moving branches within a stack, syncing a stack with the remote repository, checking stack status, or managing stacked pull requests."
 argument-hint: What would you like to do with your stack?
 ---
@@ -50,12 +50,14 @@ stack new [--name <name>] [--source-branch <branch>] [--branch <branch>]
 ```
 
 **Interactive flow** (no flags needed — stack will prompt):
+
 1. Run `stack new`
 2. Enter a unique name for the stack
 3. Select a source branch (usually `main` or `master`)
 4. Choose to: create a new branch, add an existing branch, or skip
 
 **Non-interactive example:**
+
 ```shell
 stack new --name my-feature --source-branch main --branch feature/first-step
 ```
@@ -124,6 +126,7 @@ stack sync [--stack <stack>] [--rebase | --merge] [-y] [--no-push] [--check-pull
 **Default update strategy:** Checks `stack.update.strategy` in git config, or prompts if not set.
 
 **Configure a default strategy:**
+
 ```shell
 git config stack.update.strategy rebase   # or: merge
 ```
@@ -149,6 +152,7 @@ stack status [--stack <stack>] [--all] [--check-pull-requests]
 ```
 
 Shows a tree view of the stack including:
+
 - Each branch and whether it exists locally/remotely
 - Commits ahead/behind the parent branch
 - PR status (if `--check-pull-requests` is used and `gh` CLI is available)
@@ -157,14 +161,14 @@ Shows a tree view of the stack including:
 
 ### Other Useful Commands
 
-| Command | Description |
-|---------|-------------|
-| `stack list` | List all stacks for the current repository |
-| `stack switch` | Switch to a branch in a stack |
-| `stack cleanup` | Remove branches that are no longer needed (merged/squash-merged) |
-| `stack rename` | Rename a stack |
-| `stack delete` | Delete a stack (does not delete the git branches) |
-| `stack pr create` | Create stacked pull requests via `gh` CLI |
+| Command           | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `stack list`      | List all stacks for the current repository                       |
+| `stack switch`    | Switch to a branch in a stack                                    |
+| `stack cleanup`   | Remove branches that are no longer needed (merged/squash-merged) |
+| `stack rename`    | Rename a stack                                                   |
+| `stack delete`    | Delete a stack (does not delete the git branches)                |
+| `stack pr create` | Create stacked pull requests via `gh` CLI                        |
 
 ---
 
