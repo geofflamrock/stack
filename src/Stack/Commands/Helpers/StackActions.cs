@@ -174,6 +174,10 @@ namespace Stack.Commands.Helpers
             {
                 await UpdateStackUsingRebase(stack, branchStatuses, pullRequests, cancellationToken);
             }
+            else if (strategy == UpdateStrategy.Replay)
+            {
+                await UpdateStackUsingReplay(stack, branchStatuses, pullRequests, cancellationToken);
+            }
             else
             {
                 await UpdateStackUsingMerge(stack, branchStatuses, pullRequests, cancellationToken);
@@ -500,6 +504,127 @@ namespace Stack.Commands.Helpers
                 }
             }, cancellationToken);
         }
+
+        private async Task UpdateStackUsingReplay(
+            Model.Stack stack,
+            Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
+            CancellationToken cancellationToken)
+        {
+            logger.UpdatingStackUsingReplay(stack.Name);
+
+            foreach (var branchLine in stack.GetAllBranchLines())
+            {
+                await UpdateBranchLineUsingReplay(stack.Name, stack.SourceBranch, branchLine, branchStatuses, pullRequests, cancellationToken);
+            }
+        }
+
+        private async Task UpdateBranchLineUsingReplay(
+            string stackName,
+            string sourceBranchName,
+            List<Branch> branchLine,
+            Dictionary<string, GitBranchStatus> branchStatuses,
+            Dictionary<string, GitHubPullRequest?> pullRequests,
+            CancellationToken cancellationToken)
+        {
+            logger.ReplayingStackForBranchLine(stackName, sourceBranchName, string.Join(" -> ", branchLine.Select(b => b.Name)));
+            List<BranchState> allBranchesInLine = [GetBranchState(sourceBranchName, branchStatuses, pullRequests), .. branchLine.Select(b => GetBranchState(b.Name, branchStatuses, pullRequests))];
+
+            foreach (var branch in branchLine)
+            {
+                var branchState = allBranchesInLine.First(b => b.Name == branch.Name);
+
+                if (!branchState.IsActive)
+                {
+                    logger.TraceSkippingInactiveBranch(branch.Name);
+                    continue;
+                }
+
+                string? lowestInactiveBranchToReParentFrom = null;
+                var branchesToReplayOnto = new List<BranchState>();
+
+                foreach (var branchToReplayOnto in allBranchesInLine)
+                {
+                    if (branchToReplayOnto.Name == branch.Name)
+                    {
+                        break;
+                    }
+
+                    if (branchToReplayOnto.IsActive)
+                    {
+                        branchesToReplayOnto.Add(branchToReplayOnto);
+                    }
+                    else if (lowestInactiveBranchToReParentFrom is null)
+                    {
+                        lowestInactiveBranchToReParentFrom = branchToReplayOnto.Name;
+                    }
+                }
+
+                foreach (var branchToReplayOnto in branchesToReplayOnto)
+                {
+                    BranchState? lowestInactiveBranchToReParentFromDetail = lowestInactiveBranchToReParentFrom is not null
+                        ? allBranchesInLine.First(b => b.Name == lowestInactiveBranchToReParentFrom)
+                        : null;
+                    var couldReplayOntoParent = lowestInactiveBranchToReParentFromDetail is { Exists: true };
+                    var parentCommitToReplayFrom = couldReplayOntoParent ? GetCommitShaToReParentFrom(branch.Name, lowestInactiveBranchToReParentFrom!, branchToReplayOnto.Name) : null;
+
+                    if (parentCommitToReplayFrom is not null)
+                    {
+                        await ReplayOntoNewParent(branch.Name, branchToReplayOnto.Name, parentCommitToReplayFrom, cancellationToken);
+                    }
+                    else
+                    {
+                        await ReplayFromSourceBranch(branch.Name, branchToReplayOnto.Name, branchStatuses, cancellationToken);
+                    }
+                }
+            }
+        }
+
+        private async Task ReplayFromSourceBranch(string branch, string sourceBranchName, Dictionary<string, GitBranchStatus> branchStatuses, CancellationToken cancellationToken)
+        {
+            await displayProvider.DisplayStatusWithSuccess($"Replaying {branch} onto {sourceBranchName}", async ct =>
+            {
+                var gitClient = GetDefaultGitClient();
+
+                if (!branchStatuses.TryGetValue(sourceBranchName, out var sourceBranchStatus))
+                {
+                    throw new InvalidOperationException($"Could not find branch status for '{sourceBranchName}' when replaying '{branch}'.");
+                }
+
+                var upstreamSha = sourceBranchStatus.Tip.Sha;
+
+                try
+                {
+                    gitClient.ReplayFromSourceBranch(branch, sourceBranchName, upstreamSha);
+                }
+                catch (ConflictException)
+                {
+                    throw new Exception($"Conflicts detected when replaying '{branch}' onto '{sourceBranchName}'. Since git replay does not modify the working directory, conflicts cannot be resolved interactively. Please resolve the conflict manually and try again using a different update strategy.");
+                }
+            }, cancellationToken);
+        }
+
+        private async Task ReplayOntoNewParent(
+            string branch,
+            string newParentBranchName,
+            string oldParentCommitSha,
+            CancellationToken cancellationToken)
+        {
+            await displayProvider.DisplayStatusWithSuccess($"Replaying {branch} onto new parent {newParentBranchName}", async ct =>
+            {
+                var gitClient = GetDefaultGitClient();
+
+                try
+                {
+                    gitClient.ReplayOntoNewParent(branch, newParentBranchName, oldParentCommitSha);
+                }
+                catch (ConflictException)
+                {
+                    throw new Exception($"Conflicts detected when replaying '{branch}' onto new parent '{newParentBranchName}'. Since git replay does not modify the working directory, conflicts cannot be resolved interactively. Please resolve the conflict manually and try again using a different update strategy.");
+                }
+            }, cancellationToken);
+        }
+
         private readonly record struct BranchState(string Name, GitBranchStatus? BranchStatus, GitHubPullRequest? PullRequest)
         {
             public bool Exists => BranchStatus is not null;
@@ -585,4 +710,10 @@ internal static partial class LoggerExtensionMethods
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Commit {CommitSha} exists in branch {BranchToRebaseOnto}, no need to re-parent")]
     public static partial void CommitExistsInNewParent(this ILogger logger, string commitSha, string branchToRebaseOnto);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Updating stack \"{Stack}\" using replay...")]
+    public static partial void UpdatingStackUsingReplay(this ILogger logger, string stack);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Replaying stack \"{Stack}\" for branch line: {SourceBranch} --> {BranchLine}")]
+    public static partial void ReplayingStackForBranchLine(this ILogger logger, string stack, string sourceBranch, string branchLine);
 }

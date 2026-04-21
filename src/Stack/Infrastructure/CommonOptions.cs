@@ -50,6 +50,12 @@ public static class CommonOptions
         Required = false
     };
 
+    public static Option<bool?> Replay { get; } = new Option<bool?>("--replay")
+    {
+        Description = "Use replay when updating the stack. Overrides any setting in Git configuration.",
+        Required = false
+    };
+
     public static Option<bool> Confirm { get; } = new Option<bool>("--yes", "-y")
     {
         Description = "Confirm the command without prompting.",

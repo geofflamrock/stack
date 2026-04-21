@@ -24,6 +24,7 @@ public class UpdateStackCommand : Command
         Add(CommonOptions.Stack);
         Add(CommonOptions.Rebase);
         Add(CommonOptions.Merge);
+        Add(CommonOptions.Replay);
         Add(CommonOptions.CheckPullRequests);
     }
 
@@ -34,14 +35,15 @@ public class UpdateStackCommand : Command
                 parseResult.GetValue(CommonOptions.Stack),
                 parseResult.GetValue(CommonOptions.Rebase),
                 parseResult.GetValue(CommonOptions.Merge),
+                parseResult.GetValue(CommonOptions.Replay),
                 parseResult.GetValue(CommonOptions.CheckPullRequests)),
             cancellationToken);
     }
 }
 
-public record UpdateStackCommandInputs(string? Stack, bool? Rebase, bool? Merge, bool CheckPullRequests)
+public record UpdateStackCommandInputs(string? Stack, bool? Rebase, bool? Merge, bool? Replay, bool CheckPullRequests)
 {
-    public static UpdateStackCommandInputs Empty => new(null, null, null, false);
+    public static UpdateStackCommandInputs Empty => new(null, null, null, null, false);
 }
 
 public record UpdateStackCommandResponse();
@@ -63,6 +65,9 @@ public class UpdateStackCommandHandler(
         if (inputs.Rebase == true && inputs.Merge == true)
             throw new InvalidOperationException("Cannot specify both rebase and merge.");
 
+        if ((inputs.Rebase == true ? 1 : 0) + (inputs.Merge == true ? 1 : 0) + (inputs.Replay == true ? 1 : 0) > 1)
+            throw new InvalidOperationException("Cannot specify more than one of rebase, merge, or replay.");
+
         var gitClient = gitClientFactory.Create(executionContext.WorkingDirectory);
         var stacksForRemote = repository.GetStacks();
 
@@ -80,7 +85,7 @@ public class UpdateStackCommandHandler(
             throw new InvalidOperationException($"Stack '{inputs.Stack}' not found.");
 
         var updateStrategy = await StackHelpers.GetUpdateStrategy(
-            inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
+            inputs.Replay == true ? UpdateStrategy.Replay : inputs.Merge == true ? UpdateStrategy.Merge : inputs.Rebase == true ? UpdateStrategy.Rebase : null,
             gitClient, inputProvider, logger, cancellationToken);
 
         await displayProvider.DisplayStatus("Updating stack...", async (ct) =>

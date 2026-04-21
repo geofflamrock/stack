@@ -553,7 +553,7 @@ public static class StackHelpers
 
         var strategy = await inputProvider.Select(
             Questions.SelectUpdateStrategy,
-            [UpdateStrategy.Merge, UpdateStrategy.Rebase],
+            [UpdateStrategy.Merge, UpdateStrategy.Rebase, UpdateStrategy.Replay],
             cancellationToken);
 
         logger.Answer(Questions.SelectUpdateStrategy, strategy);
@@ -655,7 +655,8 @@ public enum MergeConflictAction
 public enum UpdateStrategy
 {
     Merge,
-    Rebase
+    Rebase,
+    Replay
 }
 
 internal static partial class LoggerExtensionMethods
