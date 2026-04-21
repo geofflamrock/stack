@@ -298,7 +298,7 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
                 throw new ConflictException();
             }
 
-            throw new ConflictException();
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
 
         UpdateRefsFromReplayOutput(branchName, output);
@@ -314,7 +314,7 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
                 throw new ConflictException();
             }
 
-            throw new ConflictException();
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
 
         UpdateRefsFromReplayOutput(branchName, output);
