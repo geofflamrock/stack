@@ -248,6 +248,44 @@ public static class StackHelpers
         }
     }
 
+    public static List<BranchDetail> GetBranchesForDisplay(List<BranchDetail> branches)
+    {
+        var activeBranches = new List<BranchDetail>();
+        var inactiveBranches = new List<BranchDetail>();
+
+        foreach (var branch in branches)
+        {
+            if (branch.IsActive)
+            {
+                var childActive = GetBranchesForDisplay(branch.Children);
+                var inactiveFromChildren = new List<BranchDetail>();
+                // Separate the inactive ones that were promoted to the end
+                var splitIndex = childActive.FindLastIndex(b => b.IsActive) + 1;
+                if (splitIndex < childActive.Count)
+                {
+                    inactiveFromChildren.AddRange(childActive.Skip(splitIndex));
+                    childActive = childActive.Take(splitIndex).ToList();
+                }
+
+                activeBranches.Add(branch with { Children = childActive });
+                inactiveBranches.AddRange(inactiveFromChildren);
+            }
+            else
+            {
+                var childBranches = GetBranchesForDisplay(branch.Children);
+                var splitIndex = childBranches.FindLastIndex(b => b.IsActive) + 1;
+                var childActive = childBranches.Take(splitIndex).ToList();
+                var childInactive = childBranches.Skip(splitIndex).ToList();
+
+                activeBranches.AddRange(childActive);
+                inactiveBranches.Add(branch with { Children = [] });
+                inactiveBranches.AddRange(childInactive);
+            }
+        }
+
+        return [.. activeBranches, .. inactiveBranches];
+    }
+
     public static async Task OutputStackStatus(
         StackStatus status,
         IOutputProvider outputProvider,
@@ -257,7 +295,7 @@ public static class StackHelpers
         var header = GetBranchStatusOutput(status.SourceBranch);
         var items = new List<TreeItem<string>>();
 
-        foreach (var branch in status.Branches)
+        foreach (var branch in GetBranchesForDisplay(status.Branches))
         {
             items.Add(GetBranchAndPullRequestStatusOutput(branch, getBranchPullRequestDisplay));
         }

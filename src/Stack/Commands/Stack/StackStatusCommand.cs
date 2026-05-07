@@ -142,7 +142,7 @@ public class StackStatusCommand : CommandWithOutput<StackStatusCommandResponse>
         return new StackStatusCommandJsonOutput(
             stack.Name,
             MapBranch(stack.SourceBranch),
-            [.. stack.Branches.Select(MapBranchDetail)]
+            [.. StackHelpers.GetBranchesForDisplay(stack.Branches).Select(MapBranchDetail)]
         );
     }
 
