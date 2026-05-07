@@ -301,7 +301,7 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
             throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
 
-        UpdateRefsFromReplayOutput(branchName, output);
+        // UpdateRefsFromReplayOutput(branchName, output);
     }
 
     public void ReplayOntoNewParent(string branchName, string newParentBranchName, string oldParentCommitSha)
@@ -317,7 +317,7 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
             throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
 
-        UpdateRefsFromReplayOutput(branchName, output);
+        // UpdateRefsFromReplayOutput(branchName, output);
     }
 
     private void UpdateRefsFromReplayOutput(string branchName, string replayOutput)
