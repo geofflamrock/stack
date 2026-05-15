@@ -300,8 +300,6 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
 
             throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
-
-        // UpdateRefsFromReplayOutput(branchName, output);
     }
 
     public void ReplayOntoNewParent(string branchName, string newParentBranchName, string oldParentCommitSha)
@@ -316,26 +314,6 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
 
             throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
         });
-
-        // UpdateRefsFromReplayOutput(branchName, output);
-    }
-
-    private void UpdateRefsFromReplayOutput(string branchName, string replayOutput)
-    {
-        var lines = replayOutput.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var line in lines)
-        {
-            var parts = line.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 3 && parts[0] == "update")
-            {
-                var refName = parts[1];
-                var newSha = parts[2];
-                ExecuteGitCommand($"update-ref {refName} {newSha}");
-                return;
-            }
-        }
-
-        throw new Exception($"Could not parse ref update from git replay output for branch '{branchName}'. Output: {replayOutput}");
     }
 
     public void AbortMerge()
