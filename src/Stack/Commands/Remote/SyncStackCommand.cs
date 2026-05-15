@@ -81,9 +81,6 @@ public class SyncStackCommandHandler(
     {
         await Task.CompletedTask;
 
-        if (inputs.Rebase == true && inputs.Merge == true)
-            throw new InvalidOperationException("Cannot specify both rebase and merge.");
-
         if ((inputs.Rebase == true ? 1 : 0) + (inputs.Merge == true ? 1 : 0) + (inputs.Replay == true ? 1 : 0) > 1)
             throw new InvalidOperationException("Cannot specify more than one of rebase, merge, or replay.");
 
@@ -145,7 +142,7 @@ public class SyncStackCommandHandler(
             await stackActions.UpdateStack(stack, updateStrategy, ct, inputs.CheckPullRequests);
         }, cancellationToken);
 
-        var forceWithLease = updateStrategy == UpdateStrategy.Rebase;
+        var forceWithLease = updateStrategy == UpdateStrategy.Rebase || updateStrategy == UpdateStrategy.Replay;
 
         if (!inputs.NoPush)
         {
