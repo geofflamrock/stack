@@ -567,14 +567,21 @@ namespace Stack.Commands.Helpers
                         : null;
                     var couldReplayOntoParent = lowestInactiveBranchToReParentFromDetail is { Exists: true };
                     var parentCommitToReplayFrom = couldReplayOntoParent ? GetCommitShaToReParentFrom(branch.Name, lowestInactiveBranchToReParentFrom!, branchToReplayOnto.Name) : null;
+                    var isCurrentBranch = branchState.BranchStatus?.IsCurrentBranch == true;
 
                     if (parentCommitToReplayFrom is not null)
                     {
-                        await ReplayOntoNewParent(branch.Name, branchToReplayOnto.Name, parentCommitToReplayFrom, cancellationToken);
+                        if (isCurrentBranch)
+                            await RebaseOntoNewParent(branch.Name, branchToReplayOnto.Name, parentCommitToReplayFrom, branchStatuses, cancellationToken);
+                        else
+                            await ReplayOntoNewParent(branch.Name, branchToReplayOnto.Name, parentCommitToReplayFrom, cancellationToken);
                     }
                     else
                     {
-                        await ReplayFromSourceBranch(branch.Name, branchToReplayOnto.Name, branchStatuses, cancellationToken);
+                        if (isCurrentBranch)
+                            await RebaseFromSourceBranch(branch.Name, branchToReplayOnto.Name, branchStatuses, cancellationToken);
+                        else
+                            await ReplayFromSourceBranch(branch.Name, branchToReplayOnto.Name, branchStatuses, cancellationToken);
                     }
                 }
             }
