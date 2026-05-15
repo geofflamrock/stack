@@ -631,7 +631,7 @@ public class SyncStackCommandHandlerTests(ITestOutputHelper testOutputHelper)
         await handler
             .Invoking(h => h.Handle(new SyncStackCommandInputs(null, 5, true, true, null, false, false, false), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Cannot specify both rebase and merge.");
+            .WithMessage("Cannot specify more than one of rebase, merge, or replay.");
     }
 
     [Fact]
