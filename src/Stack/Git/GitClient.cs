@@ -50,6 +50,8 @@ public interface IGitClient
     void MergeFromLocalSourceBranch(string sourceBranchName);
     void RebaseFromLocalSourceBranch(string sourceBranchName);
     void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName);
+    void ReplayFromSourceBranch(string branchName, string sourceBranchName, string upstreamSha);
+    void ReplayOntoNewParent(string branchName, string newParentBranchName, string oldParentCommitSha);
     void AbortMerge();
     void AbortRebase();
     void ContinueRebase();
@@ -275,6 +277,34 @@ public class GitClient(ILogger<GitClient> logger, string workingDirectory) : IGi
     public void RebaseOntoNewParent(string newParentBranchName, string oldParentBranchName)
     {
         ExecuteGitCommand($"rebase --onto {newParentBranchName} {oldParentBranchName} --update-refs", false, (info, result) =>
+        {
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ConflictException();
+            }
+
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
+        });
+    }
+
+    public void ReplayFromSourceBranch(string branchName, string sourceBranchName, string upstreamSha)
+    {
+        var output = ExecuteGitCommandAndReturnOutput($"replay --onto {sourceBranchName} {upstreamSha}..{branchName}", true, (info, result) =>
+        {
+            if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
+                result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ConflictException();
+            }
+
+            throw new ProcessException(result.StandardError, info.FileName, info.Arguments, result.ExitCode);
+        });
+    }
+
+    public void ReplayOntoNewParent(string branchName, string newParentBranchName, string oldParentCommitSha)
+    {
+        var output = ExecuteGitCommandAndReturnOutput($"replay --onto {newParentBranchName} {oldParentCommitSha}..{branchName}", true, (info, result) =>
         {
             if (result.StandardOutput.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
                 result.StandardError.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase))
